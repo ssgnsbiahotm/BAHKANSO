@@ -7,7 +7,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+dist/
 dist-ssr
 *.local
 
@@ -21,3 +21,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/isolated/supabase/.temp/
+supabase/isolated/supabase/.branches/

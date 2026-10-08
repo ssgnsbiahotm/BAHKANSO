@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Mail, ArrowRight, Eye, EyeOff, ArrowLeft, Check, User, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, ArrowLeft, Check } from 'lucide-react';
 import { useToast } from '@/lib/Toast';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
@@ -10,11 +10,11 @@ interface LoginPageProps {
   onBack: () => void;
 }
 
-type Mode = 'login' | 'signup' | 'forgot';
+type Mode = 'login' | 'forgot';
 
 export function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const toast = useToast();
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   const { siteContent, farm } = useData();
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
   const loginContent = (siteContent.login?.value as Record<string, unknown>) || {};
@@ -22,8 +22,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -40,19 +38,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       newErrors.email = 'Format d\'email invalide';
     }
 
-    if (mode === 'signup') {
-      if (!name.trim()) newErrors.name = 'Nom requis';
-      if (!password) {
-        newErrors.password = 'Mot de passe requis';
-      } else if (password.length < 8) {
-        newErrors.password = 'Le mot de passe doit faire au moins 8 caractères';
-      } else if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
-        newErrors.password = 'Le mot de passe doit contenir majuscules, minuscules et chiffres';
-      }
-      if (password !== confirmPassword) {
-        newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-      }
-    } else if (mode === 'login') {
+    if (mode === 'login') {
       if (!password) newErrors.password = 'Mot de passe requis';
     }
 
@@ -73,21 +59,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       } else {
         toast.show('Connexion réussie');
         onLogin();
-      }
-    } else if (mode === 'signup') {
-      const { error } = await signUp(email, password, name.trim());
-      setLoading(false);
-      if (error) {
-        if (error.includes('already')) {
-          toast.show('Un compte existe déjà avec cet email', 'error');
-        } else {
-          toast.show('Erreur: ' + error, 'error');
-        }
-      } else {
-        toast.show('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
-        setMode('login');
-        setPassword('');
-        setConfirmPassword('');
       }
     } else if (mode === 'forgot') {
       const { error } = await resetPassword(email);
@@ -154,30 +125,18 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
           </button>
 
           <h2 className="text-2xl font-bold text-slate-900 mb-2">
-            {mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Créer un compte' : 'Mot de passe oublié'}
+            {mode === 'login' ? 'Connexion' : 'Mot de passe oublié'}
           </h2>
           <p className="text-sm text-slate-500 mb-8">
-            {mode === 'login' ? 'Accédez à votre espace de pilotage' : mode === 'signup' ? 'Rejoignez la plateforme Bahkanso' : 'Entrez votre email pour recevoir un lien de réinitialisation'}
+            {mode === 'login' ? 'Accédez à votre espace de pilotage' : 'Entrez votre email pour recevoir un lien de réinitialisation'}
           </p>
+          {mode === 'login' && (
+            <p className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              L’accès à Bahkanso est administré. Contactez l’administrateur pour recevoir une invitation.
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">Nom complet</label>
-                <div className="relative">
-                  <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="Jean Kouassi"
-                    className={`w-full pl-10 pr-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 ${errors.name ? 'border-red-300' : 'border-slate-200 focus:border-green-500'}`}
-                  />
-                </div>
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
-              </div>
-            )}
-
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Adresse email</label>
               <div className="relative">
@@ -217,23 +176,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
               </div>
             )}
 
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">Confirmer le mot de passe</label>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 ${errors.confirmPassword ? 'border-red-300' : 'border-slate-200 focus:border-green-500'}`}
-                  />
-                </div>
-                {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>}
-              </div>
-            )}
-
             {mode === 'login' && (
               <div className="flex items-center justify-between text-xs">
                 <label className="flex items-center gap-2 text-slate-500">
@@ -246,13 +188,6 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
               </div>
             )}
 
-            {mode === 'signup' && (
-              <div className="flex items-start gap-2 text-xs text-slate-500">
-                <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-slate-400" />
-                <span>Le mot de passe doit contenir au moins 8 caractères avec majuscules, minuscules et chiffres.</span>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
@@ -262,19 +197,13 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  {mode === 'login' ? 'Se connecter' : mode === 'signup' ? 'Créer mon compte' : 'Envoyer le lien'} <ArrowRight size={18} />
+                  {mode === 'login' ? 'Se connecter' : 'Envoyer le lien'} <ArrowRight size={18} />
                 </>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm text-slate-500">
-            {mode === 'login' && (
-              <>Pas encore de compte ? <button onClick={() => { setMode('signup'); setErrors({}); }} className="text-green-600 font-medium hover:underline">S'inscrire</button></>
-            )}
-            {mode === 'signup' && (
-              <>Déjà inscrit ? <button onClick={() => { setMode('login'); setErrors({}); }} className="text-green-600 font-medium hover:underline">Se connecter</button></>
-            )}
             {mode === 'forgot' && (
               <>Retour à la <button onClick={() => { setMode('login'); setErrors({}); }} className="text-green-600 font-medium hover:underline">connexion</button></>
             )}

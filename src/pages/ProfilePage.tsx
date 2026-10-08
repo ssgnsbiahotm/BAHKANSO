@@ -3,7 +3,6 @@ import { User, Mail, Phone, Lock, LogOut, Save, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/lib/Toast';
 import { supabase } from '@/lib/supabase';
-import { logAudit } from '@/lib/types';
 import { ROLE_LABELS } from '@/lib/constants';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -34,8 +33,11 @@ export function ProfilePage() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser.name, 'UPDATE', 'app_users', appUser.id, 'Profil modifié');
-      await refreshAppUser();
+      const revalidation = await refreshAppUser();
+      if (revalidation.error) {
+        toast.show('Profil enregistré, mais la revalidation de l’habilitation a échoué', 'warning');
+        return;
+      }
       toast.show('Profil mis à jour avec succès');
     }
   };

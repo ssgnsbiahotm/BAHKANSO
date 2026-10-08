@@ -1,8 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useLayoutEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
+import { canReadFundings, createRequestEpoch, loadFundingRowsForAccess } from './access';
 import type {
-  Farm, AppUser, Funder, Funding, BankAccount, CashAccount, Transaction,
+  Farm, AppUser, Funder, FundingSummary, BankAccount, CashAccount, Transaction,
   Supplier, Expense, Document, Site, Plot, Campaign, CropOperation, Harvest,
   Animal, AnimalLot, AnimalEvent, Project, ProjectStep, InventoryItem,
   InventoryMovement, InventoryCount, Budget, Alert, Notification, AuditLog,
@@ -13,7 +15,7 @@ interface DataContextType {
   farm: Farm | null;
   users: AppUser[];
   funders: Funder[];
-  fundings: Funding[];
+  fundings: FundingSummary[];
   bankAccounts: BankAccount[];
   cashAccounts: CashAccount[];
   transactions: Transaction[];
@@ -53,139 +55,99 @@ export function useData() {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const { authUser } = useAuth();
-  const [farm, setFarm] = useState<Farm | null>(null);
-  const [users, setUsers] = useState<AppUser[]>([]);
-  const [funders, setFunders] = useState<Funder[]>([]);
-  const [fundings, setFundings] = useState<Funding[]>([]);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [cashAccounts, setCashAccounts] = useState<CashAccount[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [sites, setSites] = useState<Site[]>([]);
-  const [plots, setPlots] = useState<Plot[]>([]);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [cropOperations, setCropOperations] = useState<CropOperation[]>([]);
-  const [harvests, setHarvests] = useState<Harvest[]>([]);
-  const [animals, setAnimals] = useState<Animal[]>([]);
-  const [animalLots, setAnimalLots] = useState<AnimalLot[]>([]);
-  const [animalEvents, setAnimalEvents] = useState<AnimalEvent[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectSteps, setProjectSteps] = useState<ProjectStep[]>([]);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>([]);
-  const [inventoryCounts, setInventoryCounts] = useState<InventoryCount[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [siteContent, setSiteContent] = useState<Record<string, SiteContent>>({});
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { accessState } = useAuth();
+  const requestEpoch = useRef(createRequestEpoch());
+  const mayReadFundings = canReadFundings(accessState);
+  const [fundings, setFundings] = useState<FundingSummary[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadAll = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [
-        farmRes, usersRes, fundersRes, fundingsRes, bankRes, cashRes,
-        txnRes, suppliersRes, expensesRes, docsRes, sitesRes, plotsRes,
-        campaignsRes, cropOpsRes, harvestsRes, animalsRes, lotsRes,
-        animalEventsRes, projectsRes, stepsRes, invItemsRes, invMovRes,
-        invCountsRes, budgetsRes, alertsRes, notifRes, auditRes, siteContentRes,
-        recipesRes,
-      ] = await Promise.all([
-        supabase.from('farms').select('*').limit(1).maybeSingle(),
-        supabase.from('app_users').select('*').order('name'),
-        supabase.from('funders').select('*').order('name'),
-        supabase.from('fundings').select('*, funder:funders(*)').order('date_sent', { ascending: false }),
-        supabase.from('bank_accounts').select('*').order('name'),
-        supabase.from('cash_accounts').select('*').order('name'),
-        supabase.from('transactions').select('*').order('transaction_date', { ascending: false }),
-        supabase.from('suppliers').select('*').order('name'),
-        supabase.from('expenses').select('*, supplier:suppliers(*), funder:funders(*)').order('date', { ascending: false }),
-        supabase.from('documents').select('*').order('upload_date', { ascending: false }),
-        supabase.from('sites').select('*').order('name'),
-        supabase.from('plots').select('*').order('name'),
-        supabase.from('campaigns').select('*, plot:plots(*)').order('year', { ascending: false }),
-        supabase.from('crop_operations').select('*').order('date', { ascending: false }),
-        supabase.from('harvests').select('*').order('date', { ascending: false }),
-        supabase.from('animals').select('*').order('identifier'),
-        supabase.from('animal_lots').select('*').order('identifier'),
-        supabase.from('animal_events').select('*').order('date', { ascending: false }),
-        supabase.from('projects').select('*').order('name'),
-        supabase.from('project_steps').select('*').order('name'),
-        supabase.from('inventory_items').select('*').order('name'),
-        supabase.from('inventory_movements').select('*, item:inventory_items(*)').order('date', { ascending: false }),
-        supabase.from('inventory_counts').select('*, item:inventory_items(*)').order('count_date', { ascending: false }),
-        supabase.from('budgets').select('*').order('object_name'),
-        supabase.from('alerts').select('*').order('created_at', { ascending: false }),
-        supabase.from('notifications').select('*').order('created_at', { ascending: false }),
-        supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
-        supabase.from('site_content').select('*'),
-        supabase.from('recipes').select('*').order('created_at', { ascending: false }),
-      ]);
-
-      if (farmRes.error) throw farmRes.error;
-      setFarm(farmRes.data);
-      if (usersRes.error) throw usersRes.error;
-      setUsers(usersRes.data || []);
-      setFunders(fundersRes.data || []);
-      setFundings(fundingsRes.data || []);
-      setBankAccounts(bankRes.data || []);
-      setCashAccounts(cashRes.data || []);
-      setTransactions(txnRes.data || []);
-      setSuppliers(suppliersRes.data || []);
-      setExpenses(expensesRes.data || []);
-      setDocuments(docsRes.data || []);
-      setSites(sitesRes.data || []);
-      setPlots(plotsRes.data || []);
-      setCampaigns(campaignsRes.data || []);
-      setCropOperations(cropOpsRes.data || []);
-      setHarvests(harvestsRes.data || []);
-      setAnimals(animalsRes.data || []);
-      setAnimalLots(lotsRes.data || []);
-      setAnimalEvents(animalEventsRes.data || []);
-      setProjects(projectsRes.data || []);
-      setProjectSteps(stepsRes.data || []);
-      setInventoryItems(invItemsRes.data || []);
-      setInventoryMovements(invMovRes.data || []);
-      setInventoryCounts(invCountsRes.data || []);
-      setBudgets(budgetsRes.data || []);
-      setAlerts(alertsRes.data || []);
-      setNotifications(notifRes.data || []);
-      setAuditLogs(auditRes.data || []);
-      const contentMap: Record<string, SiteContent> = {};
-      for (const row of (siteContentRes.data || [])) {
-        contentMap[row.key] = row as SiteContent;
-      }
-      setSiteContent(contentMap);
-      setRecipes((recipesRes.data as Recipe[]) || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de chargement');
-    } finally {
-      setLoading(false);
-    }
+  const fetchFundings = useCallback(async () => {
+    const { data, error: queryError } = await supabase
+      .from('fundings')
+      .select('id, reference, funder_id, amount_sent, currency_sent, exchange_rate, amount_received, transfer_fees, date_sent, date_received, bank_reference, status, comment, funder:funders(name)')
+      .order('date_sent', { ascending: false });
+    if (queryError) throw queryError;
+    return (data ?? []).map(row => ({
+      id: row.id,
+      reference: row.reference,
+      funder_id: row.funder_id,
+      amount_sent: row.amount_sent,
+      currency_sent: row.currency_sent,
+      exchange_rate: row.exchange_rate,
+      amount_received: row.amount_received,
+      transfer_fees: row.transfer_fees,
+      date_sent: row.date_sent,
+      date_received: row.date_received,
+      bank_reference: row.bank_reference,
+      status: row.status,
+      comment: row.comment,
+      funder: Array.isArray(row.funder) ? row.funder[0] ?? null : row.funder ?? null,
+    }));
   }, []);
 
-  useEffect(() => {
-    if (authUser) {
-      loadAll();
-    } else {
+  const refresh = useCallback(() => {
+    void loadFundingRowsForAccess(accessState, fetchFundings, requestEpoch.current, {
+      setRows: setFundings,
+      setLoading,
+      setError,
+      onError: loadError => console.error('Error loading funding data:', loadError),
+    });
+  }, [accessState, fetchFundings]);
+
+  useLayoutEffect(() => {
+    const epoch = requestEpoch.current;
+    if (!mayReadFundings) {
+      epoch.invalidate();
+      setFundings([]);
+      setError(null);
       setLoading(false);
+      return;
     }
-  }, [authUser, loadAll]);
+
+    void loadFundingRowsForAccess(accessState, fetchFundings, epoch, {
+      setRows: setFundings,
+      setLoading,
+      setError,
+      onError: loadError => console.error('Error loading funding data:', loadError),
+    });
+    return () => epoch.invalidate();
+  }, [accessState, fetchFundings, mayReadFundings]);
 
   return (
     <DataContext.Provider value={{
-      farm, users, funders, fundings, bankAccounts, cashAccounts, transactions,
-      suppliers, expenses, documents, sites, plots, campaigns, cropOperations,
-      harvests, animals, animalLots, animalEvents, projects, projectSteps,
-      inventoryItems, inventoryMovements, inventoryCounts, budgets, alerts,
-      notifications, auditLogs, siteContent, recipes, loading, error, refresh: loadAll,
+      farm: null,
+      users: [],
+      funders: [],
+      fundings: mayReadFundings ? fundings : [],
+      bankAccounts: [],
+      cashAccounts: [],
+      transactions: [],
+      suppliers: [],
+      expenses: [],
+      documents: [],
+      sites: [],
+      plots: [],
+      campaigns: [],
+      cropOperations: [],
+      harvests: [],
+      animals: [],
+      animalLots: [],
+      animalEvents: [],
+      projects: [],
+      projectSteps: [],
+      inventoryItems: [],
+      inventoryMovements: [],
+      inventoryCounts: [],
+      budgets: [],
+      alerts: [],
+      notifications: [],
+      auditLogs: [],
+      siteContent: {},
+      recipes: [],
+      loading: mayReadFundings && loading,
+      error: mayReadFundings ? error : null,
+      refresh,
     }}>
       {children}
     </DataContext.Provider>

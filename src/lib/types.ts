@@ -54,6 +54,23 @@ export interface Funding {
   funder?: Funder | null;
 }
 
+export interface FundingSummary {
+  id: string;
+  reference: string | null;
+  funder_id: string | null;
+  amount_sent: number;
+  currency_sent: string;
+  exchange_rate: number | null;
+  amount_received: number | null;
+  transfer_fees: number | null;
+  date_sent: string;
+  date_received: string | null;
+  bank_reference: string | null;
+  status: string;
+  comment: string | null;
+  funder: Pick<Funder, 'name'> | null;
+}
+
 export interface BankAccount {
   id: string;
   name: string;
