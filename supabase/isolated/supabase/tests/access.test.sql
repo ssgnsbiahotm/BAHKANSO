@@ -134,14 +134,13 @@ SELECT is((SELECT count(*) FROM public.funders), 0::bigint, 'unknown role cannot
 RESET ROLE;
 SELECT lives_ok(
   $$INSERT INTO auth.users (
-    id, aud, role, email, confirmed_at, raw_app_meta_data, raw_user_meta_data,
+    id, aud, role, email, raw_app_meta_data, raw_user_meta_data,
     is_super_admin, created_at, updated_at
   ) VALUES (
     '40000000-0000-4000-8000-000000000006',
     'authenticated',
     'authenticated',
     'new-user@bahkanso.example.test',
-    now(),
     '{"provider":"email","providers":["email"]}',
     '{"name":"New synthetic user"}',
     false,
