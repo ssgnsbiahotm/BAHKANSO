@@ -1,0 +1,111 @@
+name: Isolated Supabase integration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Frontend and isolated Supabase
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          package-manager-cache: false
+
+      - name: Remove dotenv files from the checkout
+        run: |
+          node --input-type=module -e '
+            import { readdirSync, unlinkSync } from "node:fs";
+            for (const name of readdirSync(".")) {
+              if (name === ".env" || (name.startsWith(".env.") && name !== ".env.example")) {
+                unlinkSync(name);
+              }
+            }
+          '
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify pinned runtimes
+        run: |
+          test "$(node --version)" = "v24.21.0"
+          test "$(npx supabase --version)" = "2.120.0"
+
+      - name: Initialize diagnostic output
+        run: mkdir -p "$RUNNER_TEMP/ci-results"
+
+      - name: Run frontend unit tests
+        run: |
+          set -o pipefail
+          npm run test:unit 2>&1 | tee "$RUNNER_TEMP/ci-results/frontend-tests.log"
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build frontend outside the repository
+        env:
+          VITE_SUPABASE_URL: https://ci-placeholder.invalid
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-public-key
+        run: npm run build -- --outDir "$RUNNER_TEMP/vite-dist"
+
+      - name: Start isolated Supabase services
+        id: supabase_start
+        run: |
+          if npx supabase start \
+            --workdir supabase/isolated \
+            --exclude studio,edge-runtime,logflare,vector,postgres-meta,storage-api,imgproxy,realtime,mailpit,supavisor \
+            > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            echo "Isolated Supabase services started."
+          else
+            echo "Isolated Supabase startup failed; see the redacted job artifact."
+            exit 1
+          fi
+
+      - name: Run SQL and Auth/API integration tests
+        env:
+          BAHKANSO_RUN_LOCAL_SUPABASE: "1"
+          BAHKANSO_REQUIRE_LOCAL_SUPABASE: "1"
+          BAHKANSO_TAP_RESULTS_FILE: ${{ runner.temp }}/ci-results/access.tap
+        run: |
+          set -o pipefail
+          npm run test:integration 2>&1 | tee "$RUNNER_TEMP/ci-results/integration-tests.log"
+
+      - name: Collect redacted diagnostics
+        if: always()
+        run: node scripts/collect-ci-diagnostics.mjs
+
+      - name: Stop isolated Supabase services
+        if: always() && steps.supabase_start.outcome != 'skipped'
+        run: |
+          if npx supabase stop --workdir supabase/isolated \
+            > "$RUNNER_TEMP/supabase-stop.log" 2>&1; then
+            echo "Isolated Supabase services stopped."
+          else
+            echo "Failed to stop isolated Supabase services."
+            exit 1
+          fi
+
+      - name: Upload redacted diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: isolated-supabase-diagnostics
+          path: ${{ runner.temp }}/bahkanso-ci-diagnostics/
+          if-no-files-found: warn
+          retention-days: 7
