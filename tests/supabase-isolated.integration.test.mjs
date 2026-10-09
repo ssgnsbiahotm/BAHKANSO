@@ -1,18 +1,22 @@
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { lstatSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import test from 'node:test';
+import {
+  checkLocalTarget,
+} from './local-target-guard.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const workdir = resolve(root, 'supabase/isolated');
 const enabled = process.env.BAHKANSO_RUN_LOCAL_SUPABASE === '1';
 const required = process.env.BAHKANSO_REQUIRE_LOCAL_SUPABASE === '1';
-const expectedLocalApiUrl = 'http://127.0.0.1:56321';
 const password = 'Local-only-Test-Pass-2026!';
 let integrationTestExecuted = false;
+const linkedProjectRefPath = join(workdir, 'supabase', '.temp', 'project-ref');
+const linkedProjectCachePath = join(workdir, 'supabase', '.temp', 'linked-project.json');
 const accounts = [
   { email: 'owner-mission05@bahkanso.example.test', role: 'propriétaire', active: true },
   { email: 'admin-mission05@bahkanso.example.test', role: 'administrateur', active: true },
@@ -82,6 +86,29 @@ function localClient(url, key) {
   });
 }
 
+function pathExists(path) {
+  try {
+    lstatSync(path);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+function localTargetEvidence() {
+  const config = readFileSync(join(workdir, 'supabase', 'config.toml'), 'utf8');
+  const projectIds = [...config.matchAll(/^\s*project_id\s*=\s*"([^"]*)"\s*$/gm)];
+
+  return {
+    localProjectId: projectIds.length === 1 ? projectIds[0][1] : null,
+    linkProjectIdEnvironmentPresent: Object.hasOwn(process.env, 'SUPABASE_PROJECT_ID'),
+    workdirEnvironmentPresent: Object.hasOwn(process.env, 'SUPABASE_WORKDIR'),
+    projectRefFilePresent: pathExists(linkedProjectRefPath),
+    linkedProjectCacheFilePresent: pathExists(linkedProjectCachePath),
+  };
+}
+
 async function createSyntheticAccount(client, email) {
   const { data, error } = await client.auth.signUp({
     email,
@@ -104,16 +131,17 @@ test('candidate 010/011 et API locale respectent le parcours propriétaire en le
   skip: enabled ? false : 'requires the explicitly started isolated Supabase stack',
 }, async () => {
   integrationTestExecuted = true;
-  const status = JSON.parse(runCli([
+  const statusOutput = runCli([
     'status', '--workdir', workdir, '--output', 'json',
-  ]));
-  assert.ok(status.linked_project === null, 'isolated project must not be linked remotely');
+  ]);
+  const target = checkLocalTarget(statusOutput, localTargetEvidence());
+  assert.ok(
+    target.allowed,
+    `Refusing local bootstrap because target safety could not be proven: ${JSON.stringify(target.diagnostic)}`,
+  );
+  const status = JSON.parse(statusOutput);
   const apiUrl = status.API_URL;
   const anonKey = status.ANON_KEY;
-  assert.ok(
-    apiUrl === expectedLocalApiUrl,
-    'refusing to test unless the API URL exactly matches the local CI endpoint',
-  );
   assert.equal(new URL(apiUrl).hostname, '127.0.0.1');
   assert.equal(typeof apiUrl, 'string');
   assert.ok(typeof anonKey === 'string' && anonKey.length > 0, 'local public API key is present');

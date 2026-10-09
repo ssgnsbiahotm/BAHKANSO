@@ -29,8 +29,13 @@ L'ordre est automatisé et sans commande de reset :
 2. `supabase start --workdir supabase/isolated` démarre PostgreSQL, GoTrue,
    PostgREST et Kong. Les services Studio, Storage, Realtime, Logflare et autres
    services non requis sont exclus. Le CLI n'est jamais lié à un projet distant.
-3. Le test vérifie `linked_project: null` et l'URL exacte
-   `http://127.0.0.1:56321` avant toute préparation SQL.
+3. `status --output json` (le format de variables `-o json` du CLI 2.120.0)
+   omet les clés `linked_*` quand le projet n'est pas lié; le format distinct
+   `--output-format json` utilise `linked_project: null`. Le test vérifie le
+   contrat de sortie utilisé, les URL API/Postgres locales attendues, l'identifiant
+   de projet local, l'absence des fichiers/variables de liaison et les commandes
+   de base explicitement locales avant toute préparation SQL. Les diagnostics
+   n'affichent que des types, indicateurs de présence et correspondances booléennes.
 4. `fixture.sql` crée quatre tables représentatives et le trigger Auth synthétique;
    `auth_test_users.sql` insère cinq identités Auth SQL à UUID fixes pour pgTAP.
 5. Le même test crée séparément cinq comptes avec GoTrue via la clé anon locale.
@@ -76,8 +81,9 @@ Depuis la racine du dépôt, démarrer uniquement les services nécessaires :
 npx supabase start --workdir supabase/isolated --exclude studio,edge-runtime,logflare,vector,postgres-meta,storage-api,imgproxy,realtime,mailpit,supavisor
 ```
 
-Après démarrage, vérifier que `supabase status --workdir supabase/isolated`
-indique `linked_project: null`. Le test complet automatisé (fixture synthétique,
+Après démarrage, le garde-fou du test vérifie le format de status du CLI 2.120.0
+et refuse toute liaison ou preuve ambiguë avant le bootstrap. Le test complet
+automatisé (fixture synthétique,
 comptes Auth locaux, candidates 010/011, pgTAP et appels PostgREST) se lance
 depuis la racine avec :
 
