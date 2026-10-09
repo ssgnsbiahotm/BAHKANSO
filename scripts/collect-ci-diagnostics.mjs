@@ -41,6 +41,9 @@ async function collectDiagnostics() {
   const resultsDirectory = join(runnerTemp, 'ci-results');
   const projectName = 'bahkanso-isolated-access-test';
   const serviceNames = ['db', 'auth', 'rest', 'kong'];
+  if (process.env.BAHKANSO_COLLECT_STORAGE_DIAGNOSTICS === '1') {
+    serviceNames.push('storage');
+  }
 
   await mkdir(outputDirectory, { recursive: true });
 

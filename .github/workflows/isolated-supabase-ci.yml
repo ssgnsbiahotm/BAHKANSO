@@ -109,3 +109,96 @@ jobs:
           path: ${{ runner.temp }}/bahkanso-ci-diagnostics/
           if-no-files-found: warn
           retention-days: 7
+
+  full-schema-validation:
+    name: Full-schema candidate compatibility
+    needs: integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          package-manager-cache: false
+
+      - name: Remove dotenv files from the checkout
+        run: |
+          node --input-type=module -e '
+            import { readdirSync, unlinkSync } from "node:fs";
+            for (const name of readdirSync(".")) {
+              if (name === ".env" || (name.startsWith(".env.") && name !== ".env.example")) {
+                unlinkSync(name);
+              }
+            }
+          '
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify pinned runtimes
+        run: |
+          test "$(node --version)" = "v24.21.0"
+          test "$(npx supabase --version)" = "2.120.0"
+
+      - name: Initialize diagnostic output
+        run: mkdir -p "$RUNNER_TEMP/ci-results"
+
+      - name: Prepare isolated structural-migration workdir
+        run: node scripts/prepare-full-schema-validation.mjs "$RUNNER_TEMP/full-schema-project" >> "$GITHUB_ENV"
+
+      - name: Start full-schema Supabase services
+        id: full_schema_start
+        run: |
+          if npx supabase start \
+            --workdir "$BAHKANSO_FULL_SCHEMA_WORKDIR" \
+            --exclude studio,edge-runtime,logflare,vector,postgres-meta,imgproxy,realtime,mailpit,supavisor \
+            > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            echo "Full-schema Supabase services started."
+          else
+            echo "Full-schema Supabase startup failed; see the redacted job artifact."
+            exit 1
+          fi
+
+      - name: Run full-schema candidate and Auth/API tests
+        env:
+          BAHKANSO_RUN_FULL_SCHEMA: "1"
+          BAHKANSO_REQUIRE_FULL_SCHEMA: "1"
+          BAHKANSO_FULL_SCHEMA_WORKDIR: ${{ runner.temp }}/full-schema-project
+          BAHKANSO_FULL_SCHEMA_TAP_RESULTS_FILE: ${{ runner.temp }}/ci-results/access.tap
+        run: |
+          set -o pipefail
+          npm run test:full-schema 2>&1 | tee "$RUNNER_TEMP/ci-results/integration-tests.log"
+
+      - name: Collect redacted diagnostics
+        if: always()
+        env:
+          BAHKANSO_COLLECT_STORAGE_DIAGNOSTICS: "1"
+        run: node scripts/collect-ci-diagnostics.mjs
+
+      - name: Stop full-schema Supabase services
+        if: always() && steps.full_schema_start.outcome != 'skipped'
+        run: |
+          if npx supabase stop --workdir "$BAHKANSO_FULL_SCHEMA_WORKDIR" \
+            > "$RUNNER_TEMP/supabase-stop.log" 2>&1; then
+            echo "Full-schema Supabase services stopped."
+          else
+            echo "Failed to stop full-schema Supabase services."
+            exit 1
+          fi
+
+      - name: Upload full-schema diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: full-schema-supabase-diagnostics
+          path: ${{ runner.temp }}/bahkanso-ci-diagnostics/
+          if-no-files-found: warn
+          retention-days: 7

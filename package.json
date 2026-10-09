@@ -9,8 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",
-    "test:unit": "node --test tests/access.test.mjs tests/ci-diagnostics.test.mjs tests/local-target-guard.test.mjs",
+    "test:unit": "node --test tests/access.test.mjs tests/ci-diagnostics.test.mjs tests/full-schema-plan.test.mjs tests/local-target-guard.test.mjs",
     "test:integration": "node --test tests/supabase-isolated.integration.test.mjs",
+    "test:full-schema": "node --test tests/supabase-full-schema.integration.test.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
