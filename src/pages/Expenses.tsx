@@ -3,7 +3,8 @@ import { Plus, Eye, CheckCircle, XCircle, Ban, Receipt, TrendingDown, Clock, Tra
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit, type Expense } from '@/lib/types';
+import type { Expense } from '@/lib/types';
+import { hasPermission } from '@/lib/permissions';
 import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { EXPENSE_STATUS_COLORS, EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/lib/constants';
@@ -33,6 +34,11 @@ function emptyForm() {
 export function Expenses() {
   const { expenses, suppliers, fundings, bankAccounts, cashAccounts, projects, refresh } = useData();
   const { appUser } = useAuth();
+  const canCreate = hasPermission(appUser?.role, 'expenses', 'create');
+  const canUpdate = hasPermission(appUser?.role, 'expenses', 'update');
+  const canDelete = hasPermission(appUser?.role, 'expenses', 'delete');
+  const canValidate = hasPermission(appUser?.role, 'expenses', 'validate');
+  const isManager = appUser?.role === 'gestionnaire';
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editExpense, setEditExpense] = useState<Expense | null>(null);
@@ -112,7 +118,6 @@ export function Expenses() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'expense', editExpense.reference, `Dépense ${editExpense.reference} modifiée`);
         toast.show('Dépense modifiée');
         setModalOpen(false);
         refresh();
@@ -131,7 +136,6 @@ export function Expenses() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'CREATE', 'expense', ref, `Création de la dépense ${ref}`);
         toast.show('Dépense créée avec succès');
         setModalOpen(false);
         refresh();
@@ -145,8 +149,6 @@ export function Expenses() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      const action = status === 'validée' ? 'VALIDATE' : status === 'rejetée' ? 'REJECT' : status === 'annulée' ? 'CANCEL' : 'UPDATE';
-      await logAudit(appUser?.name || 'Système', action, 'expense', expense.reference, `Statut changé à "${status}" pour ${expense.reference}`);
       toast.show(`Dépense ${status === 'validée' ? 'validée' : status === 'rejetée' ? 'rejetée' : 'mise à jour'}`);
       refresh();
     }
@@ -158,7 +160,6 @@ export function Expenses() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'expense', confirmDelete.reference, `Dépense ${confirmDelete.reference} supprimée`);
       toast.show('Dépense supprimée');
       setConfirmDelete(null);
       setDetailExpense(null);
@@ -182,11 +183,11 @@ export function Expenses() {
       <PageHeader
         title="Dépenses"
         subtitle="Traçabilité complète des dépenses de l'exploitation"
-        actions={
+        actions={canCreate ? (
           <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
             <Plus size={18} /> Nouvelle dépense
           </button>
-        }
+        ) : undefined}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -219,7 +220,7 @@ export function Expenses() {
         onRowClick={e => setDetailExpense(e)}
         actions={(e) => (
           <div className="flex items-center gap-1">
-            {e.status === 'en attente' && (
+            {canValidate && e.status === 'en attente' && (
               <>
                 <button onClick={() => updateStatus(e, 'validée')} title="Valider" className="p-1.5 text-green-600 hover:bg-green-50 rounded">
                   <CheckCircle size={16} />
@@ -229,17 +230,21 @@ export function Expenses() {
                 </button>
               </>
             )}
-            {e.status !== 'annulée' && e.status !== 'rejetée' && (
+            {canValidate && e.status !== 'annulée' && e.status !== 'rejetée' && (
               <button onClick={() => updateStatus(e, 'annulée')} title="Annuler" className="p-1.5 text-slate-500 hover:bg-slate-100 rounded">
                 <Ban size={16} />
               </button>
             )}
-            <button onClick={() => openEdit(e)} title="Modifier" className="p-1.5 text-slate-600 hover:bg-slate-100 rounded">
-              <Pencil size={16} />
-            </button>
-            <button onClick={() => setConfirmDelete(e)} title="Supprimer" className="p-1.5 text-red-600 hover:bg-red-50 rounded">
-              <Trash2 size={16} />
-            </button>
+            {canUpdate && (!isManager || ['brouillon', 'en attente', 'rejetée'].includes(e.status)) && (
+              <button onClick={() => openEdit(e)} title="Modifier" className="p-1.5 text-slate-600 hover:bg-slate-100 rounded">
+                <Pencil size={16} />
+              </button>
+            )}
+            {canDelete && (!isManager || e.status === 'brouillon') && (
+              <button onClick={() => setConfirmDelete(e)} title="Supprimer" className="p-1.5 text-red-600 hover:bg-red-50 rounded">
+                <Trash2 size={16} />
+              </button>
+            )}
             <button onClick={() => setDetailExpense(e)} title="Voir" className="p-1.5 text-blue-600 hover:bg-blue-50 rounded">
               <Eye size={16} />
             </button>
@@ -335,9 +340,16 @@ export function Expenses() {
         footer={
           detailExpense ? (
             <>
-              <button onClick={() => setConfirmDelete(detailExpense)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-              <button onClick={() => openEdit(detailExpense)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
-              {(detailExpense.status === 'en attente' || detailExpense.status === 'brouillon') && (
+              {canDelete && (!isManager || detailExpense.status === 'brouillon') && (
+                <button onClick={() => setConfirmDelete(detailExpense)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
+              )}
+              {canUpdate && (!isManager || ['brouillon', 'en attente', 'rejetée'].includes(detailExpense.status)) && (
+                <button onClick={() => openEdit(detailExpense)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+              )}
+              {isManager && ['brouillon', 'rejetée'].includes(detailExpense.status) && (
+                <button onClick={() => { updateStatus(detailExpense, 'en attente'); setDetailExpense(null); }} className="px-4 py-2 text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600">Soumettre</button>
+              )}
+              {canValidate && detailExpense.status === 'en attente' && (
                 <>
                   <button onClick={() => { updateStatus(detailExpense, 'rejetée'); setDetailExpense(null); }} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Rejeter</button>
                   <button onClick={() => { updateStatus(detailExpense, 'validée'); setDetailExpense(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Valider</button>

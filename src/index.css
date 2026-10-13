@@ -1,22 +1,72 @@
+:root {
+  --bg-page: #eef8f1;
+  --bg-page-strong: #dff5e8;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: rgba(255, 255, 255, 0.92);
+  --panel-border: rgba(148, 163, 184, 0.2);
+  --shadow-soft: 0 14px 32px rgba(15, 23, 42, 0.08);
+  --shadow-strong: 0 18px 40px rgba(15, 23, 42, 0.12);
+  --primary: #16a34a;
+  --primary-strong: #15803d;
+  --ink: #0f172a;
+  --muted: #475569;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background-color: #f8fafc;
-    color: #334155;
+    background:
+      radial-gradient(circle at top left, rgba(34, 197, 94, 0.12), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.08), transparent 30%),
+      linear-gradient(180deg, var(--bg-page) 0%, #f8fafc 100%);
+    color: var(--ink);
+  }
+
+  #root {
+    min-height: 100vh;
   }
 }
 
 @layer components {
   .form-input {
-    @apply w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors;
+    @apply w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white/80 text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
   }
   .form-input:disabled {
     @apply bg-slate-50 text-slate-400 cursor-not-allowed;
+  }
+
+  .app-shell {
+    background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  }
+
+  .app-shell .bg-white,
+  .app-shell .bg-slate-50,
+  .app-shell .bg-slate-100 {
+    box-shadow: var(--shadow-soft);
+    border-color: var(--panel-border);
+  }
+
+  .app-shell .bg-white {
+    background: var(--panel-strong) !important;
+    backdrop-filter: blur(12px);
+  }
+
+  .app-shell .bg-slate-50 {
+    background: rgba(248, 250, 252, 0.8) !important;
+  }
+
+  .app-shell .bg-slate-100 {
+    background: rgba(241, 245, 249, 0.85) !important;
   }
 }
 

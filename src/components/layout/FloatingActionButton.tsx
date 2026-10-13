@@ -1,27 +1,34 @@
 import { useState } from 'react';
 import { Plus, Receipt, FileText, Sprout, Package, Beef, HardHat, X } from 'lucide-react';
+import { hasPermission } from '@/lib/permissions';
 
 interface FabProps {
+  role: string;
   onAction: (action: string) => void;
 }
 
 const ACTIONS = [
-  { id: 'expense', label: 'Dépense', icon: <Receipt size={18} />, color: 'bg-green-600' },
-  { id: 'document', label: 'Justificatif', icon: <FileText size={18} />, color: 'bg-blue-600' },
-  { id: 'activity', label: 'Activité', icon: <Sprout size={18} />, color: 'bg-amber-600' },
-  { id: 'stock', label: 'Stock', icon: <Package size={18} />, color: 'bg-purple-600' },
-  { id: 'animal', label: 'Animal', icon: <Beef size={18} />, color: 'bg-rose-600' },
-  { id: 'project', label: 'Projet', icon: <HardHat size={18} />, color: 'bg-cyan-600' },
-];
+  { id: 'expense', module: 'expenses', label: 'Dépense', icon: <Receipt size={18} />, color: 'bg-green-600' },
+  { id: 'document', module: 'documents', label: 'Justificatif', icon: <FileText size={18} />, color: 'bg-blue-600' },
+  { id: 'activity', module: 'agriculture', label: 'Activité', icon: <Sprout size={18} />, color: 'bg-amber-600' },
+  { id: 'stock', module: 'inventory', label: 'Stock', icon: <Package size={18} />, color: 'bg-purple-600' },
+  { id: 'animal', module: 'livestock', label: 'Animal', icon: <Beef size={18} />, color: 'bg-rose-600' },
+  { id: 'project', module: 'projects', label: 'Projet', icon: <HardHat size={18} />, color: 'bg-cyan-600' },
+] as const;
 
-export function FloatingActionButton({ onAction }: FabProps) {
+export function FloatingActionButton({ role, onAction }: FabProps) {
   const [open, setOpen] = useState(false);
+  const visibleActions = ACTIONS.filter(action =>
+    hasPermission(role, action.module, 'create'),
+  );
+
+  if (visibleActions.length === 0) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-30 lg:hidden">
       {open && (
         <div className="absolute bottom-16 right-0 space-y-2">
-          {ACTIONS.map(a => (
+          {visibleActions.map(a => (
             <button
               key={a.id}
               onClick={() => { onAction(a.id); setOpen(false); }}

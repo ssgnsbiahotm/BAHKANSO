@@ -3,7 +3,8 @@ import { HardHat, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit, type Project } from '@/lib/types';
+import type { Project } from '@/lib/types';
+import { hasPermission } from '@/lib/permissions';
 import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { PROJECT_STATUS_COLORS, PROJECT_STATUSES } from '@/lib/constants';
@@ -31,6 +32,9 @@ function emptyForm() {
 export function Projects() {
   const { projects, projectSteps, expenses, refresh } = useData();
   const { appUser } = useAuth();
+  const canCreate = hasPermission(appUser?.role, 'projects', 'create');
+  const canUpdate = hasPermission(appUser?.role, 'projects', 'update');
+  const canDelete = hasPermission(appUser?.role, 'projects', 'delete');
   const toast = useToast();
   const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState('all');
@@ -102,7 +106,6 @@ export function Projects() {
       const { error } = await supabase.from('projects').update(payload).eq('id', editProject.id);
       if (error) { toast.show('Erreur: ' + error.message, 'error'); }
       else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'project', editProject.id, `Projet "${form.name}" modifié`);
         toast.show('Projet modifié');
         setModalOpen(false);
         refresh();
@@ -111,7 +114,6 @@ export function Projects() {
       const { error } = await supabase.from('projects').insert(payload);
       if (error) { toast.show('Erreur: ' + error.message, 'error'); }
       else {
-        await logAudit(appUser?.name || 'Système', 'CREATE', 'project', null, `Projet "${form.name}" créé`);
         toast.show('Projet créé');
         setModalOpen(false);
         refresh();
@@ -125,7 +127,6 @@ export function Projects() {
     const { error } = await supabase.from('projects').delete().eq('id', confirmDelete.id);
     if (error) { toast.show('Erreur: ' + error.message, 'error'); }
     else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'project', confirmDelete.id, `Projet "${confirmDelete.name}" supprimé`);
       toast.show('Projet supprimé');
       setConfirmDelete(null);
       setDetailProject(null);
@@ -138,11 +139,11 @@ export function Projects() {
       <PageHeader
         title="Projets & Chantiers"
         subtitle="Suivi des investissements et projets de l'exploitation"
-        actions={
+        actions={canCreate ? (
           <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
             <Plus size={18} /> Nouveau projet
           </button>
-        }
+        ) : undefined}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -165,7 +166,7 @@ export function Projects() {
           icon={<HardHat size={48} />}
           title={projects.length === 0 ? "Aucun projet" : "Aucun résultat"}
           message={projects.length === 0 ? "Créez votre premier projet" : "Aucun projet dans cette catégorie"}
-          action={projects.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Créer un projet</button> : undefined}
+          action={canCreate && projects.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Créer un projet</button> : undefined}
         />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -202,8 +203,8 @@ export function Projects() {
                     {formatDate(p.start_date)} → {formatDate(p.expected_end_date)}
                   </div>
                   <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => openEdit(p)} className="p-1.5 text-slate-600 hover:bg-slate-100 rounded" title="Modifier"><Pencil size={14} /></button>
-                    <button onClick={() => setConfirmDelete(p)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Supprimer"><Trash2 size={14} /></button>
+                    {canUpdate && <button onClick={() => openEdit(p)} className="p-1.5 text-slate-600 hover:bg-slate-100 rounded" title="Modifier"><Pencil size={14} /></button>}
+                    {canDelete && <button onClick={() => setConfirmDelete(p)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Supprimer"><Trash2 size={14} /></button>}
                   </div>
                 </div>
               </div>
@@ -220,8 +221,8 @@ export function Projects() {
         footer={
           detailProject ? (
             <>
-              <button onClick={() => setConfirmDelete(detailProject)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-              <button onClick={() => openEdit(detailProject)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+              {canDelete && <button onClick={() => setConfirmDelete(detailProject)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>}
+              {canUpdate && <button onClick={() => openEdit(detailProject)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>}
             </>
           ) : undefined
         }

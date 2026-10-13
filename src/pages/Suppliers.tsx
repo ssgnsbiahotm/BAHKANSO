@@ -3,21 +3,40 @@ import { Truck, Star, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit, type Supplier } from '@/lib/types';
+import type { Supplier } from '@/lib/types';
+import { hasPermission } from '@/lib/permissions';
 import { useToast } from '@/lib/Toast';
 import { formatCurrency } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
+// Import form components
+import {
+  FormField,
+  FormInput,
+  FormSelect,
+  FormButton
+} from '@/components/ui/form';
 
 function emptyForm() {
-  return { name: '', category: '', phone: '', email: '', address: '', contact_person: '', rating: '3' };
+  return {
+    name: '',
+    category: '',
+    phone: '',
+    email: '',
+    address: '',
+    contact_person: '',
+    rating: '3'
+  };
 }
 
 export function Suppliers() {
   const { suppliers, expenses, refresh } = useData();
   const { appUser } = useAuth();
+  const canCreate = hasPermission(appUser?.role, 'suppliers', 'create');
+  const canUpdate = hasPermission(appUser?.role, 'suppliers', 'update');
+  const canDelete = hasPermission(appUser?.role, 'suppliers', 'delete');
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
@@ -81,7 +100,6 @@ export function Suppliers() {
       const { error } = await supabase.from('suppliers').update(payload).eq('id', editSupplier.id);
       if (error) { toast.show('Erreur: ' + error.message, 'error'); }
       else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'supplier', editSupplier.id, `Fournisseur "${form.name}" modifié`);
         toast.show('Fournisseur modifié');
         setModalOpen(false);
         refresh();
@@ -90,7 +108,6 @@ export function Suppliers() {
       const { error } = await supabase.from('suppliers').insert({ ...payload, total_purchases: 0 });
       if (error) { toast.show('Erreur: ' + error.message, 'error'); }
       else {
-        await logAudit(appUser?.name || 'Système', 'CREATE', 'supplier', null, `Fournisseur "${form.name}" créé`);
         toast.show('Fournisseur créé');
         setModalOpen(false);
         refresh();
@@ -104,7 +121,6 @@ export function Suppliers() {
     const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
     if (error) { toast.show('Erreur: ' + error.message, 'error'); }
     else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'supplier', confirmDelete.id, `Fournisseur "${confirmDelete.name}" supprimé`);
       toast.show('Fournisseur supprimé');
       setConfirmDelete(null);
       refresh();
@@ -116,11 +132,11 @@ export function Suppliers() {
       <PageHeader
         title="Fournisseurs"
         subtitle="Gestion des fournisseurs et historique d'achats"
-        actions={
+        actions={canCreate ? (
           <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
             <Plus size={18} /> Nouveau fournisseur
           </button>
-        }
+        ) : undefined}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
@@ -145,7 +161,7 @@ export function Suppliers() {
           icon={<Truck size={48} />}
           title={suppliers.length === 0 ? "Aucun fournisseur" : "Aucun résultat"}
           message={suppliers.length === 0 ? "Ajoutez votre premier fournisseur" : "Essayez de modifier votre recherche"}
-          action={suppliers.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Ajouter</button> : undefined}
+          action={canCreate && suppliers.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Ajouter</button> : undefined}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -177,12 +193,12 @@ export function Suppliers() {
                   <div className="flex justify-between"><span className="text-slate-500">Nb transactions</span><span className="font-medium">{supplierExpenses.length}</span></div>
                 </div>
                 <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
-                  <button onClick={() => openEdit(s)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+                  {canUpdate && <button onClick={() => openEdit(s)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
                     <Pencil size={12} /> Modifier
-                  </button>
-                  <button onClick={() => setConfirmDelete(s)} className="px-2.5 py-1.5 text-xs border border-red-200 rounded-lg hover:bg-red-50 text-red-600" title="Supprimer">
+                  </button>}
+                  {canDelete && <button onClick={() => setConfirmDelete(s)} className="px-2.5 py-1.5 text-xs border border-red-200 rounded-lg hover:bg-red-50 text-red-600" title="Supprimer">
                     <Trash2 size={12} />
-                  </button>
+                  </button>}
                 </div>
               </div>
             );
@@ -190,6 +206,7 @@ export function Suppliers() {
         </div>
       )}
 
+      {/* Create/Edit modal */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -198,46 +215,85 @@ export function Suppliers() {
         footer={
           <>
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+            <FormButton
+              variant="primary"
+              size="md"
+              isLoading={saving}
+              onClick={handleSubmit}
+            >
               {saving ? 'Enregistrement...' : editSupplier ? 'Modifier' : 'Créer'}
-            </button>
+            </FormButton>
           </>
         }
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="col-span-1 sm:col-span-2">
-            <label className="block text-xs font-medium text-slate-600 mb-1">Nom *</label>
-            <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="form-input" placeholder="AgriSupplies SARL" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Catégorie</label>
-            <input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="form-input" placeholder="Matériel agricole" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Contact</label>
-            <input type="text" value={form.contact_person} onChange={e => setForm({...form, contact_person: e.target.value})} className="form-input" placeholder="Kouadio Mensah" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Téléphone</label>
-            <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="form-input" placeholder="+225 07 00 00 00 00" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Email</label>
-            <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="form-input" placeholder="contact@agrisupplies.ci" />
-          </div>
-          <div className="col-span-1 sm:col-span-2">
-            <label className="block text-xs font-medium text-slate-600 mb-1">Adresse</label>
-            <input type="text" value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="form-input" placeholder="Bouaké, Côte d'Ivoire" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Note (0-5)</label>
-            <select value={form.rating} onChange={e => setForm({...form, rating: e.target.value})} className="form-input">
-              {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
+          <FormField label="Nom *" required error={!form.name.trim() ? 'Le nom est requis' : undefined}>
+            <FormInput
+              type="text"
+              value={form.name}
+              onChange={e => setForm({...form, name: e.target.value})}
+              placeholder="AgriSupplies SARL"
+            />
+          </FormField>
+
+          <FormField label="Catégorie">
+            <FormInput
+              type="text"
+              value={form.category}
+              onChange={e => setForm({...form, category: e.target.value})}
+              placeholder="Matériel agricole"
+            />
+          </FormField>
+
+          <FormField label="Contact">
+            <FormInput
+              type="text"
+              value={form.contact_person}
+              onChange={e => setForm({...form, contact_person: e.target.value})}
+              placeholder="Kouadio Mensah"
+            />
+          </FormField>
+
+          <FormField label="Téléphone">
+            <FormInput
+              type="tel"
+              value={form.phone}
+              onChange={e => setForm({...form, phone: e.target.value})}
+              placeholder="+225 07 00 00 00 00"
+            />
+          </FormField>
+
+          <FormField label="Email">
+            <FormInput
+              type="email"
+              value={form.email}
+              onChange={e => setForm({...form, email: e.target.value})}
+              placeholder="contact@agrisupplies.ci"
+            />
+          </FormField>
+
+          <FormField label="Adresse">
+            <FormInput
+              type="text"
+              value={form.address}
+              onChange={e => setForm({...form, address: e.target.value})}
+              placeholder="Bouaké, Côte d'Ivoire"
+            />
+          </FormField>
+
+          <FormField label="Note (0-5)" className="col-span-1 sm:col-span-2">
+            <FormSelect
+              label=""
+              options={[0, 1, 2, 3, 4, 5].map(n => ({ value: n, label: String(n) }))}
+              value={form.rating}
+              onChange={e => setForm({...form, rating: e.target.value})}
+              className="w-full"
+            />
+          </FormField>
         </div>
       </Modal>
 
+      {/* Delete confirmation */}
       <Modal
         open={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}

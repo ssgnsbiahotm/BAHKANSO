@@ -1,17 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
-import { Building2, Coins, Tags, Bell, Shield, Image as ImageIcon, Upload, Trash2 } from 'lucide-react';
+import { Building2, Coins, Tags, Bell, Shield, Image as ImageIcon, Upload, Trash2, Edit2, FileText } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
-import { logAudit } from '@/lib/types';
+import { hasPermission } from '@/lib/permissions';
 import { PageHeader } from '@/components/ui/PageHeader';
+import type { SiteContent } from '@/lib/types';
 
 export function SettingsPage() {
-  const { farm, refresh } = useData();
+  const { farm, siteContent, refresh } = useData();
   const { appUser } = useAuth();
+  const canUpdate = hasPermission(appUser?.role, 'settings', 'update');
   const toast = useToast();
-  const [tab, setTab] = useState<'farm' | 'currencies' | 'categories' | 'notifications' | 'security' | 'appearance'>('farm');
+  const [tab, setTab] = useState<'farm' | 'currencies' | 'categories' | 'notifications' | 'security' | 'appearance' | 'static'>('farm');
   const [saving, setSaving] = useState(false);
   const [farmForm, setFarmForm] = useState({
     name: farm?.name || '',
@@ -22,6 +24,14 @@ export function SettingsPage() {
   });
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
+
+  // Site content state
+  const [staticContent, setStaticContent] = useState<SiteContent[]>([]);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<any>(null);
+  const [newKey, setNewKey] = useState('');
+  const [newValue, setNewValue] = useState('');
+  const [addingNew, setAddingNew] = useState(false);
 
   useEffect(() => {
     if (farm) {
@@ -34,6 +44,19 @@ export function SettingsPage() {
       });
     }
   }, [farm]);
+
+  useEffect(() => {
+    // Load site content when it changes
+    if (siteContent && Object.keys(siteContent).length > 0) {
+      const contentArray: SiteContent[] = Object.keys(siteContent).map(key => ({
+        id: key, // Using key as id for simplicity
+        key,
+        value: siteContent[key],
+        updatedAt: new Date().toISOString(), // We don't have updated_at from the siteContent object, but we could fetch it
+      }));
+      setStaticContent(contentArray);
+    }
+  }, [siteContent]);
 
   const handleSaveFarm = async () => {
     setSaving(true);
@@ -49,12 +72,84 @@ export function SettingsPage() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'farm', farm.id, 'Paramètres de l\'exploitation modifiés');
         toast.show('Paramètres enregistrés');
         refresh();
       }
     }
     setSaving(false);
+  };
+
+  const handleSaveStaticContent = async (key: string, value: any) => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('site_content')
+        .upsert({ key, value }, { onConflict: ['key'] });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.show('Contenu enregistré');
+      refresh(); // This will refetch siteContent and update our state
+    } catch (err: any) {
+      toast.show('Erreur: ' + err.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteStaticContent = async (key: string) => {
+    if (!window.confirm(`Voulez-vous vraiment supprimer le contenu "${key}" ?`)) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('site_content')
+        .delete()
+        .eq('key', key);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.show('Contenu supprimé');
+      refresh();
+    } catch (err: any) {
+      toast.show('Erreur: ' + err.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddNewStatic = async () => {
+    if (!newKey.trim() || !newValue.trim()) {
+      toast.show('Clé et valeur requises', 'error');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('site_content')
+        .insert({ key: newKey.trim(), value: newValue.trim() });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.show('Nouveau contenu ajouté');
+      setNewKey('');
+      setNewValue('');
+      setAddingNew(false);
+      refresh();
+    } catch (err: any) {
+      toast.show('Erreur: ' + err.message, 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const tabs = [
@@ -64,6 +159,7 @@ export function SettingsPage() {
     { id: 'notifications' as const, label: 'Notifications', icon: <Bell size={18} /> },
     { id: 'security' as const, label: 'Sécurité', icon: <Shield size={18} /> },
     { id: 'appearance' as const, label: 'Apparence', icon: <ImageIcon size={18} /> },
+    { id: 'static' as const, label: 'Contenu Statique', icon: <FileText size={18} /> },
   ];
 
   return (
@@ -96,32 +192,32 @@ export function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Nom de l'exploitation</label>
-                    <input type="text" value={farmForm.name} onChange={e => setFarmForm({...farmForm, name: e.target.value})} className="form-input" />
+                    <input type="text" value={farmForm.name} onChange={e => setFarmForm({...farmForm, name: e.target.value})} className="form-input" readOnly={!canUpdate} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Localisation</label>
-                    <input type="text" value={farmForm.location} onChange={e => setFarmForm({...farmForm, location: e.target.value})} className="form-input" />
+                    <input type="text" value={farmForm.location} onChange={e => setFarmForm({...farmForm, location: e.target.value})} className="form-input" readOnly={!canUpdate} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Téléphone</label>
-                    <input type="text" value={farmForm.phone} onChange={e => setFarmForm({...farmForm, phone: e.target.value})} className="form-input" />
+                    <input type="text" value={farmForm.phone} onChange={e => setFarmForm({...farmForm, phone: e.target.value})} className="form-input" readOnly={!canUpdate} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Email</label>
-                    <input type="email" value={farmForm.email} onChange={e => setFarmForm({...farmForm, email: e.target.value})} className="form-input" />
+                    <input type="email" value={farmForm.email} onChange={e => setFarmForm({...farmForm, email: e.target.value})} className="form-input" readOnly={!canUpdate} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Devise principale</label>
-                    <select value={farmForm.currency} onChange={e => setFarmForm({...farmForm, currency: e.target.value})} className="form-input">
+                    <select value={farmForm.currency} onChange={e => setFarmForm({...farmForm, currency: e.target.value})} className="form-input" disabled={!canUpdate}>
                       <option value="FCFA">FCFA (Franc CFA)</option>
                       <option value="EUR">EUR (Euro)</option>
                       <option value="USD">USD (Dollar)</option>
                     </select>
                   </div>
                 </div>
-                <button onClick={handleSaveFarm} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+                {canUpdate && <button onClick={handleSaveFarm} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
                   {saving ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
+                </button>}
               </div>
             )}
 
@@ -245,22 +341,21 @@ export function SettingsPage() {
                         if (updErr) {
                           toast.show('Erreur: ' + updErr.message, 'error');
                         } else {
-                          await logAudit(appUser?.name || 'Système', 'UPDATE', 'farm', farm.id, 'Logo de l\'application modifié');
                           toast.show('Logo mis à jour avec succès');
                           refresh();
                         }
                         setUploadingLogo(false);
                       }}
                     />
-                    <button
+                    {canUpdate && <button
                       onClick={() => logoFileRef.current?.click()}
                       disabled={uploadingLogo || !farm}
                       className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                     >
                       {uploadingLogo ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Upload size={16} />}
                       {uploadingLogo ? 'Upload...' : 'Changer le logo'}
-                    </button>
-                    {farm?.logo_url && (
+                    </button>}
+                    {canUpdate && farm?.logo_url && (
                       <button
                         onClick={async () => {
                           if (!farm) return;
@@ -268,7 +363,6 @@ export function SettingsPage() {
                           if (error) {
                             toast.show('Erreur: ' + error.message, 'error');
                           } else {
-                            await logAudit(appUser?.name || 'Système', 'UPDATE', 'farm', farm.id, 'Logo supprimé');
                             toast.show('Logo supprimé');
                             refresh();
                           }
@@ -282,6 +376,162 @@ export function SettingsPage() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {tab === 'static' && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><FileText size={18} /> Contenu Statique</h3>
+                <p className="text-sm text-slate-500">Gestion du contenu statique du site (textes, configurations, etc.)</p>
+
+                {/* Add new content form */}
+                {canUpdate && (
+                  <div className="bg-slate-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-medium text-slate-900 mb-2">Ajouter du nouveau contenu</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">Clé</label>
+                        <input
+                          type="text"
+                          value={newKey}
+                          onChange={e => setNewKey(e.target.value)}
+                          placeholder="ex: homepage_title"
+                          className="form-input"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">Valeur</label>
+                        <input
+                          type="text"
+                          value={newValue}
+                          onChange={e => setNewValue(e.target.value)}
+                          placeholder="ex: Bienvenue sur Bahkanso"
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <button onClick={handleAddNewStatic} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                          {saving ? 'Ajout en cours...' : 'Ajouter le contenu'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Existing content list */}
+                <div className="mt-4">
+                  <h3 className="font-semibold text-slate-900 mb-3">Contenu existant</h3>
+                  {staticContent.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-8">Aucun contenu statique trouvé</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {staticContent.map((content) => (
+                        <div key={content.id} className="border border-slate-200 rounded-lg overflow-hidden">
+                          {/* Header */}
+                          <div className="flex items-center justify-between p-3 bg-slate-50">
+                            <div className="flex items-center gap-2">
+                              <Edit2 size={16} className="text-slate-600" />
+                              <span className="font-medium text-slate-900">{content.key}</span>
+                            </div>
+                            {canUpdate && (
+                              <div className="flex items-center gap-2">
+                                {editingKey === content.id ? (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        const valueToSave = typeof editValue === 'string'
+                                          ? editValue
+                                          : JSON.stringify(editValue, null, 2);
+                                        handleSaveStaticContent(content.key, valueToSave);
+                                        setEditingKey(null);
+                                      }}
+                                      className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                      disabled={saving}
+                                    >
+                                      {saving ? 'Enregistrement...' : 'Sauvegarder'}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingKey(null);
+                                        setEditValue(content.value);
+                                      }}
+                                      className="px-2 py-1 text-xs text-slate-600 hover:text-slate-700"
+                                    >
+                                      Annuler
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setEditingKey(content.id);
+                                        // Parse the value for editing - if it's a string, use as-is, if it's an object, stringify for textarea
+                                        if (typeof content.value === 'string') {
+                                          setEditValue(content.value);
+                                        } else {
+                                          setEditValue(JSON.stringify(content.value, null, 2));
+                                        }
+                                      }}
+                                      className="px-2 py-1 text-xs text-slate-600 hover:text-slate-700"
+                                    >
+                                      Modifier
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteStaticContent(content.key)}
+                                      className="px-2 py-1 text-xs text-red-600 hover:text-red-700"
+                                    >
+                                      Supprimer
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content editor/viewer */}
+                          <div className="p-4">
+                            {editingKey === content.id && canUpdate && (
+                              <div className="space-y-2">
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Valeur (texte)</label>
+                                <textarea
+                                  value={editValue}
+                                  onChange={e => setEditValue(e.target.value)}
+                                  className="w-full p-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                                  rows={4}
+                                />
+                                <label className="block text-xs font-medium text-slate-600 mb-1">
+                                  Ou (JSON)
+                                </label>
+                                <textarea
+                                  value={typeof content.value === 'string' ? content.value : JSON.stringify(content.value, null, 2)}
+                                  onChange={e => setEditValue(e.target.value)}
+                                  className="w-full p-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                                  rows={6}
+                                />
+                                <p className="text-xs text-slate-500 mt-2">
+                                  Pour les objets JSON, utilisez le deuxième champ. Les chaînes de caractères simples peuvent être éditées directement.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-slate-700">
+                                {typeof content.value === 'string'
+                                  ? content.value
+                                  : JSON.stringify(content.value, null, 2)}
+                                {typeof content.value !== 'string' && (
+                                  <div className="mt-2 p-3 bg-slate-50 rounded-md text-xs text-slate-600">
+                                    <span className="font-medium">(Objet JSON)</span>
+                                    <p className="mt-1">
+                                      Pour éditer cet objet, cliquez sur "Modifier" et utilisez l'éditeur JSON ci-dessus.
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
             )}
           </div>
         </div>

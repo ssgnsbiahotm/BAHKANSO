@@ -3,8 +3,8 @@ import { Bell, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
+import { hasPermission } from '@/lib/permissions';
 import { timeAgo } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
@@ -14,6 +14,7 @@ import type { Alert } from '@/lib/types';
 export function Alerts() {
   const { alerts, refresh } = useData();
   const { appUser } = useAuth();
+  const canUpdate = hasPermission(appUser?.role, 'alerts', 'update');
   const toast = useToast();
 
   const kpis = useMemo(() => {
@@ -29,7 +30,6 @@ export function Alerts() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'UPDATE', 'alert', alert.id, `Alerte résolue: ${alert.title}`);
       toast.show('Alerte résolue');
       refresh();
     }
@@ -75,7 +75,7 @@ export function Alerts() {
                   {a.assigned_to && <span>· Assignée à {a.assigned_to}</span>}
                 </div>
               </div>
-              {a.status === 'ouverte' && (
+              {canUpdate && a.status === 'ouverte' && (
                 <button onClick={() => resolveAlert(a)} className="flex items-center gap-1 px-3 py-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200">
                   <CheckCircle size={14} /> Résoudre
                 </button>

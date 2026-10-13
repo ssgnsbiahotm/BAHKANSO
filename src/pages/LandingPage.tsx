@@ -23,8 +23,8 @@ export function LandingPage({ onEnter, onLogin }: LandingPageProps) {
   const cta = (siteContent.cta?.value as Record<string, string>) || {};
   const footer = (siteContent.footer?.value as Record<string, unknown>) || {};
 
-  const titleStr = String(hero.title || '');
-  const highlight = String(hero.highlight || '');
+  const titleStr = String(hero.title || 'Pilotez vos investissements agro-pastoraux en toute transparence');
+  const highlight = String(hero.highlight || 'transparence');
   const titleParts = highlight && titleStr.includes(highlight)
     ? titleStr.split(highlight)
     : [titleStr, ''];

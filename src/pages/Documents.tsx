@@ -3,7 +3,8 @@ import { FileText, CheckCircle, XCircle, Eye, Upload, Trash2, Pencil } from 'luc
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit, type Document } from '@/lib/types';
+import type { Document } from '@/lib/types';
+import { hasPermission } from '@/lib/permissions';
 import { useToast } from '@/lib/Toast';
 import { formatDate, formatFileSize } from '@/lib/format';
 import { DOCUMENT_STATUS_COLORS, DOCUMENT_TYPES } from '@/lib/constants';
@@ -16,6 +17,11 @@ import { KpiCard } from '@/components/ui/KpiCard';
 export function Documents() {
   const { documents, expenses, refresh } = useData();
   const { appUser } = useAuth();
+  const canCreate = hasPermission(appUser?.role, 'documents', 'create');
+  const canUpdate = hasPermission(appUser?.role, 'documents', 'update');
+  const canDelete = hasPermission(appUser?.role, 'documents', 'delete');
+  const canValidate = hasPermission(appUser?.role, 'documents', 'validate');
+  const isManager = appUser?.role === 'gestionnaire';
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [detailDoc, setDetailDoc] = useState<Document | null>(null);
@@ -116,7 +122,6 @@ export function Documents() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'document', editDoc.reference, `Document ${editDoc.reference} modifié`);
         toast.show('Document modifié');
         setModalOpen(false);
         refresh();
@@ -151,7 +156,6 @@ export function Documents() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'CREATE', 'document', ref, `Document ${ref} ajouté`);
         toast.show('Document ajouté avec succès');
         setModalOpen(false);
         refresh();
@@ -169,7 +173,6 @@ export function Documents() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'VALIDATE', 'document', doc.reference, `Document ${doc.reference} marqué "${status}"`);
       toast.show(`Document ${status === 'vérifié' ? 'vérifié' : status === 'rejeté' ? 'rejeté' : 'mis à jour'}`);
       refresh();
     }
@@ -181,7 +184,6 @@ export function Documents() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'document', confirmDelete.reference, `Document ${confirmDelete.reference} supprimé`);
       toast.show('Document supprimé');
       setConfirmDelete(null);
       setDetailDoc(null);
@@ -203,11 +205,11 @@ export function Documents() {
       <PageHeader
         title="Justificatifs"
         subtitle="Gestion des documents et justificatifs"
-        actions={
+        actions={canCreate ? (
           <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
             <Upload size={18} /> Ajouter un document
           </button>
-        }
+        ) : undefined}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -234,14 +236,18 @@ export function Documents() {
         onRowClick={d => setDetailDoc(d)}
         actions={(d) => (
           <div className="flex items-center gap-1">
-            {d.status === 'à vérifier' && (
+            {canValidate && d.status === 'à vérifier' && (
               <>
                 <button onClick={() => updateStatus(d, 'vérifié')} title="Vérifier" className="p-1.5 text-green-600 hover:bg-green-50 rounded"><CheckCircle size={16} /></button>
                 <button onClick={() => updateStatus(d, 'rejeté')} title="Rejeter" className="p-1.5 text-red-600 hover:bg-red-50 rounded"><XCircle size={16} /></button>
               </>
             )}
-            <button onClick={() => openEdit(d)} title="Modifier" className="p-1.5 text-slate-600 hover:bg-slate-100 rounded"><Pencil size={16} /></button>
-            <button onClick={() => setConfirmDelete(d)} title="Supprimer" className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+            {canUpdate && (!isManager || ['ajouté', 'à vérifier'].includes(d.status)) && (
+              <button onClick={() => openEdit(d)} title="Modifier" className="p-1.5 text-slate-600 hover:bg-slate-100 rounded"><Pencil size={16} /></button>
+            )}
+            {canDelete && (!isManager || ['ajouté', 'à vérifier'].includes(d.status)) && (
+              <button onClick={() => setConfirmDelete(d)} title="Supprimer" className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+            )}
             <button onClick={() => setDetailDoc(d)} title="Voir" className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><Eye size={16} /></button>
           </div>
         )}
@@ -257,9 +263,13 @@ export function Documents() {
         footer={
           detailDoc ? (
             <>
-              <button onClick={() => setConfirmDelete(detailDoc)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-              <button onClick={() => { openEdit(detailDoc); setDetailDoc(null); }} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
-              {detailDoc.status === 'à vérifier' && (
+              {canDelete && (!isManager || ['ajouté', 'à vérifier'].includes(detailDoc.status)) && (
+                <button onClick={() => setConfirmDelete(detailDoc)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
+              )}
+              {canUpdate && (!isManager || ['ajouté', 'à vérifier'].includes(detailDoc.status)) && (
+                <button onClick={() => { openEdit(detailDoc); setDetailDoc(null); }} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+              )}
+              {canValidate && detailDoc.status === 'à vérifier' && (
                 <>
                   <button onClick={() => { updateStatus(detailDoc, 'rejeté'); setDetailDoc(null); }} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Rejeter</button>
                   <button onClick={() => { updateStatus(detailDoc, 'vérifié'); setDetailDoc(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Vérifier</button>
