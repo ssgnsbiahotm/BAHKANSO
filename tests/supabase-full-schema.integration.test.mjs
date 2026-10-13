@@ -20,9 +20,14 @@ const accounts = [
   'full-owner@bahkanso.example.test',
   'full-admin@bahkanso.example.test',
   'full-funder@bahkanso.example.test',
+  'full-manager@bahkanso.example.test',
+  'full-agriculture@bahkanso.example.test',
+  'full-livestock@bahkanso.example.test',
+  'full-projects@bahkanso.example.test',
   'full-inactive@bahkanso.example.test',
   'full-unknown@bahkanso.example.test',
   'full-no-profile@bahkanso.example.test',
+  'full-pending@bahkanso.example.test',
 ];
 
 function runCli(args, options = {}) {
@@ -138,6 +143,16 @@ test('historical full-schema migrations satisfy candidates 010/011 and access te
   }
 
   runPsqlFile(resolve(root, 'supabase/full-schema-validation/bootstrap.sql'));
+  const roleTapOutput = runPsqlFile(
+    resolve(root, 'supabase/full-schema-validation/role-access.test.sql'),
+    { captureTap: true },
+  );
+  assert.match(roleTapOutput, /^1\.\.45$/m);
+  assert.doesNotMatch(roleTapOutput, /^(?:not ok \d+|Bail out!)/m);
+  const roleAssertions = [...roleTapOutput.matchAll(/^ok (\d+) - /gm)]
+    .map(([, number]) => Number(number));
+  assert.deepEqual(roleAssertions, Array.from({ length: 45 }, (_, index) => index + 1));
+
   for (const candidate of [
     'supabase/candidates/010_access_foundation_candidate.sql',
     'supabase/candidates/011_owner_funding_read_candidate.sql',
@@ -199,12 +214,25 @@ test('historical full-schema migrations satisfy candidates 010/011 and access te
     'full-inactive@bahkanso.example.test',
     'full-unknown@bahkanso.example.test',
     'full-no-profile@bahkanso.example.test',
+    'full-pending@bahkanso.example.test',
   ]) {
     const { client } = await signedInClient(apiUrl, anonKey, email);
     const { data, error } = await client.from('fundings').select('id');
     assert.equal(error, null, `${email} receives a filtered RLS response`);
     assert.deepEqual(data, [], `${email} cannot read the private funding row`);
   }
+
+  const { client: initialPendingClient } = await signedInClient(
+    apiUrl,
+    anonKey,
+    'full-pending@bahkanso.example.test',
+  );
+  const { data: initialPendingProfile, error: initialPendingProfileError } = await initialPendingClient
+    .from('app_users')
+    .select('role, active')
+    .single();
+  assert.equal(initialPendingProfileError, null);
+  assert.deepEqual(initialPendingProfile, { role: 'pending', active: false });
 
   const pending = await createSyntheticAccount(
     apiUrl,

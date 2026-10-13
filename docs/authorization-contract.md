@@ -1,66 +1,59 @@
 # Contrat d’autorisation Bahkanso
 
-## Portée et niveau de preuve
+## Portée
 
-Ce contrat décrit la cible validée et le socle local préparé. Le frontend est une protection d’interface, pas une frontière de sécurité. Les politiques, privilèges, rôles Auth, données et paramètres effectifs du projet Supabase distant n’ont pas été consultés ni vérifiés.
+Bahkanso cible une seule exploitation. Les permissions du frontend améliorent l’interface, mais ne constituent pas une frontière de sécurité : les mêmes règles doivent être appliquées par PostgreSQL/RLS. L’affectation fine à une parcelle, un lot ou un projet n’existe pas encore dans le schéma; les responsables ont donc un périmètre limité à leur domaine dans cette exploitation.
 
-Les lettres ci-dessous décrivent la **cible métier** : `L` lecture, `C` création, `M` modification, `S` suppression limitée aux brouillons sans dépendances, `V` validation par une autre personne autorisée. `—` signifie aucun droit. `Périmètre` signifie uniquement les objets explicitement rattachés au rôle. Les droits de modification financière après comptabilisation et les corrections restent hors de ce lot.
+La matrice ci-dessous décrit les droits convenus. `L` = lire, `C` = créer, `M` = modifier, `S` = supprimer et `V` = valider. `—` = aucun droit. Les opérations financières et les justificatifs conservent en plus les restrictions de statut décrites après la matrice.
 
-## Matrice cible
+## Matrice rôle × module × action
 
-| Rôle | Financements | Réceptions | Dépenses | Comptes / mouvements | Financeurs / fournisseurs | Justificatifs | Activités / résultats / stocks | Audit | Profils / habilitations | Comptes Supabase Auth | Coordonnées personnelles |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Non authentifié | — | — | — | — | — | — | — | — | — | — | — |
-| Authentifié sans profil lié | — | — | — | — | — | — | — | — | — | — | — |
-| Profil lié mais inactif | — | — | — | — | — | — | — | — | — | — | — |
-| Administrateur actif | — | — | — | — | — | — | — | L seule si autorisée | L/C/M selon procédure, jamais son rôle/état | Gestion contrôlée; jamais par CRUD de profils | L/M sur son propre profil |
-| Propriétaire actif | L global | L global | L global | L global | L global | L selon opération | L global | L seule | Approbation contrôlée; pas son rôle/état | — | L/M sur son propre profil |
-| Comptable actif | L/C/M brouillons; S brouillons isolés | L/C/M brouillons | L/C/M brouillons; V distincte | L; configuration/mouvements non comptabilisés selon procédure; — sur modifications libres du ledger | L/C/M selon objets non comptabilisés et procédure | L/C/M selon opérations | L selon besoin comptable | L seule | — | — | L/M sur son propre profil |
-| Gestionnaire actif | À arbitrer par domaine; aucun CRUD global implicite | À arbitrer | À arbitrer | À arbitrer | À arbitrer | Périmètre de l’opération | À arbitrer | L seule si autorisée | — | — | L/M sur son propre profil |
-| Financeur actif | L sur ses financements liés | L sur leurs réceptions liées | L seulement si explicitement rattachées et autorisées | — | — | L seulement pour les opérations liées | L seulement pour résultats liés explicitement autorisés | — | — | — | L/M sur son propre profil |
-| Responsable agricole actif | — | — | — | — | — | Périmètre de l’opération | L/C/M sur affectations agricoles; S brouillons isolés | — | — | — | L/M sur son propre profil |
-| Responsable élevage actif | — | — | — | — | — | Périmètre de l’opération | L/C/M sur affectations élevage; S brouillons isolés | — | — | — | L/M sur son propre profil |
-| Responsable chantier actif | — | — | — | — | — | Périmètre de l’opération | L/C/M sur projets affectés; S brouillons isolés | — | — | — | L/M sur son propre profil |
-| Auditeur actif | L seule, périmètre à définir | L seule, périmètre à définir | L seule, périmètre à définir | L seule, périmètre à définir | L seule, périmètre à définir | L liée à l’opération autorisée | L seule, périmètre à définir | L seule | — | — | L/M sur son propre profil |
-| Public | Contenus explicitement publiés uniquement | — | — | — | — | — | Contenus explicitement publiés uniquement | — | — | — | — |
+| Rôle actif | Tableau de bord / rapports | Financements | Trésorerie | Dépenses | Documents | Agriculture | Élevage | Projets | Stocks | Fournisseurs / recettes / alertes | Audit | Utilisateurs | Paramètres | Profil propre |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Non authentifié, profil absent ou inactif | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| `propriétaire` | L | L | L | L | L | L | L | L | L | L | L | L | L | L/M |
+| `administrateur` | L/C/M/S | L/C/M/S/V | L/C/M/S | L/C/M/S/V | L/C/M/S/V | L/C/M/S | L/C/M/S | L/C/M/S | L/C/M/S | L/C/M/S | L seule | L/M | L/M |
+| `gestionnaire` | L/C/M/S | L/C/M/S limité au statut prévu | L seule | L/C/M/S selon statut, sans V | L/C/M/S selon statut, sans V | L/C/M/S | L/C/M/S | L/C/M/S | L/C/M/S | L/C/M/S | — | — | L/M |
+| `responsable_agricole` | — | — | — | — | — | L/C/M/S | — | — | — | — | — | — | — | L/M |
+| `responsable_élevage` | — | — | — | — | — | — | L/C/M/S | — | — | — | — | — | — | L/M |
+| `responsable_chantier` | — | — | — | — | — | — | — | L/C/M/S | — | — | — | — | — | L/M |
+| `financeur` | — | L sur ses financements liés | — | — | — | — | — | — | — | — | — | — | — | L/M |
 
-### Règles transversales
+L’accès à un écran ne donne pas toutes les actions de cet écran. En particulier, `propriétaire` dispose d’une consultation métier complète, mais ne peut pas modifier les données métier. Les actions de validation sont réservées à l’administrateur.
 
-- Une validation financière ou de justificatif exige un validateur autorisé différent de l’auteur. Sans second validateur, l’opération reste en attente.
-- `created_by` n’est pas réputé fiable tant qu’il n’est pas attribué côté base à `auth.uid()`. Le schéma des mouvements ne fournit pas partout une attribution fiable; l’auto-validation est donc bloquée.
-- Aucun titulaire ne peut modifier son propre rôle, son état actif ou son `auth_id`. Un profil ne crée jamais, à lui seul, un compte Auth.
-- Aucun rôle applicatif ne modifie ni ne supprime des événements d’audit. Leur insertion directe par le navigateur reste également bloquée jusqu’à la mise en place d’une écriture contrôlée.
-- Les modifications de coordonnées personnelles ne sont pas encore inscrites dans `audit_logs`; aucun événement client ne doit être présenté comme une piste d’audit fiable.
-- Les documents suivent le périmètre de l’opération liée; aucun rôle métier ne reçoit un accès global aux documents.
-- Les suppressions sont limitées aux brouillons sans dépendances. Aucune écriture validée/comptabilisée n’est supprimée; les corrections doivent être traçables.
-- Les inscriptions publiques ne sont pas proposées. L’enrôlement cible est une invitation administrée liant un vrai compte Auth à un profil. Le premier administrateur exige une procédure de bootstrap contrôlée.
+### Restrictions financières et de documents
 
-## Règles effectivement implémentées localement
+- Le gestionnaire peut préparer les financements au statut `prévu`, mais ne peut pas les marquer reçus.
+- Le gestionnaire crée les dépenses en `brouillon` et peut les préparer/soumettre (`en attente`) ou corriger les éléments non validés. Il ne peut ni valider, ni rejeter, ni annuler une dépense. La suppression est réservée aux brouillons.
+- Le gestionnaire peut créer et mettre à jour les documents `ajouté` ou `à vérifier`, mais ne peut pas les vérifier/rejeter. L’administrateur valide les dépenses et justificatifs.
+- Les mouvements de trésorerie sont consultables par le gestionnaire, mais leur grand livre n’est pas modifiable par celui-ci.
+- Le financeur ne voit que les financements associés au `funder_id` de son profil. Sans lien, aucun financement ne lui est exposé.
+- Aucune affectation par utilisateur aux sites, parcelles, lots ou projets n’étant disponible, les responsables agricoles, élevage et chantier voient le domaine correspondant de l’exploitation unique; ils ne voient pas les autres domaines.
 
-- Les états session/profil sont distincts : chargement session, session absente/erreur, chargement profil, erreur profil, profil absent/inactif, rôle inconnu et profil actif reconnu.
-- Une erreur de revalidation efface l’accès précédent; les réponses de chargement Auth périmées sont ignorées.
-- L’inscription libre et les appels Auth `signUp` ont été retirés de l’interface et du contexte. Connexion et récupération de mot de passe sont conservées.
-- Un profil actif peut ouvrir son écran personnel et modifier son nom/téléphone ou son mot de passe; aucun rôle, état actif ou lien Auth n’y est éditable. Un échec de revalidation ne restaure pas le profil en cache.
-- Seul le propriétaire actif reconnu déclenche une lecture ciblée des financements. Son interface expose une table et des indicateurs de décompte, sans action de création, modification, suppression ou validation. Les autres rôles restent sans lecture métier globale; les autres domaines du `DataContext` restent vides.
-- Le chargement de financement sélectionne uniquement les colonnes utiles et le nom du financeur lié. Refus/déconnexion purgent les lignes; une requête tardive ne peut pas les rétablir. Les tests comportementaux couvrent aussi la revalidation Auth et l’invalidation du profil précédent.
-- Une déconnexion ou un refus invalide les requêtes en cours et vide l’état privé; les réponses tardives ne peuvent pas le repeupler.
-- L’interface de gestion des profils ne crée plus de profils fictifs et ne modifie plus les habilitations.
-- Les données `site_content` ne sont plus lues publiquement : le schéma local ne porte pas de marqueur permettant de prouver qu’un contenu est explicitement publié.
+## Contrôles côté base
 
-Les candidates SQL 010 et 011 ont été appliquées et testées **uniquement** dans PostgreSQL local isolé, sur des tables et identités synthétiques. La suite pgTAP directe a vérifié 34 assertions sous les vrais rôles PostgreSQL `anon` et `authenticated`, avec des claims `auth.uid()` configurés dans la transaction. Cela ne valide ni un vrai jeton Auth/GoTrue, ni PostgREST, ni le schéma distant.
+La migration `20261013081649_bahkanso_role_based_access.sql` prépare le socle suivant :
 
-Cela n’implémente **pas** le détail des droits par opération, les restrictions lecture/écriture du comptable, le second validateur ou l’isolation documentaire. Le backend/RLS doit les faire respecter avant toute remise en production.
+- Suppression des anciennes politiques applicatives ouvertes et révocation des privilèges directs `anon`/`authenticated`, puis octroi des seuls privilèges nécessaires aux politiques.
+- Résolution du rôle via le profil `app_users` actif lié à `auth.uid()`; les rôles de métadonnées modifiables par l’utilisateur ne sont pas utilisés pour autoriser.
+- Inscriptions Auth nouvelles avec profil `pending` et inactif jusqu’à affectation contrôlée.
+- Interdiction au titulaire de changer son propre rôle, état actif ou lien Auth. Les actions de gestion de profils sont limitées aux champs applicatifs autorisés.
+- Financeur lié par FK à `funders`; politiques de lecture limitées à ce lien.
+- Lecture de l’audit limitée à l’administrateur et au propriétaire; écritures directes navigateur refusées et événements générés par des triggers append-only.
+- Politiques différenciées par domaine pour agriculture, élevage, projets, stocks, finance et documents.
 
-## Règles bloquées par le schéma ou l’intégration
+Les helpers `SECURITY DEFINER` sont placés dans le schéma `private`, utilisent un `search_path` vide et sont accordés aux seuls utilisateurs authentifiés. Le frontend masque les actions interdites à l’aide de `src/lib/permissions.ts`; PostgreSQL reste l’autorité finale.
 
-- Pas de relation Auth → financeur → financements; les utilisateurs financeurs restent sans données métier.
-- Pas de relation fiable entre responsables et sites, parcelles, activités, lots ou projets; les responsables restent sans données métier.
-- Attribution d’auteur non fiable ou absente sur des opérations, notamment mouvements; validation séparée impossible à garantir en base.
-- Pas de statut de publication explicite pour `site_content`.
-- Pas de relation de document garantissant le périmètre du parent, ni séparation démontrée des fichiers privés et médias publics.
-- Pas de procédure backend contrôlée d’invitation, d’administration Auth ou de bootstrap du premier administrateur.
-- Les écrans métier existants n’appliquent pas encore une matrice de droits par action. Les règles SQL candidates ferment les écritures applicatives jusqu’à un lot métier ultérieur.
+## État de validation et limites
 
-## Vérifications distantes restantes
+- Le modèle est mono-exploitation. Aucune isolation `farm_id` n’est introduite.
+- Les responsables ne sont pas encore assignés à des sous-périmètres opérationnels; ce contrôle nécessitera des relations d’affectation.
+- Les triggers d’audit consignent l’acteur et les valeurs avant/après sur les changements couverts. Ils ne remplacent pas encore un audit métier enrichi des motifs de validation.
+- Le bucket public `app-assets` et les URL publiques existantes ne sont pas sécurisés par cette migration; la migration Storage dédiée et les URL signées restent requises avant production.
+- La validation pgTAP de cette migration reste incomplète. Un ancien volume Supabase local a présenté une table `audit_logs` sans les colonnes métier du schéma de référence; l’ajout idempotent de ces colonnes est inclus dans la migration, mais le test doit être relancé sur une base fraîche et isolée.
+- Le démarrage d’une base Supabase locale fraîche a échoué pendant son initialisation dans l’environnement de développement. L’application de migration sur un volume local existant ne constitue pas une validation propre de bout en bout.
+- Aucun déploiement distant ni contrôle de configuration distante n’a été effectué. Ne pas considérer l’application prête pour la production sur la seule base de ce contrat.
 
-Les candidates n’ont pas été exécutées sur le projet distant. Il faut d’abord contrôler les rôles DB, les grants effectifs, les politiques existantes, les fonctions exposées, les vues, les objets, les profils liés et la présence d’un administrateur actif lié à un utilisateur Auth. La présence de SQL dans le dépôt ou les tests locaux ne prouve ni l’application ni le comportement RLS distant. Aucun accès au projet distant n’a été effectué durant ce lot.
+## Bootstrap et exploitation
+
+Les inscriptions publiques doivent rester désactivées en production. Le premier administrateur doit être activé par une procédure de bootstrap privilégiée et contrôlée; après initialisation, l’administration des rôles doit être limitée aux profils existants. Une désactivation urgente doit également révoquer les sessions Auth de l’utilisateur, car un jeton déjà émis peut rester valide jusqu’à son expiration.

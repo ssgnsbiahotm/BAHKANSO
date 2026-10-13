@@ -9,6 +9,7 @@ const migrationFiles = [
   '20261004122416_007_auth_and_rls_tightening.sql.sql',
   '20261005195209_008_recipes_and_rls_fixes.sql.sql',
   '20261005195221_009_storage_policies.sql.sql',
+  '20261013081649_bahkanso_role_based_access.sql',
 ];
 const siteContentSeedMarker = 'INSERT INTO site_content (key, value) VALUES\n';
 

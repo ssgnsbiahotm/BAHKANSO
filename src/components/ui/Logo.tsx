@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   Sprout, Wallet, FileText, HardHat, Package, Beef, Shield, TrendingUp,
   Check, BarChart3, ScrollText, Bell, Users, Landmark, Receipt, Truck,

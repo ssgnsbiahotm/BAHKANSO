@@ -165,7 +165,7 @@ export function DonutChart({ data, size = 180, formatValue }: DonutChartProps) {
           className="rotate-90 fill-slate-900 text-lg font-bold"
           style={{ transformOrigin: 'center' }}
         >
-          {data.length}
+          {formatValue ? formatValue(total) : total}
         </text>
       </svg>
       <div className="space-y-1.5 flex-1">

@@ -24,7 +24,7 @@ export function Header({ onOpenMobile, onNavigate }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 lg:px-6 py-3">
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/70 backdrop-blur-xl px-4 lg:px-6 py-3 shadow-sm shadow-slate-200/60">
       <div className="flex items-center gap-3">
         <button onClick={onOpenMobile} className="lg:hidden p-2 rounded-lg hover:bg-slate-100">
           <Menu size={20} />

@@ -1,5 +1,6 @@
 import type { AppUser } from './types.ts';
 import { ROLE_LABELS } from './constants.ts';
+import { canReadFundings as roleCanReadFundings } from './permissions.ts';
 
 export const INITIAL_ACCESS_STATE = { status: 'loading-session' } as const;
 export const SIGNED_OUT_ACCESS_STATE = { status: 'signed-out' } as const;
@@ -35,7 +36,8 @@ export function canLoadPrivateBusinessData(access: AccessState): boolean {
 }
 
 export function canReadFundings(access: AccessState): boolean {
-  return access.status === 'active' && access.appUser.role === 'propriétaire';
+  return access.status === 'active'
+    && roleCanReadFundings(access.appUser.role, access.appUser.funder_id);
 }
 
 export function visiblePrivateData<T>(access: AccessState, data: T, empty: T): T {

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Wallet, Landmark, Receipt, FileText, Sprout,
   Beef, HardHat, Package, Truck, FileBarChart, Bell, ScrollText,
-  Users, Settings, ChevronDown, X, Globe, ChefHat,
+  Users, Settings, ChevronDown, X, TrendingUp,
 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
+import { useAuth } from '@/lib/AuthContext';
+import { canAccessModule, hasPermission, type AppModule } from '@/lib/permissions';
 import { Logo } from '@/components/ui/Logo';
 
 export interface NavItem {
@@ -69,13 +71,12 @@ const NAV_ITEMS: NavItem[] = [
     { id: 'inventory?counts', label: 'Inventaires physiques' },
   ]},
   { id: 'suppliers', label: 'Fournisseurs', icon: <Truck size={20} /> },
-  { id: 'recipes', label: 'Recettes', icon: <ChefHat size={20} /> },
+  { id: 'revenues', label: 'Revenus de vente', icon: <TrendingUp size={20} /> },
   { id: 'reports', label: 'Rapports', icon: <FileBarChart size={20} /> },
   { id: 'alerts', label: 'Alertes', icon: <Bell size={20} /> },
   { id: 'audit', label: 'Audit', icon: <ScrollText size={20} /> },
   { id: 'users', label: 'Utilisateurs', icon: <Users size={20} /> },
   { id: 'settings', label: 'Paramètres', icon: <Settings size={20} /> },
-  { id: 'site-content', label: 'Contenu du site', icon: <Globe size={20} /> },
 ];
 
 interface SidebarProps {
@@ -87,8 +88,18 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, onNavigate, mobileOpen, onCloseMobile }: SidebarProps) {
   const { siteContent, farm } = useData();
+  const { appUser } = useAuth();
   const [expanded, setExpanded] = useState<string | null>(null);
   const basePage = currentPage.split('?')[0];
+  const visibleItems = NAV_ITEMS
+    .map(item => ({
+      ...item,
+      children: item.children?.filter(child =>
+        !child.id.endsWith('?new')
+        || hasPermission(appUser?.role, item.id as AppModule, 'create'),
+      ),
+    }))
+    .filter(item => canAccessModule(appUser?.role, item.id as AppModule));
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
 
   const handleNav = (page: string) => {
@@ -102,8 +113,8 @@ export function Sidebar({ currentPage, onNavigate, mobileOpen, onCloseMobile }: 
         <div className="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" onClick={onCloseMobile} />
       )}
       <aside className={`
-        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-slate-900 flex flex-col
-        transition-transform duration-300
+        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col border-r border-white/10
+        transition-transform duration-300 shadow-2xl shadow-slate-950/20
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-700/50">
@@ -123,7 +134,7 @@ export function Sidebar({ currentPage, onNavigate, mobileOpen, onCloseMobile }: 
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5 scrollbar-thin">
-          {NAV_ITEMS.map(item => {
+          {visibleItems.map(item => {
             const isActive = basePage === item.id.split('?')[0];
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expanded === item.id || (isActive && expanded === null);
@@ -137,10 +148,10 @@ export function Sidebar({ currentPage, onNavigate, mobileOpen, onCloseMobile }: 
                       handleNav(item.id);
                     }
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-green-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-900/20'
+                      : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
                   }`}
                 >
                   <span className={isActive ? 'text-white' : 'text-slate-400'}>{item.icon}</span>

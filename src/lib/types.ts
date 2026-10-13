@@ -1,5 +1,3 @@
-import { supabase } from './supabase';
-
 export interface Farm {
   id: string;
   name: string;
@@ -14,6 +12,7 @@ export interface Farm {
 export interface AppUser {
   id: string;
   auth_id: string | null;
+  funder_id: string | null;
   name: string;
   email: string | null;
   role: string;
@@ -382,48 +381,4 @@ export interface SiteContent {
   key: string;
   value: Record<string, unknown> | unknown[];
   updated_at: string;
-}
-
-export interface RecipeIngredient {
-  name: string;
-  quantity: string;
-  unit: string;
-}
-
-export interface Recipe {
-  id: string;
-  title: string;
-  description: string | null;
-  image_url: string | null;
-  category: string | null;
-  ingredients: RecipeIngredient[];
-  steps: string[];
-  prep_time_minutes: number;
-  cook_time_minutes: number;
-  servings: number;
-  difficulty: string;
-  status: string;
-  author_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export async function logAudit(
-  user_name: string,
-  action: string,
-  object_type: string,
-  object_id: string | null,
-  description: string,
-  old_value?: Record<string, unknown> | null,
-  new_value?: Record<string, unknown> | null,
-) {
-  await supabase.from('audit_logs').insert({
-    user_name,
-    action,
-    object_type,
-    object_id,
-    description,
-    old_value: old_value || null,
-    new_value: new_value || null,
-  });
 }
