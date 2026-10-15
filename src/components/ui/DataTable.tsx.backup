@@ -1,0 +1,268 @@
+import { useState } from 'react';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+import { EmptyState } from '@/components/ui/EmptyState';
+
+interface DataTableProps<T> {
+  /** Configuration de la requête paginée */
+  queryOptions: {
+    table: keyof any; // À typer plus précisément si nécessaire
+    columns?: string;
+    filters?: Array<{
+      column: string;
+      operation: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike';
+      value: any;
+    }>;
+    orderBy?: {
+      column: string;
+      ascending?: boolean;
+    };
+    pageSize?: number;
+  };
+  /** Colonnes à afficher dans le tableau */
+  columns: Array<{
+    header: string;
+    accessor: keyof T | ((row: T) => React.ReactNode);
+    width?: string | number;
+    align?: 'left' | 'center' | 'right';
+  }>;
+  /** Fonction optionnelle pour personnaliser le rendu d'une ligne */
+  renderRow?: (row: T) => React.ReactNode;
+  /** Texte affiché quand il n'y a pas de données */
+  emptyStateMessage?: string;
+  /** Icône optionnelle pour l'état vide */
+  emptyStateIcon?: React.ReactNode;
+  /** Activer le chargement infini (scroll) */
+  enableInfiniteScroll?: boolean;
+}
+
+interface DataTableState {
+  currentPage: number;
+  pageSize: number;
+}
+
+/**
+ * Composant de tableau de données avec pagination et états de chargement optimisés
+ */
+export function DataTable<T extends Record<string, any>>({
+  queryOptions,
+  columns,
+  renderRow,
+  emptyStateMessage = 'Aucune donnée disponible',
+  emptyStateIcon,
+  enableInfiniteScroll = false,
+}: DataTableProps<T>) {
+  const [state, setState] = useState<DataTableState>({
+    currentPage: 1,
+    pageSize: queryOptions.pageSize ?? 10,
+  });
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = usePaginatedQuery<T>({
+    ...queryOptions,
+    page: state.currentPage,
+    pageSize: state.pageSize,
+  });
+
+  // Gérer le changement de page
+  const handlePageChange = (newPage: number) => {
+    setState(prev => ({
+      ...prev,
+      currentPage: newPage,
+    }));
+  };
+
+  // Gérer le changement de taille de page
+  const handlePageSizeChange = (newSize: number) => {
+    setState(prev => ({
+      ...prev,
+      currentPage: 1, // Réinitialiser à la première page
+      pageSize: newSize,
+    }));
+  };
+
+  // Calculer les informations de pagination
+  const totalPages = data ? Math.ceil(data.count / state.pageSize) : 0;
+
+  if (isLoading && !data) {
+    // État de chargement initial avec squelettes
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-4">
+          {/* Générer des squelettes pour l'en-tête */}
+          <div className="grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+            {columns.map((_, index) => (
+              <SkeletonLoader
+                key={`header-${index}`}
+                type="rectangle"
+                width="100%"
+                height="1.5rem"
+                count={1}
+              />
+            ))}
+          </div>
+
+          {/* Générer des squelettes pour les lignes */}
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, rowIndex) => (
+              <div key={`row-${rowIndex}`} className="grid gap-2">
+                {columns.map((_, colIndex) => (
+                  <SkeletonLoader
+                    key={`cell-${rowIndex}-${colIndex}`}
+                    type="rectangle"
+                    width="100%"
+                    height="1.5rem"
+                    count={1}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-4 text-red-500 text-center">
+        Erreur de chargement: {error?.message ?? 'Erreur inconnue'}
+        <button
+          onClick={refetch}
+          className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
+  if (!data || data.data.length === 0) {
+    return (
+      <EmptyState
+        icon={emptyStateIcon}
+        title={emptyStateMessage}
+        message={
+          totalPages > 0
+            ? `Aucun résultat trouvé pour les filtres actuels.`
+            : 'Aucune donnée disponible.'
+        }
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* En-tête du tableau */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-slate-50">
+              {columns.map((col, index) => (
+                <th
+                  key={index}
+                  className={`px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider ${
+                    col.align === 'center'
+                      ? 'text-center'
+                      : col.align === 'right'
+                      ? 'text-right'
+                      : 'text-left'
+                  } ${typeof col.width === 'number'
+                    ? `w-[${col.width}px]`
+                    : col.width
+                    ? `w-[${col.width}]`
+                    : ''
+                  }`}
+                >
+                  {col.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.data.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                className={`${rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100`}
+              >
+                {columns.map((col, colIndex) => {
+                  const value =
+                    typeof col.accessor === 'function'
+                      ? col.accessor(row)
+                      : row[col.accessor];
+
+                  return (
+                    <td
+                      key={colIndex}
+                      className={`px-4 py-2 text-sm text-slate-700 ${
+                        col.align === 'center'
+                          ? 'text-center'
+                          : col.align === 'right'
+                          ? 'text-right'
+                          : 'text-left'
+                      } ${
+                        typeof col.width === 'number'
+                          ? `w-[${col.width}px]`
+                          : col.width
+                          ? `w-[${col.width}]`
+                          : ''
+                      }`}
+                    >
+                      {renderRow ? renderRow(row) : value}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Contrôles de pagination */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4">
+        <div className="flex items-center space-x-3 text-sm text-slate-600">
+          <button
+            onClick={() =>
+              handlePageChange(Math.max(1, state.currentPage - 1))
+            }
+            disabled={state.currentPage <= 1}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-50"
+          >
+            Précédent
+          </button>
+          <span>
+            Page {state.currentPage} sur {totalPages > 0 ? totalPages : 1}
+          </span>
+          <button
+            onClick={() =>
+              handlePageChange(Math.min(totalPages || 1, state.currentPage + 1))
+            }
+            disabled={state.currentPage >= (totalPages || 1)}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-50"
+          >
+            Suivant
+          </button>
+        </div>
+
+        <div className="mt-2 sm:mt-0 flex items-center space-x-3">
+          <label className="text-sm text-slate-600">Lignes par page:</label>
+          <select
+            value={state.pageSize}
+            onChange={e => handlePageSizeChange(parseInt(e.target.value))}
+            className="px-3 py-1 border border-slate-300 rounded bg-white text-sm">
+            {[10, 20, 50, 100].map(size => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}

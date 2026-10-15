@@ -1,0 +1,114 @@
+import { RouterProvider, createBrowserRouter, Router, Route, Outlet, Navigate } from 'react-router-dom';
+import { Dashboard } from '@/pages/Dashboard';
+import { LandingPage } from '@/pages/LandingPage';
+import { LoginPage } from '@/pages/LoginPage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { SettingsPage } from '@/pages/SettingsPage';
+import { UsersPage } from '@/pages/UsersPage';
+import { Reports } from '@/pages/Reports';
+import { Alerts } from '@/pages/Alerts';
+import { Audit } from '@/pages/Audit';
+import { Agriculture } from '@/pages/Agriculture';
+import { Livestock } from '@/pages/Livestock';
+import { Inventory } from '@/pages/Inventory';
+import { Treasury } from '@/pages/Treasury';
+import { Projects } from '@/pages/Projects';
+import { Expenses } from '@/pages/Expenses';
+import { Documents } from '@/pages/Documents';
+import { Suppliers } from '@/pages/Suppliers';
+import { Recipes } from '@/pages/Recipes';
+import { SiteContentEditor } from '@/pages/SiteContentEditor';
+import { Fundings } from '@/pages/Fundings';
+import { FundingCreate } from '@/pages/FundingCreate';
+import { AnimalManage } from '@/pages/AnimalManage';
+import { CashManage } from '@/pages/CashManage';
+import { DocumentManage } from '@/pages/DocumentManage';
+import { PlotManage } from '@/pages/PlotManage';
+import { CampaignManage } from '@/pages/CampaignManage';
+import { RequireAuth } from './authGuard';
+
+// Définition des routes de l'application
+export const appRouter = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <LandingPage
+        onEnter={() => {
+          // Rediriger vers l'app si authentifié, sinon rester sur la landing page
+          // Le comportement réel sera géré par le router et l'authentification
+        }}
+        onLogin={() => {
+          // Rediriger vers la page de login
+          // Ceci sera géré par le router
+        }}
+      />
+    ),
+  },
+  {
+    path: '/login',
+    element: (
+      <LoginPage
+        onLogin={() => {
+          // Rediriger vers l'app après connexion
+          // Ceci sera géré par le router et l'authentification
+        }}
+        onBack={() => {
+          // Retourner à la landing page
+          // Ceci sera géré par le router
+        }}
+      />
+    ),
+  },
+  {
+    path: '/app',
+    element: (
+      <RequireAuth>
+        {/* Layout principal avec sidebar et header */}
+        <Outlet
+          context={{
+            // On pourrait passer des données globales ici si nécessaire
+          }}
+        />
+        {/* Routes protégées nécessitant une authentification */}
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="alerts" element={<Alerts />} />
+        <Route path="audit" element={<Audit />} />
+        <Route path="agriculture" element={<Agriculture />} />
+        <Route path="livestock" element={<Livestock />} />
+        <Route path="inventory" element={<Inventory />} />
+        <Route path="treasury" element={<Treasury />} />
+        <Route path="projects" element={<Projects />} />
+        <Route path="expenses" element={<Expenses />} />
+        <Route path="documents" element={<Documents />} />
+        <Route path="suppliers" element={<Suppliers />} />
+        <Route path="recipes" element={<Recipes />} />
+        <Route path="site-content" element={<SiteContentEditor />} />
+        <Route path="fundings" element={<Fundings />} />
+        <Route path="fundings/new" element={<FundingCreate />} />
+        {/* Pages de gestion détaillées */}
+        <Route path="livestock/animals" element={<AnimalManage />} />
+        <Route path="treasury/cash" element={<CashManage />} />
+        <Route path="documents/manage" element={<DocumentManage />} />
+        <Route path="agriculture/plots" element={<PlotManage />} />
+        <Route path="agriculture/campaigns" element={<CampaignManage />} />
+      </RequireAuth>
+    ),
+  },
+  // Redirection pour les chemins non trouvés
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
+  },
+]);
+
+// Wrapper pour appliquer le router
+export function AppRoutes() {
+  return (
+    <RouterProvider router={appRouter} />
+  );
+}

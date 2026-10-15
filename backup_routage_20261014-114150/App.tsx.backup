@@ -1,0 +1,70 @@
+import { useState } from 'react';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { DataProvider, useData } from '@/lib/DataContext';
+import { ToastProvider } from '@/lib/Toast';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
+import { AppRoutes } from '@/routes/AppRoutes';
+import { LoadingState } from '@/components/ui/EmptyState';
+
+function AppContent() {
+  const { appUser, authUser, loading: authLoading } = useAuth();
+  const { loading: dataLoading } = useData();
+
+  const isAuthenticated = !!(authUser && appUser);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingState message="Chargement..." />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    // Rediriger vers la page de landing/login si non authentifié
+    return null; // Le router gérera la redirection
+  }
+
+  if (dataLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingState message="Chargement de Bahkanso..." />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen bg-slate-50">
+      <Sidebar
+        mobileOpen={false} // À gérer autrement avec le nouveau router
+        onCloseMobile={() => {}}
+      />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header onOpenMobile={() => {}} />
+        <main className="flex-1 overflow-y-auto">
+          <AppRoutes />
+        </main>
+      </div>
+      <FloatingActionButton
+        onAction={(action) => {
+          // À mettre à jour pour fonctionner avec le nouveau router
+          console.log('Action:', action);
+        }}
+      />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <DataProvider>
+          <AppContent />
+        </DataProvider>
+      </AuthProvider>
+    </ToastProvider>
+  );
+}
