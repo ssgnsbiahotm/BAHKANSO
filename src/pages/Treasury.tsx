@@ -52,7 +52,7 @@ export function Treasury() {
                 Caisses
               </button>
               <button
-                onClick={() => navigate('/treasury/cash')}
+                onClick={() => navigate('/app/treasury/cash')}
                 className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 Mouvements
@@ -133,7 +133,7 @@ export function Treasury() {
               </p>
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate('/treasury/cash')}
+                  onClick={() => navigate('/app/treasury/cash')}
                   className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
                 >
                   Enregistrer mon premier mouvement

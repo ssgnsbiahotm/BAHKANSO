@@ -99,7 +99,7 @@ export function Livestock() {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-slate-900">Animaux suivis</h2>
               <button
-                onClick={() => navigate('/livestock/animals')}
+                onClick={() => navigate('/app/livestock/animals')}
                 className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 Gérer les animaux

@@ -212,7 +212,7 @@ export function Documents() {
                 <Upload size={18} /> Ajouter un document
               </button>
               <button
-                onClick={() => navigate('/documents/manage')}
+                onClick={() => navigate('/app/documents/manage')}
                 className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 ml-2"
               >
                 Gestion complète

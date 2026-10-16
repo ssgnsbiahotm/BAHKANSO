@@ -248,7 +248,7 @@ export function AnimalManage() {
               <Plus size={18} /> Nouvel animal
             </button>
             <button
-              onClick={() => navigate('/livestock/animals')}
+              onClick={() => navigate('/app/livestock/animals')}
               className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 ml-2"
             >
               Tous les animaux

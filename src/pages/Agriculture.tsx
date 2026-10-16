@@ -29,13 +29,13 @@ export function Agriculture() {
         actions={
           <>
             <button
-              onClick={() => navigate('/agriculture/plots')}
+              onClick={() => navigate('/app/agriculture/plots')}
               className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2"
             >
               Parcelles
             </button>
             <button
-              onClick={() => navigate('/agriculture/campaigns')}
+              onClick={() => navigate('/app/agriculture/campaigns')}
               className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2"
             >
               Campagnes
@@ -77,7 +77,7 @@ export function Agriculture() {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-slate-900">Parcelles agricoles</h2>
               <button
-                onClick={() => navigate('/agriculture/plots')}
+                onClick={() => navigate('/app/agriculture/plots')}
                 className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 Gérer les parcelles
@@ -100,7 +100,7 @@ export function Agriculture() {
               </p>
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate('/agriculture/plots')}
+                  onClick={() => navigate('/app/agriculture/plots')}
                   className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
                 >
                   Créer ma première parcelle
@@ -141,7 +141,7 @@ export function Agriculture() {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-slate-900">Campagnes culturales</h2>
               <button
-                onClick={() => navigate('/agriculture/campaigns')}
+                onClick={() => navigate('/app/agriculture/campaigns')}
                 className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 Gérer les campagnes
@@ -164,7 +164,7 @@ export function Agriculture() {
               </p>
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate('/agriculture/campaigns')}
+                  onClick={() => navigate('/app/agriculture/campaigns')}
                   className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
                 >
                   Créer ma première campagne
