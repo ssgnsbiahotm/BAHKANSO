@@ -106,7 +106,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         supabase.from('cash_accounts').select('*').order('name'),
         supabase.from('transactions').select('*').order('transaction_date', { ascending: false }),
         supabase.from('suppliers').select('*').order('name'),
-        supabase.from('expenses').select('*, supplier:suppliers(*), funder:funders(*)').order('date', { ascending: false }),
+        supabase.from("expenses").select("*, supplier:suppliers(*), funding:fundings(funder:funders(*))").order("date", { ascending: false }),
         supabase.from('documents').select('*').order('upload_date', { ascending: false }),
         supabase.from('sites').select('*').order('name'),
         supabase.from('plots').select('*').order('name'),
