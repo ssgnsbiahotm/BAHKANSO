@@ -8,6 +8,7 @@ import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { PROJECT_STATUS_COLORS, PROJECT_STATUSES } from '@/lib/constants';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -32,12 +33,13 @@ export function Projects() {
   const { projects, projectSteps, expenses, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
+
+  const { executeAction: executeProjectAction, loading: projectActionLoading } = useAsyncAction();
   const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Project | null>(null);
-  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm());
 
   const filtered = useMemo(() => {
@@ -80,44 +82,63 @@ export function Projects() {
     setModalOpen(true);
   };
 
-  const handleSubmit = async () => {
-    if (!form.name.trim()) {
-      toast.show('Le nom du projet est obligatoire', 'error');
-      return;
-    }
-    setSaving(true);
-    const payload = {
-      name: form.name.trim(),
-      type: form.type,
-      responsible: form.responsible || null,
-      initial_budget: parseFloat(form.initial_budget) || 0,
-      revised_budget: parseFloat(form.initial_budget) || 0,
-      start_date: form.start_date || null,
-      expected_end_date: form.expected_end_date || null,
-      status: form.status,
-      progress: parseInt(form.progress) || 0,
-      description: form.description || null,
-    };
-    if (editProject) {
-      const { error } = await supabase.from('projects').update(payload).eq('id', editProject.id);
-      if (error) { toast.show('Erreur: ' + error.message, 'error'); }
-      else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'project', editProject.id, `Projet "${form.name}" modifié`);
-        toast.show('Projet modifié');
-        setModalOpen(false);
-        refresh();
+  const handleSubmit = () => {
+    executeProjectAction(
+      async () => {
+        if (!form.name.trim()) {
+          toast.show('Le nom du projet est obligatoire', 'error');
+          return;
+        }
+
+        const payload = {
+          name: form.name.trim(),
+          type: form.type,
+          responsible: form.responsible || null,
+          initial_budget: parseFloat(form.initial_budget) || 0,
+          revised_budget: parseFloat(form.initial_budget) || 0,
+          start_date: form.start_date || null,
+          expected_end_date: form.expected_end_date || null,
+          status: form.status,
+          progress: parseInt(form.progress) || 0,
+          description: form.description || null,
+        };
+
+        if (editProject) {
+          // Mise à jour d'un projet existant
+            const { error } = await supabase.from('projects').update(payload).eq('id', editProject.id);
+            if (error) {
+              throw error;
+            }
+
+            await logAudit(appUser?.name || 'Système', 'UPDATE', 'project', editProject.id, `Projet "${form.name}" modifié`);
+            toast.show('Projet modifié');
+            setModalOpen(false);
+            refresh();
+        } else {
+          // Création d'un nouveau projet
+          const { error } = await supabase.from('projects').insert(payload);
+          if (error) {
+            throw error;
+          }
+
+          await logAudit(appUser?.name || 'Système', 'CREATE', 'project', null, `Projet "${form.name}" créé`);
+          toast.show('Projet créé');
+          setModalOpen(false);
+          refresh();
+        }
+      },
+      {
+        successMessage: editProject ? 'Projet modifié' : 'Projet créé',
+        errorMessage: 'Erreur lors de l\'opération sur le projet',
+        onSuccess: () => {
+          // Le rechargement et les messages sont gérés dans l'action ci-dessus
+        },
+        onError: (error) => {
+          const message = error instanceof Error ? error.message : 'Erreur inconnue';
+          toast.show('Erreur: ' + message, 'error');
+        }
       }
-    } else {
-      const { error } = await supabase.from('projects').insert(payload);
-      if (error) { toast.show('Erreur: ' + error.message, 'error'); }
-      else {
-        await logAudit(appUser?.name || 'Système', 'CREATE', 'project', null, `Projet "${form.name}" créé`);
-        toast.show('Projet créé');
-        setModalOpen(false);
-        refresh();
-      }
-    }
-    setSaving(false);
+    );
   };
 
   const handleDelete = async () => {
@@ -278,8 +299,8 @@ export function Projects() {
         footer={
           <>
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
-              {saving ? 'Enregistrement...' : editProject ? 'Modifier' : 'Créer'}
+            <button onClick={handleSubmit} disabled={projectActionLoading} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+              {projectActionLoading ? 'Enregistrement...' : editProject ? 'Modifier' : 'Créer'}
             </button>
           </>
         }
