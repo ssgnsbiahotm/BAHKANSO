@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
+import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { fundingSchema } from '@/lib/validation/schemas';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
@@ -67,7 +68,37 @@ export function FundingCreate() {
     schema: fundingSchema,
     defaultValues,
     onSubmit: async (formData) => {
-      try {
+      const { data, error } = await supabase
+        .from('fundings')
+        .insert({
+          amount: formData.amount,
+          date_sent: formData.date_sent.toISOString().split('T')[0],
+          date_expected: formData.date_expected?.toISOString().split('T')[0] ?? null,
+          funder_id: formData.funder_id,
+          description: formData.description,
+          status: formData.status,
+        });
+
+      if (error) throw error;
+
+      return data;
+    },
+    onValid: () => {
+      // Callback quand le formulaire devient valide
+      // console.log('Formulaire valide');
+    },
+    onInvalid: () => {
+      // Callback quand le formulaire devient invalide
+      // console.log('Formulaire invalide');
+    },
+  });
+
+  // Hook pour gérer les opérations asynchrones avec toast
+  const { loading: submitLoading, executeAction } = useAsyncAction();
+
+  const handleSubmitWithToast = async (formData: FundingFormValues) => {
+    await executeAction(
+      async () => {
         const { data, error } = await supabase
           .from('fundings')
           .insert({
@@ -81,23 +112,18 @@ export function FundingCreate() {
 
         if (error) throw error;
 
-        // Ici on pourrait afficher un message de succès et rediriger
-        console.log('Financement créé:', data);
-        resetForm(); // Réinitialiser le formulaire après succès
-      } catch (error) {
-        console.error('Erreur lors de la création du financement:', error);
-        // Dans une vraie application, on afficherait une notification d'erreur
+        return data;
+      },
+      {
+        successMessage: 'Financement créé avec succès',
+        errorMessage: 'Erreur lors de la création du financement',
+        onSuccess: (data) => {
+          console.log('Financement créé:', data);
+          resetForm(); // Réinitialiser le formulaire après succès
+        }
       }
-    },
-    onValid: () => {
-      // Callback quand le formulaire devient valide
-      // console.log('Formulaire valide');
-    },
-    onInvalid: () => {
-      // Callback quand le formulaire devient invalide
-      // console.log('Formulaire invalide');
-    },
-  });
+    );
+  };
 
   // Préparer les options de financeur pour le sélecteur
   const funderOptions: FunderOption[] = funders.map(funder => ({
@@ -112,7 +138,7 @@ export function FundingCreate() {
           Créer un nouveau financement
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmitWithToast} className="space-y-4">
           <div className="space-y-3">
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Montant (XOF)
@@ -251,12 +277,12 @@ export function FundingCreate() {
             </button>
             <button
               type="submit"
-              disabled={!isValid || isSubmitting}
+              disabled={!isValid || submitLoading}
               className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
                 !isValid ? 'opacity-50' : ''
-              } ${isSubmitting ? 'bg-slate-500' : ''}`}
+              } ${submitLoading ? 'bg-slate-500' : ''}`}
             >
-              {isSubmitting ? (
+              {submitLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Enregistrement...
