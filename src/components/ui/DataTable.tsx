@@ -7,14 +7,14 @@ export interface Column<T> {
   key: keyof T | string;
   label: string;
   sortable?: boolean;
-  sortValue?: (row: T) => any;
+  sortValue?: (row: T) => unknown;
   render: (row: T) => React.ReactNode;
   align?: 'left' | 'center' | 'right';
   width?: string | number;
 }
 
 interface DataTableState {
-  sortedColumn: keyof any | null;
+  sortedColumn: any;
   sortDirection: 'asc' | 'desc';
   searchTerm: string;
   currentPage: number;
@@ -25,14 +25,13 @@ interface DataTableState {
  * Composant de tableau de données avec tri, recherche et pagination côté client
  * Contrat rétabli pour être compatible avec l'usage existant dans les pages Documents, Expenses, Fundings
  */
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T = any>({
   columns,
   data,
   rowKey,
   searchable = false,
   searchKeys,
   onRowClick,
-  actions,
   pageSize = 10,
 }: {
   columns: Column<T>[];
@@ -41,7 +40,6 @@ export function DataTable<T extends Record<string, any>>({
   searchable?: boolean;
   searchKeys: (item: T) => string;
   onRowClick: (item: T) => void;
-  actions: (item: T) => React.ReactNode;
   pageSize?: number;
 }) {
   const [state, setState] = useState<DataTableState>({
@@ -74,7 +72,7 @@ export function DataTable<T extends Record<string, any>>({
     return [...filteredData].sort((a, b) => {
       // Trouver la définition de la colonne pour ce tri
       const columnDef = columns.find(col =>
-        (typeof col.key === 'string' && col.key === state.sortedColumn) ||
+        (typeof col.key === 'string' && col.key === String(state.sortedColumn)) ||
         (typeof col.key !== 'string' && col.key === state.sortedColumn as keyof T)
       );
 

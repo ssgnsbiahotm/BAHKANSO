@@ -252,38 +252,10 @@ export function Expenses() {
       <DataTable
         columns={columns}
         data={filtered}
-        rowKey={e => e.id}
+        rowKey={(e: Expense) => e.id}
         searchable
-        searchKeys={e => `${e.reference} ${e.description} ${e.category} ${e.supplier?.name} ${e.responsible}`}
-        onRowClick={e => setDetailExpense(e)}
-        actions={(e) => (
-          <div className="flex items-center gap-1">
-            {e.status === 'en attente' && (
-              <>
-                <button onClick={() => updateStatus(e, 'validée')} title="Valider" className="p-1.5 text-green-600 hover:bg-green-50 rounded">
-                  <CheckCircle size={16} />
-                </button>
-                <button onClick={() => updateStatus(e, 'rejetée')} title="Rejeter" className="p-1.5 text-red-600 hover:bg-red-50 rounded">
-                  <XCircle size={16} />
-                </button>
-              </>
-            )}
-            {e.status !== 'annulée' && e.status !== 'rejetée' && (
-              <button onClick={() => updateStatus(e, 'annulée')} title="Annuler" className="p-1.5 text-slate-500 hover:bg-slate-100 rounded">
-                <Ban size={16} />
-              </button>
-            )}
-            <button onClick={() => openEdit(e)} title="Modifier" className="p-1.5 text-slate-600 hover:bg-slate-100 rounded">
-              <Pencil size={16} />
-            </button>
-            <button onClick={() => setConfirmDelete(e)} title="Supprimer" className="p-1.5 text-red-600 hover:bg-red-50 rounded">
-              <Trash2 size={16} />
-            </button>
-            <button onClick={() => setDetailExpense(e)} title="Voir" className="p-1.5 text-blue-600 hover:bg-blue-50 rounded">
-              <Eye size={16} />
-            </button>
-          </div>
-        )}
+        searchKeys={(e: Expense) => `${e.reference} ${e.description} ${e.category} ${e.supplier?.name} ${e.responsible}`}
+        onRowClick={(e: Expense) => setDetailExpense(e)}
         pageSize={10}
       />
 

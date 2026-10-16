@@ -7,7 +7,7 @@ interface KpiCardProps {
   icon: ReactNode;
   trend?: number | null;
   trendLabel?: string;
-  color?: 'green' | 'blue' | 'amber' | 'red' | 'dark' | 'emerald';
+  color?: 'green' | 'blue' | 'amber' | 'red' | 'dark' | 'emerald' | 'purple';
   subtitle?: string;
 }
 
@@ -18,8 +18,8 @@ const colorClasses: Record<string, { bg: string; text: string; ring: string }> =
   red: { bg: 'bg-red-50', text: 'text-red-700', ring: 'ring-red-100' },
   dark: { bg: 'bg-slate-100', text: 'text-slate-700', ring: 'ring-slate-200' },
   emerald: { bg: 'bg-emerald-50', text: 'text-emerald-700', ring: 'ring-emerald-100' },
+  purple: { bg: 'bg-purple-50', text: 'text-purple-700', ring: 'ring-purple-100' },
 };
-
 export function KpiCard({ label, value, icon, trend, trendLabel, color = 'green', subtitle }: KpiCardProps) {
   const c = colorClasses[color];
   return (

@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/supabase';
 
@@ -9,7 +9,7 @@ interface PaginatedQueryOptions<T> {
   filters?: Array<{
     column: string;
     operation: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike';
-    value: any;
+    value: unknown;
   }>;
   orderBy?: {
     column: string;
@@ -32,11 +32,10 @@ interface PaginatedResult<T> {
 /**
  * Hook personnalisé pour la pagination des données avec Supabase et react-query
  */
-export function usePaginatedQuery<T = any>(
+export function usePaginatedQuery<T = unknown>(
   options: PaginatedQueryOptions<T>,
   enabled = true
 ) {
-  const queryClient = useQueryClient();
   const {
     table,
     columns = '*',
@@ -65,22 +64,22 @@ export function usePaginatedQuery<T = any>(
     filters.forEach(filter => {
       switch (filter.operation) {
         case 'eq':
-          query = query.eq(filter.column, filter.value as any);
+          query = query.eq(filter.column, filter.value as unknown);
           break;
         case 'neq':
-          query = query.neq(filter.column, filter.value as any);
+          query = query.neq(filter.column, filter.value as unknown);
           break;
         case 'gt':
-          query = query.gt(filter.column, filter.value as any);
+          query = query.gt(filter.column, filter.value as unknown);
           break;
         case 'gte':
-          query = query.gte(filter.column, filter.value as any);
+          query = query.gte(filter.column, filter.value as unknown);
           break;
         case 'lt':
-          query = query.lt(filter.column, filter.value as any);
+          query = query.lt(filter.column, filter.value as unknown);
           break;
         case 'lte':
-          query = query.lte(filter.column, filter.value as any);
+          query = query.lte(filter.column, filter.value as unknown);
           break;
         case 'like':
           query = query.like(filter.column, filter.value as string);
@@ -89,7 +88,7 @@ export function usePaginatedQuery<T = any>(
           query = query.ilike(filter.column, filter.value as string);
           break;
         default:
-          query = query.eq(filter.column, filter.value as any);
+          query = query.eq(filter.column, filter.value as unknown);
       }
     });
 
@@ -134,14 +133,14 @@ export function usePaginatedQuery<T = any>(
 /**
  * Hook simplifié pour les requêtes non paginées (utilise react-query quand même pour le caching)
  */
-export function useSimpleQuery<T = any>(
+export function useSimpleQuery<T = unknown>(
   table: keyof Database['public']['Tables'],
   options: {
     columns?: string;
     filters?: Array<{
       column: string;
       operation: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike';
-      value: any;
+      value: unknown;
     }>;
     orderBy?: {
       column: string;
@@ -167,22 +166,22 @@ export function useSimpleQuery<T = any>(
     filters.forEach(filter => {
       switch (filter.operation) {
         case 'eq':
-          query = query.eq(filter.column, filter.value as any);
+          query = query.eq(filter.column, filter.value as unknown);
           break;
         case 'neq':
-          query = query.neq(filter.column, filter.value as any);
+          query = query.neq(filter.column, filter.value as unknown);
           break;
         case 'gt':
-          query = query.gt(filter.column, filter.value as any);
+          query = query.gt(filter.column, filter.value as unknown);
           break;
         case 'gte':
-          query = query.gte(filter.column, filter.value as any);
+          query = query.gte(filter.column, filter.value as unknown);
           break;
         case 'lt':
-          query = query.lt(filter.column, filter.value as any);
+          query = query.lt(filter.column, filter.value as unknown);
           break;
         case 'lte':
-          query = query.lte(filter.column, filter.value as any);
+          query = query.lte(filter.column, filter.value as unknown);
           break;
         case 'like':
           query = query.like(filter.column, filter.value as string);
@@ -191,7 +190,7 @@ export function useSimpleQuery<T = any>(
           query = query.ilike(filter.column, filter.value as string);
           break;
         default:
-          query = query.eq(filter.column, filter.value as any);
+          query = query.eq(filter.column, filter.value as unknown);
       }
     });
 

@@ -1,18 +1,11 @@
 import { useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 
 export function AppLayout() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleNav = (page: string) => {
-    navigate(page);
-    setMobileOpen(false);
-  };
 
   return (
     <div className="flex min-h-screen bg-slate-50">

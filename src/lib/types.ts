@@ -128,7 +128,6 @@ export interface Expense {
   created_at: string;
   updated_at: string;
   supplier?: Supplier | null;
-  funder?: Funder | null;
 }
 
 export interface Document {
@@ -374,26 +373,14 @@ export interface SiteContent {
   updated_at: string;
 }
 
-export interface RecipeIngredient {
-  name: string;
-  quantity: string;
-  unit: string;
-}
-
-export interface Recipe {
+export interface Media {
   id: string;
   title: string;
   description: string | null;
-  image_url: string | null;
+  url: string | null;
+  type: string; // 'image' | 'icon' | 'logo'
   category: string | null;
-  ingredients: RecipeIngredient[];
-  steps: string[];
-  prep_time_minutes: number;
-  cook_time_minutes: number;
-  servings: number;
-  difficulty: string;
-  status: string;
-  author_id: string | null;
+  uploaded_by: string | null;
   created_at: string;
   updated_at: string;
 }

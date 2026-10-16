@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { z, ZodSchema, ZodError } from 'zod';
+import { ZodSchema, ZodError } from 'zod';
 
 interface FormValidationState<T> {
   values: T;
@@ -12,7 +12,7 @@ interface FormValidationState<T> {
  * Hook personnalisé pour la validation des formulaires avec Zod
  * Gère l'état du formulaire, la validation et les erreurs
  */
-export function useFormValidation<T extends Record<string, any>>(
+export function useFormValidation<T extends object>(
   schema: ZodSchema<T>,
   defaultValues: T = {} as T
 ) {
@@ -32,12 +32,10 @@ export function useFormValidation<T extends Record<string, any>>(
 
         // Valider seulement le champ modifié si on veut une validation en temps réel
         // Pour simplifier, on valide tout le formulaire à chaque changement
-        let errors: Partial<Record<keyof T, string>> = {};
-        let isValid = false;
+        const errors: Partial<Record<keyof T, string>> = {};
 
         try {
           schema.parse({ ...prev.values, [field]: value });
-          isValid = Object.keys(prev.errors).length === 0;
         } catch (err) {
           if (err instanceof ZodError) {
             err.issues.forEach(error => {
@@ -102,12 +100,10 @@ export function useFormValidation<T extends Record<string, any>>(
         const updatedValues = { ...prev.values, ...newValues };
         const isDirty = JSON.stringify(updatedValues) !== JSON.stringify(defaultValues);
 
-        let errors: Partial<Record<keyof T, string>> = {};
-        let isValid = false;
+        const errors: Partial<Record<keyof T, string>> = {};
 
         try {
           schema.parse(updatedValues);
-          isValid = true;
         } catch (err) {
           if (err instanceof ZodError) {
             err.issues.forEach(error => {

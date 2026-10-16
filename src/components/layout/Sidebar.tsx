@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useData } from '@/lib/DataContext';
+import { Logo } from '@/components/ui/Logo';
+// NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
   LayoutDashboard, Wallet, Landmark, Receipt, FileText, Sprout,
   Beef, HardHat, Package, Truck, FileBarChart, Bell, ScrollText,
-  Users, Settings, ChevronDown, X, Globe, ChefHat,
+  Users, Settings, ChevronDown, X, ChefHat, Image, Layout,
 } from 'lucide-react';
-import { useData } from '@/lib/DataContext';
-import { Logo } from '@/components/ui/Logo';
 
 export interface NavItem {
   id: string;
@@ -70,13 +71,15 @@ const NAV_ITEMS: NavItem[] = [
     { id: 'inventory?counts', label: 'Inventaires physiques' },
   ]},
   { id: 'suppliers', label: 'Fournisseurs', icon: <Truck size={20} /> },
-  { id: 'recipes', label: 'Recettes', icon: <ChefHat size={20} /> },
-  { id: 'reports', label: 'Rapports', icon: <FileBarChart size={20} /> },
-  { id: 'alerts', label: 'Alertes', icon: <Bell size={20} /> },
-  { id: 'audit', label: 'Audit', icon: <ScrollText size={20} /> },
+  { id: 'media', label: 'Médias', icon: <Image size={20} /> },
+  { id: 'monitoring', label: 'Surveillance', icon: <Layout size={20} />, children: [
+    { id: 'monitoring', label: 'Tableau de bord' },
+    { id: 'monitoring?audit', label: 'Audit' },
+    { id: 'monitoring?alertes', label: 'Alertes' },
+    { id: 'monitoring?rapports', label: 'Rapports' },
+  ]},
   { id: 'users', label: 'Utilisateurs', icon: <Users size={20} /> },
-  { id: 'settings', label: 'Paramètres', icon: <Settings size={20} /> },
-  { id: 'site-content', label: 'Contenu du site', icon: <Globe size={20} /> },
+  { id: 'configuration', label: 'Configuration', icon: <Settings size={20} /> },
 ];
 
 interface SidebarProps {

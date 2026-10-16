@@ -14,7 +14,7 @@ export const COLORS = {
 
 export const EXPENSE_STATUSES = [
   'brouillon',
-  'soumise',
+  'en attente',
   'validée',
   'payée',
   'justifiée',
@@ -217,3 +217,18 @@ export const RECIPE_STATUS_COLORS: Record<string, string> = {
   publiée: 'bg-green-50 text-green-700 border-green-300',
   archivée: 'bg-amber-50 text-amber-700 border-amber-300',
 };
+
+export const MEDIA_TYPES = [
+  'image',
+  'icon',
+  'logo',
+] as const;
+
+export const MEDIA_CATEGORIES = [
+  'site vitrine',
+  'icône application',
+  'logo',
+  'illustration',
+  'bannière',
+  'autre',
+] as const;

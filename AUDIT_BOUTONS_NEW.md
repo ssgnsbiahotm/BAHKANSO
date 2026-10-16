@@ -1,0 +1,4 @@
+| Agriculture | Vue d'ensemble | Bouton Parcelles | src/pages/Agriculture.tsx:41 | implémentée | lecture, commande | Le bouton utilise useNavigate pour changer de route vers la page existante /agriculture/plots. | Aucune | P2 |
+| Agriculture | Vue d'ensemble | Bouton Campagnes | src/pages/Agriculture.tsx:47 | implémentée | lecture, commande | Le bouton utilise useNavigate pour changer de route vers la page existante /agriculture/campaigns. | Aucune | P2 |
+| Agriculture | Vue d'ensemble | Bouton Opérations | src/pages/Agriculture.tsx:53 | implémentée | lecture, commande | Le bouton utilise useNavigate pour changer de route vers la page existante /agriculture/operations. | Aucune | P2 |
+| Agriculture | Vue d'ensemble | Bouton Récoltes | src/pages/Agriculture.tsx:59 | implémentée | lecture, commande | Le bouton utilise useNavigate pour changer de route vers la page existante /agriculture/harvests. | Aucune | P2 |

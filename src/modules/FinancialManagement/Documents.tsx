@@ -240,23 +240,10 @@ export function Documents() {
       <DataTable
         columns={columns}
         data={filtered}
-        rowKey={d => d.id}
+        rowKey={(d: Document) => d.id}
         searchable
-        searchKeys={d => `${d.reference} ${d.name} ${d.type} ${d.status}`}
-        onRowClick={d => setDetailDoc(d)}
-        actions={(d) => (
-          <div className="flex items-center gap-1">
-            {d.status === 'à vérifier' && (
-              <>
-                <button onClick={() => updateStatus(d, 'vérifié')} title="Vérifier" className="p-1.5 text-green-600 hover:bg-green-50 rounded"><CheckCircle size={16} /></button>
-                <button onClick={() => updateStatus(d, 'rejeté')} title="Rejeter" className="p-1.5 text-red-600 hover:bg-red-50 rounded"><XCircle size={16} /></button>
-              </>
-            )}
-            <button onClick={() => openEdit(d)} title="Modifier" className="p-1.5 text-slate-600 hover:bg-slate-100 rounded"><Pencil size={16} /></button>
-            <button onClick={() => setConfirmDelete(d)} title="Supprimer" className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
-            <button onClick={() => setDetailDoc(d)} title="Voir" className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><Eye size={16} /></button>
-          </div>
-        )}
+        searchKeys={(d: Document) => `${d.reference} ${d.name} ${d.type} ${d.status}`}
+        onRowClick={(d: Document) => setDetailDoc(d)}
         pageSize={10}
       />
 

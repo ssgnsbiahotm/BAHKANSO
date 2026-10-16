@@ -40,13 +40,13 @@ export function Treasury() {
           actions={
             <>
               <button
-                onClick={() => navigate('/treasury/bank-accounts')}
+                onClick={() => document.getElementById('treasury-bank-accounts')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 mr-2"
               >
                 Comptes bancaires
               </button>
               <button
-                onClick={() => navigate('/treasury/cash-accounts')}
+                onClick={() => document.getElementById('treasury-cash-accounts')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 className="px-3 py-1 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 mr-2"
               >
                 Caisses
@@ -70,7 +70,7 @@ export function Treasury() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div id="treasury-bank-accounts" className="bg-white rounded-xl border border-slate-200 p-5 scroll-mt-6">
           <h3 className="font-semibold text-slate-900 mb-4">Comptes bancaires</h3>
           <div className="space-y-3">
             {bankAccounts.map(a => (
@@ -89,7 +89,7 @@ export function Treasury() {
             ))}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div id="treasury-cash-accounts" className="bg-white rounded-xl border border-slate-200 p-5 scroll-mt-6">
           <h3 className="font-semibold text-slate-900 mb-4">Caisses</h3>
           <div className="space-y-3">
             {cashAccounts.map(a => (

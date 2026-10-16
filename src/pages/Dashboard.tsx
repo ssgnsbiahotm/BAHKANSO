@@ -12,7 +12,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-  const { farm, expenses, fundings, bankAccounts, cashAccounts, projects, documents, alerts, auditLogs, inventoryItems, campaigns, transactions } = useData();
+  const { farm, expenses, fundings, bankAccounts, cashAccounts, projects, documents, alerts, auditLogs, inventoryItems, campaigns, transactions, loading, error } = useData();
   const [period, setPeriod] = useState<'2026' | '2025' | 'all'>('2026');
 
   const filterByPeriod = useMemo(() => {

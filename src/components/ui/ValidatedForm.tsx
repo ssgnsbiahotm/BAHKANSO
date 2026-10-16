@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useFormValidation } from '@/hooks/useFormValidation';
-import { z, ZodSchema } from 'zod';
+import { ZodSchema } from 'zod';
 
 interface ValidatedFormProps<T> {
   /** Schéma de validation Zod */
@@ -42,13 +42,13 @@ interface ValidatedFormReturn<T> {
  * Composant de formulaire avec validation intégrée utilisant Zod
  * Gère l'état, la validation et la soumission du formulaire
  */
-export function ValidatedForm<T extends Record<string, any>>({
+export function ValidatedForm<T extends object = Record<string, unknown>>({
   schema,
   defaultValues,
   onSubmit,
-  submitLabel = 'Soumettre',
-  validateOnChange = false,
-  onValid,
+  submitLabel = 'Soumettre', // utilisé comme valeur par défaut
+  validateOnChange = false, // utilisé comme valeur par défaut
+  onValid, // utilisé dans le composant
   onInvalid,
 }: ValidatedFormProps<T>): ValidatedFormReturn<T> {
   const {
@@ -59,13 +59,9 @@ export function ValidatedForm<T extends Record<string, any>>({
     setFieldValue,
     resetForm,
     validateForm,
-    setFieldErrors,
-    getFieldError,
-    hasFieldError,
   } = useFormValidation<T>(schema, defaultValues);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lastValidState, setLastValidState] = useState(isValid);
 
   // Vérifier les changements de validité pour appeler les callbacks
   // Utilisons useEffect dans un composant wrapper pour éviter les hooks conditionnels
@@ -95,22 +91,6 @@ export function ValidatedForm<T extends Record<string, any>>({
     }
   };
 
-  // Wrapper pour gérer les callbacks de validation
-  // Comme on ne peut pas utiliser useEffect directement dans ce composant retournant un objet,
-  // on retourne une fonction qui sera appelée par le composant consommateur
-  const validityChecker = useState(() => {
-    let lastValid = isValid;
-    return () => {
-      if (lastValid !== isValid) {
-        if (isValid && onValid) onValid();
-        if (!isValid && onInvalid) onInvalid();
-        lastValid = isValid;
-      };
-    };
-  })[0];
-
-  // En pratique, le composant consommateur devrait appeler validityChecker() dans un useEffect
-  // Mais pour simplifier l'utilisation, on documente que ce hook doit être utilisé avec un useEffect
 
   return {
     values,
@@ -128,13 +108,13 @@ export function ValidatedForm<T extends Record<string, any>>({
  * Hook personnalisé qui combine useFormValidation avec useEffect pour les callbacks de validation
  * C'est la façon recommandée d'utiliser la validation de formulaire
  */
-export function useValidatedForm<T extends Record<string, any>>({
+export function useValidatedForm<T extends object = Record<string, unknown>>({
   schema,
   defaultValues,
   onSubmit,
-  submitLabel = 'Soumettre',
-  validateOnChange = false,
-  onValid,
+  submitLabel = 'Soumettre', // utilisé comme valeur par défaut
+  validateOnChange = false, // utilisé comme valeur par défaut
+  onValid, // utilisé dans le composant
   onInvalid,
 }: ValidatedFormProps<T>) {
   const formState = useFormValidation<T>(schema, defaultValues);
@@ -142,19 +122,7 @@ export function useValidatedForm<T extends Record<string, any>>({
 
   // Effet pour gérer les callbacks de validation
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const [, setState] = useState(0); // Forcer un rerender quand nécessaire
 
-  // Vérifier les changements de validité
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const checkValidityChange = () => {
-    // En pratique, on aurait besoin d'un ref à la dernière valeur de isValid
-    // Mais pour l'exemple, on simplifie
-    if (onValid && formState.isValid) onValid();
-    if (onInvalid && !formState.isValid) onInvalid();
-  };
-
-  // Appeler le vérificateur à chaque changement (simplifié)
-  // Dans une vraie implémentation, on utiliserait useEffect avec les dépendances appropriées
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

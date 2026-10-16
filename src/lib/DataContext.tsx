@@ -6,7 +6,7 @@ import type {
   Supplier, Expense, Document, Site, Plot, Campaign, CropOperation, Harvest,
   Animal, AnimalLot, AnimalEvent, Project, ProjectStep, InventoryItem,
   InventoryMovement, InventoryCount, Budget, Alert, Notification, AuditLog,
-  SiteContent, Recipe,
+  SiteContent, Media,
 } from './types';
 
 interface DataContextType {
@@ -38,7 +38,7 @@ interface DataContextType {
   notifications: Notification[];
   auditLogs: AuditLog[];
   siteContent: Record<string, SiteContent>;
-  recipes: Recipe[];
+  media: Media[];
   loading: boolean;
   error: string | null;
   refresh: () => void;
@@ -82,7 +82,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [siteContent, setSiteContent] = useState<Record<string, SiteContent>>({});
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,7 +96,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         campaignsRes, cropOpsRes, harvestsRes, animalsRes, lotsRes,
         animalEventsRes, projectsRes, stepsRes, invItemsRes, invMovRes,
         invCountsRes, budgetsRes, alertsRes, notifRes, auditRes, siteContentRes,
-        recipesRes,
+        mediaRes,
       ] = await Promise.all([
         supabase.from('farms').select('*').limit(1).maybeSingle(),
         supabase.from('app_users').select('*').order('name'),
@@ -106,7 +106,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         supabase.from('cash_accounts').select('*').order('name'),
         supabase.from('transactions').select('*').order('transaction_date', { ascending: false }),
         supabase.from('suppliers').select('*').order('name'),
-        supabase.from("expenses").select("*, supplier:suppliers(*), funding:fundings(funder:funders(*))").order("date", { ascending: false }),
+        supabase.from("expenses").select("*, supplier:suppliers(*), funding:fundings(*)").order("date", { ascending: false }),
         supabase.from('documents').select('*').order('upload_date', { ascending: false }),
         supabase.from('sites').select('*').order('name'),
         supabase.from('plots').select('*').order('name'),
@@ -126,7 +126,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         supabase.from('notifications').select('*').order('created_at', { ascending: false }),
         supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
         supabase.from('site_content').select('*'),
-        supabase.from('recipes').select('*').order('created_at', { ascending: false }),
+        supabase.from('media').select('*').order('created_at', { ascending: false }),
       ]);
 
       if (farmRes.error) throw farmRes.error;
@@ -163,7 +163,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         contentMap[row.key] = row as SiteContent;
       }
       setSiteContent(contentMap);
-      setRecipes((recipesRes.data as Recipe[]) || []);
+      setMedia((mediaRes.data as Media[]) || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de chargement');
     } finally {
@@ -185,7 +185,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       suppliers, expenses, documents, sites, plots, campaigns, cropOperations,
       harvests, animals, animalLots, animalEvents, projects, projectSteps,
       inventoryItems, inventoryMovements, inventoryCounts, budgets, alerts,
-      notifications, auditLogs, siteContent, recipes, loading, error, refresh: loadAll,
+      notifications, auditLogs, siteContent, media, loading, error, refresh: loadAll,
     }}>
       {children}
     </DataContext.Provider>

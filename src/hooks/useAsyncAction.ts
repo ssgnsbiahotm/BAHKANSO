@@ -5,7 +5,7 @@ import { useToast } from '@/lib/Toast';
  * Hook personnalisé pour gérer les opérations asynchrones avec affichage de toast
  * Standardise le pattern try/await/toast utilisé dans plusieurs composants
  */
-export function useAsyncAction<T = any>() {
+export function useAsyncAction<T = unknown>() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 

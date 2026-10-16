@@ -189,17 +189,10 @@ export function Fundings() {
       <DataTable
         columns={columns}
         data={fundings}
-        rowKey={f => f.id}
+        rowKey={(f: Funding) => f.id}
         searchable
-        searchKeys={f => `${f.reference} ${f.funder?.name} ${f.status}`}
-        onRowClick={f => setDetailFunding(f)}
-        actions={(f) => (
-          <div className="flex items-center gap-1">
-            <button onClick={() => openEdit(f)} title="Modifier" className="p-1.5 text-slate-600 hover:bg-slate-100 rounded"><Pencil size={16} /></button>
-            <button onClick={() => setConfirmDelete(f)} title="Supprimer" className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
-            <button onClick={() => setDetailFunding(f)} title="Voir" className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><Eye size={16} /></button>
-          </div>
-        )}
+        searchKeys={(f: Funding) => `${f.reference} ${f.funder?.name} ${f.status}`}
+        onRowClick={(f: Funding) => setDetailFunding(f)}
         pageSize={10}
       />
 
