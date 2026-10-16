@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { FileText, Plus, Trash2, Pencil, Eye, Loader2, Save, CheckCircle, XCircle, Folder, Check, ClipboardList, Image, BarChart2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -188,7 +189,7 @@ export function DocumentManage() {
     setModalOpen(true);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitWithToast = async () => {
     // Validation avec Zod
     const validationResult = documentSchema.safeParse(form);
     if (!validationResult.success) {
@@ -198,63 +199,74 @@ export function DocumentManage() {
       return;
     }
 
-    setSaving(true);
-    try {
-      const payload = {
-        title: form.title,
-        description: form.description || null,
-        document_type: form.document_type,
-        file_url: form.file_url,
-        file_name: form.file_name,
-        file_size: form.file_size,
-        mime_type: form.mime_type,
-        upload_date: form.upload_date.toISOString().split('T')[0],
-        related_entity_type: form.related_entity_type,
-        related_entity_id: form.related_entity_id || null,
-        tags: form.tags,
-        is_public: form.is_public,
-      };
+    await executeAction(
+      async () => {
+        const payload = {
+          title: form.title,
+          description: form.description || null,
+          document_type: form.document_type,
+          file_url: form.file_url,
+          file_name: form.file_name,
+          file_size: form.file_size,
+          mime_type: form.mime_type,
+          upload_date: form.upload_date.toISOString().split('T')[0],
+          related_entity_type: form.related_entity_type,
+          related_entity_id: form.related_entity_id || null,
+          tags: form.tags,
+          is_public: form.is_public,
+        };
 
-      if (editDocument) {
-        const { error } = await supabase.from('documents').update(payload).eq('id', editDocument.id);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
-        } else {
+        if (editDocument) {
+          const { error } = await supabase.from('documents').update(payload).eq('id', editDocument.id);
+          if (error) throw error;
+
           await logAudit(appUser?.name || 'Système', 'UPDATE', 'document', editDocument.title, `Document ${editDocument.title} modifié`);
-          toast.show('Document modifié');
-          setModalOpen(false);
-          refresh();
-        }
-      } else {
-        const { error } = await supabase.from('documents').insert(payload);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
+          return { action: 'UPDATE', document: editDocument.title };
         } else {
+          const { error } = await supabase.from('documents').insert(payload);
+          if (error) throw error;
+
           await logAudit(appUser?.name || 'Système', 'CREATE', 'document', payload.title, `Création du document ${payload.title}`);
-          toast.show('Document créé avec succès');
+          return { action: 'CREATE', document: payload.title };
+        }
+      },
+      {
+        successMessage: 'Document créé avec succès',
+        errorMessage: 'Erreur lors de la création du document',
+        onSuccess: (result) => {
+          if (result.action === 'CREATE') {
+            toast.show('Document créé avec succès');
+          } else if (result.action === 'UPDATE') {
+            toast.show('Document modifié');
+          }
           setModalOpen(false);
           refresh();
         }
       }
-    } catch (error) {
-      toast.show('Erreur inattendue: ' + (error as Error).message, 'error');
-    } finally {
-      setSaving(false);
-    }
+    );
   };
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
-    const { error } = await supabase.from('documents').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'document', confirmDelete.title, `Document ${confirmDelete.title} supprimé`);
-      toast.show('Document supprimé');
-      setConfirmDelete(null);
-      setDetailDocument(null);
-      refresh();
-    }
+    await executeAction(
+      async () => {
+        const { error } = await supabase.from('documents').delete().eq('id', confirmDelete.id);
+        if (error) throw error;
+
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'document', confirmDelete.title, `Document ${confirmDelete.title} supprimé`);
+        return { id: confirmDelete.id, title: confirmDelete.title };
+      },
+      {
+        successMessage: 'Document supprimé',
+        errorMessage: 'Erreur lors de la suppression du document',
+        onSuccess: (result) => {
+          toast.show('Document supprimé');
+          setConfirmDelete(null);
+          setDetailDocument(null);
+          refresh();
+        }
+      }
+    );
   };
 
   const getDocumentTypeLabel = (type: string): string => {
@@ -344,337 +356,4 @@ export function DocumentManage() {
           >
             <option value="all">Toutes les entités</option>
             <option value="none">Aucune</option>
-            <option value="animal">Animal</option>
-            <option value="plot">Parcelle</option>
-            <option value="campaign">Campagne</option>
-            <option value="cash_transaction">Mouvement de trésorerie</option>
-          </select>
-        </div>
-        <div>
-          <button
-            onClick={() => {
-              setSearchTerm('');
-              setFilterType('all');
-              setFilterEntity('all');
-            }}
-            className="w-full px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
-          >
-            Réinitialiser les filtres
-          </button>
-        </div>
-      </div>
-
-      {(!documents || documents.length === 0) ? (
-        <EmptyState
-          icon={<Folder size={48} />}
-          title={searchTerm ? "Aucun résultat" : "Aucun document"}
-          message={searchTerm ? "Aucun document ne correspond à votre recherche" : "Aucun document enregistré"}
-          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Nouveau document</button>}
-        />
-      ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Titre</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Nom du fichier</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Taille</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Date d'upload</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Entité liée</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Accès</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredDocuments.map((document: any) => (
-                <tr key={document.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 text-sm text-slate-600">{document.title}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{getDocumentTypeLabel(document.document_type)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{document.file_name}</td>
-                  <td className="px-4 py-3 text-sm text-right">{document.file_size >= 1024 * 1024 ? (document.file_size / 1024 / 1024).toFixed(2) + ' Mo' : document.file_size >= 1024 ? (document.file_size / 1024).toFixed(2) + ' Ko' : document.file_size + ' o'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{formatDate(document.upload_date)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">
-                    {document.related_entity_type === 'none' ? 'Aucune' :
-                      document.related_entity_type === 'animal' ? `Animal #${document.related_entity_id}` :
-                      document.related_entity_type === 'plot' ? `Parcelle #${document.related_entity_id}` :
-                      document.related_entity_type === 'campaign' ? `Campagne #${document.related_entity_id}` :
-                      `Mvt trésorerie #${document.related_entity_id}`}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center">
-                    <SimpleBadge color={document.is_public ? 'green' : 'gray'}>
-                      {document.is_public ? 'Public' : 'Privé'}
-                    </SimpleBadge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Detail modal */}
-      <Modal
-        open={!!detailDocument && !confirmDelete}
-        onClose={() => setDetailDocument(null)}
-        title={`Document : ${detailDocument?.title || ''}`}
-        size="lg"
-        footer={
-          detailDocument ? (
-            <>
-              <button onClick={() => setConfirmDelete(detailDocument)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-              <button onClick={() => openEdit(detailDocument)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
-            </>
-          ) : undefined
-        }
-      >
-        {detailDocument && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">{detailDocument.title}</h2>
-                <p className="text-sm text-slate-500">{detailDocument.description || '—'}</p>
-              </div>
-              <SimpleBadge color={
-                detailDocument.is_public ? 'green' : 'gray'
-              }>
-                {detailDocument.is_public ? 'Public' : 'Privé'}
-              </SimpleBadge>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><p className="text-xs text-slate-400">Titre</p><p className="text-sm font-medium">{detailDocument.title}</p></div>
-              <div><p className="text-xs text-slate-400">Description</p><p className="text-sm font-medium">{detailDocument.description || '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Type de document</p><p className="text-sm font-medium">{getDocumentTypeLabel(detailDocument.document_type)}</p></div>
-              <div><p className="text-xs text-slate-400">Nom du fichier</p><p className="text-sm font-medium">{detailDocument.file_name}</p></div>
-              <div><p className="text-xs text-slate-400">Taille du fichier</p><p className="text-sm font-medium">{detailDocument.file_size >= 1024 * 1024 ? (detailDocument.file_size / 1024 / 1024).toFixed(2) + ' Mo' : detailDocument.file_size >= 1024 ? (detailDocument.file_size / 1024).toFixed(2) + ' Ko' : detailDocument.file_size + ' o'}</p></div>
-              <div><p className="text-xs text-slate-400">Type MIME</p><p className="text-sm font-medium">{detailDocument.mime_type}</p></div>
-              <div><p className="text-xs text-slate-400">Date d'upload</p><p className="text-sm font-medium">{formatDate(detailDocument.upload_date)}</p></div>
-              <div><p className="text-xs text-slate-400">URL du fichier</p><p className="text-sm font-medium break-all">{detailDocument.file_url}</p></div>
-              <div><p className="text-xs text-slate-400">Entité liée</p><p className="text-sm font-medium">
-                {detailDocument.related_entity_type === 'none' ? 'Aucune' :
-                  detailDocument.related_entity_type === 'animal' ? `Animal #${detailDocument.related_entity_id}` :
-                  detailDocument.related_entity_type === 'plot' ? `Parcelle #${detailDocument.related_entity_id}` :
-                  detailDocument.related_entity_type === 'campaign' ? `Campagne #${detailDocument.related_entity_id}` :
-                  `Mvt trésorerie #${detailDocument.related_entity_id}`}
-              </p></div>
-              <div><p className="text-xs text-slate-400">Tags</p><p className="text-sm font-medium">{detailDocument.tags.length > 0 ? detailDocument.tags.join(', ') : 'Aucun'}</p></div>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Create/Edit modal */}
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editDocument ? 'Modifier le document' : 'Nouveau document'}
-        size="lg"
-        footer={
-          <>
-            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  {editDocument ? 'Modifier' : 'Créer'}
-                </>
-              )}
-            </button>
-          </>
-        }
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Titre *</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm('title', e.target.value)}
-              className={`form-input ${errors.title ? 'border-red-500' : ''}`}
-              placeholder="Facture d'achat d'aliment, contrat de travail, etc."
-            />
-            {errors.title && (
-              <p className="mt-1 text-xs text-red-500">{errors.title}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Description (optionnel)</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm('description', e.target.value)}
-              className="form-input"
-              rows={3}
-              placeholder="Informations complémentaires sur le document..."
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Type de document *</label>
-            <select
-              value={form.document_type}
-              onChange={(e) => setForm('document_type', e.target.value as any)}
-              className="form-input"
-            >
-              <option value="justificatif_depense">Justificatif de dépense</option>
-              <option value="justificatif_revenu">Justificatif de revenu</option>
-              <option value="contrat">Contrat</option>
-              <option value="facture">Facture</option>
-              <option value="recu">Reçu</option>
-              <option value="autorisation">Autorisation</option>
-              <option value="certificat">Certificat</option>
-              <option value="plan">Plan</option>
-              <option value="rapport">Rapport</option>
-              <option value="photo">Photo</option>
-              <option value="autre">Autre</option>
-            </select>
-            {errors.document_type && (
-              <p className="mt-1 text-xs text-red-500">{errors.document_type}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Nom du fichier *</label>
-            <input
-              type="text"
-              value={form.file_name}
-              onChange={(e) => setForm('file_name', e.target.value)}
-              className={`form-input ${errors.file_name ? 'border-red-500' : ''}`}
-              placeholder="facture_achat_aliment_janvier.pdf"
-            />
-            {errors.file_name && (
-              <p className="mt-1 text-xs text-red-500">{errors.file_name}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Taille du fichier (octets) *</label>
-            <input
-              type="number"
-              min="0"
-              value={form.file_size}
-              onChange={(e) => setForm('file_size', parseInt(e.target.value) || 0)}
-              className={`form-input ${errors.file_size ? 'border-red-500' : ''}`}
-            />
-            {errors.file_size && (
-              <p className="mt-1 text-xs text-red-500">{errors.file_size}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Type MIME *</label>
-            <input
-              type="text"
-              value={form.mime_type}
-              onChange={(e) => setForm('mime_type', e.target.value)}
-              className={`form-input ${errors.mime_type ? 'border-red-500' : ''}`}
-              placeholder="application/pdf, image/jpeg, etc."
-            />
-            {errors.mime_type && (
-              <p className="mt-1 text-xs text-red-500">{errors.mime_type}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">URL du fichier *</label>
-            <input
-              type="text"
-              value={form.file_url}
-              onChange={(e) => setForm('file_url', e.target.value)}
-              className={`form-input ${errors.file_url ? 'border-red-500' : ''}`}
-              placeholder="https://exemple.com/documents/facture.pdf"
-            />
-            {errors.file_url && (
-              <p className="mt-1 text-xs text-red-500">{errors.file_url}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Date d'upload</label>
-            <input
-              type="date"
-              value={form.upload_date ? form.upload_date.toISOString().split('T')[0] : ''}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setForm('upload_date', new Date(e.target.value));
-                }
-                // Ignorer les valeurs vides pour maintenir la validité
-              }}
-              className={`form-input ${errors.upload_date ? 'border-red-500' : ''}`}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Entité liée</label>
-            <select
-              value={form.related_entity_type}
-              onChange={(e) => setForm('related_entity_type', e.target.value as any)}
-              className="form-input"
-            >
-              <option value="none">Aucune</option>
-              <option value="animal">Animal</option>
-              <option value="plot">Parcelle</option>
-              <option value="campaign">Campagne</option>
-              <option value="cash_transaction">Mouvement de trésorerie</option>
-            </select>
-          </div>
-          {form.related_entity_type !== 'none' && (
-            <>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">ID de l'entité liée</label>
-                <input
-                  type="text"
-                  value={form.related_entity_id || ''}
-                  onChange={(e) => setForm('related_entity_id', e.target.value)}
-                  className="form-input"
-                  placeholder="UUID de l'entité liée"
-                />
-              </div>
-            </>
-          )}
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Tags (séparés par des virgules)</label>
-            <input
-              type="text"
-              value={form.tags.join(',')}
-              onChange={(e) => setForm('tags', e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0))}
-              className="form-input"
-              placeholder="facture, aliment, janvier, 2026"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Document public</label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={form.is_public}
-                onChange={(e) => setForm('is_public', e.target.checked)}
-                className="h-4 w-4 text-green-600"
-              />
-              <span className="ml-2 text-sm">Rendre ce document accessible publiquement</span>
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Delete confirmation */}
-      <Modal
-        open={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        title="Confirmer la suppression"
-        size="sm"
-        footer={
-          <>
-            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Supprimer</button>
-          </>
-        }
-      >
-        <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer le document « {confirmDelete?.title} » ({confirmDelete?.file_name}) ? Cette action est irréversible.</p>
-      </Modal>
-    </div>
-  );
-}
-
-// Extrait les erreurs du hook useValidatedForm pour une utilisation plus simple dans ce composant
-function extractErrors<T>(result: any): Partial<Record<keyof T, string>> {
-  // Cette fonction serait normalement fournie par le hook useValidatedForm
-  // Pour cet exemple, on retourne un objet vide
-  return {};
-}
+            <option value="animal">Animal</option
