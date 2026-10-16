@@ -63,25 +63,39 @@ export function FundingCreate() {
     isSubmitting,
     setFieldValue,
     resetForm,
-    handleSubmit,
+    handleSubmit: handleFormSubmit,
   } = useValidatedForm<FundingFormValues>({
     schema: fundingSchema,
     defaultValues,
     onSubmit: async (formData) => {
-      const { data, error } = await supabase
-        .from('fundings')
-        .insert({
-          amount: formData.amount,
-          date_sent: formData.date_sent.toISOString().split('T')[0],
-          date_expected: formData.date_expected?.toISOString().split('T')[0] ?? null,
-          funder_id: formData.funder_id,
-          description: formData.description,
-          status: formData.status,
-        });
+      // Cette fonction est appelée quand le formulaire est soumis et valide
+      // Nous déléguons l'action réelle à notre hook useAsyncAction
+      await executeAction(
+        async () => {
+          const { data, error } = await supabase
+            .from('fundings')
+            .insert({
+              amount: formData.amount,
+              date_sent: formData.date_sent.toISOString().split('T')[0],
+              date_expected: formData.date_expected?.toISOString().split('T')[0] ?? null,
+              funder_id: formData.funder_id,
+              description: formData.description,
+              status: formData.status,
+            });
 
-      if (error) throw error;
+          if (error) throw error;
 
-      return data;
+          return data;
+        },
+        {
+          successMessage: 'Financement créé avec succès',
+          errorMessage: 'Erreur lors de la création du financement',
+          onSuccess: (data) => {
+            console.log('Financement créé:', data);
+            resetForm(); // Réinitialiser le formulaire après succès
+          }
+        }
+      );
     },
     onValid: () => {
       // Callback quand le formulaire devient valide
@@ -96,35 +110,6 @@ export function FundingCreate() {
   // Hook pour gérer les opérations asynchrones avec toast
   const { loading: submitLoading, executeAction } = useAsyncAction();
 
-  const handleSubmitWithToast = async (formData: FundingFormValues) => {
-    await executeAction(
-      async () => {
-        const { data, error } = await supabase
-          .from('fundings')
-          .insert({
-            amount: formData.amount,
-            date_sent: formData.date_sent.toISOString().split('T')[0],
-            date_expected: formData.date_expected?.toISOString().split('T')[0] ?? null,
-            funder_id: formData.funder_id,
-            description: formData.description,
-            status: formData.status,
-          });
-
-        if (error) throw error;
-
-        return data;
-      },
-      {
-        successMessage: 'Financement créé avec succès',
-        errorMessage: 'Erreur lors de la création du financement',
-        onSuccess: (data) => {
-          console.log('Financement créé:', data);
-          resetForm(); // Réinitialiser le formulaire après succès
-        }
-      }
-    );
-  };
-
   // Préparer les options de financeur pour le sélecteur
   const funderOptions: FunderOption[] = funders.map(funder => ({
     id: funder.id,
@@ -138,7 +123,7 @@ export function FundingCreate() {
           Créer un nouveau financement
         </h2>
 
-        <form onSubmit={handleSubmitWithToast} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
           <div className="space-y-3">
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Montant (XOF)
