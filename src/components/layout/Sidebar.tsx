@@ -23,28 +23,11 @@ const NAV_ITEMS: NavItem[] = [
     { id: 'dashboard?alerts', label: 'Alertes' },
     { id: 'dashboard?activity', label: 'Activité récente' },
   ]},
-  { id: 'fundings', label: 'Financements', icon: <Wallet size={20} />, children: [
-    { id: 'fundings', label: 'Tous les financements' },
-    { id: 'fundings?new', label: 'Nouveau financement' },
-    { id: 'fundings?funder', label: 'Sources de financement' },
-  ]},
-  { id: 'treasury', label: 'Trésorerie', icon: <Landmark size={20} />, children: [
-    { id: 'treasury', label: 'Comptes bancaires' },
-    { id: 'treasury?cash', label: 'Caisses' },
-    { id: 'treasury?movements', label: 'Mouvements' },
-  ]},
-  { id: 'expenses', label: 'Dépenses', icon: <Receipt size={20} />, children: [
-    { id: 'expenses', label: 'Toutes les dépenses' },
-    { id: 'expenses?new', label: 'Nouvelle dépense' },
-    { id: 'expenses?pending', label: 'En attente' },
-    { id: 'expenses?validated', label: 'Validées' },
-    { id: 'expenses?rejected', label: 'Rejetées' },
-  ]},
-  { id: 'documents', label: 'Justificatifs', icon: <FileText size={20} />, children: [
-    { id: 'documents', label: 'Tous les documents' },
-    { id: 'documents?pending', label: 'À vérifier' },
-    { id: 'documents?missing', label: 'Manquants' },
-    { id: 'documents?verified', label: 'Vérifiés' },
+  { id: 'finance', label: 'Finances', icon: <Wallet size={20} />, children: [
+    { id: 'finance?tab=treasury', label: 'Trésorerie' },
+    { id: 'finance?tab=fundings', label: 'Financements' },
+    { id: 'finance?tab=expenses', label: 'Dépenses' },
+    { id: 'finance?tab=documents', label: 'Justificatifs' },
   ]},
   { id: 'agriculture', label: 'Agriculture', icon: <Sprout size={20} />, children: [
     { id: 'agriculture', label: 'Exploitations' },

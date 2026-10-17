@@ -1,319 +1,420 @@
-import { useMemo, useState } from 'react';
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, HardHat, FileCheck, Bell, ArrowRight, Clock, Sprout } from 'lucide-react';
-import { useData } from '@/lib/DataContext';
-import { formatCurrency, timeAgo } from '@/lib/format';
-import { KpiCard } from '@/components/ui/KpiCard';
-import { LineChart, DonutChart } from '@/components/ui/Charts';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { PageHeader } from '@/components/ui/PageHeader';
+import React, { useEffect, useState } from 'react';
+import { useDashboardStats, formatFCFA } from '@/hooks/useDashboardStats';
+import { RotatingCard } from '@/components/ui/RotatingCard';
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { PieChart, Pie, Cell } from 'recharts';
+import './Dashboard.css';
 
-interface DashboardProps {
-  onNavigate: (page: string) => void;
-}
+const COLORS = {
+  grass: '#2E7D32',
+  earth: '#5C4033',
+  sky: '#0277BD',
+  harvest: '#F57F17',
+  alert: '#C62828',
+};
 
-export function Dashboard({ onNavigate }: DashboardProps) {
-  const { farm, expenses, fundings, bankAccounts, cashAccounts, projects, documents, alerts, auditLogs, inventoryItems, campaigns, transactions, loading, error } = useData();
-  const [period, setPeriod] = useState<'2026' | '2025' | 'all'>('2026');
+const DASHBOARD_PRODUCTION = [
+  { mois: 'Jan', agriculture: 320, elevage: 280 },
+  { mois: 'Fév', agriculture: 350, elevage: 300 },
+  { mois: 'Mar', agriculture: 410, elevage: 340 },
+  { mois: 'Avr', agriculture: 480, elevage: 390 },
+  { mois: 'Mai', agriculture: 520, elevage: 420 },
+  { mois: 'Jun', agriculture: 580, elevage: 460 },
+];
 
-  const filterByPeriod = useMemo(() => {
-    return (dateStr: string | null | undefined) => {
-      if (!dateStr) return true;
-      if (period === 'all') return true;
-      return dateStr.startsWith(period);
-    };
-  }, [period]);
+const Dashboard: React.FC = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const {
+    totalAnimals,
+    activeCrops,
+    netTreasury,
+    monthExpenses,
+    expenseTrend,
+    activeAlerts,
+    healthScore,
+    currentSeason,
+    animalsData,
+    expensesData,
+    alertsData,
+    productionData,
+  } = useDashboardStats();
 
-  const kpis = useMemo(() => {
-    const periodFundings = fundings.filter(f => filterByPeriod(f.date_sent));
-    const periodExpenses = expenses.filter(e => filterByPeriod(e.date));
-    const totalFunded = periodFundings.filter(f => f.status === 'reçu').reduce((s, f) => s + (f.amount_received || 0), 0);
-    const totalSpent = periodExpenses.filter(e => e.status === 'validée').reduce((s, e) => s + e.amount, 0);
-    const bankTotal = bankAccounts.reduce((s, a) => s + a.balance, 0);
-    const cashTotal = cashAccounts.reduce((s, a) => s + a.balance, 0);
-    const treasury = bankTotal + cashTotal;
-    const budgetRemaining = totalFunded - totalSpent;
-    const ongoingProjects = projects.filter(p => p.status === 'en cours').length;
-    const docsToVerify = documents.filter(d => d.status === 'à vérifier').length;
-    const openAlerts = alerts.filter(a => a.status === 'ouverte').length;
-    return { totalFunded, totalSpent, treasury, budgetRemaining, ongoingProjects, docsToVerify, openAlerts };
-  }, [expenses, fundings, bankAccounts, cashAccounts, projects, documents, alerts, filterByPeriod]);
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const expenseByCategory = useMemo(() => {
-    const map: Record<string, number> = {};
-    expenses.filter(e => e.status === 'validée' && filterByPeriod(e.date)).forEach(e => {
-      const cat = e.category || 'Autre';
-      map[cat] = (map[cat] || 0) + e.amount;
-    });
-    return Object.entries(map)
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
-  }, [expenses, filterByPeriod]);
+  const displayAnimals = animalsData;
+  const displayExpenses = expensesData;
+  const displayAlerts = alertsData;
+  const displayProduction = productionData.length > 0 ? productionData : DASHBOARD_PRODUCTION;
 
-  const treasuryFlow = useMemo(() => {
-    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-    const year = period === 'all' ? null : parseInt(period);
-    const data = months.map(label => ({ label, income: 0, expense: 0 }));
-
-    fundings.filter(f => f.status === 'reçu' && f.date_sent).forEach(f => {
-      const d = new Date(f.date_sent);
-      if (year && d.getFullYear() !== year) return;
-      const mi = d.getMonth();
-      data[mi].income += f.amount_received || f.amount_sent;
-    });
-    transactions.filter(t => t.direction === 'in' && t.transaction_date).forEach(t => {
-      const d = new Date(t.transaction_date);
-      if (year && d.getFullYear() !== year) return;
-      const mi = d.getMonth();
-      data[mi].income += t.amount;
-    });
-    expenses.filter(e => e.status === 'validée' && e.date).forEach(e => {
-      const d = new Date(e.date);
-      if (year && d.getFullYear() !== year) return;
-      const mi = d.getMonth();
-      data[mi].expense += e.amount;
-    });
-    transactions.filter(t => t.direction === 'out' && t.transaction_date).forEach(t => {
-      const d = new Date(t.transaction_date);
-      if (year && d.getFullYear() !== year) return;
-      const mi = d.getMonth();
-      data[mi].expense += t.amount;
-    });
-
-    return data.filter(d => d.income > 0 || d.expense > 0).length > 0
-      ? data.filter(d => d.income > 0 || d.expense > 0)
-      : data.slice(0, 6);
-  }, [fundings, expenses, transactions, period]);
-
-  const maxValue = useMemo(() => {
-    const allVals = treasuryFlow.flatMap(d => [d.income, d.expense]);
-    return Math.max(...allVals, 1);
-  }, [treasuryFlow]);
-
-  const budgetVsActual = useMemo(() => {
-    return projects.slice(0, 4).map(p => ({
-      label: p.name.substring(0, 15),
-      budget: p.revised_budget || p.initial_budget,
-      actual: expenses.filter(e => e.project_id === p.id && e.status === 'validée').reduce((s, e) => s + e.amount, 0),
-    }));
-  }, [projects, expenses]);
-
-  const toVerify = useMemo(() => {
-    const items: { type: string; desc: string; amount: string; page: string }[] = [];
-    expenses.filter(e => !e.has_justificatif && e.status !== 'annulée' && e.status !== 'rejetée').forEach(e => {
-      items.push({ type: 'Dépense sans justificatif', desc: `${e.reference} — ${e.description || ''}`, amount: formatCurrency(e.amount), page: 'expenses' });
-    });
-    expenses.filter(e => e.status === 'en attente').forEach(e => {
-      items.push({ type: 'Validation en attente', desc: `${e.reference} — ${e.description || ''}`, amount: formatCurrency(e.amount), page: 'expenses?pending' });
-    });
-    inventoryItems.filter(i => i.current_stock < i.min_stock).forEach(i => {
-      items.push({ type: 'Stock faible', desc: `${i.name} — ${i.current_stock} ${i.unit} (min: ${i.min_stock})`, amount: '', page: 'inventory' });
-    });
-    projects.filter(p => p.status === 'en retard').forEach(p => {
-      items.push({ type: 'Projet en retard', desc: p.name, amount: '', page: 'projects' });
-    });
-    return items.slice(0, 6);
-  }, [expenses, inventoryItems, projects]);
-
-  const recentActivity = useMemo(() => {
-    return auditLogs.slice(0, 8).map(log => ({
-      ...log,
-      timeStr: timeAgo(log.created_at),
-    }));
-  }, [auditLogs]);
+  const flipCard = (
+    front: React.ReactNode,
+    back: React.ReactNode,
+    flipLabel: string,
+    backLabel: string,
+    className?: string
+  ) => (
+    <RotatingCard front={front} back={back} flipLabel={flipLabel} backLabel={backLabel} className={className} />
+  );
 
   return (
-    <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-      <PageHeader
-        title="Tableau de bord"
-        subtitle={`Vue générale — ${farm?.name || 'Bahkanso'}`}
-        actions={
-          <select
-            value={period}
-            onChange={e => setPeriod(e.target.value as '2026' | '2025' | 'all')}
-            className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20"
-          >
-            <option value="2026">Année 2026</option>
-            <option value="2025">Année 2025</option>
-            <option value="all">Tout l'historique</option>
-          </select>
-        }
-      />
-
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-        <KpiCard
-          label="Trésorerie disponible"
-          value={formatCurrency(kpis.treasury)}
-          icon={<Wallet size={20} />}
-          color="green"
-        />
-        <KpiCard
-          label="Total financé"
-          value={formatCurrency(kpis.totalFunded)}
-          icon={<TrendingUp size={20} />}
-          color="blue"
-          subtitle={`${fundings.filter(f => f.status === 'reçu' && filterByPeriod(f.date_sent)).length} financements reçus`}
-        />
-        <KpiCard
-          label="Total dépensé"
-          value={formatCurrency(kpis.totalSpent)}
-          icon={<TrendingDown size={20} />}
-          color="amber"
-          subtitle={`${expenses.filter(e => e.status === 'validée' && filterByPeriod(e.date)).length} dépenses validées`}
-        />
-        <KpiCard
-          label="Budget restant"
-          value={formatCurrency(kpis.budgetRemaining)}
-          icon={<PiggyBank size={20} />}
-          color="emerald"
-        />
-        <KpiCard
-          label="Investissements en cours"
-          value={String(kpis.ongoingProjects)}
-          icon={<HardHat size={20} />}
-          color="dark"
-        />
-        <KpiCard
-          label="Justificatifs à vérifier"
-          value={String(kpis.docsToVerify)}
-          icon={<FileCheck size={20} />}
-          color="amber"
-        />
-        <KpiCard
-          label="Alertes"
-          value={String(kpis.openAlerts)}
-          icon={<Bell size={20} />}
-          color="red"
-        />
-        <KpiCard
-          label="Campagnes actives"
-          value={String(campaigns.filter(c => c.status === 'en cours').length)}
-          icon={<Sprout size={20} />}
-          color="green"
-        />
-      </div>
-
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-4">Évolution de la trésorerie</h3>
-          {treasuryFlow.length > 0 ? (
-            <LineChart
-              data={treasuryFlow.map(d => ({ label: d.label, value: d.income - d.expense }))}
-              formatValue={v => formatCurrency(v)}
-            />
-          ) : (
-            <p className="text-sm text-slate-400 py-8 text-center">Aucune donnée pour cette période</p>
-          )}
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-4">Financements vs Dépenses</h3>
-          <div className="flex items-end gap-2" style={{ height: 200 }}>
-            {treasuryFlow.map((d, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-                <div className="w-full flex-1 flex items-end gap-0.5">
-                  <div className="flex-1 bg-blue-500 rounded-t-md transition-all duration-700 hover:bg-blue-600" style={{ height: `${(d.income / maxValue) * 100}%`, minHeight: d.income > 0 ? '4px' : '0' }} title={formatCurrency(d.income)} />
-                  <div className="flex-1 bg-amber-500 rounded-t-md transition-all duration-700 hover:bg-amber-600" style={{ height: `${(d.expense / maxValue) * 100}%`, minHeight: d.expense > 0 ? '4px' : '0' }} title={formatCurrency(d.expense)} />
-                </div>
-                <span className="text-xs text-slate-500">{d.label}</span>
-              </div>
-            ))}
+    <div className="dashboard">
+      {/* SECTION 1 — HEADER INTELLIGENT */}
+      <header className="dashboard-header">
+        <div className="header-content">
+          <div className="farm-info">
+            <h1>Bahkanso Exploitation</h1>
+            <div className="datetime">
+              <span className="date">{currentTime.toLocaleDateString('fr-CI', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span className="time">{currentTime.toLocaleTimeString('fr-CI', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-4 mt-3 text-xs">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-blue-500 rounded" />Financements</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-amber-500 rounded" />Dépenses</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Budget vs Actual + Expense breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-4">Budget vs Réel par projet</h3>
-          <div className="space-y-3">
-            {budgetVsActual.length > 0 ? budgetVsActual.map((b, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-slate-600">{b.label}</span>
-                  <span className="text-slate-900 font-medium">{formatCurrency(b.actual)} / {formatCurrency(b.budget)}</span>
-                </div>
-                <ProgressBar value={b.actual} max={b.budget} color="green" />
-              </div>
-            )) : (
-              <p className="text-sm text-slate-400 py-4 text-center">Aucun projet</p>
-            )}
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-4">Répartition des dépenses</h3>
-          {expenseByCategory.length > 0 ? (
-            <DonutChart
-              data={expenseByCategory.map((d, i) => ({
-                label: d.label,
-                value: d.value,
-                color: ['#166534', '#22C55E', '#2563EB', '#F59E0B', '#DC2626', '#8B5CF6'][i],
-              }))}
-              formatValue={v => formatCurrency(v)}
-            />
-          ) : (
-            <p className="text-sm text-slate-400 py-8 text-center">Aucune dépense validée</p>
-          )}
-        </div>
-      </div>
-
-      {/* To verify + Recent activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-900">À vérifier</h3>
-            <button onClick={() => onNavigate('alerts')} className="text-xs text-green-600 hover:underline flex items-center gap-1">
-              Voir tout <ArrowRight size={12} />
+          <div className="header-stats">
+            <div className="season-badge">
+              {currentSeason === 'Saison des pluies' ? '🌧' : '☀️'}
+              <span>{currentSeason}</span>
+            </div>
+            <div className={`health-score ${healthScore >= 80 ? 'good' : healthScore >= 60 ? 'warning' : 'critical'}`}>
+              <span>Score santé :</span>
+              <span>{healthScore}/100</span>
+            </div>
+            <button className="refresh-btn" onClick={() => window.location.reload()}>
+              🔄 Actualiser
             </button>
           </div>
-          <div className="space-y-2">
-            {toVerify.length === 0 ? (
-              <p className="text-sm text-slate-400 py-4 text-center">Rien à vérifier</p>
-            ) : (
-              toVerify.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-slate-50 cursor-pointer" onClick={() => onNavigate(item.page)}>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">{item.type}</p>
-                    <p className="text-xs text-slate-500 truncate">{item.desc}</p>
+        </div>
+      </header>
+
+      {/* SECTION 2 — RANG HERO : 5 FLIP CARDS KPI */}
+      <section className="hero-cards">
+        <div className="cards-grid">
+          {/* Card 1 — CHEPTEL TOTAL */}
+          {flipCard(
+            <div className="card-content" style={{ textAlign: 'center' }}>
+              <div className="card-icon">🐄</div>
+              <div className="card-value">{totalAnimals}</div>
+              <div className="card-label">Animaux totaux</div>
+              <div className="card-badge">↑ 5%</div>
+            </div>,
+            <div className="card-content">
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Répartition par espèce</h3>
+              <ul className="species-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {displayAnimals.slice(0, 3).map((animal, index) => (
+                  <li key={index} style={{ margin: '6px 0', fontSize: '0.95rem', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{animal.species || 'N/A'}:</span>
+                    <span>{animal.identifier || '—'}</span>
+                  </li>
+                ))}
+              </ul>
+              <div style={{ marginTop: '14px' }}>
+                <a href="/livestock" className="btn-link">Voir le cheptel →</a>
+              </div>
+            </div>,
+            'Détails',
+            'Retour'
+          )}
+
+          {/* Card 2 — CULTURES ACTIVES */}
+          {flipCard(
+            <div className="card-content" style={{ textAlign: 'center' }}>
+              <div className="card-icon">🌾</div>
+              <div className="card-value">{activeCrops}</div>
+              <div className="card-label">Parcelles actives</div>
+              <div className="card-badge">→ Prochaine récolte</div>
+            </div>,
+            <div className="card-content">
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Cultures en cours</h3>
+              <ul className="crops-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                <li style={{ margin: '6px 0', fontSize: '0.95rem' }}>Maïs - Récolte: 15/12</li>
+                <li style={{ margin: '6px 0', fontSize: '0.95rem' }}>Riz - Récolte: 30/11</li>
+                <li style={{ margin: '6px 0', fontSize: '0.95rem' }}>Manioc - Récolte: 10/01</li>
+              </ul>
+              <div style={{ marginTop: '14px' }}>
+                <a href="/plots" className="btn-link">Voir les parcelles →</a>
+              </div>
+            </div>,
+            'Détails',
+            'Retour'
+          )}
+
+          {/* Card 3 — TRÉSORERIE NETTE */}
+          {flipCard(
+            <div className="card-content" style={{ textAlign: 'center' }}>
+              <div className="card-icon">💰</div>
+              <div className="card-value">{formatFCFA(netTreasury)}</div>
+              <div className="card-label">Solde net</div>
+              <div className={`card-badge ${expenseTrend >= 0 ? 'badge-up' : 'badge-down'}`}>
+                {expenseTrend >= 0 ? `↑ ${expenseTrend}%` : `↓ ${Math.abs(expenseTrend)}%`}
+              </div>
+            </div>,
+            <div className="card-content">
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Mois en cours</h3>
+              <div className="finance-details" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                  <span>Entrées:</span>
+                  <span>{formatFCFA(netTreasury + monthExpenses)}</span>
+                </div>
+                <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                  <span>Sorties:</span>
+                  <span>{formatFCFA(monthExpenses)}</span>
+                </div>
+                <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                  <span>Variation:</span>
+                  <span className={expenseTrend >= 0 ? 'positive' : 'negative'}>
+                    {expenseTrend >= 0 ? `+${expenseTrend}%` : `${expenseTrend}%`}
+                  </span>
+                </div>
+              </div>
+            </div>,
+            'Détails',
+            'Retour'
+          )}
+
+          {/* Card 4 — DÉPENSES DU MOIS */}
+          {flipCard(
+            <div className="card-content" style={{ textAlign: 'center' }}>
+              <div className="card-icon">📊</div>
+              <div className="card-value">{formatFCFA(monthExpenses)}</div>
+              <div className="card-label">Dépenses mois</div>
+              <div className="card-badge">↓ 2%</div>
+            </div>,
+            <div className="card-content">
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Top 3 postes de dépenses</h3>
+              <ul className="expenses-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {displayExpenses.slice(0, 3).map((exp, index) => (
+                  <li key={index} style={{ margin: '6px 0', fontSize: '0.95rem', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{exp.category || 'N/A'}</span>
+                    <span>{formatFCFA(exp.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>,
+            'Détails',
+            'Retour'
+          )}
+
+          {/* Card 5 — ALERTES ACTIVES */}
+          {flipCard(
+            <div className="card-content" style={{ textAlign: 'center' }}>
+              <div className="card-icon">🔔</div>
+              <div className="card-value">{activeAlerts}</div>
+              <div className="card-label">Alertes actives</div>
+              {activeAlerts > 0 && <div className="card-badge badge-alert">⚠️</div>}
+            </div>,
+            <div className="card-content">
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Alertes critiques</h3>
+              <ul className="alerts-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {displayAlerts.slice(0, 3).map((alert, index) => (
+                  <li key={index} className={`alert-item alert-${alert.severity.toLowerCase()}`} style={{ margin: '8px 0', display: 'flex', gap: '10px', alignItems: 'start' }}>
+                    <div className="alert-icon" style={{ fontSize: '1.2rem' }}>
+                      {alert.severity === 'CRITIQUE' ? '🔴' : alert.severity === 'AVERTISSEMENT' ? '🟡' : '🟢'}
+                    </div>
+                    <div className="alert-info" style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}>{alert.title}</h4>
+                      <p className="alert-time" style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>il y a 2h</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>,
+            'Détails',
+            'Retour'
+          )}
+        </div>
+      </section>
+
+      {/* SECTION 3 — RANG GRAPHIQUES (3 colonnes) */}
+      <section className="charts-section">
+        <div className="charts-grid">
+          {/* Graphique A — Évolution production (large) */}
+          <div className="chart-item wide" style={{ gridColumn: 'span 2' }}>
+            <h2>Évolution de la production</h2>
+            <ResponsiveContainer width="100%" height={350}>
+              <RechartsLineChart data={displayProduction}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mois" />
+                <YAxis />
+                <Tooltip formatter={(value) => `${value} `} />
+                <Legend />
+                <Line type="monotone" dataKey="agriculture" stroke={COLORS.grass} name="Agriculture" />
+                <Line type="monotone" dataKey="elevage" stroke={COLORS.earth} name="Élevage" />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Graphique B — Répartition dépenses (étroit) */}
+          <div className="chart-item narrow">
+            <h2>Répartition des dépenses</h2>
+            <ResponsiveContainer width="100%" height={350}>
+              <PieChart>
+                <Pie
+                  data={displayExpenses}
+                  dataKey="montant"
+                  nameKey="cat"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  labelLine={false}
+                  label={({ node }: any) => `${node.data.cat}: ${formatFCFA(node.data.montant)}`}
+                >
+                  {displayExpenses.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={[COLORS.harvest, COLORS.grass, COLORS.sky, COLORS.earth, COLORS.alert][index]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4 — RANG CHEPTEL + STOCKS */}
+      <section className="livestock-stocks-section">
+        <div className="two-panel">
+          {/* Panel A — STATUT CHEPTEL */}
+          <div className="panel">
+            <h2>Statut du cheptel</h2>
+            <div className="livestock-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Espèce</th>
+                    <th>Effectif</th>
+                    <th>Santé %</th>
+                    <th>Tendance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayAnimals.map((animal, index) => (
+                    <tr key={index} className={''}>
+                      <td>{animal.species}</td>
+                      <td>{animal.identifier}</td>
+                      <td>—</td>
+                      <td>
+                        <span className="trend-up">↑</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="table-footer">
+                <a href="/livestock" className="btn-primary">Gérer le cheptel →</a>
+              </div>
+            </div>
+          </div>
+
+          {/* Panel B — STOCKS CRITIQUES */}
+          <div className="panel">
+            <h2>Stocks critiques</h2>
+            <div className="stocks-list">
+              <div className="stock-item">
+                <span>Aliments (kg)</span>
+                <div className="stock-progress">
+                  <div className="stock-bar" style={{ width: '65%' }}></div>
+                </div>
+                <span className="stock-quantity">650 kg / 1000 kg</span>
+              </div>
+              <div className="stock-item">
+                <span>Médicaments (unités)</span>
+                <div className="stock-progress">
+                  <div className="stock-bar" style={{ width: '40%' }}></div>
+                </div>
+                <span className="stock-quantity">120 unités / 300 unités</span>
+              </div>
+              <div className="stock-item">
+                <span>Équipements en maintenance</span>
+                <div className="stock-progress">
+                  <div className="stock-bar" style={{ width: '20%' }}></div>
+                </div>
+                <span className="stock-quantity">4 unités / 20 unités</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 5 — RANG OPÉRATIONNEL */}
+      <section className="operational-section">
+        <div className="three-widgets">
+          {/* Widget A — CALENDRIER SAISONNIER */}
+          <div className="widget">
+            <h2>Calendrier saisonnier</h2>
+            <div className="calendar-month">
+              <span>Novembre 2026</span>
+            </div>
+            <div className="calendar-tasks">
+              <div className="task-item">
+                <span className="task-type agriculture">🌾</span>
+                <span className="task-description">Récolte du riz</span>
+              </div>
+              <div className="task-item">
+                <span className="task-type livestock">🐄</span>
+                <span className="task-description">Vaccination bovins</span>
+              </div>
+              <div className="task-item">
+                <span className="task-type finance">💰</span>
+                <span className="task-description">Clôture mensuelle</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Widget B — ALERTES PRIORITAIRES */}
+          <div className="widget">
+            <h2>Alertes prioritaires</h2>
+            <div className="priority-alerts">
+              {displayAlerts.map((alert, index) => (
+                <div key={index} className={`alert-priority alert-${alert.severity.toLowerCase()}`}>
+                  <div className="alert-content">
+                    <span className="alert-icon">
+                      {alert.severity === 'CRITIQUE' ? '🔴' : alert.severity === 'AVERTISSEMENT' ? '🟡' : '🟢'}
+                    </span>
+                    <div className="alert-message">
+                      <strong>{alert.title}</strong>
+                      <p className="alert-time">il y a {index + 1}h</p>
+                    </div>
                   </div>
-                  {item.amount && <span className="text-sm font-medium text-slate-700">{item.amount}</span>}
+                  {alert.severity === 'CRITIQUE' && <div className="alert-pulse"></div>}
                 </div>
-              ))
-            )}
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-900">Activité récente</h3>
-            <button onClick={() => onNavigate('audit')} className="text-xs text-green-600 hover:underline flex items-center gap-1">
-              Voir tout <ArrowRight size={12} />
-            </button>
-          </div>
-          <div className="space-y-3">
-            {recentActivity.length === 0 ? (
-              <p className="text-sm text-slate-400 py-4 text-center">Aucune activité</p>
-            ) : recentActivity.map(log => (
-              <div key={log.id} className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Clock size={14} className="text-slate-500" />
+
+          {/* Widget C — FINANCEMENTS EN COURS */}
+          <div className="widget">
+            <h2>Financements en cours</h2>
+            <div className="fundings-list">
+              <div className="funding-item">
+                <span>Projet irrigation</span>
+                <div className="funding-progress">
+                  <div className="funding-bar" style={{ width: '70%' }}></div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-900">
-                    <span className="font-medium">{log.user_name}</span> — {log.description}
-                  </p>
-                  <p className="text-xs text-slate-400">{log.timeStr}</p>
-                </div>
+                <span>2 500 000 XOF</span>
               </div>
-            ))}
+              <div className="funding-item">
+                <span>Subvention État</span>
+                <div className="funding-progress">
+                  <div className="funding-bar" style={{ width: '45%' }}></div>
+                </div>
+                <span>1 200 000 XOF</span>
+              </div>
+            </div>
+            <a href="/finance?tab=fundings" className="btn-link">Voir tous les financements →</a>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
-}
+};
+
+export default Dashboard;

@@ -21,3 +21,14 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.aider*
+
+# Backups locaux
+.backup_*/
+*.backup
+*.tmp
+
+# Outils locaux (peuvent contenir des secrets)
+.codex/
+.omc/
+.mcp.json
