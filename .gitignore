@@ -32,3 +32,9 @@ dist-ssr
 .codex/
 .omc/
 .mcp.json
+
+# Artefacts de test/Playwright
+.playwright-mcp/
+test-*.cjs
+test-*.js
+*.test.cjs

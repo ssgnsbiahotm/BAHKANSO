@@ -35,7 +35,7 @@ export const appRouter = createBrowserRouter([
     path: '/login',
     element: (
       <LoginPage
-        onLogin={() => { void appRouter.navigate('/app'); }}
+        onLogin={() => { void appRouter.navigate('/app/dashboard'); }}
         onBack={() => { void appRouter.navigate('/'); }}
       />
     ),

@@ -27,7 +27,7 @@ export function RotatingCard({ front, back, className = '', flipLabel = 'Détail
 
   return (
     <div
-      className={`rotating-card-wrapper [perspective:1200px] ${className}`}
+      className={`rotating-card-wrapper [perspective:1200px] ${flipped ? 'flipped' : ''} ${className}`}
       role="button"
       tabIndex={0}
       onKeyDown={handleKey}

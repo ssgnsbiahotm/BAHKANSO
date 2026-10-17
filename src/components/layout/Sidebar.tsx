@@ -95,11 +95,11 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         <div className="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" onClick={onCloseMobile} />
       )}
       <aside className={`
-        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 bg-slate-900 flex flex-col
+        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 bg-white flex flex-col border-r border-slate-200
         transition-transform duration-300
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-700/50">
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200/50">
           <Logo
             icon={branding.logoIcon || 'Sprout'}
             color={branding.logoColor || '#FFFFFF'}
@@ -108,10 +108,10 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             imageUrl={farm?.logo_url}
           />
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</h1>
-            <p className="text-slate-400 text-xs">{branding.appTagline || ''}</p>
+            <h1 className="text-slate-900 font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</h1>
+            <p className="text-slate-600 text-xs">{branding.appTagline || ''}</p>
           </div>
-          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-slate-400">
+          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-slate-600">
             <X size={20} />
           </button>
         </div>
@@ -132,11 +132,11 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-green-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-green-100 text-green-700'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
-                  <span className={isActive ? 'text-white' : 'text-slate-400'}>{item.icon}</span>
+                  <span className={isActive ? 'text-green-700' : 'text-slate-600'}>{item.icon}</span>
                   <span className="flex-1 text-left">{item.label}</span>
                   {hasChildren && (
                     <ChevronDown
@@ -154,8 +154,8 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                         className={`w-full text-left px-3 py-2 rounded-md text-xs transition-colors ${
                           // Pour les sous-éléments, on vérifie si le chemin actuel contient l'ID
                           location.pathname.includes(child.id.split('?')[0])
-                            ? 'text-green-400 font-medium'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                            ? 'text-green-700 font-medium'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`}
                       >
                         {child.label}
@@ -167,7 +167,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             );
           })}
         </nav>
-        <div className="px-4 py-3 border-t border-slate-700/50">
+        <div className="px-4 py-3 border-t border-slate-200/50">
           <p className="text-xs text-slate-500 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>
         </div>
       </aside>
