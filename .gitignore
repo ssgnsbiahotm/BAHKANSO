@@ -81,3 +81,11 @@ test-*.js
 data/
 skills/
 skills-lock.json
+
+# Artefacts Claude Code / skills IA
+.agents/ .augment/ .autohand/ .bob/ .claude/skills/ .codeartsdoer/ .codebuddy/
+.codemaker/ .codestudio/ .commandcode/ .continue/ .cortex/ .crush/ .devin/
+.forge/ .fx/ .goose/ .grok/ .hermes/ .iflow/ .inferencesh/ .jazz/ .junie/
+.kimchi/ .kiro/ .kode/ .lingma/ .mcpjam/ .minimax/ .moxby/ .mux/ .ona/
+.openhands/ .posit/ .qoder/ .qwen/ .reasonix/ .vibe/ data/ skills/
+skills-lock.json
