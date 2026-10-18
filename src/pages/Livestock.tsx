@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Beef, Heart, Scale, Activity } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -26,10 +25,10 @@ export function Livestock() {
       <PageHeader title="Élevage" subtitle="Gestion du cheptel, santé et événements" />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total animaux" value={String(kpis.totalAnimals)} icon={<Beef size={20} />} color="green" />
-        <KpiCard label="Valeur estimée" value={formatCurrency(kpis.totalValue)} icon={<Scale size={20} />} color="blue" />
-        <KpiCard label="Événements" value={String(kpis.events)} icon={<Activity size={20} />} color="amber" />
-        <KpiCard label="Vaccinations" value={String(kpis.vaccinations)} icon={<Heart size={20} />} color="red" />
+        <KpiCard label="Total animaux" value={String(kpis.totalAnimals)} icon={null} color="green" />
+        <KpiCard label="Valeur estimée" value={formatCurrency(kpis.totalValue)} icon={null} color="blue" />
+        <KpiCard label="Événements" value={String(kpis.events)} icon={null} color="amber" />
+        <KpiCard label="Vaccinations" value={String(kpis.vaccinations)} icon={null} color="red" />
       </div>
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
@@ -46,7 +45,7 @@ export function Livestock() {
             <div key={lot.id} className="rotatable-card bg-white rounded-xl border border-slate-200 p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600"><Beef size={20} /></div>
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600"></div>
                   <div>
                     <h3 className="font-semibold text-slate-900">{lot.identifier}</h3>
                     <p className="text-xs text-slate-500">{lot.species} — {lot.breed}</p>

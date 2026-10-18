@@ -285,32 +285,55 @@ export function AnimalManage() {
 
       {filteredAnimals.length === 0 ? (
         <EmptyState
-          icon={<Beef size={48} />}
+          icon={null}
           title={searchTerm ? "Aucun résultat" : "Aucun animal"}
           message={searchTerm ? "Aucun animal ne correspond à votre recherche" : "Aucun animal enregistré"}
-          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Créer un animal</button>}
+          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Créer un animal</button>}
         />
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600">
-              <Beef size={24} />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredAnimals.map(animal => (
+            <div key={animal.id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-slate-900">{animal.identifier ?? 'Non renseigné'}</h3>
+              <p className="text-xs text-slate-500 mb-2">
+                {animal.status ? animal.status : 'Non renseigné'}
+              </p>
+              {animal.species && (
+                <p className="text-xs text-slate-600 mb-1">
+                  <span className="font-medium text-slate-700">Espèce :</span> {animal.species}
+                </p>
+              )}
+              {animal.breed && (
+                <p className="text-xs text-slate-600 mb-3">
+                  <span className="font-medium text-slate-700">Race :</span> {animal.breed}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setDetailAnimal(animal); setModalOpen(false); }}
+                  className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Voir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { openEdit(animal); setModalOpen(false); }}
+                  className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
+                >
+                  Modifier
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setConfirmDelete(animal); setModalOpen(false); }}
+                  className="px-3 py-1.5 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50"
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
-          </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-3">Aucun animal correspondant</h3>
-            <p className="text-slate-600 mb-6">
-              Essayez de modifier vos critères de recherche ou ajoutez de nouveaux animaux à votre cheptel.
-            </p>
-            <div className="flex justify-center">
-              <button
-                onClick={openCreate}
-                className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
-              >
-                Ajouter un animal
-                <Plus size={16} />
-              </button>
-            </div>
-          </div>
+          ))}
+        </div>
       )}
 
       {/* Detail modal */}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Check, Lock, Landmark } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { Logo } from '@/components/ui/Logo';
 import { RotatingCard } from '@/components/ui/RotatingCard';
@@ -9,7 +10,7 @@ import './LandingPage.css';
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { farm } = useData();
+  const { farm, siteContent } = useData();
   const [scrolled, setScrolled] = useState(false);
 
   const handleScroll = useCallback(() => {
@@ -26,9 +27,14 @@ export function LandingPage() {
     navigate('/login');
   };
 
-  const stop = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
+  const hero = (siteContent?.hero?.value as Record<string, unknown> | undefined) || {};
+  const heroImage = (hero.heroImage as string | undefined) || undefined;
+  const heroAlt = (hero.heroAlt as string | undefined) || 'Bandeau d’accueil';
+  const heroBadge = (hero.badge as string | undefined) || 'Projet agro-pastoral · Côte d’Ivoire';
+  const heroTitle = (hero.title as string | undefined) || 'Un projet agricole, suivi de près.';
+  const heroSubtitle = (hero.subtitle as string | undefined) || 'BAHKANSO rassemble les informations de notre exploitation pour que l’équipe de terrain et le responsable à distance travaillent avec les mêmes données.';
+  const heroCtaPrimary = (hero.ctaPrimary as string | undefined) || 'Découvrir le projet';
+  const heroCtaSecondary = (hero.ctaSecondary as string | undefined) || 'Espace de suivi';
 
   return (
     <div className="bk-page min-h-screen flex flex-col" lang="fr">
@@ -76,54 +82,31 @@ export function LandingPage() {
       <main>
         {/* ==================== HERO ==================== */}
         <section className="bk-hero" aria-label="Présentation du projet BAHKANSO">
-          <div className="bk-hero-content">
-            <div className="bk-badge">
-              <span aria-hidden="true">🌿</span>
-              Projet agro-pastoral · Côte d'Ivoire
-            </div>
-            <h1>Un projet agricole, suivi de près.</h1>
-            <p>
-              BAHKANSO rassemble les informations de notre exploitation pour que
-              l'équipe de terrain et le responsable à distance travaillent avec
-              les mêmes données.
-            </p>
-            <div className="bk-hero-actions">
-              <a href="#projet" className="bk-btn-primary" onClick={goToLogin}>
-                Découvrir le projet <ArrowRight size={18} />
-              </a>
-              <a href="/login" className="bk-btn-outline" onClick={goToLogin}>
-                Espace de suivi <ArrowRight size={18} />
-              </a>
-            </div>
-            <div className="bk-trust">
-              <div className="bk-trust-item">
-                <Check size={14} aria-hidden="true" />
-                <span>
-                  <b>Dépenses documentées</b> — chaque opération peut être associée à ses justificatifs.
-                </span>
+          <div className="bk-hero-grid">
+            <div className="bk-hero-text">
+              <div className="bk-badge">
+                <span>{heroBadge}</span>
               </div>
-              <div className="bk-trust-item">
-                <Lock size={14} aria-hidden="true" />
-                <span>
-                  <b>Accès sécurisé par rôle</b> — les informations détaillées sont réservées aux personnes autorisées.
-                </span>
-              </div>
-              <div className="bk-trust-item">
-                <Landmark size={14} aria-hidden="true" />
-                <span>
-                  <b>Suivi partagé</b> — financements, activités et avancée consultés par tous les acteurs du projet.
-                </span>
+              <h1>{heroTitle}</h1>
+              <p>{heroSubtitle}</p>
+              <div className="bk-hero-actions" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <a href="#projet" className="bk-btn-primary" onClick={goToLogin}>
+                  {heroCtaPrimary}
+                </a>
+                <a href="/login" className="bk-btn-outline" onClick={goToLogin}>
+                  {heroCtaSecondary}
+                </a>
               </div>
             </div>
-          </div>
-
-          <div className="bk-hero-visual">
-            <div className="bk-visual-box">
-              <span className="bk-illu" aria-hidden="true">
-                🌾🐓🏗️
-              </span>
-              <span>Illustration — votre photo de terrain ici</span>
-            </div>
+            {heroImage ? (
+              <div className="bk-hero-image">
+                <img src={heroImage} alt={heroAlt} className="bk-hero-img" />
+              </div>
+            ) : (
+              <div className="bk-hero-fallback">
+                <p>Aucune image configurée pour le bandeau d’accueil.</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -198,35 +181,32 @@ export function LandingPage() {
                 flipLabel="Voir le détail — Élevage"
                 backLabel="Retour — Élevage"
                 front={
-                  <div className="bk-flip-card-content">
+                  <div className="bk-flip-card-content bk-flip-face-light">
                     <div className="bk-flip-head">
-                      <span className="bk-flip-icon" aria-hidden="true">
-                        🐓
-                      </span>
-                      <h3 className="bk-flip-title">Élevage</h3>
+                      <h3 className="bk-flip-title bk-flip-title-light">Élevage</h3>
                       <span className="bk-flip-status bk-status-encours">En cours</span>
                     </div>
-                    <p className="bk-flip-desc">
+                    <p className="bk-flip-desc bk-flip-desc-light">
                       Suivi du cheptel, alimentation et santé des animaux.
                     </p>
-                    <a href="/livestock/animals" className="bk-flip-detail" onClick={stop}>
+                    <Link to="/app/livestock/animals" className="bk-flip-detail">
                       Voir le détail <ArrowRight size={14} />
-                    </a>
+                    </Link>
                   </div>
                 }
                 back={
-                  <div className="bk-flip-card-content">
-                    <h3 className="bk-flip-back-title">Élevage — détail</h3>
-                    <p className="bk-flip-back-desc">
+                  <div className="bk-flip-card-content bk-flip-face-light">
+                    <h3 className="bk-flip-back-title bk-flip-back-title-light">Élevage — détail</h3>
+                    <p className="bk-flip-back-desc bk-flip-back-desc-light">
                       Registre des animaux et des lots, suivi des naissances,
                       acquisitions, ventes et événements sanitaires. Coûts
                       associés à chaque animal.
                     </p>
                     <div className="bk-flip-back-actions">
-                      <a href="/livestock/animals" className="bk-flip-back-link" onClick={stop}>
+                      <Link to="/app/livestock/animals" className="bk-flip-back-link">
                         Consulter le cheptel <ArrowRight size={14} />
-                      </a>
-                      <button className="bk-flip-back" onClick={stop}>
+                      </Link>
+                      <button className="bk-flip-back">
                         <ArrowLeft size={14} /> Retour
                       </button>
                     </div>
@@ -237,34 +217,31 @@ export function LandingPage() {
                 flipLabel="Voir le détail — Cultures"
                 backLabel="Retour — Cultures"
                 front={
-                  <div className="bk-flip-card-content">
+                  <div className="bk-flip-card-content bk-flip-face-light">
                     <div className="bk-flip-head">
-                      <span className="bk-flip-icon" aria-hidden="true">
-                        🌾
-                      </span>
-                      <h3 className="bk-flip-title">Cultures</h3>
+                      <h3 className="bk-flip-title bk-flip-title-light">Cultures</h3>
                       <span className="bk-flip-status bk-status-encours">En cours</span>
                     </div>
-                    <p className="bk-flip-desc">
+                    <p className="bk-flip-desc bk-flip-desc-light">
                       Gestion des parcelles, semis et suivi des récoltes.
                     </p>
-                    <a href="/agriculture/plots" className="bk-flip-detail" onClick={stop}>
+                    <Link to="/app/agriculture/plots" className="bk-flip-detail">
                       Voir le détail <ArrowRight size={14} />
-                    </a>
+                    </Link>
                   </div>
                 }
                 back={
-                  <div className="bk-flip-card-content">
-                    <h3 className="bk-flip-back-title">Cultures — détail</h3>
-                    <p className="bk-flip-back-desc">
+                  <div className="bk-flip-card-content bk-flip-face-light">
+                    <h3 className="bk-flip-back-title bk-flip-back-title-light">Cultures — détail</h3>
+                    <p className="bk-flip-back-desc bk-flip-back-desc-light">
                       Suivi des parcelles, des campagnes et des récoltes.
                       Opérations culturales et coûts associés par campagne.
                     </p>
                     <div className="bk-flip-back-actions">
-                      <a href="/agriculture/plots" className="bk-flip-back-link" onClick={stop}>
+                      <Link to="/app/agriculture/plots" className="bk-flip-back-link">
                         Consulter les parcelles <ArrowRight size={14} />
-                      </a>
-                      <button className="bk-flip-back" onClick={stop}>
+                      </Link>
+                      <button className="bk-flip-back">
                         <ArrowLeft size={14} /> Retour
                       </button>
                     </div>
@@ -275,34 +252,31 @@ export function LandingPage() {
                 flipLabel="Voir le détail — Travaux"
                 backLabel="Retour — Travaux"
                 front={
-                  <div className="bk-flip-card-content">
+                  <div className="bk-flip-card-content bk-flip-face-light">
                     <div className="bk-flip-head">
-                      <span className="bk-flip-icon" aria-hidden="true">
-                        🏗️
-                      </span>
-                      <h3 className="bk-flip-title">Travaux</h3>
+                      <h3 className="bk-flip-title bk-flip-title-light">Travaux</h3>
                       <span className="bk-flip-status bk-status-prevu">Prévu</span>
                     </div>
-                    <p className="bk-flip-desc">
+                    <p className="bk-flip-desc bk-flip-desc-light">
                       Aménagements, infrastructures et chantiers en cours.
                     </p>
-                    <a href="/projects" className="bk-flip-detail" onClick={stop}>
+                    <Link to="/app/projects" className="bk-flip-detail">
                       Voir le détail <ArrowRight size={14} />
-                    </a>
+                    </Link>
                   </div>
                 }
                 back={
-                  <div className="bk-flip-card-content">
-                    <h3 className="bk-flip-back-title">Travaux — détail</h3>
-                    <p className="bk-flip-back-desc">
+                  <div className="bk-flip-card-content bk-flip-face-light">
+                    <h3 className="bk-flip-back-title bk-flip-back-title-light">Travaux — détail</h3>
+                    <p className="bk-flip-back-desc bk-flip-back-desc-light">
                       Suivi des projets et chantiers, budgétisation, avance des
                       travaux et état d'avancement de chaque étape.
                     </p>
                     <div className="bk-flip-back-actions">
-                      <a href="/projects" className="bk-flip-back-link" onClick={stop}>
+                      <Link to="/app/projects" className="bk-flip-back-link">
                         Consulter les projets <ArrowRight size={14} />
-                      </a>
-                      <button className="bk-flip-back" onClick={stop}>
+                      </Link>
+                      <button className="bk-flip-back">
                         <ArrowLeft size={14} /> Retour
                       </button>
                     </div>

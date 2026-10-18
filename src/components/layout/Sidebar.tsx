@@ -38,10 +38,9 @@ const NAV_ITEMS: NavItem[] = [
   ]},
   { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, children: [
     { id: 'livestock', label: 'Cheptel' },
-    { id: 'livestock?lots', label: 'Lots' },
-    { id: 'livestock?animals', label: 'Animaux' },
-    { id: 'livestock?health', label: 'Santé animale' },
-    { id: 'livestock?events', label: 'Événements' },
+    { id: 'livestock/lots', label: 'Lots' },
+    { id: 'livestock/animals', label: 'Animaux' },
+    { id: 'livestock/events', label: 'Événements' },
   ]},
   { id: 'projects', label: 'Projets & Chantiers', icon: <HardHat size={20} />, children: [
     { id: 'projects', label: 'Tous les projets' },

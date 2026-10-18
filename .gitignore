@@ -89,3 +89,7 @@ skills-lock.json
 .kimchi/ .kiro/ .kode/ .lingma/ .mcpjam/ .minimax/ .moxby/ .mux/ .ona/
 .openhands/ .posit/ .qoder/ .qwen/ .reasonix/ .vibe/ data/ skills/
 skills-lock.json
+
+# Backups locaux
+*.backup
+*.working

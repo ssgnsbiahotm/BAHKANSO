@@ -21,6 +21,7 @@ import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/lib/Toast';
 import { logAudit } from '@/lib/types';
+import { validatePasswordStrength } from '@/lib/password';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Logo, getIcon } from '@/components/ui/Logo';
 import {
@@ -190,6 +191,9 @@ const CONTENU_SECTIONS: ConfigSection[] = [
       { id: 'logoIcon', label: 'Icône du logo', type: 'select', options: ICON_CHOICES.map(i => ({ label: i, value: i })) },
       { id: 'logoColor', label: 'Couleur de l’icône', type: 'color' },
       { id: 'logoBgColor', label: 'Couleur de fond du logo', type: 'color' },
+      { id: 'primaryColor', label: 'Couleur principale', type: 'color', description: 'Boutons, liens, accents' },
+      { id: 'secondaryColor', label: 'Couleur secondaire', type: 'color', description: 'Éléments de support' },
+      { id: 'accentColor', label: 'Couleur d’accentuation', type: 'color', description: 'Badges, alertes' },
       { id: 'footerText', label: 'Texte pied de page (sidebar)', type: 'text' },
       { id: 'footerSubtext', label: 'Sous-texte pied de page (sidebar)', type: 'text' },
     ],
@@ -207,6 +211,8 @@ const CONTENU_SECTIONS: ConfigSection[] = [
       { id: 'ctaPrimary', label: 'Bouton principal', type: 'text', placeholder: 'Démarrer' },
       { id: 'ctaSecondary', label: 'Bouton secondaire', type: 'text', placeholder: 'En savoir plus' },
       { id: 'trustBadges', label: 'Badges de confiance', type: 'list', itemFields: [{ id: 'value', label: 'Badge', type: 'text' }], itemTemplate: { value: 'Nouveau badge' } },
+      { id: 'heroImage', label: 'Image du bandeau d’accueil', type: 'image', description: 'JPEG, PNG ou WebP — max 5 Mo' },
+      { id: 'heroAlt', label: 'Texte alternatif', type: 'text', placeholder: 'Description de l’image du bandeau' },
     ],
   },
   {
@@ -344,7 +350,7 @@ const isFarmSection = (subsection: ConfigSubsection): boolean =>
 
 export function Configuration() {
   const { siteContent, farm, refresh } = useData();
-  const { authUser, appUser } = useAuth();
+  const { authUser, appUser, updatePassword } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -363,16 +369,50 @@ export function Configuration() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
+  const heroFileRef = useRef<HTMLInputElement>(null);
 
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // --- État changement de mot de passe ---
+  const [passwordForm, setPasswordForm] = useState({ new: '', confirm: '' });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+const handlePasswordChange = async () => {
+    setPasswordError(null);
+    const validation = validatePasswordStrength(passwordForm.new);
+    if (!validation.isValid) {
+      setPasswordError(validation.errors.join(' \u2022 '));
+      return;
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      setPasswordError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const { error } = await updatePassword(passwordForm.new);
+      if (error) {
+        setPasswordError(error);
+      } else {
+        toast.show('Mot de passe modifié avec succès');
+        setPasswordForm({ new: '', confirm: '' });
+      }
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   // --- Vérification des droits ---
   const isAuthorized = useMemo(() => {
-    if (!authUser) return false;
-    const role = (authUser as any).role || (authUser as any).user_metadata?.role;
+    if (!authUser || !appUser) return false;
+    const role = appUser.role;
     return role === 'administrateur' || role === 'proprietaire' || role === 'admin' || role === 'owner';
-  }, [authUser]);
+  }, [authUser, appUser]);
 
   // --- Valeurs actuelles (farm + siteContent fusionnées) ---
   const currentValues = useMemo((): Record<string, any> => {
@@ -618,6 +658,53 @@ export function Configuration() {
     }
   };
 
+  // --- Upload image hero ---
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !isAuthorized) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.show('L’image ne doit pas dépasser 5 Mo', 'error');
+      return;
+    }
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.show('Format non supporté : JPEG, PNG ou WebP uniquement.', 'error');
+      return;
+    }
+
+    setUploadingHeroImage(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'png').replace(/[^a-zA-Z0-9]/g, '');
+      const fileName = `hero/hero-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('app-assets').upload(fileName, file, { upsert: true });
+      if (upErr) throw upErr;
+
+      const { data: pub } = supabase.storage.from('app-assets').getPublicUrl(fileName);
+      const imageUrl = pub.publicUrl;
+
+      const path = getDraftPath('contenu', 'hero', 'heroImage');
+      updateDraft('contenu', 'hero', 'heroImage', imageUrl);
+
+      toast.show('Image du bandeau prévisualisée', 'success');
+    } catch (err) {
+      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+    } finally {
+      setUploadingHeroImage(false);
+    }
+  };
+
+  const handleRemoveHeroImage = async () => {
+    if (!isAuthorized) return;
+    try {
+      updateDraft('contenu', 'hero', 'heroImage', null);
+      updateDraft('contenu', 'hero', 'heroAlt', '');
+      toast.show('Image du bandeau retirée');
+    } catch (err) {
+      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+    }
+  };
+
   // --- Prévisualisation du branding ---
   const previewBranding = useMemo(() => {
     const brandingPath = getDraftPath('contenu', 'branding', 'appName');
@@ -635,6 +722,16 @@ export function Configuration() {
       logoBgColor: getEffectiveValue(bgColorPath) || '#FFFFFF',
       logoUrl: getEffectiveValue(logoPath) || undefined,
     };
+  }, [getEffectiveValue]);
+
+  // Appliquer les couleurs de palette à la racine du document
+  useEffect(() => {
+    const primary = getEffectiveValue(getDraftPath('contenu', 'branding', 'primaryColor'));
+    const secondary = getEffectiveValue(getDraftPath('contenu', 'branding', 'secondaryColor'));
+    const accent = getEffectiveValue(getDraftPath('contenu', 'branding', 'accentColor'));
+    if (primary) document.documentElement.style.setProperty('--color-primary', primary);
+    if (secondary) document.documentElement.style.setProperty('--color-secondary', secondary);
+    if (accent) document.documentElement.style.setProperty('--color-accent', accent);
   }, [getEffectiveValue]);
 
   // Nettoyer le timeout à la destruction
@@ -890,6 +987,56 @@ export function Configuration() {
                 </div>
               )}
 
+              {/* Upload image hero pour la section hero */}
+              {activeSubsection === 'hero' && (
+                <div className="bg-white p-5 rounded-xl border border-slate-200">
+                  <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4"><ImageIcon size={18} /> Image du bandeau d’accueil</h3>
+                  <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                    <div className="w-64 h-40 rounded-xl border-2 border-slate-200 overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                      {getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage')) ? (
+                        <img
+                          src={String(getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage')))}
+                          alt={String(getEffectiveValue(getDraftPath('contenu', 'hero', 'heroAlt')) || 'Bandeau')}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon size={32} className="text-slate-300" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        ref={heroFileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={handleHeroImageUpload}
+                      />
+                      <button
+                        onClick={() => heroFileRef.current?.click()}
+                        disabled={uploadingHeroImage || !isAuthorized}
+                        className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {uploadingHeroImage ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Upload size={16} />
+                        )}
+                        {uploadingHeroImage ? 'Upload…' : 'Choisir l’image'}
+                      </button>
+                      {Boolean(getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage'))) && (
+                        <button
+                          onClick={handleRemoveHeroImage}
+                          className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                        >
+                          <Trash2 size={14} /> Retirer
+                        </button>
+                      )}
+                      <p className="text-xs text-slate-400 mt-2">JPEG, PNG ou WebP — max 5 Mo. Pas de SVG.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Description de la section */}
               <div className="bg-white p-5 rounded-xl border border-slate-200">
                 <h2 className="text-lg font-bold text-slate-900 mb-2">{activeSection.label}</h2>
@@ -988,6 +1135,50 @@ export function Configuration() {
                   </button>
                 </div>
               )}
+
+              {/* Section : Changer mon mot de passe */}
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <Lock size={16} /> Changer mon mot de passe
+                </h3>
+                <div className="space-y-3 max-w-md">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Nouveau mot de passe
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordForm.new}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                      placeholder="Au moins 8 caractères"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Confirmer le nouveau mot de passe
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordForm.confirm}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                      placeholder="Répéter le mot de passe"
+                    />
+                  </div>
+                  {passwordError && (
+                    <p className="text-sm text-red-600">{passwordError}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handlePasswordChange}
+                    disabled={passwordLoading || !passwordForm.new}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {passwordLoading ? 'Modification…' : 'Modifier le mot de passe'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </main>
@@ -1281,6 +1472,10 @@ function renderFieldInput(
           <span className="text-sm text-slate-600">{Boolean(value) ? 'Activé' : 'Désactivé'}</span>
         </div>
       );
+
+    case 'image':
+      // L'image hero est gérée par le bloc dédié de prévisualisation/upload.
+      return null;
 
     case 'select':
       return (

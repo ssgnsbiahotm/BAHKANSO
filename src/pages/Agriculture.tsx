@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sprout, MapPin, Calendar, Layers, Wheat } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -26,41 +25,13 @@ export function Agriculture() {
       <PageHeader
         title="Agriculture"
         subtitle="Gestion des parcelles, campagnes et récoltes"
-        actions={
-          <>
-            <button
-              onClick={() => navigate('/app/agriculture/plots')}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2"
-            >
-              Parcelles
-            </button>
-            <button
-              onClick={() => navigate('/app/agriculture/campaigns')}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2"
-            >
-              Campagnes
-            </button>
-            <button
-              onClick={() => navigate('/agriculture/operations')}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2"
-            >
-              Opérations
-            </button>
-            <button
-              onClick={() => navigate('/agriculture/harvests')}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              Récoltes
-            </button>
-          </>
-        }
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Surface totale" value={`${kpis.totalArea} ha`} icon={<MapPin size={20} />} color="green" />
-        <KpiCard label="Campagnes actives" value={String(kpis.activeCampaigns)} icon={<Calendar size={20} />} color="blue" />
-        <KpiCard label="Opérations" value={String(kpis.totalOps)} icon={<Layers size={20} />} color="amber" />
-        <KpiCard label="Récoltes (kg)" value={String(kpis.totalHarvest)} icon={<Wheat size={20} />} color="dark" />
+        <KpiCard label="Surface totale" value={`${kpis.totalArea} ha`} icon={null} color="green" />
+        <KpiCard label="Campagnes actives" value={String(kpis.activeCampaigns)} icon={null} color="blue" />
+        <KpiCard label="Opérations" value={String(kpis.totalOps)} icon={null} color="amber" />
+        <KpiCard label="Récoltes (kg)" value={String(kpis.totalHarvest)} icon={null} color="dark" />
       </div>
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
@@ -89,11 +60,6 @@ export function Agriculture() {
           </div>
           {plots.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
-                  <Sprout size={24} />
-                </div>
-              </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-3">Aucune parcelle enregistrée</h3>
               <p className="text-slate-600 mb-6">
                 Commencez par définir vos parcelles agricoles pour suivre l'utilisation de vos terres et planifier vos cultures.
@@ -104,7 +70,6 @@ export function Agriculture() {
                   className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
                 >
                   Créer ma première parcelle
-                  <MapPin size={16} />
                 </button>
               </div>
             </div>
@@ -114,7 +79,6 @@ export function Agriculture() {
                 <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600"><Sprout size={20} /></div>
                       <div>
                         <h3 className="font-semibold text-slate-900">{p.reference}</h3>
                         <p className="text-xs text-slate-500">{p.name}</p>
@@ -153,11 +117,6 @@ export function Agriculture() {
           </div>
           {campaigns.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
-                  <Calendar size={24} />
-                </div>
-              </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-3">Aucune campagne enregistrée</h3>
               <p className="text-slate-600 mb-6">
                 Définissez vos premières campagnes culturales pour planifier vos cultures sur l'année et suivre leurs progrès.
@@ -168,7 +127,6 @@ export function Agriculture() {
                   className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
                 >
                   Créer ma première campagne
-                  <MapPin size={16} />
                 </button>
               </div>
             </div>
@@ -204,25 +162,34 @@ export function Agriculture() {
       )}
 
       {tab === 'operations' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          {cropOperations.length === 0 ? (
+        <>
+          <div className="mb-4">
+            <div className="flex flex-wrap justify-between items-center gap-2">
+              <h2 className="text-xl font-semibold text-slate-900">Opérations culturales</h2>
+              <button
+                onClick={() => navigate('/app/agriculture/operations')}
+                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Gérer les opérations
+              </button>
+            </div>
+            <p className="mt-2 text-slate-600">
+              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer des opérations culturales.
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            {cropOperations.length === 0 ? (
             <div className="p-8 text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
-                  <Layers size={24} />
-                </div>
-              </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-3">Aucune opération enregistrée</h3>
               <p className="text-slate-600 mb-6">
                 Enregistrez vos premières opérations culturales (semis, traitements, irrigation, etc.) pour suivre les interventions sur vos parcelles.
               </p>
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate('/agriculture/operations')}
+                  onClick={() => navigate('/app/agriculture/operations')}
                   className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
                 >
                   Enregistrer ma première opération
-                  <MapPin size={16} />
                 </button>
               </div>
             </div>
@@ -251,38 +218,45 @@ export function Agriculture() {
             </table>
           )}
         </div>
+      </>
       )}
 
       {tab === 'harvests' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <>
+          <div className="mb-4">
+            <div className="flex flex-wrap justify-between items-center gap-2">
+              <h2 className="text-xl font-semibold text-slate-900">Récoltes agricoles</h2>
+              <button
+                onClick={() => navigate('/app/agriculture/harvests')}
+                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Gérer les récoltes
+              </button>
+            </div>
+            <p className="mt-2 text-slate-600">
+              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer des récoltes agricoles.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {harvests.length === 0 ? (
             <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-8 text-center">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-16 h-16 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
-                  <Wheat size={24} />
-                </div>
-              </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-3">Aucune récolte enregistrée</h3>
               <p className="text-slate-600 mb-6">
                 Enregistrez vos premières récoltes pour suivre vos rendements et évaluer la productivité de vos cultures.
               </p>
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate('/agriculture/harvests')}
+                  onClick={() => navigate('/app/agriculture/harvests')}
                   className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium"
                 >
                   Enregistrer ma première récolte
-                  <MapPin size={16} />
                 </button>
               </div>
             </div>
           ) : harvests.map(h => (
             <div key={h.id} className="bg-white rounded-xl border border-slate-200 p-5">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Wheat size={20} className="text-amber-600" />
-                  <h3 className="font-semibold text-slate-900">Récolte du {formatDate(h.date)}</h3>
-                </div>
+                <h3 className="font-semibold text-slate-900">Récolte du {formatDate(h.date)}</h3>
                 <SimpleBadge color="amber">{h.quality}</SimpleBadge>
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -294,6 +268,7 @@ export function Agriculture() {
             </div>
           ))}
         </div>
+      </>
       )}
     </div>
   );

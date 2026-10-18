@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, User, Menu, Wifi, LogOut, Settings } from 'lucide-react';
+import { Bell, ChevronDown, User, Menu, Wifi, LogOut, Settings, ExternalLink } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { ROLE_LABELS } from '@/lib/constants';
@@ -44,6 +44,8 @@ export function Header({ onOpenMobile }: HeaderProps) {
           <button
             onClick={() => { setShowNotif(!showNotif); setShowUser(false); }}
             className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-600"
+            aria-expanded={showNotif}
+            aria-haspopup="true"
           >
             <Bell size={20} />
             {unreadCount > 0 && (
@@ -58,7 +60,7 @@ export function Header({ onOpenMobile }: HeaderProps) {
               <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-20 max-h-96 overflow-y-auto">
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="font-semibold text-slate-900">Notifications</h3>
-                  <button onClick={() => { navigate('alerts'); setShowNotif(false); }} className="text-xs text-green-600 hover:underline">
+                  <button onClick={() => { navigate('/app/monitoring?alertes'); setShowNotif(false); }} className="text-xs text-green-600 hover:underline">
                     Voir les {openAlerts.length} alertes
                   </button>
                 </div>
@@ -91,6 +93,8 @@ export function Header({ onOpenMobile }: HeaderProps) {
           <button
             onClick={() => { setShowUser(!showUser); setShowNotif(false); }}
             className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100"
+            aria-expanded={showUser}
+            aria-haspopup="true"
           >
             <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
               {appUser?.name?.charAt(0) || 'U'}
@@ -111,16 +115,23 @@ export function Header({ onOpenMobile }: HeaderProps) {
                 </div>
                 <div className="py-1">
                   <button
-                    onClick={() => { navigate('profile'); setShowUser(false); }}
+                    onClick={() => { navigate('/app/profile'); setShowUser(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     <User size={16} /> Mon profil
                   </button>
                   <button
-                    onClick={() => { navigate('settings'); setShowUser(false); }}
+                    onClick={() => { navigate('/app/configuration'); setShowUser(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     <Settings size={16} /> Paramètres
+                  </button>
+                  <button
+                    onClick={() => { navigate('/'); setShowUser(false); }}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <ExternalLink size={16} />
+                    Voir le site vitrine
                   </button>
                   <button
                     onClick={handleSignOut}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDashboardStats, formatFCFA } from '@/hooks/useDashboardStats';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import {
@@ -82,7 +83,6 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="header-stats">
             <div className="season-badge">
-              {currentSeason === 'Saison des pluies' ? '🌧' : '☀️'}
               <span>{currentSeason}</span>
             </div>
             <div className={`health-score ${healthScore >= 80 ? 'good' : healthScore >= 60 ? 'warning' : 'critical'}`}>
@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
               <span>{healthScore}/100</span>
             </div>
             <button className="refresh-btn" onClick={() => window.location.reload()}>
-              🔄 Actualiser
+              Actualiser
             </button>
           </div>
         </div>
@@ -102,10 +102,9 @@ const Dashboard: React.FC = () => {
           {/* Card 1 — CHEPTEL TOTAL */}
           {flipCard(
             <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-icon">🐄</div>
               <div className="card-value">{totalAnimals}</div>
               <div className="card-label">Animaux totaux</div>
-              <div className="card-badge">↑ 5%</div>
+              <div className="card-badge">+5%</div>
             </div>,
             <div className="card-content">
               <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Répartition par espèce</h3>
@@ -118,7 +117,7 @@ const Dashboard: React.FC = () => {
                 ))}
               </ul>
               <div style={{ marginTop: '14px' }}>
-                <a href="/livestock" className="btn-link">Voir le cheptel →</a>
+                <Link to="/app/livestock" className="btn-link">Voir le cheptel →</Link>
               </div>
             </div>,
             'Détails',
@@ -128,10 +127,9 @@ const Dashboard: React.FC = () => {
           {/* Card 2 — CULTURES ACTIVES */}
           {flipCard(
             <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-icon">🌾</div>
               <div className="card-value">{activeCrops}</div>
               <div className="card-label">Parcelles actives</div>
-              <div className="card-badge">→ Prochaine récolte</div>
+              <div className="card-badge">Prochaine récolte</div>
             </div>,
             <div className="card-content">
               <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Cultures en cours</h3>
@@ -141,7 +139,7 @@ const Dashboard: React.FC = () => {
                 <li style={{ margin: '6px 0', fontSize: '0.95rem' }}>Manioc - Récolte: 10/01</li>
               </ul>
               <div style={{ marginTop: '14px' }}>
-                <a href="/plots" className="btn-link">Voir les parcelles →</a>
+                <Link to="/app/agriculture/plots" className="btn-link">Voir les parcelles →</Link>
               </div>
             </div>,
             'Détails',
@@ -151,11 +149,10 @@ const Dashboard: React.FC = () => {
           {/* Card 3 — TRÉSORERIE NETTE */}
           {flipCard(
             <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-icon">💰</div>
               <div className="card-value">{formatFCFA(netTreasury)}</div>
               <div className="card-label">Solde net</div>
               <div className={`card-badge ${expenseTrend >= 0 ? 'badge-up' : 'badge-down'}`}>
-                {expenseTrend >= 0 ? `↑ ${expenseTrend}%` : `↓ ${Math.abs(expenseTrend)}%`}
+                {expenseTrend >= 0 ? `+${expenseTrend}%` : `${expenseTrend}%`}
               </div>
             </div>,
             <div className="card-content">
@@ -184,10 +181,9 @@ const Dashboard: React.FC = () => {
           {/* Card 4 — DÉPENSES DU MOIS */}
           {flipCard(
             <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-icon">📊</div>
               <div className="card-value">{formatFCFA(monthExpenses)}</div>
               <div className="card-label">Dépenses mois</div>
-              <div className="card-badge">↓ 2%</div>
+              <div className="card-badge">-2%</div>
             </div>,
             <div className="card-content">
               <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Top 3 postes de dépenses</h3>
@@ -207,19 +203,15 @@ const Dashboard: React.FC = () => {
           {/* Card 5 — ALERTES ACTIVES */}
           {flipCard(
             <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-icon">🔔</div>
               <div className="card-value">{activeAlerts}</div>
               <div className="card-label">Alertes actives</div>
-              {activeAlerts > 0 && <div className="card-badge badge-alert">⚠️</div>}
+              {activeAlerts > 0 && <div className="card-badge badge-alert">!</div>}
             </div>,
             <div className="card-content">
               <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Alertes critiques</h3>
               <ul className="alerts-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {displayAlerts.slice(0, 3).map((alert, index) => (
                   <li key={index} className={`alert-item alert-${alert.severity.toLowerCase()}`} style={{ margin: '8px 0', display: 'flex', gap: '10px', alignItems: 'start' }}>
-                    <div className="alert-icon" style={{ fontSize: '1.2rem' }}>
-                      {alert.severity === 'CRITIQUE' ? '🔴' : alert.severity === 'AVERTISSEMENT' ? '🟡' : '🟢'}
-                    </div>
                     <div className="alert-info" style={{ flex: 1 }}>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}>{alert.title}</h4>
                       <p className="alert-time" style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>il y a 2h</p>
@@ -302,14 +294,14 @@ const Dashboard: React.FC = () => {
                       <td>{animal.identifier}</td>
                       <td>—</td>
                       <td>
-                        <span className="trend-up">↑</span>
+                        <span className="trend-up">Hausse</span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               <div className="table-footer">
-                <a href="/livestock" className="btn-primary">Gérer le cheptel →</a>
+                <Link to="/app/livestock" className="btn-primary">Gérer le cheptel →</Link>
               </div>
             </div>
           </div>
@@ -355,15 +347,15 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="calendar-tasks">
               <div className="task-item">
-                <span className="task-type agriculture">🌾</span>
+                <span className="task-type agriculture">Agriculture</span>
                 <span className="task-description">Récolte du riz</span>
               </div>
               <div className="task-item">
-                <span className="task-type livestock">🐄</span>
+                <span className="task-type livestock">Élevage</span>
                 <span className="task-description">Vaccination bovins</span>
               </div>
               <div className="task-item">
-                <span className="task-type finance">💰</span>
+                <span className="task-type finance">Finance</span>
                 <span className="task-description">Clôture mensuelle</span>
               </div>
             </div>
@@ -376,9 +368,6 @@ const Dashboard: React.FC = () => {
               {displayAlerts.map((alert, index) => (
                 <div key={index} className={`alert-priority alert-${alert.severity.toLowerCase()}`}>
                   <div className="alert-content">
-                    <span className="alert-icon">
-                      {alert.severity === 'CRITIQUE' ? '🔴' : alert.severity === 'AVERTISSEMENT' ? '🟡' : '🟢'}
-                    </span>
                     <div className="alert-message">
                       <strong>{alert.title}</strong>
                       <p className="alert-time">il y a {index + 1}h</p>
@@ -409,7 +398,7 @@ const Dashboard: React.FC = () => {
                 <span>1 200 000 XOF</span>
               </div>
             </div>
-            <a href="/finance?tab=fundings" className="btn-link">Voir tous les financements →</a>
+            <Link to="/app/finance?tab=fundings" className="btn-link">Voir tous les financements →</Link>
           </div>
         </div>
       </section>

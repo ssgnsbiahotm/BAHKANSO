@@ -5,6 +5,7 @@ import { useToast } from '@/lib/Toast';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { ROLE_LABELS } from '@/lib/constants';
+import { validatePasswordStrength } from '@/lib/password';
 import { PageHeader } from '@/components/ui/PageHeader';
 
 export function ProfilePage() {
@@ -40,17 +41,14 @@ export function ProfilePage() {
     }
   };
 
-  const handleChangePassword = async () => {
+const handleChangePassword = async () => {
     if (!newPassword) {
       toast.show('Veuillez saisir un nouveau mot de passe', 'error');
       return;
     }
-    if (newPassword.length < 8) {
-      toast.show('Le mot de passe doit faire au moins 8 caractères', 'error');
-      return;
-    }
-    if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      toast.show('Le mot de passe doit contenir majuscules, minuscules et chiffres', 'error');
+    const validation = validatePasswordStrength(newPassword);
+    if (!validation.isValid) {
+      toast.show(validation.errors.join(' \u2022 '), 'error');
       return;
     }
     if (newPassword !== confirmNewPassword) {

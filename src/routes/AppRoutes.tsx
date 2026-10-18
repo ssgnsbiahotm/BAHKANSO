@@ -20,9 +20,12 @@ import { Media } from '@/pages/Media';
 import { AnimalManage } from '@/pages/AnimalManage';
 // import { CashManage } from '@/modules/FinancialManagement/CashManage'; // Supprimé dans le cadre de la refonte financière
 // import { DocumentManage } from '@/modules/FinancialManagement/DocumentManage'; // Supprimé dans le cadre de la refonte financière
+import { AnimalLotManage } from '@/pages/AnimalLotManage';
+import { AnimalEventManage } from '@/pages/AnimalEventManage';
 import { PlotManage } from '@/pages/PlotManage';
 import { CampaignManage } from '@/pages/CampaignManage';
 import { HarvestManage } from '@/pages/HarvestManage';
+import { CropOperationManage } from '@/pages/CropOperationManage';
 import { RequireAuth } from './authGuard';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { FinanceModule } from '@/modules/Finance';
@@ -68,9 +71,12 @@ export const appRouter = createBrowserRouter([
       { path: 'media', element: <Media /> },
       { path: 'finance', element: <FinanceModule /> },
       { path: 'livestock/animals', element: <AnimalManage /> },
+      { path: 'livestock/lots', element: <AnimalLotManage /> },
+      { path: 'livestock/events', element: <AnimalEventManage /> },
       { path: 'agriculture/plots', element: <PlotManage /> },
       { path: 'agriculture/campaigns', element: <CampaignManage /> },
       { path: 'agriculture/harvests', element: <HarvestManage /> },
+      { path: 'agriculture/operations', element: <CropOperationManage /> },
     ]
   },
   {

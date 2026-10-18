@@ -91,7 +91,7 @@ body {
 .bk-brand-name {
   font-weight: 700;
   font-size: 1.125rem;
-  color: var(--bk-text-light);
+  color: var(--bk-text-main);
   line-height: 1.2;
 }
 
@@ -105,7 +105,7 @@ body {
 }
 
 .bk-nav-list a {
-  color: var(--bk-text-light);
+  color: var(--bk-text-main);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -187,16 +187,63 @@ body {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, var(--bk-bg-dark), var(--bk-bg-section));
-  color: var(--bk-text-light);
-  padding: 2rem 1.5rem;
+  background: #ffffff;
+  color: var(--bk-text-main);
+  padding: 4rem 1.5rem;
   position: relative;
   overflow: hidden;
 }
 
-.bk-hero-content {
-  flex: 1 1 60%;
-  max-width: 68%;
+.bk-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.bk-hero-text {
+  max-width: 100%;
+}
+
+.bk-hero-text .bk-badge {
+  margin-bottom: 1.25rem;
+}
+
+.bk-hero-text h1 {
+  margin: 0 0 1rem 0;
+}
+
+.bk-hero-text p {
+  margin: 0 0 1.5rem 0;
+}
+
+.bk-hero-image {
+  position: relative;
+  width: 100%;
+}
+
+.bk-hero-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--bk-radius);
+  box-shadow: var(--bk-shadow);
+  display: block;
+}
+
+.bk-hero-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 240px;
+  border: 2px dashed var(--bk-text-muted);
+  border-radius: var(--bk-radius);
+  color: var(--bk-text-muted);
+  font-size: 0.95rem;
 }
 
 .bk-badge {
@@ -204,12 +251,12 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.9rem;
-  background: rgba(67, 160, 71, 0.15);
-  color: var(--bk-grass-light);
+  background: rgba(46, 125, 50, 0.15);
+  color: var(--bk-grass);
   font-size: 0.8rem;
   font-weight: 600;
   border-radius: 999px;
-  border: 1px solid rgba(67, 160, 71, 0.35);
+  border: 1px solid rgba(46, 125, 50, 0.35);
   margin-bottom: 1.5rem;
 }
 
@@ -218,21 +265,23 @@ body {
   line-height: 1.15;
   margin: 0 0 1.25rem 0;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--bk-text-main);
 }
 
 .bk-hero p {
   font-size: 1.05rem;
   line-height: 1.6;
-  color: rgba(240, 244, 240, 0.9);
+  color: var(--bk-text-muted);
   max-width: 42ch;
   margin: 0 0 1.5rem 0;
 }
 
 .bk-hero-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 0.75rem;
+  justify-content: flex-start;
 }
 
 .bk-btn-primary {
@@ -265,8 +314,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  color: #ffffff;
+  border: 2px solid var(--bk-grass);
+  color: var(--bk-grass);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
@@ -280,49 +329,12 @@ body {
 
 .bk-btn-outline:hover,
 .bk-btn-outline:focus-visible {
-  border-color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--bk-grass-light);
+  background: rgba(46, 125, 50, 0.05);
   outline: none;
 }
 
-.bk-hero-visual {
-  flex: 1 1 40%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.bk-visual-box {
-  width: 100%;
-  max-width: 420px;
-  aspect-ratio: 1;
-  border-radius: var(--bk-radius);
-  background: linear-gradient(
-    135deg,
-    rgba(46, 125, 50, 0.18) 0%,
-    rgba(2, 119, 189, 0.12) 50%,
-    rgba(245, 127, 23, 0.12) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: var(--bk-shadow);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  color: var(--bk-text-light);
-  font-size: 0.85rem;
-  text-align: center;
-  line-height: 1.5;
-}
-
-.bk-visual-box .bk-illu {
-  font-size: 3rem;
-  line-height: 1;
-}
+/* Suppression du panneau visuel provisoire : plus de .bk-hero-visual / .bk-visual-box */
 
 /* Bandeau de confiance */
 .bk-trust {
@@ -330,7 +342,7 @@ body {
   gap: 1.5rem;
   margin-top: 2rem;
   flex-wrap: wrap;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   padding-top: 1.25rem;
 }
 
@@ -339,11 +351,11 @@ body {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: rgba(240, 244, 240, 0.85);
+  color: var(--bk-text-muted);
 }
 
 .bk-trust-item b {
-  color: #ffffff;
+  color: var(--bk-text-main);
 }
 
 /* ==========================================================================
@@ -644,6 +656,31 @@ body {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Faces claires des cartes d'activités (fond blanc) — lisibilité au repos */
+.bk-flip-face-light .bk-flip-title-light {
+  color: #17212B;
+}
+.bk-flip-face-light .bk-flip-desc-light {
+  color: #475569;
+}
+.bk-flip-face-light .bk-flip-back-title-light {
+  color: #17212B;
+}
+.bk-flip-face-light .bk-flip-back-desc-light {
+  color: #475569;
+}
+.bk-flip-face-light .bk-flip-head {
+  margin: 0 0 0.5rem 0;
+}
+.bk-flip-face-light .bk-flip-status {
+  color: #6EE7B7;
+  border-color: rgba(67, 160, 71, 0.35);
+}
+.bk-flip-face-light .bk-status-prevu {
+  color: #FCD34D;
+  border-color: rgba(245, 127, 23, 0.35);
+}
+
 /* ==========================================================================
    Section — Notre suivi (timeline)
    ========================================================================== */
@@ -866,29 +903,35 @@ body {
     padding-top: 3rem;
   }
 
-  .bk-hero-content,
-  .bk-hero-visual {
-    flex: none;
-    width: 100%;
-    max-width: 100%;
+  .bk-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
-  .bk-hero p {
-    max-width: none;
+  .bk-hero-text {
+    text-align: center;
+  }
+
+  .bk-hero-text .bk-badge {
+    justify-content: center;
   }
 
   .bk-hero-actions {
-    flex-direction: row;
     justify-content: center;
+  }
+
+  .bk-hero-text p {
+    max-width: none;
   }
 
   .bk-trust {
     justify-content: center;
   }
 
-  .bk-visual-box {
-    max-width: 280px;
-    aspect-ratio: 1;
+  .bk-hero-image,
+  .bk-hero-fallback {
+    max-width: 320px;
+    margin: 0 auto;
   }
 
   .bk-project {

@@ -39,9 +39,10 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
   const { data, loading, error, refetch } = documentsData;
   const { authUser, appUser } = useAuth();
   const { executeAction, loading: actionLoading } = useAsyncAction();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+ const [modalOpen, setModalOpen] = useState(false);
+ const [uploading, setUploading] = useState(false);
+ const [selectedFile, setSelectedFile] = useState<File | null>(null);
+ const [uploadError, setUploadError] = useState<string | null>(null);
 
   const currentUploader = appUser?.name ?? authUser?.email ?? 'Utilisateur inconnu';
 
@@ -97,19 +98,32 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
     },
   });
 
-  const handleManageDocument = () => {
-    form.resetForm();
-    setSelectedFile(null);
-    setModalOpen(true);
-  };
+ const handleManageDocument = () => {
+   form.resetForm();
+   setSelectedFile(null);
+   setModalOpen(true);
+   setUploadError(null);
+ };
 
-  const handleFileUpload = async (file: File): Promise<string | null> => {
-    if (!file) return null;
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-      const filePath = `documents/${fileName}`;
+ const handleFileUpload = async (file: File): Promise<string | null> => {
+   if (!file) return null;
+   const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+   if (file.size > MAX_SIZE) {
+     setUploadError(`Fichier trop volumineux (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum : 5 MB.`);
+     return null;
+   }
+
+   if (!ALLOWED_TYPES.includes(file.type)) {
+     setUploadError('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, PDF.');
+     return null;
+   }
+   setUploading(true);
+   try {
+     const fileExt = file.name.split('.').pop();
+     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+     const filePath = `documents/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('app-assets')
@@ -238,14 +252,15 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
               className="form-input w-full"
               disabled={uploading}
             />
-            {selectedFile && (
-              <p className="text-xs text-slate-500 mt-1">
-                {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} Ko)
-              </p>
-            )}
-            {uploading && (
-              <p className="text-xs text-amber-600 mt-1">Upload en cours…</p>
-            )}
+           {selectedFile && (
+             <p className="text-xs text-slate-500 mt-1">
+               {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} Ko)
+             </p>
+           )}
+           {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
+           {uploading && (
+             <p className="text-xs text-amber-600 mt-1">Upload en cours…</p>
+           )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

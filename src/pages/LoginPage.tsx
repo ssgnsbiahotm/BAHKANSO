@@ -47,7 +47,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       } else if (password.length < 8) {
         newErrors.password = 'Le mot de passe doit faire au moins 8 caractères';
       } else if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
-        newErrors.password = 'Le mot de passe doit contenir majuscules, minuscules et chiffres';
+        newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères';
       }
       if (password !== confirmPassword) {
         newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
@@ -249,7 +249,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
             {mode === 'signup' && (
               <div className="flex items-start gap-2 text-xs text-slate-500">
                 <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-slate-400" />
-                <span>Le mot de passe doit contenir au moins 8 caractères avec majuscules, minuscules et chiffres.</span>
+                <span>Le mot de passe doit contenir au moins 8 caractères.</span>
               </div>
             )}
 
