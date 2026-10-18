@@ -58,7 +58,7 @@ export function usePaginatedQuery<T = unknown>(
 
   // Fonction de récupération des données paginées
   const fetchPaginatedData = async (): Promise<PaginatedResult<T>> => {
-    let query = supabase.from(table as string).select(`${columns}, count`, { count: 'exact' });
+    let query = supabase.from(table as string).select(columns, { count: 'exact' });
 
     // Appliquer les filtres
     filters.forEach(filter => {

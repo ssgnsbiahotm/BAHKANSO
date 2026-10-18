@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/AuthContext';
 import { z } from 'zod';
 import type { Document } from '@/lib/types';
 import { useDocuments } from '@/modules/Finance/hooks/useFinanceData';
@@ -36,8 +37,13 @@ interface DocumentFormValues {
 
 export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
   const { data, loading, error, refetch } = documentsData;
+  const { authUser, appUser } = useAuth();
   const { executeAction, loading: actionLoading } = useAsyncAction();
   const [modalOpen, setModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const currentUploader = appUser?.name ?? authUser?.email ?? 'Utilisateur inconnu';
 
   const form = ValidatedForm<DocumentFormValues>({
     schema: documentSchema,
@@ -47,17 +53,33 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
       name: '',
       status: 'ajouté',
       upload_date: new Date().toISOString().slice(0, 16),
-      uploaded_by: null,
+      uploaded_by: currentUploader,
       comment: null,
     },
     onSubmit: async (values) => {
       await executeAction(async () => {
+        let fileUrl: string | null = null;
+        let fileSize: number | null = null;
+        let mimeType: string | null = null;
+
+        if (selectedFile) {
+          fileUrl = await handleFileUpload(selectedFile);
+          if (!fileUrl) {
+            throw new Error('Échec de l\'upload du fichier');
+          }
+          fileSize = selectedFile.size;
+          mimeType = selectedFile.type;
+        }
+
         const { error: insertError } = await supabase
           .from('documents')
           .insert([{
             reference: values.reference,
             type: values.type,
             name: values.name,
+            file_url: fileUrl,
+            file_size: fileSize,
+            mime_type: mimeType,
             status: values.status,
             upload_date: values.upload_date,
             uploaded_by: values.uploaded_by,
@@ -77,7 +99,35 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
 
   const handleManageDocument = () => {
     form.resetForm();
+    setSelectedFile(null);
     setModalOpen(true);
+  };
+
+  const handleFileUpload = async (file: File): Promise<string | null> => {
+    if (!file) return null;
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const filePath = `documents/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('app-assets')
+        .upload(filePath, file, { upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('app-assets')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (err) {
+      console.error('Upload échoué:', err);
+      return null;
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (loading) return <div className="text-center py-10">Chargement...</div>;
@@ -115,6 +165,14 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
           { key: 'reference', label: 'Référence', render: (row: Document) => row.reference ?? '-' },
           { key: 'type', label: 'Type', render: (row: Document) => row.type },
           { key: 'name', label: 'Nom', render: (row: Document) => row.name },
+          {
+            key: 'file_url',
+            label: 'Fichier',
+            render: (row: Document) =>
+              row.file_url
+                ? <a href={row.file_url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">📄 Voir</a>
+                : '-',
+          },
           { key: 'file_size', label: 'Taille', render: (row: Document) => row.file_size != null ? `${row.file_size} o` : '-', align: 'right' },
           { key: 'mime_type', label: 'Type MIME', render: (row: Document) => row.mime_type ?? '-' },
           { key: 'uploaded_by', label: 'Uploadé par', render: (row: Document) => row.uploaded_by ?? '-' },
@@ -169,6 +227,26 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             />
             {form.errors.name && <p className="text-xs text-red-500 mt-1">{form.errors.name}</p>}
           </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
+              Fichier (PDF, image) *
+            </label>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+              className="form-input w-full"
+              disabled={uploading}
+            />
+            {selectedFile && (
+              <p className="text-xs text-slate-500 mt-1">
+                {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} Ko)
+              </p>
+            )}
+            {uploading && (
+              <p className="text-xs text-amber-600 mt-1">Upload en cours…</p>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Statut *</label>
@@ -200,9 +278,11 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             <label className="block text-xs font-medium text-slate-600 mb-1">Uploadé par</label>
             <input
               type="text"
-              value={form.values.uploaded_by ?? ''}
-              onChange={(e) => form.setFieldValue('uploaded_by', e.target.value || null)}
-              className="form-input w-full"
+              value={currentUploader}
+              readOnly
+              disabled
+              className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+              title="Déterminé automatiquement depuis votre session"
             />
           </div>
           <div>
@@ -224,10 +304,10 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             </button>
             <button
               type="submit"
-              disabled={!form.isValid || form.isSubmitting}
+              disabled={!form.isValid || form.isSubmitting || uploading}
               className="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
             >
-              {form.isSubmitting ? 'Enregistrement...' : 'Créer le document'}
+              {uploading ? 'Upload en cours…' : form.isSubmitting ? 'Enregistrement...' : 'Créer le document'}
             </button>
           </div>
         </form>

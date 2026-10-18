@@ -9,7 +9,7 @@ interface RotatingCardProps {
   backLabel?: string;
 }
 
-export function RotatingCard({ front, back, className = '', flipLabel = 'Détails', backLabel = 'Retour' }: RotatingCardProps) {
+export function RotatingCard({ front, back, className = 'rotatable-card', flipLabel = 'Détails', backLabel = 'Retour' }: RotatingCardProps) {
   const [flipped, setFlipped] = useState(false);
 
   const toggle = useCallback(() => setFlipped(f => !f), []);

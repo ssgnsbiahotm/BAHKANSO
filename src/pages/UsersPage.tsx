@@ -115,7 +115,7 @@ export function UsersPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {users.map(u => (
-          <div key={u.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+          <div key={u.id} className="rotatable-card bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -148,7 +148,7 @@ export function UsersPage() {
         ))}
       </div>
 
-      <div className="mt-8 bg-white rounded-xl border border-slate-200 p-5">
+      <div className="mt-8 rotatable-card bg-white rounded-xl border border-slate-200 p-5">
         <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2"><Shield size={18} /> Rôles et permissions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {ROLES.map(r => (

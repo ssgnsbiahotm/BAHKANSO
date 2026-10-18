@@ -43,7 +43,7 @@ export function Livestock() {
       {tab === 'overview' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {animalLots.map(lot => (
-            <div key={lot.id} className="bg-white rounded-xl border border-slate-200 p-5">
+            <div key={lot.id} className="rotatable-card bg-white rounded-xl border border-slate-200 p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600"><Beef size={20} /></div>

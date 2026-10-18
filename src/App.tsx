@@ -3,6 +3,8 @@ import { DataProvider } from '@/lib/DataContext';
 import { ToastProvider } from '@/lib/Toast';
 import { AppRoutes } from '@/routes/AppRoutes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { initRotatableCards } from './rotatable-effect';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,6 +17,10 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  useEffect(() => {
+    initRotatableCards();
+  }, []);
+
   return (
     <ToastProvider>
       <QueryClientProvider client={queryClient}>

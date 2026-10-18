@@ -9,7 +9,8 @@ import { ExpensesTab } from '@/modules/Finance/tabs/ExpensesTab';
 import { DocumentsTab } from '@/modules/Finance/tabs/DocumentsTab';
 
 export const FinanceModule = () => {
-  const { tab = 'treasury' } = Object.fromEntries(new URLSearchParams(window.location.search));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') || 'treasury';
 
   const treasuryData = useTreasuryTransactions();
   const fundingsData = useFundings();
@@ -21,41 +22,25 @@ export const FinanceModule = () => {
       <div className="flex bg-gray-50 p-4 rounded-lg shadow-sm">
         <button
           className={`px-4 py-2 text-sm font-medium ${tab === 'treasury' ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-          onClick={() => {
-            const params = new URLSearchParams(window.location.search);
-            params.set('tab', 'treasury');
-            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-          }}
+          onClick={() => setSearchParams({ tab: 'treasury' })}
         >
           Trésorerie
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium ${tab === 'fundings' ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-          onClick={() => {
-            const params = new URLSearchParams(window.location.search);
-            params.set('tab', 'fundings');
-            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-          }}
+          onClick={() => setSearchParams({ tab: 'fundings' })}
         >
           Financements
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium ${tab === 'expenses' ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-          onClick={() => {
-            const params = new URLSearchParams(window.location.search);
-            params.set('tab', 'expenses');
-            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-          }}
+          onClick={() => setSearchParams({ tab: 'expenses' })}
         >
           Dépenses
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium ${tab === 'documents' ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-          onClick={() => {
-            const params = new URLSearchParams(window.location.search);
-            params.set('tab', 'documents');
-            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-          }}
+          onClick={() => setSearchParams({ tab: 'documents' })}
         >
           Justificatifs
         </button>

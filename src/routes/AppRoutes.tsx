@@ -22,6 +22,7 @@ import { AnimalManage } from '@/pages/AnimalManage';
 // import { DocumentManage } from '@/modules/FinancialManagement/DocumentManage'; // Supprimé dans le cadre de la refonte financière
 import { PlotManage } from '@/pages/PlotManage';
 import { CampaignManage } from '@/pages/CampaignManage';
+import { HarvestManage } from '@/pages/HarvestManage';
 import { RequireAuth } from './authGuard';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { FinanceModule } from '@/modules/Finance';
@@ -69,6 +70,7 @@ export const appRouter = createBrowserRouter([
       { path: 'livestock/animals', element: <AnimalManage /> },
       { path: 'agriculture/plots', element: <PlotManage /> },
       { path: 'agriculture/campaigns', element: <CampaignManage /> },
+      { path: 'agriculture/harvests', element: <HarvestManage /> },
     ]
   },
   {

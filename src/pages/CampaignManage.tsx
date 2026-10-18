@@ -165,7 +165,7 @@ export function CampaignManage() {
         if (error) {
           toast.show('Erreur: ' + error.message, 'error');
         } else {
-          await logAudit(appUser?.name || 'Système', 'UPDATE', 'campaign', editCampaign.reference || editCampaign.id, `Campagne ${editCampaign.reference || editCampaign.id} modifiée`);
+          await logAudit(appUser?.name || 'Système', 'UPDATE', 'campaign', editCampaign?.reference || editCampaign?.id, `Campagne ${editCampaign?.reference || editCampaign?.id} modifiée`);
           toast.show('Campagne modifiée');
           setModalOpen(false);
           refresh();
@@ -191,11 +191,12 @@ export function CampaignManage() {
   };
 
   const updateStatus = async (campaign: any, status: string) => {
+    if (!campaign) return;
     const { error } = await supabase.from('campaigns').update({ status }).eq('id', campaign.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'UPDATE', 'campaign', campaign.reference || campaign.id, `Statut de la campagne ${campaign.reference || campaign.id} → "${status}"`);
+      await logAudit(appUser?.name || 'Système', 'UPDATE', 'campaign', campaign?.reference || campaign?.id, `Statut de la campagne ${campaign?.reference || campaign?.id} → "${status}"`);
       toast.show(`Campagne marquée "${status}"`);
       refresh();
     }
@@ -207,7 +208,7 @@ export function CampaignManage() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'campaign', confirmDelete.reference || confirmDelete.id, `Campagne ${confirmDelete.reference || confirmDelete.id} supprimée`);
+      await logAudit(appUser?.name || 'Système', 'DELETE', 'campaign', confirmDelete?.reference || confirmDelete?.id, `Campagne ${confirmDelete?.reference || confirmDelete?.id} supprimée`);
       toast.show('Campagne supprimée');
       setConfirmDelete(null);
       setDetailCampaign(null);
@@ -334,7 +335,7 @@ export function CampaignManage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">{detailCampaign.reference || `CAMP-${detailCampaign.year}`}</h2>
+                <h2 className="text-2xl font-bold text-slate-900">{detailCampaign?.reference || `CAMP-${detailCampaign?.year ?? ''}`}</h2>
                 <p className="text-sm text-slate-500">{detailCampaign.crop_name ?? '—'}</p>
               </div>
               <SimpleBadge color={
@@ -518,7 +519,7 @@ export function CampaignManage() {
           </>
         }
       >
-        <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer la campagne « {confirmDelete?.reference || confirmDelete.id} » ? Cette action est irréversible.</p>
+        <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer la campagne « {confirmDelete?.reference || confirmDelete?.id || 'cette campagne'} » ? Cette action est irréversible.</p>
       </Modal>
     </div>
   );

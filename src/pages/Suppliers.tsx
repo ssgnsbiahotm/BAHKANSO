@@ -153,7 +153,7 @@ export function Suppliers() {
             const supplierExpenses = expenses.filter(e => e.supplier_id === s.id);
             const totalSpent = supplierExpenses.reduce((sum, e) => sum + e.amount, 0);
             return (
-              <div key={s.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+              <div key={s.id} className="rotatable-card bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600"><Truck size={20} /></div>

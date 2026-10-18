@@ -23,7 +23,7 @@ const colorClasses: Record<string, { bg: string; text: string; ring: string }> =
 export function KpiCard({ label, value, icon, trend, trendLabel, color = 'green', subtitle }: KpiCardProps) {
   const c = colorClasses[color];
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+    <div className="rotatable-card bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className={`p-2.5 rounded-lg ${c.bg} ${c.text} ring-1 ${c.ring}`}>
           {icon}
