@@ -1,11 +1,13 @@
-import { useState, useMemo } from 'react';
-import { ShoppingBag, Wheat, MapPin, CreditCard, Eye, Edit, Filter, ChevronDown, Plus, TrendingUp, Users, RefreshCw } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { ShoppingBag, Wheat, MapPin, CreditCard, Eye, Edit, Filter, ChevronDown, Plus, TrendingUp, Users, RefreshCw, Trash2, AlertCircle } from 'lucide-react';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useSalesData } from './hooks/useSalesData';
 import { useToast } from '@/lib/Toast';
+import { supabase } from '@/lib/supabase';
 import type { SaleWithRelations } from './hooks/useSalesData';
+import { SaleFormModal } from './components/SaleFormModal';
 
 interface StatusBadgeProps {
   status: string;
@@ -86,9 +88,10 @@ interface SaleCardBackProps {
   sale: SaleWithRelations;
   onViewDetails: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
-function SaleCardBack({ sale, onViewDetails, onEdit }: SaleCardBackProps) {
+function SaleCardBack({ sale, onViewDetails, onEdit, onDelete }: SaleCardBackProps) {
   return (
     <div className="h-full p-5 bg-slate-50 overflow-y-auto">
       <h4 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
@@ -155,6 +158,9 @@ function SaleCardBack({ sale, onViewDetails, onEdit }: SaleCardBackProps) {
         </button>
         <button onClick={onEdit} className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
           <Edit size={14} /> Modifier
+        </button>
+        <button onClick={onDelete} className="py-2 px-4 bg-red-100 text-red-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-red-200 transition-colors" title="Supprimer">
+          <Trash2 size={14} />
         </button>
       </div>
     </div>
@@ -273,6 +279,78 @@ export const SalesModule = () => {
     });
   }, [sales, selectedSite, selectedStatus, selectedPeriod]);
 
+  // État pour la modale de formulaire
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [saleToEdit, setSaleToEdit] = useState<{
+    id: string;
+    site_id: string;
+    customer_id: string;
+    date: string;
+    payment_method: string;
+    items: Array<{
+      id: string;
+      description: string | null;
+      quantity: number;
+      unit: string;
+      unit_price: number;
+      total: number;
+    }>;
+  } | null>(null);
+
+  // Ouvrir la modale en mode création
+  const openCreateModal = useCallback(() => {
+    setSaleToEdit(null);
+    setIsFormOpen(true);
+  }, []);
+
+  // Ouvrir la modale en mode édition
+  const openEditModal = useCallback((sale: SaleWithRelations) => {
+    setSaleToEdit({
+      id: sale.id,
+      site_id: sale.site_id || '',
+      customer_id: sale.customer_id || '',
+      date: sale.date,
+      payment_method: sale.payment_method,
+      items: (sale.items || []).map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+        unit_price: item.unit_price,
+        total: item.total,
+      })),
+    });
+    setIsFormOpen(true);
+  }, []);
+
+  // Fermer la modale
+  const closeModal = useCallback(() => {
+    setIsFormOpen(false);
+    setSaleToEdit(null);
+  }, []);
+
+  // Rafraîchir après succès
+  const handleFormSuccess = useCallback(() => {
+    refresh();
+    closeModal();
+  }, [refresh, closeModal]);
+
+  // Supprimer une vente
+  const handleDelete = useCallback(async (sale: SaleWithRelations) => {
+    const confirmed = window.confirm(`Supprimer la vente "${sale.reference}" ? Cette action est irréversible.`);
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase.from('sales').delete().eq('id', sale.id);
+      if (error) throw error;
+      toast.show('Vente supprimée', 'success');
+      refresh();
+    } catch (err) {
+      console.error('Erreur suppression:', err);
+      toast.show('Erreur lors de la suppression', 'error');
+    }
+  }, [refresh, toast]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -314,7 +392,7 @@ export const SalesModule = () => {
           <p className="text-slate-500 mt-1">Gestion des ventes et clients</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => toast.show('Nouvelle vente — à implémenter', 'info')} className="px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
+          <button onClick={openCreateModal} className="px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
             <Plus size={16} /> Nouvelle vente
           </button>
           <button onClick={() => { refresh(); toast.show('Données actualisées', 'success'); }} className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-sm text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
@@ -389,7 +467,8 @@ export const SalesModule = () => {
                   back={<SaleCardBack
                     sale={sale}
                     onViewDetails={() => toast.show(`Détails de la vente ${sale.reference}`, 'info')}
-                    onEdit={() => toast.show(`Édition de la vente ${sale.reference} — à implémenter`, 'info')}
+                    onEdit={() => openEditModal(sale)}
+                    onDelete={() => handleDelete(sale)}
                   />}
                 />
               ))}
@@ -402,6 +481,14 @@ export const SalesModule = () => {
           </div>
         )}
       </div>
+
+      {/* Modale formulaire vente */}
+      <SaleFormModal
+        isOpen={isFormOpen}
+        onClose={closeModal}
+        onSuccess={handleFormSuccess}
+        saleToEdit={saleToEdit}
+      />
     </div>
   );
 };

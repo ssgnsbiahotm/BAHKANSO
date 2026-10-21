@@ -37,6 +37,7 @@ DROP POLICY IF EXISTS "auth_delete_sites" ON sites;
 
 -- SELECT : admin/propriétaire/financeur/gestionnaire/comptable voient tous les sites
 -- autres voient seulement leur site (via site_id)
+DROP POLICY IF EXISTS "role_select_sites" ON sites;
 CREATE POLICY "role_select_sites" ON sites FOR SELECT TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire','comptable'])
@@ -45,12 +46,14 @@ USING (
 );
 
 -- INSERT : admin/propriétaire/gestionnaire uniquement
+DROP POLICY IF EXISTS "role_insert_sites" ON sites;
 CREATE POLICY "role_insert_sites" ON sites FOR INSERT TO authenticated
 WITH CHECK (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire'])
 );
 
 -- UPDATE : admin/propriétaire/gestionnaire sur tous ; autres sur leur site seulement
+DROP POLICY IF EXISTS "role_update_sites" ON sites;
 CREATE POLICY "role_update_sites" ON sites FOR UPDATE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire'])
@@ -62,6 +65,7 @@ WITH CHECK (
 );
 
 -- DELETE : admin/propriétaire uniquement
+DROP POLICY IF EXISTS "role_delete_sites" ON sites;
 CREATE POLICY "role_delete_sites" ON sites FOR DELETE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire'])
@@ -76,6 +80,7 @@ DROP POLICY IF EXISTS "auth_insert_funding_allocations" ON funding_allocations;
 DROP POLICY IF EXISTS "auth_update_funding_allocations" ON funding_allocations;
 DROP POLICY IF EXISTS "auth_delete_funding_allocations" ON funding_allocations;
 
+DROP POLICY IF EXISTS "role_select_funding_allocations" ON funding_allocations;
 CREATE POLICY "role_select_funding_allocations" ON funding_allocations FOR SELECT TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire','comptable'])
@@ -83,11 +88,13 @@ USING (
   OR current_user_site_id() IS NULL
 );
 
+DROP POLICY IF EXISTS "role_insert_funding_allocations" ON funding_allocations;
 CREATE POLICY "role_insert_funding_allocations" ON funding_allocations FOR INSERT TO authenticated
 WITH CHECK (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire'])
 );
 
+DROP POLICY IF EXISTS "role_update_funding_allocations" ON funding_allocations;
 CREATE POLICY "role_update_funding_allocations" ON funding_allocations FOR UPDATE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire'])
@@ -98,6 +105,7 @@ WITH CHECK (
   OR site_id = current_user_site_id()
 );
 
+DROP POLICY IF EXISTS "role_delete_funding_allocations" ON funding_allocations;
 CREATE POLICY "role_delete_funding_allocations" ON funding_allocations FOR DELETE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur'])
@@ -112,6 +120,7 @@ DROP POLICY IF EXISTS "auth_insert_customers" ON customers;
 DROP POLICY IF EXISTS "auth_update_customers" ON customers;
 DROP POLICY IF EXISTS "auth_delete_customers" ON customers;
 
+DROP POLICY IF EXISTS "role_select_customers" ON customers;
 CREATE POLICY "role_select_customers" ON customers FOR SELECT TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
@@ -119,12 +128,14 @@ USING (
   OR current_user_site_id() IS NULL
 );
 
+DROP POLICY IF EXISTS "role_insert_customers" ON customers;
 CREATE POLICY "role_insert_customers" ON customers FOR INSERT TO authenticated
 WITH CHECK (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
   AND (site_id = current_user_site_id() OR current_user_site_id() IS NULL)
 );
 
+DROP POLICY IF EXISTS "role_update_customers" ON customers;
 CREATE POLICY "role_update_customers" ON customers FOR UPDATE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
@@ -136,6 +147,7 @@ WITH CHECK (
   AND (site_id = current_user_site_id() OR current_user_site_id() IS NULL)
 );
 
+DROP POLICY IF EXISTS "role_delete_customers" ON customers;
 CREATE POLICY "role_delete_customers" ON customers FOR DELETE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','comptable'])
@@ -150,6 +162,7 @@ DROP POLICY IF EXISTS "auth_insert_sales" ON sales;
 DROP POLICY IF EXISTS "auth_update_sales" ON sales;
 DROP POLICY IF EXISTS "auth_delete_sales" ON sales;
 
+DROP POLICY IF EXISTS "role_select_sales" ON sales;
 CREATE POLICY "role_select_sales" ON sales FOR SELECT TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
@@ -157,12 +170,14 @@ USING (
   OR current_user_site_id() IS NULL
 );
 
+DROP POLICY IF EXISTS "role_insert_sales" ON sales;
 CREATE POLICY "role_insert_sales" ON sales FOR INSERT TO authenticated
 WITH CHECK (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
   AND (site_id = current_user_site_id() OR current_user_site_id() IS NULL)
 );
 
+DROP POLICY IF EXISTS "role_update_sales" ON sales;
 CREATE POLICY "role_update_sales" ON sales FOR UPDATE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
@@ -174,6 +189,7 @@ WITH CHECK (
   AND (site_id = current_user_site_id() OR current_user_site_id() IS NULL)
 );
 
+DROP POLICY IF EXISTS "role_delete_sales" ON sales;
 CREATE POLICY "role_delete_sales" ON sales FOR DELETE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','comptable'])
@@ -188,6 +204,7 @@ DROP POLICY IF EXISTS "auth_insert_sale_items" ON sale_items;
 DROP POLICY IF EXISTS "auth_update_sale_items" ON sale_items;
 DROP POLICY IF EXISTS "auth_delete_sale_items" ON sale_items;
 
+DROP POLICY IF EXISTS "role_select_sale_items" ON sale_items;
 CREATE POLICY "role_select_sale_items" ON sale_items FOR SELECT TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
@@ -197,6 +214,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "role_insert_sale_items" ON sale_items;
 CREATE POLICY "role_insert_sale_items" ON sale_items FOR INSERT TO authenticated
 WITH CHECK (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
@@ -206,6 +224,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "role_update_sale_items" ON sale_items;
 CREATE POLICY "role_update_sale_items" ON sale_items FOR UPDATE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','gestionnaire','comptable','responsable_agricole','responsable_élevage'])
@@ -222,6 +241,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "role_delete_sale_items" ON sale_items;
 CREATE POLICY "role_delete_sale_items" ON sale_items FOR DELETE TO authenticated
 USING (
   current_user_has_role(ARRAY['administrateur','propriétaire','comptable'])
