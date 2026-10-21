@@ -232,17 +232,16 @@ CREATE INDEX IF NOT EXISTS idx_sale_items_source ON sale_items(source_type, sour
 -- =============================================
 
 CREATE OR REPLACE FUNCTION generate_sale_reference()
-RETURNS text AS $$
+RETURNS trigger AS $$
 DECLARE
   current_year int := extract(year from now());
   seq_num int;
-  ref text;
 BEGIN
   SELECT count(*) + 1 INTO seq_num
   FROM sales
   WHERE extract(year from date) = current_year;
-  ref := 'VTE-' || current_year || '-' || lpad(seq_num::text, 5, '0');
-  RETURN ref;
+  NEW.reference := 'VTE-' || current_year || '-' || lpad(seq_num::text, 5, '0');
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = 'public';
 
