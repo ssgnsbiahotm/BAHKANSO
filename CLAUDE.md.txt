@@ -1,0 +1,585 @@
+# CLAUDE.md — BAHKANSO
+## Instructions du projet et cadre de réalisation
+
+Ce fichier définit le cadre commun de travail sur Bahkanso.
+
+Il remplace les anciennes consignes de refonte limitée à sept pages.
+Il n’autorise ni suppression générale des modules, ni reconstruction
+complète de l’application, ni modification distante.
+
+Une demande explicite plus récente de l’utilisateur peut ajuster
+le périmètre. En cas de contradiction importante, la signaler avant
+une action destructive ou un changement d’architecture.
+
+---
+
+## 1. MISSION ACTUELLE
+
+Faire évoluer Bahkanso en une application agro-pastorale cohérente,
+agréable et réellement utilisable.
+
+Objectifs :
+- conserver les modules métier existants ;
+- généraliser les cartes retournables pour présenter les collections ;
+- rendre les pages, formulaires et actions réellement fonctionnels ;
+- réutiliser les mécanismes existants lorsqu’ils sont corrects ;
+- corriger les défauts par lots limités et vérifiables ;
+- préserver les données et les travaux en cours.
+
+Ne pas confondre :
+- présence de code et fonctionnalité vérifiée ;
+- navigation vers une page et action sur un élément ;
+- compilation réussie et validation fonctionnelle ;
+- prototype visuel et fonctionnalité avec persistance.
+
+Ne pas déclarer l’application entièrement fonctionnelle sans preuves.
+
+---
+
+## 2. IDENTITÉ ET LANGUE
+
+- Nom : Bahkanso — Pilotage agro-pastoral.
+- Exploitation : Ferme AgroVision.
+- Localisation : Sikensi, Côte d’Ivoire.
+- Interface entièrement en français :
+  titres, boutons, formulaires, erreurs, confirmations et états vides.
+- Montants affichés en FCFA, par exemple : 1 500 000 FCFA.
+- Dates affichées au format français, par exemple : 12 oct. 2026.
+
+Réutiliser les fonctions de formatage existantes.
+Ne pas renommer les valeurs techniques stockées uniquement
+pour traduire leurs libellés d’affichage.
+
+Sites / projets mentionnés dans le contexte métier :
+Katadji, Aheremou, Braffoueby, Abidjan, Grd-Bassam.
+
+Cette liste ne constitue pas une instruction de seed,
+de migration ou de modification des données.
+
+Ne pas inventer de chiffres, résultats, témoignages,
+certifications ou caractéristiques de l’exploitation.
+
+---
+
+## 3. SOURCE DE VÉRITÉ ET INSPECTION
+
+Pour connaître l’état du projet :
+1. lire les instructions applicables ;
+2. examiner le code et les différences locales ;
+3. consulter les migrations, types et conventions existantes ;
+4. distinguer le dépôt de l’état réellement vérifié d’une base.
+
+Ne jamais :
+- supposer qu’une migration a été appliquée parce qu’elle existe ;
+- supposer qu’une table distante existe après lecture du dépôt ;
+- affirmer qu’un objet SQL a été créé sans résultat d’exécution ;
+- inventer un nom de table, de colonne, de rôle ou de route.
+
+Les anciennes pages peuvent être réutilisées et améliorées.
+Leur origine Bolt n’est pas une raison suffisante pour les supprimer.
+
+Si une instruction ancienne contredit la mission actuelle,
+signaler le conflit sans appliquer de suppression.
+
+---
+
+## 4. STACK ET DÉPENDANCES
+
+Références techniques du projet :
+- React ;
+- Vite ;
+- TypeScript strict ;
+- Tailwind CSS ;
+- lucide-react ;
+- Supabase : Postgres, Auth et Storage ;
+- bibliothèque de graphiques déjà installée, si nécessaire.
+
+Les versions et dépendances réellement présentes se vérifient
+dans package.json et le fichier de verrouillage.
+
+Règles :
+- réutiliser la stack et les composants existants ;
+- ne pas installer de dépendance sans autorisation explicite ;
+- ne pas changer les versions ou le gestionnaire de paquets
+  sans demande ;
+- ne pas introduire une seconde bibliothèque pour un besoin
+  déjà couvert ;
+- ne pas contourner les erreurs par any, @ts-ignore ou
+  désactivation globale des contrôles.
+
+Ne pas entreprendre une remise à niveau technique générale
+pendant un lot fonctionnel limité.
+
+---
+
+## 5. MODULES ET NAVIGATION
+
+Conserver les modules réellement présents dans l’application.
+
+Le périmètre n’est plus limité à sept pages.
+Agriculture, Élevage, Stocks, Fournisseurs, Médias et les autres
+modules existants ne doivent pas être supprimés sur la base
+de l’ancienne spécification.
+
+Navigation :
+- conserver le menu latéral et les sous-menus utiles ;
+- préserver les routes existantes ;
+- réutiliser une configuration de navigation commune si elle existe ;
+- éviter la duplication des entrées et routes ;
+- ne pas réécrire le layout pour ajouter un module.
+
+Une page ou une route ne peut être supprimée qu’après
+une demande explicite et une vérification de ses références.
+
+Ne pas créer de nouvelle page de gestion si une page existante
+peut remplir correctement le besoin.
+
+---
+
+## 6. RÉPARTITION DU TRAVAIL
+
+### Claude — application privée
+
+Priorité actuelle : module Élevage.
+
+Pages concernées :
+- Cheptel / vue d’ensemble ;
+- Lots ;
+- Animaux ;
+- Événements.
+
+Objectif :
+un parcours cohérent lot → animal → événement, avec cartes
+retournables, actions ciblées et actualisation des données.
+
+### Codex — accueil public
+
+Codex intervient séparément sur la page d’accueil publique :
+- composition visuelle ;
+- en-tête et navigation publique ;
+- bandeau photographique ;
+- présentation du projet ;
+- cartes d’activités ;
+- responsive et interactions publiques.
+
+Claude ne doit pas modifier l’accueil public pendant son lot
+Élevage, sauf demande explicite.
+
+### Travail simultané
+
+Avant toute édition :
+- examiner git status et les différences des fichiers concernés ;
+- repérer les modifications préexistantes ;
+- limiter le nombre de fichiers partagés touchés.
+
+Ne pas écraser le travail d’un autre agent.
+Si un composant partagé est en cours de modification concurrente,
+signaler le conflit et proposer une intervention limitée.
+
+---
+
+## 7. DESIGN ET CARTES RETOURNABLES
+
+### Direction générale
+
+Conserver l’identité Bahkanso et l’organisation de l’application :
+- menu latéral ;
+- en-tête ;
+- modules et sous-menus ;
+- indicateurs ;
+- actions de gestion.
+
+Références de palette :
+- vert agricole : #2D5016 ;
+- vert d’interaction : #4A7C2E ;
+- accent blé : #E8B923 ;
+- terre : #8B6F47 ;
+- fond crème : #FAF7F2 ;
+- textes slate-800 / slate-500.
+
+Ne pas appliquer une recoloration globale hors du lot autorisé.
+Préserver la cohérence avec les composants existants.
+
+### Collections
+
+Les cartes retournables sont la présentation cible des listes
+métier, à déployer module par module.
+
+Une exception nécessitant un tableau doit être justifiée
+et soumise à validation.
+
+Ne pas transformer artificiellement en cartes retournables :
+- les formulaires ;
+- les menus ;
+- les filtres ;
+- les graphiques ;
+- les indicateurs devant rester immédiatement visibles.
+
+### Structure d’une carte
+
+Recto :
+- nom ou référence ;
+- photographie ou icône pertinente ;
+- statut lisible ;
+- informations essentielles ;
+- commande explicite pour afficher les détails.
+
+Verso :
+- informations complémentaires ;
+- relations utiles ;
+- actions pertinentes ;
+- commande explicite de retour.
+
+Contraintes :
+- retournement volontaire, jamais automatique ;
+- utilisation au clic, au tactile et au clavier ;
+- focus visible ;
+- face masquée non interactive ;
+- boutons d’action indépendants du retournement ;
+- pas d’information essentielle disponible uniquement au survol ;
+- respect de la préférence de réduction des animations ;
+- aucun texte coupé ni bouton inaccessible ;
+- adaptation aux petits écrans et aux contenus longs.
+
+Une hauteur fixe de 340 px n’est pas une obligation.
+La lisibilité et l’accès aux actions priment.
+
+### Implémentation
+
+Inspecter les composants existants avant d’en créer un nouveau.
+Éviter plusieurs implémentations concurrentes de FlipCard.
+
+Si des classes CSS 3D personnalisées sont utilisées,
+vérifier qu’elles sont réellement définies, par exemple :
+
+.perspective-1000 { perspective: 1000px; }
+.transform-style-3d { transform-style: preserve-3d; }
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rotate-y-180 { transform: rotateY(180deg); }
+
+Ne pas modifier le comportement d’un carrousel existant
+en confondant son défilement avec le retournement des cartes.
+
+---
+
+## 8. DÉFINITION D’UNE ACTION FONCTIONNELLE
+
+Le libellé d’un bouton doit correspondre à son effet réel.
+
+### Actions individuelles
+
+- Détails : afficher l’élément sélectionné.
+- Modifier : ouvrir son formulaire prérempli.
+- Supprimer : demander une confirmation nommant cet élément,
+  puis utiliser la logique de suppression autorisée.
+- Voir un document : ouvrir le fichier correspondant.
+- Imprimer : préparer une impression de l’élément concerné.
+
+Une navigation vers une liste générale doit porter un libellé
+tel que « Gérer les animaux », pas « Modifier ».
+
+Les pages dédiées peuvent être réutilisées à condition
+de prendre effectivement en charge l’identifiant et l’action.
+Ne pas ajouter un paramètre que la destination ne traite pas.
+
+### Formulaires et mutations
+
+Prévoir :
+- validation réellement exécutée ;
+- état d’envoi visible ;
+- prévention des doubles soumissions ;
+- traitement des erreurs ;
+- conservation de la saisie en cas d’échec ;
+- succès annoncé seulement après confirmation de l’opération ;
+- actualisation des données après réussite.
+
+Ne pas fermer automatiquement un formulaire après un échec.
+Ne pas présenter un échec d’audit ou de rafraîchissement
+comme si l’écriture principale n’avait forcément pas eu lieu.
+
+### États de l’interface
+
+Traiter :
+- chargement ;
+- absence de données ;
+- absence de résultat après filtrage ;
+- erreur de chargement ;
+- permission insuffisante ;
+- action en cours.
+
+Aucun bouton vide, faux succès ou lien de remplacement href="#".
+
+Une action indisponible peut être désactivée avec une explication,
+mais elle doit rester déclarée comme non livrée ou bloquée.
+
+---
+
+## 9. RÈGLES MÉTIER À PRÉSERVER
+
+### Élevage
+
+Ne pas inventer :
+- règles d’effectif entre lots et animaux individuels ;
+- compatibilités d’espèces ;
+- règles de filiation ;
+- conséquences automatiques des événements sur les statuts
+  ou les effectifs.
+
+Retrouver les règles existantes ou demander une décision ciblée.
+
+Ne pas additionner les effectifs des lots et les animaux
+individuels sans vérifier le sens métier de ce calcul.
+
+### Opérations agricoles
+
+Décisions acquises :
+- une opération peut être liée à une parcelle ou à une campagne ;
+- si une campagne est choisie, sa parcelle fait référence ;
+- une contradiction campagne / parcelle doit être refusée ;
+- les anciennes opérations non rattachées sont conservées ;
+- aucune attribution automatique des données historiques.
+
+Ces décisions ne prouvent pas que toutes les protections
+correspondantes sont déjà implémentées ou validées.
+
+### Recettes
+
+« Recettes » signifie revenus financiers de l’exploitation.
+Aucun concept de cuisine ne doit être introduit.
+
+### Données sensibles
+
+Ne pas élargir les accès existants aux informations de bailleurs
+ou à d’autres données sensibles.
+
+Ne pas supposer une valeur de rôle telle que 'admin' :
+vérifier le modèle d’identité réellement utilisé.
+
+Toute évolution de droits doit être traitée séparément,
+avec contrôle côté base et validation explicite.
+
+---
+
+## 10. CHANTIER REPORTÉ : SITES / EXPLOITATIONS
+
+Fichiers archivés :
+
+- docs/deferred/site-farm/
+  20261019000000_10_site_farm_and_operation_consistency.sql
+- docs/deferred/site-farm/
+  site_farm_operation_consistency.sql
+
+État :
+- proposition non validée ;
+- tests SQL non exécutés selon la passation ;
+- migration retirée du répertoire actif ;
+- aucun usage autorisé pour le lot Élevage.
+
+Ne pas :
+- réintégrer ces fichiers dans les répertoires actifs ;
+- appliquer leur SQL ;
+- reprendre leur conception sans demande ;
+- faire dépendre les autres modules de ces ajouts futurs.
+
+Préserver les correctifs Opérations précédents, distincts
+de cette migration reportée.
+
+---
+
+## 11. BASE DE DONNÉES, AUTH ET STORAGE
+
+Distinguer :
+- dépôt local ;
+- environnement local de test ;
+- environnement distant ;
+- environnement de production.
+
+Une application sur localhost peut utiliser une base distante.
+Ne jamais considérer localhost comme preuve d’isolement des données.
+
+Sans autorisation explicite :
+- aucune migration appliquée ;
+- aucun seed ;
+- aucune modification RLS ;
+- aucune modification de rôle ;
+- aucune création, modification ou suppression distante de test ;
+- aucun upload distant de test ;
+- aucune suppression de fichier Storage.
+
+Avant une mutation de test :
+- identifier l’environnement ;
+- confirmer qu’il est dédié et autorisé ;
+- limiter les données concernées.
+
+Ne pas afficher de secrets, mots de passe, jetons
+ou chaînes de connexion sensibles.
+
+Ne jamais affaiblir les droits pour faire réussir un test.
+
+### Données simulées
+
+Ne pas remplacer silencieusement une panne Supabase
+par des données fictives.
+
+Si un mode de démonstration est demandé :
+- l’isoler explicitement ;
+- afficher clairement qu’il s’agit d’une démonstration ;
+- ne pas annoncer de persistance réelle ;
+- ne pas mélanger données simulées et données réelles.
+
+---
+
+## 12. TESTS NAVIGATEUR — AUTORISÉS SOUS CONDITIONS
+
+Ce fichier n’interdit ni Playwright ni les tests navigateur.
+
+Les outils déjà disponibles peuvent être utilisés
+pour vérifier le lot autorisé.
+
+L’ajout de dépendances, de navigateurs ou d’outils système
+nécessite une autorisation préalable.
+
+Vérifications possibles dans le périmètre autorisé :
+- ouverture des pages ;
+- navigation ;
+- responsive ;
+- retournement des cartes ;
+- accès clavier ;
+- ouverture et annulation des formulaires ;
+- validation locale des champs ;
+- erreurs de console ;
+- observation des requêtes, sans exposer de secrets.
+
+Ces vérifications ne doivent pas déclencher de mutation distante.
+Ne pas cliquer sur une confirmation destructive.
+Ne pas envoyer un formulaire persistant sans autorisation.
+
+Si les tests utilisent des réponses simulées :
+- l’indiquer ;
+- ne pas présenter le CRUD réel comme validé.
+
+Si un test est impossible :
+- indiquer la commande ou l’outil tenté ;
+- fournir l’erreur exacte ;
+- distinguer outil absent, permission refusée,
+  dépendance manquante et restriction explicite.
+
+Ne jamais écrire « Playwright interdit par CLAUDE.md »
+sans clause correspondante.
+
+Les tests navigateur ne sont pas une autorisation
+de déploiement ou de modification de la base.
+
+---
+
+## 13. MÉTHODE DE TRAVAIL
+
+### Avant de modifier
+
+- Comprendre le lot demandé.
+- Inspecter les fichiers concernés.
+- Vérifier les modifications préexistantes.
+- Identifier les composants réutilisables.
+- Relever les seules décisions réellement manquantes.
+
+Ne pas demander de revalider les décisions déjà acquises.
+Ne pas produire des passations répétées à la place du travail.
+
+### Pendant la réalisation
+
+- Réaliser un lot cohérent et limité.
+- Corriger la cause du défaut.
+- Éviter les refontes adjacentes.
+- Préserver les mécanismes d’accès et de validation.
+- Ne pas lancer de sous-agent sans autorisation.
+- Ne pas déplacer ou supprimer des fichiers hors périmètre.
+
+Si une partie est bloquée, poursuivre les éléments indépendants
+lorsque cela reste cohérent et autorisé.
+
+### Avant de livrer
+
+Exécuter les scripts pertinents réellement présents :
+- vérification TypeScript ;
+- build ;
+- lint ciblé ou global selon le projet ;
+- tests disponibles ;
+- vérifications navigateur lorsque possibles.
+
+Inspecter les scripts avant exécution lorsqu’ils peuvent
+déclencher des migrations ou des écritures.
+
+Ne pas inventer un script absent.
+Ne pas modifier les scripts pour masquer un échec.
+
+Distinguer les défauts introduits des défauts préexistants.
+Un échec global préexistant doit être rapporté, pas dissimulé.
+
+---
+
+## 14. LIVRAISON ET CRITÈRES DE VALIDATION
+
+Chaque livraison doit indiquer :
+
+1. Résultat concret obtenu.
+2. Fichiers créés ou modifiés.
+3. Actions réellement raccordées.
+4. Commandes exécutées et résultats.
+5. Vérifications navigateur effectuées.
+6. Vérifications de persistance effectuées, le cas échéant.
+7. Limites et blocages restants.
+8. Changements hors périmètre nécessitant un accord.
+
+Utiliser des statuts précis :
+- implémenté ;
+- vérifié par lecture ;
+- contrôlé automatiquement ;
+- vérifié dans le navigateur ;
+- testé avec persistance ;
+- non vérifié ;
+- bloqué.
+
+Un lot est validé dans la limite des vérifications réalisées,
+pas sur la seule base d’une affirmation.
+
+Pour un lot frontend :
+- navigation et actions cohérentes ;
+- cartes utilisables sur ordinateur et mobile ;
+- absence de régression constatée ;
+- français et formatage cohérents ;
+- contrôles exécutés et résultats rapportés.
+
+Pour annoncer un parcours CRUD complet :
+- vérifier les permissions ;
+- exécuter le parcours dans un environnement autorisé ;
+- confirmer la persistance après rechargement ;
+- vérifier les erreurs et confirmations.
+
+---
+
+## 15. ACTIONS NÉCESSITANT UN ACCORD EXPLICITE
+
+Sans demande explicite, ne pas :
+- supprimer un module ou une route ;
+- réécrire l’architecture ;
+- installer une dépendance ;
+- modifier un schéma, une politique RLS ou un rôle ;
+- appliquer une migration ou des seeds ;
+- modifier des données distantes ;
+- effectuer une suppression destructive ;
+- faire un commit ;
+- faire un push ;
+- déployer.
+
+Ne jamais utiliser :
+- git reset --hard ;
+- git clean destructif ;
+- git checkout global pour effacer des modifications ;
+- git add . pour embarquer indistinctement les travaux ;
+- une commande équivalente détruisant les changements existants.
+
+La demande de produire une interface fonctionnelle
+n’autorise pas implicitement ces actions.

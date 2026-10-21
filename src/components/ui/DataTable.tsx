@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -362,3 +362,19 @@ export function DataTable<T = any>({
     </div>
   );
 }
+
+// Memoisation pour éviter les re-renders inutiles
+// Les props fonctions (searchKeys, rowKey, onRowClick, columns.render)
+// doivent être stables (useCallback/useMemo côté parent) pour que le memo soit efficace
+export const DataTableMemo = memo(DataTable, (prev, next) => {
+  // Comparaison superficielle par défaut - les parents doivent memoïser les callbacks
+  return (
+    prev.columns === next.columns &&
+    prev.data === next.data &&
+    prev.rowKey === next.rowKey &&
+    prev.searchable === next.searchable &&
+    prev.searchKeys === next.searchKeys &&
+    prev.onRowClick === next.onRowClick &&
+    prev.pageSize === next.pageSize
+  );
+});

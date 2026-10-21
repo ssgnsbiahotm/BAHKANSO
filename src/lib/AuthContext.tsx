@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import type { AppUser } from './types';
+import { logAudit } from './types';
 
 interface AuthContextType {
   session: Session | null;
@@ -9,7 +10,7 @@ interface AuthContextType {
   appUser: AppUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null; emailRequiresConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
@@ -89,12 +90,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: { data: { name } },
     });
     if (error) return { error: error.message };
-    if (data.user) {
-      await supabase.from('app_users')
-        .update({ name })
-        .eq('auth_id', data.user.id);
+
+    // Le trigger handle_new_user() crée déjà la ligne app_users avec le nom
+    // depuis raw_user_meta_data. Pas besoin d'un update supplémentaire depuis
+    // le client (évite les blocages RLS si l'email confirmation est requise
+    // et qu'aucune session n'est encore établie).
+
+    // Journal d'audit (best effort, ne bloque pas l'inscription si ça échoue)
+    try {
+      if (data.user) {
+        await logAudit(
+          name,
+          'user_signup',
+         'app_users',
+          data.user.id,
+          `Nouveau compte créé : ${email}`
+        );
+      }
+    } catch {
+      // Ignore audit errors during signup
     }
-    return { error: null };
+
+    return {
+      error: null,
+      emailRequiresConfirmation: data.user ? !data.user.email_confirmed_at : false,
+    };
   }, []);
 
   const signOut = useCallback(async () => {

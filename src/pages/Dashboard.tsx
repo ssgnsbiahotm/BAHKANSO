@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboardStats, formatFCFA } from '@/hooks/useDashboardStats';
-import { RotatingCard } from '@/components/ui/RotatingCard';
+import { formatCurrency, formatDate } from '@/lib/format';
+import { useAuth } from '@/lib/AuthContext';
+import type { Transaction } from '@/lib/types';
 import {
-  LineChart as RechartsLineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { PieChart, Pie, Cell } from 'recharts';
+  Wallet, TrendingUp, TrendingDown, AlertTriangle, Package,
+  Beef, Sprout, HardHat, ArrowRight, Clock, CheckCircle2,
+  AlertCircle, Info, DollarSign, Lock, FileText, RotateCw, RotateCcw
+} from 'lucide-react';
+
+import { RotatingCard } from '@/components/ui/RotatingCard';
+
 import './Dashboard.css';
 
 const COLORS = {
@@ -21,389 +20,528 @@ const COLORS = {
   sky: '#0277BD',
   harvest: '#F57F17',
   alert: '#C62828',
+  slate: '#64748B',
 };
 
-const DASHBOARD_PRODUCTION = [
-  { mois: 'Jan', agriculture: 320, elevage: 280 },
-  { mois: 'Fév', agriculture: 350, elevage: 300 },
-  { mois: 'Mar', agriculture: 410, elevage: 340 },
-  { mois: 'Avr', agriculture: 480, elevage: 390 },
-  { mois: 'Mai', agriculture: 520, elevage: 420 },
-  { mois: 'Jun', agriculture: 580, elevage: 460 },
-];
+const isFinanceSensitive = (role: string | null | undefined) =>
+  role !== 'administrateur' && role !== 'proprietaire' && role !== 'propriétaire' && role !== 'responsable' && role !== 'responsable agricole' && role !== 'responsable élevage' && role !== 'gestionnaire';
 
-const Dashboard: React.FC = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const {
-    totalAnimals,
-    activeCrops,
-    netTreasury,
-    monthExpenses,
-    expenseTrend,
-    activeAlerts,
-    healthScore,
-    currentSeason,
-    animalsData,
-    expensesData,
-    alertsData,
-    productionData,
-  } = useDashboardStats();
+const periodLabel = (bounds: { start: Date; end: Date; label: string }) => bounds.label;
+
+// Composant horloge en direct
+const LiveClock = () => {
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const displayAnimals = animalsData;
-  const displayExpenses = expensesData;
-  const displayAlerts = alertsData;
-  const displayProduction = productionData.length > 0 ? productionData : DASHBOARD_PRODUCTION;
-
-  const flipCard = (
-    front: React.ReactNode,
-    back: React.ReactNode,
-    flipLabel: string,
-    backLabel: string,
-    className?: string
-  ) => (
-    <RotatingCard front={front} back={back} flipLabel={flipLabel} backLabel={backLabel} className={className} />
-  );
+  const timeString = now.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const dateString = now.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
-    <div className="dashboard">
-      {/* SECTION 1 — HEADER INTELLIGENT */}
-      <header className="dashboard-header">
-        <div className="header-content">
-          <div className="farm-info">
-            <h1>Bahkanso Exploitation</h1>
-            <div className="datetime">
-              <span className="date">{currentTime.toLocaleDateString('fr-CI', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-              <span className="time">{currentTime.toLocaleTimeString('fr-CI', { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          </div>
-          <div className="header-stats">
-            <div className="season-badge">
-              <span>{currentSeason}</span>
-            </div>
-            <div className={`health-score ${healthScore >= 80 ? 'good' : healthScore >= 60 ? 'warning' : 'critical'}`}>
-              <span>Score santé :</span>
-              <span>{healthScore}/100</span>
-            </div>
-            <button className="refresh-btn" onClick={() => window.location.reload()}>
-              Actualiser
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* SECTION 2 — RANG HERO : 5 FLIP CARDS KPI */}
-      <section className="hero-cards">
-        <div className="cards-grid">
-          {/* Card 1 — CHEPTEL TOTAL */}
-          {flipCard(
-            <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-value">{totalAnimals}</div>
-              <div className="card-label">Animaux totaux</div>
-              <div className="card-badge">+5%</div>
-            </div>,
-            <div className="card-content">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Répartition par espèce</h3>
-              <ul className="species-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {displayAnimals.slice(0, 3).map((animal, index) => (
-                  <li key={index} style={{ margin: '6px 0', fontSize: '0.95rem', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>{animal.species || 'N/A'}:</span>
-                    <span>{animal.identifier || '—'}</span>
-                  </li>
-                ))}
-              </ul>
-              <div style={{ marginTop: '14px' }}>
-                <Link to="/app/livestock" className="btn-link">Voir le cheptel →</Link>
-              </div>
-            </div>,
-            'Détails',
-            'Retour'
-          )}
-
-          {/* Card 2 — CULTURES ACTIVES */}
-          {flipCard(
-            <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-value">{activeCrops}</div>
-              <div className="card-label">Parcelles actives</div>
-              <div className="card-badge">Prochaine récolte</div>
-            </div>,
-            <div className="card-content">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Cultures en cours</h3>
-              <ul className="crops-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ margin: '6px 0', fontSize: '0.95rem' }}>Maïs - Récolte: 15/12</li>
-                <li style={{ margin: '6px 0', fontSize: '0.95rem' }}>Riz - Récolte: 30/11</li>
-                <li style={{ margin: '6px 0', fontSize: '0.95rem' }}>Manioc - Récolte: 10/01</li>
-              </ul>
-              <div style={{ marginTop: '14px' }}>
-                <Link to="/app/agriculture/plots" className="btn-link">Voir les parcelles →</Link>
-              </div>
-            </div>,
-            'Détails',
-            'Retour'
-          )}
-
-          {/* Card 3 — TRÉSORERIE NETTE */}
-          {flipCard(
-            <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-value">{formatFCFA(netTreasury)}</div>
-              <div className="card-label">Solde net</div>
-              <div className={`card-badge ${expenseTrend >= 0 ? 'badge-up' : 'badge-down'}`}>
-                {expenseTrend >= 0 ? `+${expenseTrend}%` : `${expenseTrend}%`}
-              </div>
-            </div>,
-            <div className="card-content">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Mois en cours</h3>
-              <div className="finance-details" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                  <span>Entrées:</span>
-                  <span>{formatFCFA(netTreasury + monthExpenses)}</span>
-                </div>
-                <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                  <span>Sorties:</span>
-                  <span>{formatFCFA(monthExpenses)}</span>
-                </div>
-                <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                  <span>Variation:</span>
-                  <span className={expenseTrend >= 0 ? 'positive' : 'negative'}>
-                    {expenseTrend >= 0 ? `+${expenseTrend}%` : `${expenseTrend}%`}
-                  </span>
-                </div>
-              </div>
-            </div>,
-            'Détails',
-            'Retour'
-          )}
-
-          {/* Card 4 — DÉPENSES DU MOIS */}
-          {flipCard(
-            <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-value">{formatFCFA(monthExpenses)}</div>
-              <div className="card-label">Dépenses mois</div>
-              <div className="card-badge">-2%</div>
-            </div>,
-            <div className="card-content">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Top 3 postes de dépenses</h3>
-              <ul className="expenses-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {displayExpenses.slice(0, 3).map((exp, index) => (
-                  <li key={index} style={{ margin: '6px 0', fontSize: '0.95rem', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>{exp.category || 'N/A'}</span>
-                    <span>{formatFCFA(exp.amount)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>,
-            'Détails',
-            'Retour'
-          )}
-
-          {/* Card 5 — ALERTES ACTIVES */}
-          {flipCard(
-            <div className="card-content" style={{ textAlign: 'center' }}>
-              <div className="card-value">{activeAlerts}</div>
-              <div className="card-label">Alertes actives</div>
-              {activeAlerts > 0 && <div className="card-badge badge-alert">!</div>}
-            </div>,
-            <div className="card-content">
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Alertes critiques</h3>
-              <ul className="alerts-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {displayAlerts.slice(0, 3).map((alert, index) => (
-                  <li key={index} className={`alert-item alert-${alert.severity.toLowerCase()}`} style={{ margin: '8px 0', display: 'flex', gap: '10px', alignItems: 'start' }}>
-                    <div className="alert-info" style={{ flex: 1 }}>
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}>{alert.title}</h4>
-                      <p className="alert-time" style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>il y a 2h</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>,
-            'Détails',
-            'Retour'
-          )}
-        </div>
-      </section>
-
-      {/* SECTION 3 — RANG GRAPHIQUES (3 colonnes) */}
-      <section className="charts-section">
-        <div className="charts-grid">
-          {/* Graphique A — Évolution production (large) */}
-          <div className="chart-item wide" style={{ gridColumn: 'span 2' }}>
-            <h2>Évolution de la production</h2>
-            <ResponsiveContainer width="100%" height={350}>
-              <RechartsLineChart data={displayProduction}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mois" />
-                <YAxis />
-                <Tooltip formatter={(value) => `${value} `} />
-                <Legend />
-                <Line type="monotone" dataKey="agriculture" stroke={COLORS.grass} name="Agriculture" />
-                <Line type="monotone" dataKey="elevage" stroke={COLORS.earth} name="Élevage" />
-              </RechartsLineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Graphique B — Répartition dépenses (étroit) */}
-          <div className="chart-item narrow">
-            <h2>Répartition des dépenses</h2>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={displayExpenses}
-                  dataKey="montant"
-                  nameKey="cat"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  labelLine={false}
-                  label={({ node }: any) => `${node.data.cat}: ${formatFCFA(node.data.montant)}`}
-                >
-                  {displayExpenses.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={[COLORS.harvest, COLORS.grass, COLORS.sky, COLORS.earth, COLORS.alert][index]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4 — RANG CHEPTEL + STOCKS */}
-      <section className="livestock-stocks-section">
-        <div className="two-panel">
-          {/* Panel A — STATUT CHEPTEL */}
-          <div className="panel">
-            <h2>Statut du cheptel</h2>
-            <div className="livestock-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Espèce</th>
-                    <th>Effectif</th>
-                    <th>Santé %</th>
-                    <th>Tendance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayAnimals.map((animal, index) => (
-                    <tr key={index} className={''}>
-                      <td>{animal.species}</td>
-                      <td>{animal.identifier}</td>
-                      <td>—</td>
-                      <td>
-                        <span className="trend-up">Hausse</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="table-footer">
-                <Link to="/app/livestock" className="btn-primary">Gérer le cheptel →</Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Panel B — STOCKS CRITIQUES */}
-          <div className="panel">
-            <h2>Stocks critiques</h2>
-            <div className="stocks-list">
-              <div className="stock-item">
-                <span>Aliments (kg)</span>
-                <div className="stock-progress">
-                  <div className="stock-bar" style={{ width: '65%' }}></div>
-                </div>
-                <span className="stock-quantity">650 kg / 1000 kg</span>
-              </div>
-              <div className="stock-item">
-                <span>Médicaments (unités)</span>
-                <div className="stock-progress">
-                  <div className="stock-bar" style={{ width: '40%' }}></div>
-                </div>
-                <span className="stock-quantity">120 unités / 300 unités</span>
-              </div>
-              <div className="stock-item">
-                <span>Équipements en maintenance</span>
-                <div className="stock-progress">
-                  <div className="stock-bar" style={{ width: '20%' }}></div>
-                </div>
-                <span className="stock-quantity">4 unités / 20 unités</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 5 — RANG OPÉRATIONNEL */}
-      <section className="operational-section">
-        <div className="three-widgets">
-          {/* Widget A — CALENDRIER SAISONNIER */}
-          <div className="widget">
-            <h2>Calendrier saisonnier</h2>
-            <div className="calendar-month">
-              <span>Novembre 2026</span>
-            </div>
-            <div className="calendar-tasks">
-              <div className="task-item">
-                <span className="task-type agriculture">Agriculture</span>
-                <span className="task-description">Récolte du riz</span>
-              </div>
-              <div className="task-item">
-                <span className="task-type livestock">Élevage</span>
-                <span className="task-description">Vaccination bovins</span>
-              </div>
-              <div className="task-item">
-                <span className="task-type finance">Finance</span>
-                <span className="task-description">Clôture mensuelle</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Widget B — ALERTES PRIORITAIRES */}
-          <div className="widget">
-            <h2>Alertes prioritaires</h2>
-            <div className="priority-alerts">
-              {displayAlerts.map((alert, index) => (
-                <div key={index} className={`alert-priority alert-${alert.severity.toLowerCase()}`}>
-                  <div className="alert-content">
-                    <div className="alert-message">
-                      <strong>{alert.title}</strong>
-                      <p className="alert-time">il y a {index + 1}h</p>
-                    </div>
-                  </div>
-                  {alert.severity === 'CRITIQUE' && <div className="alert-pulse"></div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Widget C — FINANCEMENTS EN COURS */}
-          <div className="widget">
-            <h2>Financements en cours</h2>
-            <div className="fundings-list">
-              <div className="funding-item">
-                <span>Projet irrigation</span>
-                <div className="funding-progress">
-                  <div className="funding-bar" style={{ width: '70%' }}></div>
-                </div>
-                <span>2 500 000 XOF</span>
-              </div>
-              <div className="funding-item">
-                <span>Subvention État</span>
-                <div className="funding-progress">
-                  <div className="funding-bar" style={{ width: '45%' }}></div>
-                </div>
-                <span>1 200 000 XOF</span>
-              </div>
-            </div>
-            <Link to="/app/finance?tab=fundings" className="btn-link">Voir tous les financements →</Link>
-          </div>
-        </div>
-      </section>
+    <div className="live-clock" title={dateString}>
+      <div className="clock-time">{timeString}</div>
+      <div className="clock-date">{dateString.charAt(0).toUpperCase() + dateString.slice(1)}</div>
     </div>
   );
 };
+
+const KpiCard = ({
+  label,
+  value,
+  sub,
+  color,
+  icon,
+  trend,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: string;
+  color?: string;
+  icon: ReactNode;
+  trend?: { value: string; positive: boolean };
+}) => (
+  <div className="kpi-card" style={{ borderLeftColor: color }}>
+    <div className="kpi-header">
+      <div className="kpi-icon" style={{ backgroundColor: `${color}15`, color }}>
+        {icon}
+      </div>
+      {trend && (
+        <span className={`kpi-trend ${trend.positive ? 'positive' : 'negative'}`}>
+          {trend.value}
+        </span>
+      )}
+    </div>
+    <div className="kpi-body">
+      <p className="kpi-label">{label}</p>
+      <div className="kpi-value" style={{ color }}>
+        {value}
+        {sub && <span className="kpi-sub">{sub}</span>}
+      </div>
+    </div>
+  </div>
+);
+
+const PriorityCard = ({
+  reason,
+  count,
+  to,
+  label,
+  severe,
+  icon,
+}: {
+  reason: string;
+  count: number;
+  to: string;
+  label: string;
+  severe: boolean;
+  icon: ReactNode;
+}) => (
+  <Link to={to} className={`priority-card ${severe ? 'severe' : ''}`}>
+    <div className="priority-icon" style={{ backgroundColor: severe ? '#FEE2E2' : '#F1F5F9', color: severe ? COLORS.alert : COLORS.slate }}>
+      {icon}
+    </div>
+    <div className="priority-content">
+      <p className="priority-reason" style={{ color: severe ? COLORS.alert : COLORS.slate }}>{reason}</p>
+      <div className="priority-meta">
+        <span className="priority-count" style={{ color: severe ? COLORS.alert : COLORS.grass }}>{count}</span>
+        <span className="priority-label">{label}</span>
+      </div>
+    </div>
+    <ArrowRight size={18} className="priority-arrow" style={{ color: severe ? COLORS.alert : COLORS.grass }} />
+  </Link>
+);
+
+const ActivityCard = ({
+  title,
+  value,
+  detail,
+  icon,
+  color,
+  to,
+  toLabel,
+  subValues,
+}: {
+  title: string;
+  value: number | null;
+  detail: string;
+  icon: ReactNode;
+  color: string;
+  to: string;
+  toLabel: string;
+  subValues?: { label: string; count: number }[];
+}) => (
+  <Link to={to} className="activity-card">
+    <div className="activity-icon" style={{ backgroundColor: `${color}15`, color }}>
+      {icon}
+    </div>
+    <div className="activity-body">
+      <h3 className="activity-title">{title}</h3>
+      <p className="activity-detail">{detail}</p>
+      <div className="activity-stats">
+        {subValues ? (
+          subValues.map((sv) => (
+            <span key={sv.label} className="stat-item">
+              <span className="stat-count">{sv.count}</span>
+              <span className="stat-label">{sv.label}</span>
+            </span>
+          ))
+        ) : value !== null && (
+          <span className="stat-item single">
+            <span className="stat-count">{value}</span>
+            <span className="stat-label">{detail}</span>
+          </span>
+        )}
+      </div>
+    </div>
+    <div className="activity-cta">
+      <span>{toLabel}</span>
+      <ArrowRight size={16} />
+    </div>
+  </Link>
+);
+
+const OpCardFront = ({ transaction }: { transaction: Transaction }) => {
+  const opLabel = transaction.description || transaction.reference || 'Opération';
+  const isIncome = transaction.direction === 'entree';
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
+      <div className="flex items-center justify-between">
+        <span className={`px-2 py-0.5 rounded text-xs font-medium ${isIncome ? 'text-green-700 bg-green-50' : 'text-amber-700 bg-amber-50'}`}>
+          {isIncome ? 'Entrée' : 'Sortie'}
+        </span>
+        <span className="text-xs font-medium">{formatDate(transaction.transaction_date)}</span>
+      </div>
+      <p className="text-sm font-medium">{opLabel}</p>
+      <div className="mt-auto text-right font-bold" style={{ color: isIncome ? '#166534' : '#92400E' }}>
+        {formatCurrency(transaction.amount)}
+      </div>
+    </div>
+  );
+};
+
+const OpCardBack = ({ transaction }: { transaction: Transaction }) => {
+  const opLabel = transaction.description || transaction.reference || 'Opération';
+  const isIncome = transaction.direction === 'entree';
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
+      <div className="flex items-center justify-between">
+        <span className={`px-2 py-0.5 rounded text-xs font-medium ${isIncome ? 'text-green-700 bg-green-50' : 'text-amber-700 bg-amber-50'}`}>
+          {isIncome ? 'Entrée' : 'Sortie'}
+        </span>
+        <span className="text-xs font-medium">{formatDate(transaction.transaction_date)}</span>
+      </div>
+      <p className="text-sm font-medium">{opLabel}</p>
+      <div className="mt-auto text-right font-bold" style={{ color: isIncome ? '#166534' : '#92400E' }}>
+        {formatCurrency(transaction.amount)}
+      </div>
+    </div>
+  );
+};
+
+const EmptyState = ({ icon, title, message, action }: {
+  icon: ReactNode;
+  title: string;
+  message: string;
+  action?: React.ReactNode;
+}) => (
+  <div className="empty-state">
+    <div className="empty-icon" style={{ color: '#CBD5E1' }}>
+      {icon}
+    </div>
+    <h4 className="empty-title">{title}</h4>
+    <p className="empty-message">{message}</p>
+    {action}
+  </div>
+);
+
+const SectionHeader = ({ title, description, action }: {
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) => (
+  <div className="section-header">
+    <div>
+      <h2 className="section-title">{title}</h2>
+      {description && <p className="section-description">{description}</p>}
+    </div>
+    {action}
+  </div>
+);
+
+export function Dashboard() {
+  const { appUser } = useAuth();
+  const {
+    netTreasury,
+    periodIncome,
+    periodExpenses,
+    periodBounds,
+    totalAnimals,
+    totalAnimalLots,
+    activeCampaigns,
+    activeProjects,
+    expensesWithoutJustificatif,
+    lowStockItems,
+    overdueProjects,
+    openCriticalAlerts,
+    movementData,
+    latestTransactions,
+    hasData,
+    loading,
+    error,
+  } = useDashboardStats();
+
+  const showFinance = !isFinanceSensitive(appUser?.role);
+
+  if (loading) {
+    return (
+      <div className="dashboard-loading">
+        <div className="spinner" />
+        <p>Chargement du tableau de bord…</p>
+      </div>
+    );
+  }
+
+  if (error && !hasData) {
+    return (
+      <div className="dashboard-error">
+        <AlertCircle size={32} style={{ color: COLORS.alert }} />
+        <h3>Impossible de charger les données</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  // Calcul de tendance simple pour la trésorerie
+  const treasuryTrend = movementData.length >= 2
+    ? {
+        value: `${Math.abs(movementData[movementData.length - 1].net - movementData[movementData.length - 2].net).toLocaleString()} FCFA`,
+        positive: movementData[movementData.length - 1].net >= movementData[movementData.length - 2].net,
+      }
+    : undefined;
+
+  const incomeTrend = movementData.length >= 2
+    ? {
+        value: `${Math.abs(movementData[movementData.length - 1].entrees - movementData[movementData.length - 2].entrees).toLocaleString()} FCFA`,
+        positive: movementData[movementData.length - 1].entrees >= movementData[movementData.length - 2].entrees,
+      }
+    : undefined;
+
+  const expenseTrend = movementData.length >= 2
+    ? {
+        value: `${Math.abs(movementData[movementData.length - 1].sorties - movementData[movementData.length - 2].sorties).toLocaleString()} FCFA`,
+        positive: movementData[movementData.length - 1].sorties <= movementData[movementData.length - 2].sorties,
+      }
+    : undefined;
+
+  // Priorités
+  const priorities = [
+    {
+      reason: 'Justificatifs manquants',
+      count: expensesWithoutJustificatif,
+      to: '/app/finance',
+      label: 'Voir les dépenses',
+      severe: expensesWithoutJustificatif > 0,
+      icon: <FileText size={18} />,
+    },
+    {
+      reason: 'Stock sous le seuil minimum',
+      count: lowStockItems,
+      to: '/app/inventory',
+      label: 'Gérer les stocks',
+      severe: lowStockItems > 0,
+      icon: <Package size={18} />,
+    },
+    {
+      reason: 'Échéance de projet dépassée',
+      count: overdueProjects,
+      to: '/app/projects',
+      label: 'Voir les projets',
+      severe: overdueProjects > 0,
+      icon: <Clock size={18} />,
+    },
+    {
+      reason: 'Alertes critiques ouvertes',
+      count: openCriticalAlerts,
+      to: '/app/monitoring',
+      label: 'Voir les alertes',
+      severe: openCriticalAlerts > 0,
+      icon: <AlertTriangle size={18} />,
+    },
+  ];
+
+  const visiblePriorities = priorities.filter((p) => p.count > 0).slice(0, 4);
+  const hasAnyPriority = visiblePriorities.length > 0;
+
+  // Activités de la ferme
+  const activities = [
+    {
+      title: 'Agriculture',
+      value: activeCampaigns,
+      detail: 'Campagnes actives',
+      icon: <Sprout size={24} />,
+      color: COLORS.grass,
+      to: '/app/agriculture/campaigns',
+      toLabel: 'Voir les campagnes',
+    },
+    {
+      title: 'Élevage',
+      value: null,
+      detail: 'Registre du cheptel',
+      icon: <Beef size={24} />,
+      color: COLORS.earth,
+      to: '/app/livestock/animals',
+      toLabel: 'Voir l\'élevage',
+      subValues: [
+        { label: 'Lots', count: totalAnimalLots },
+        { label: 'Animaux', count: totalAnimals },
+      ],
+    },
+    {
+      title: 'Projets',
+      value: activeProjects,
+      detail: 'Chantiers en cours',
+      icon: <HardHat size={24} />,
+      color: COLORS.harvest,
+      to: '/app/projects',
+      toLabel: 'Voir les projets',
+    },
+  ];
+
+  return (
+    <div className="dashboard">
+      {/* ========== HEADER ========== */}
+      <header className="dashboard-header">
+        <div className="header-left">
+          <h1>Tableau de bord</h1>
+          <p className="header-subtitle">Pilotage de l'exploitation : synthèse, priorités et activités.</p>
+        </div>
+        <div className="header-right">
+          <LiveClock />
+        </div>
+      </header>
+
+      {/* Erreur partielle */}
+      {error && !loading && (
+        <div className="partial-error">
+          <Info size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className="dashboard-grid">
+
+        {/* ========== A. SYNTHÈSE FINANCIÈRE ========== */}
+        <section className="section finance-section" aria-labelledby="finance-title">
+          <SectionHeader
+            title="Synthèse financière"
+            description="Un solde est un état à un instant ; un flux se mesure sur une période."
+            action={showFinance ? (
+              <button className="help-btn" aria-expanded="false">
+                Comprendre les chiffres
+              </button>
+            ) : null}
+          />
+
+          <div className="kpi-grid">
+            {showFinance ? (
+              <>
+                <KpiCard
+                  label="Solde des mouvements"
+                  value={formatFCFA(netTreasury)}
+                  sub="Toutes périodes confondues"
+                  color={netTreasury >= 0 ? COLORS.grass : COLORS.alert}
+                  icon={<Wallet size={20} />}
+                  trend={treasuryTrend}
+                />
+                <KpiCard
+                  label={`Entrées — ${periodLabel(periodBounds)}`}
+                  value={formatFCFA(periodIncome)}
+                  sub="Mouvements de la période"
+                  color={COLORS.grass}
+                  icon={<TrendingUp size={20} />}
+                  trend={incomeTrend}
+                />
+                <KpiCard
+                  label={`Sorties — ${periodLabel(periodBounds)}`}
+                  value={formatFCFA(periodExpenses)}
+                  sub="Mouvements de la période"
+                  color={COLORS.earth}
+                  icon={<TrendingDown size={20} />}
+                  trend={expenseTrend}
+                />
+              </>
+            ) : (
+              <div className="kpi-card restricted" style={{ gridColumn: '1 / -1' }}>
+                <div className="kpi-header">
+                  <div className="kpi-icon" style={{ backgroundColor: '#F1F5F9', color: COLORS.slate }}>
+                    <Lock size={20} />
+                  </div>
+                </div>
+                <div className="kpi-body">
+                  <p className="kpi-label">Données financières</p>
+                  <div className="kpi-value" style={{ color: COLORS.slate }}>Accès réservé</div>
+                  <p className="kpi-sub">Réservé aux rôles admin, responsable et gestionnaire</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {showFinance && (
+            <div className="finance-help">
+              <Info size={16} />
+              <div>
+                <p>Ces indicateurs présentent les entrées et sorties enregistrées, sans distinction entre financements, recettes commerciales et transferts internes.</p>
+                <p>Le solde affiché n'intègre pas de solde initial et ne constitue pas un rapprochement bancaire.</p>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ========== B. PRIORITÉS ET ACTIONS ========== */}
+        <section className="section priorities-section" aria-labelledby="priorities-title">
+          <SectionHeader
+            title="À traiter en priorité"
+            description="Chaque alerte est déduite des données. L'absence de donnée ne signifie pas « tout va bien »."
+          />
+
+          {hasAnyPriority ? (
+            <div className="priorities-grid">
+              {visiblePriorities.map((p) => (
+                <PriorityCard key={p.to} {...p} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={<CheckCircle2 size={32} />}
+              title="Aucune priorité détectée"
+              message="Les données actuelles ne révèlent pas d'alerte nécessitant une action immédiate."
+            />
+          )}
+        </section>
+
+        {/* ========== C. LA FERME EN BREF ========== */}
+        <section className="section activities-section" aria-labelledby="activities-title">
+          <SectionHeader
+            title="La ferme en bref"
+            description="Synthèse compacte de l'agriculture, de l'élevage et des projets."
+          />
+
+          <div className="activities-grid">
+            {activities.map((a) => (
+              <ActivityCard key={a.title} {...a} />
+            ))}
+          </div>
+        </section>
+
+        {/* ========== D. DERNIÈRES OPÉRATIONS ========== */}
+        <section className="section operations-section" aria-labelledby="operations-title">
+          <SectionHeader
+            title="Dernières opérations"
+            description="Les trois dernières transactions. Détails dans Finances."
+            action={
+              <Link to="/app/finance" className="view-all-link">
+                Voir les mouvements <ArrowRight size={14} />
+              </Link>
+            }
+          />
+
+          <div className="operations-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+            {latestTransactions.length === 0 ? (
+              <EmptyState
+                icon={<DollarSign size={32} />}
+                title="Aucune opération"
+                message="Aucune transaction enregistrée pour le moment."
+              />
+            ) : (
+              latestTransactions.slice(0, 3).map((t) => (
+                <RotatingCard
+                  key={t.id}
+                  flipLabel={`Détail — ${t.description || t.reference || 'Opération'}`}
+                  backLabel="Retour"
+                  front={<OpCardFront transaction={t} />}
+                  back={<OpCardBack transaction={t} />}
+                />
+              ))
+            )}
+          </div>
+        </section>
+
+      </div>
+    </div>
+  );
+}
 
 export default Dashboard;

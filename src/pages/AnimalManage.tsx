@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Beef, Heart, Scale, Activity, Plus, Trash2, Pencil, Eye, Loader2, Save, CheckCircle, XCircle } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -13,7 +13,9 @@ import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
+import type { Animal } from '@/lib/types';
 import * as z from 'zod';
 
 // Schéma de validation pour les animaux
@@ -54,20 +56,43 @@ interface AnimalFormValues {
 }
 
 export function AnimalManage() {
-  const { animals, animalLots, refresh } = useData();
+  const { animals, animalLots, animalEvents, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editAnimal, setEditAnimal] = useState<any>(null);
-  const [detailAnimal, setDetailAnimal] = useState<any>(null);
+  const [editAnimal, setEditAnimal] = useState<Animal | null>(null);
+  const [detailAnimal, setDetailAnimal] = useState<Animal | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
+  // Sélection depuis l'URL : ?select=<id>&action=view|edit|delete
+  useEffect(() => {
+    const selectId = searchParams.get('select');
+    const action = searchParams.get('action') || 'edit';
+    if (!selectId) return;
+    const animal = animals.find((a: Animal) => a.id === selectId);
+    if (animal) {
+      if (action === 'view') {
+        setDetailAnimal(animal);
+        setModalOpen(false);
+      } else if (action === 'delete') {
+        setConfirmDelete(animal);
+        setModalOpen(false);
+      } else {
+        openEdit(animal);
+      }
+      searchParams.delete('select');
+      searchParams.delete('action');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { values: form, setFieldValue: setForm, errors, handleSubmit } = useValidatedForm({
     schema: animalSchema,
     defaultValues: {
       identifier: '',
@@ -82,9 +107,42 @@ export function AnimalManage() {
       mother_id: '',
       father_id: '',
     },
-    onSubmit: async () => {
-      // Fonction factice pour satisfaire TypeScript
-      // La vraie logique de soumission est dans handleSubmit ci-dessous
+    onSubmit: async (values) => {
+      const payload = {
+        identifier: values.identifier,
+        name: values.name || null,
+        species: values.species,
+        breed: values.breed || null,
+        date_of_birth: values.date_of_birth ? (values.date_of_birth as Date).toISOString().split('T')[0] : null,
+        sex: values.sex || null,
+        weight_kg: values.weight_kg,
+        status: values.status,
+        location: values.location || null,
+        mother_id: values.mother_id || null,
+        father_id: values.father_id || null,
+      };
+
+      if (editAnimal) {
+        const { error } = await supabase.from('animals').update(payload).eq('id', editAnimal.id);
+        if (error) {
+          toast.show('Erreur: ' + error.message, 'error');
+        } else {
+          await logAudit(appUser?.name || 'Système', 'UPDATE', 'animal', editAnimal.identifier, `Animal ${editAnimal.identifier} modifié`);
+          toast.show('Animal modifié');
+          setModalOpen(false);
+          refresh();
+        }
+      } else {
+        const { error } = await supabase.from('animals').insert(payload);
+        if (error) {
+          toast.show('Erreur: ' + error.message, 'error');
+        } else {
+          await logAudit(appUser?.name || 'Système', 'CREATE', 'animal', payload.identifier, `Création de l'animal ${payload.identifier}`);
+          toast.show('Animal créé avec succès');
+          setModalOpen(false);
+          refresh();
+        }
+      }
     }
   });
 
@@ -106,10 +164,10 @@ export function AnimalManage() {
     const totalAnimals = animalLots.reduce((s, l) => s + (l.count ?? 0), 0);
     const totalValue = animalLots.reduce((s, l) => s + (l.estimated_value ?? 0), 0);
     const individualValue = animals.reduce((s, a) => s + (a.estimated_value ?? 0), 0);
-    const events = 0; // À calculer si on avait accès aux événements
-    const vaccinations = 0; // À calculer si on avait accès aux événements
+    const events = animalEvents.length;
+    const vaccinations = animalEvents.filter(e => e.type === 'vaccination').length;
     return { totalAnimals, totalValue: totalValue + individualValue, events, vaccinations };
-  }, [animals, animalLots]);
+  }, [animals, animalLots, animalEvents]);
 
   const openCreate = () => {
     setEditAnimal(null);
@@ -141,75 +199,7 @@ export function AnimalManage() {
     setForm('location', animal.location || '');
     setForm('mother_id', animal.mother_id || '');
     setForm('father_id', animal.father_id || '');
-    setDetailAnimal(null);
     setModalOpen(true);
-  };
-
-  const handleSubmit = async () => {
-    // Validation avec Zod
-    const validationResult = animalSchema.safeParse(form);
-    if (!validationResult.success) {
-      // Créer un objet d'erreurs à partir du résultat de validation
-      const newErrors: Record<string, string> = {};
-      validationResult.error.issues.forEach(issue => {
-        if (issue.path[0]) {
-          const key = String(issue.path[0]);
-          newErrors[key] = issue.message;
-        }
-      });
-      setFormErrors(newErrors);
-
-      // Afficher la première erreur pour simplicité
-      const firstError = validationResult.error.issues[0];
-      toast.show(`${String(firstError.path[0])}: ${firstError.message}`, 'error');
-      return;
-    }
-
-    // Effacer les erreurs si la validation réussit
-    setFormErrors({});
-
-    setSaving(true);
-    try {
-      const payload = {
-        identifier: form.identifier,
-        name: form.name || null,
-        species: form.species,
-        breed: form.breed || null,
-        date_of_birth: form.date_of_birth ? (form.date_of_birth as Date).toISOString().split('T')[0] : null,
-        sex: form.sex || null,
-        weight_kg: form.weight_kg,
-        status: form.status,
-        location: form.location || null,
-        mother_id: form.mother_id || null,
-        father_id: form.father_id || null,
-      };
-
-      if (editAnimal) {
-        const { error } = await supabase.from('animals').update(payload).eq('id', editAnimal.id);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
-        } else {
-          await logAudit(appUser?.name || 'Système', 'UPDATE', 'animal', editAnimal.identifier, `Animal ${editAnimal.identifier} modifié`);
-          toast.show('Animal modifié');
-          setModalOpen(false);
-          refresh();
-        }
-      } else {
-        const { error } = await supabase.from('animals').insert(payload);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
-        } else {
-          await logAudit(appUser?.name || 'Système', 'CREATE', 'animal', payload.identifier, `Création de l'animal ${payload.identifier}`);
-          toast.show('Animal créé avec succès');
-          setModalOpen(false);
-          refresh();
-        }
-      }
-    } catch (error) {
-      toast.show('Erreur inattendue: ' + (error as Error).message, 'error');
-    } finally {
-      setSaving(false);
-    }
   };
 
   const updateStatus = async (animal: any, status: string) => {
@@ -232,8 +222,7 @@ export function AnimalManage() {
       await logAudit(appUser?.name || 'Système', 'DELETE', 'animal', confirmDelete.identifier, `Animal ${confirmDelete.identifier} supprimé`);
       toast.show('Animal supprimé');
       setConfirmDelete(null);
-      setDetailAnimal(null);
-      refresh();
+        refresh();
     }
   };
 
@@ -292,126 +281,124 @@ export function AnimalManage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredAnimals.map(animal => (
-            <div key={animal.id} className="rounded-xl border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">{animal.identifier ?? 'Non renseigné'}</h3>
-              <p className="text-xs text-slate-500 mb-2">
-                {animal.status ? animal.status : 'Non renseigné'}
-              </p>
-              {animal.species && (
-                <p className="text-xs text-slate-600 mb-1">
-                  <span className="font-medium text-slate-700">Espèce :</span> {animal.species}
-                </p>
-              )}
-              {animal.breed && (
-                <p className="text-xs text-slate-600 mb-3">
-                  <span className="font-medium text-slate-700">Race :</span> {animal.breed}
-                </p>
-              )}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => { setDetailAnimal(animal); setModalOpen(false); }}
-                  className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Voir
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { openEdit(animal); setModalOpen(false); }}
-                  className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
-                >
-                  Modifier
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setConfirmDelete(animal); setModalOpen(false); }}
-                  className="px-3 py-1.5 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50"
-                >
-                  Supprimer
-                </button>
-              </div>
-            </div>
+          {filteredAnimals.map((animal: any) => (
+            <RotatingCard
+              key={animal.id}
+              front={
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-slate-900">{animal.identifier ?? 'Non renseigné'}</h3>
+                    <SimpleBadge color={
+                      animal.status === 'healthy' ? 'green' :
+                      animal.status === 'sick' ? 'red' :
+                      animal.status === 'recovering' ? 'amber' :
+                      animal.status === 'quarantined' ? 'yellow' :
+                      animal.status === 'sold' ? 'blue' :
+                      animal.status === 'deceased' ? 'black' :
+                      animal.status === 'pregnant' ? 'purple' :
+                      'gray'
+                    }>
+                      {animal.status}
+                    </SimpleBadge>
+                  </div>
+                  {animal.species && (
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Espèce</span><span className="font-medium">{animal.species}</span></div>
+                  )}
+                  {animal.breed && (
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Race</span><span className="font-medium">{animal.breed}</span></div>
+                  )}
+                </div>
+              }
+              back={
+                <div className="space-y-4">
+                  <div className="space-y-2 text-sm">
+                    {animal.name && (
+                      <div className="flex justify-between"><span className="text-slate-500">Nom</span><span className="font-medium">{animal.name}</span></div>
+                    )}
+                    <div className="flex justify-between"><span className="text-slate-500">Sexe</span><span className="font-medium">{animal.sex ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Date de naissance</span><span className="font-medium">{animal.date_of_birth ? formatDate(String(animal.date_of_birth)) : '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Poids (kg)</span><span className="font-medium">{animal.weight_kg ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Valeur estimée</span><span className="font-medium">{animal.estimated_value !== null ? formatCurrency(animal.estimated_value) : '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Localisation</span><span className="font-medium">{animal.location ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Mère</span><span className="font-medium">{animal.mother_id ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Père</span><span className="font-medium">{animal.father_id ?? '—'}</span></div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {animal.status === 'healthy' && (
+                        <button
+                          onClick={() => { updateStatus(animal, 'sick'); }}
+                          className="px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                          Marquer malade
+                        </button>
+                      )}
+                      {animal.status === 'sick' && (
+                        <button
+                          onClick={() => { updateStatus(animal, 'recovering'); }}
+                          className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
+                        >
+                          Marquer en rétablissement
+                        </button>
+                      )}
+                      {animal.status === 'recovering' && (
+                        <button
+                          onClick={() => { updateStatus(animal, 'healthy'); }}
+                          className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Marquer guéri
+                        </button>
+                      )}
+                      {(animal.status === 'healthy' || animal.status === 'recovering') && (
+                        <>
+                          <button
+                            onClick={() => { updateStatus(animal, 'quarantined'); }}
+                            className="px-3 py-1.5 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                          >
+                            Mettre en quarantaine
+                          </button>
+                          {animal.sex === 'female' && (
+                            <button
+                              onClick={() => { updateStatus(animal, 'pregnant'); }}
+                              className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                            >
+                              Marquer enceinte
+                            </button>
+                          )}
+                        </>
+                      )}
+                      {animal.status === 'quarantined' && (
+                        <button
+                          onClick={() => { updateStatus(animal, 'healthy'); }}
+                          className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Retirer de quarantaine
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => { openEdit(animal); }}
+                        className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => { setConfirmDelete(animal); }}
+                        className="px-3 py-1.5 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+              flipLabel="Détails"
+              backLabel="Retour"
+            />
           ))}
         </div>
       )}
-
-      {/* Detail modal */}
-      <Modal
-        open={!!detailAnimal && !confirmDelete}
-        onClose={() => setDetailAnimal(null)}
-        title={`Animal ${detailAnimal?.identifier || ''}`}
-        size="lg"
-        footer={
-          detailAnimal ? (
-            <>
-              <button onClick={() => setConfirmDelete(detailAnimal)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-              <button onClick={() => openEdit(detailAnimal)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
-              {detailAnimal.status !== 'deceased' && detailAnimal.status !== 'sold' && (
-                <>
-                  {detailAnimal.status === 'healthy' && (
-                    <button onClick={() => { updateStatus(detailAnimal, 'sick'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Marquer malade</button>
-                  )}
-                  {(detailAnimal.status === 'sick') && (
-                    <button onClick={() => { updateStatus(detailAnimal, 'recovering'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700">Marquer en rétablissement</button>
-                  )}
-                  {(detailAnimal.status === 'recovering') && (
-                    <button onClick={() => { updateStatus(detailAnimal, 'healthy'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer guéri</button>
-                  )}
-                  {(detailAnimal.status === 'healthy' || detailAnimal.status === 'recovering') && (
-                    <>
-                      <button onClick={() => { updateStatus(detailAnimal, 'quarantined'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">Mettre en quarantaine</button>
-                      {detailAnimal.sex === 'female' && (
-                        <button onClick={() => { updateStatus(detailAnimal, 'pregnant'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Marquer enceinte</button>
-                      )}
-                    </>
-                  )}
-                  {(detailAnimal.status === 'quarantined') && (
-                    <button onClick={() => { updateStatus(detailAnimal, 'healthy'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Retirer de quarantaine</button>
-                  )}
-                </>
-              )}
-            </>
-          ) : undefined
-        }
-      >
-        {detailAnimal && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">{detailAnimal.identifier}</h2>
-                <p className="text-sm text-slate-500">{detailAnimal.name || '—'}</p>
-              </div>
-              <SimpleBadge color={
-                detailAnimal.status === 'healthy' ? 'green' :
-                detailAnimal.status === 'sick' ? 'red' :
-                detailAnimal.status === 'recovering' ? 'amber' :
-                detailAnimal.status === 'quarantined' ? 'yellow' :
-                detailAnimal.status === 'sold' ? 'blue' :
-                detailAnimal.status === 'deceased' ? 'black' :
-                detailAnimal.status === 'pregnant' ? 'purple' :
-                'gray'
-              }>
-                {detailAnimal.status}
-              </SimpleBadge>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><p className="text-xs text-slate-400">Identifiant</p><p className="text-sm font-medium">{detailAnimal.identifier}</p></div>
-              <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{detailAnimal.name ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Espèce</p><p className="text-sm font-medium">{detailAnimal.species}</p></div>
-              <div><p className="text-xs text-slate-400">Race</p><p className="text-sm font-medium">{detailAnimal.breed ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Sexe</p><p className="text-sm font-medium">{detailAnimal.sex ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Date de naissance</p><p className="text-sm font-medium">{detailAnimal.date_of_birth ? formatDate(String(detailAnimal.date_of_birth)) : '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Poids (kg)</p><p className="text-sm font-medium">{detailAnimal.weight_kg ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Valeur estimée</p><p className="text-sm font-medium">{detailAnimal.estimated_value !== null ? formatCurrency(detailAnimal.estimated_value) : '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{detailAnimal.status}</p></div>
-              <div><p className="text-xs text-slate-400">Localisation</p><p className="text-sm font-medium">{detailAnimal.location ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Mère</p><p className="text-sm font-medium">{detailAnimal.mother_id ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Père</p><p className="text-sm font-medium">{detailAnimal.father_id ?? '—'}</p></div>
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {/* Create/Edit modal */}
       <Modal
@@ -422,7 +409,7 @@ export function AnimalManage() {
         footer={
           <>
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -438,7 +425,7 @@ export function AnimalManage() {
           </>
         }
       >
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section Informations essentielles */}
           <div className="space-y-4">
             <h3 className="text-xs font-medium text-slate-600 mb-2">Informations essentielles</h3>
@@ -592,7 +579,43 @@ export function AnimalManage() {
               </div>
             </div>
           </div>
-        </div>
+        </form>
+      </Modal>
+
+      {/* Détail animal (consultation lecture seule) */}
+      <Modal
+        open={!!detailAnimal && !confirmDelete}
+        onClose={() => setDetailAnimal(null)}
+        title={`Animal ${detailAnimal?.identifier || ''}`}
+        size="lg"
+      >
+        {detailAnimal && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">{detailAnimal.identifier}</h2>
+                <p className="text-sm text-slate-500">{detailAnimal.name || '—'}</p>
+              </div>
+              <SimpleBadge color="blue">{detailAnimal.status}</SimpleBadge>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><p className="text-xs text-slate-400">Identifiant</p><p className="text-sm font-medium">{detailAnimal.identifier}</p></div>
+              <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{detailAnimal.name || '—'}</p></div>
+              <div><p className="text-xs text-slate-400">Espèce</p><p className="text-sm font-medium">{detailAnimal.species}</p></div>
+              <div><p className="text-xs text-slate-400">Race</p><p className="text-sm font-medium">{detailAnimal.breed || '—'}</p></div>
+              <div><p className="text-xs text-slate-400">Sexe</p><p className="text-sm font-medium">{detailAnimal.sex || '—'}</p></div>
+              <div><p className="text-xs text-slate-400">Date de naissance</p><p className="text-sm font-medium">{detailAnimal.date_of_birth ? formatDate(String(detailAnimal.date_of_birth)) : '—'}</p></div>
+              <div><p className="text-xs text-slate-400">Poids (kg)</p><p className="text-sm font-medium">{detailAnimal.weight_kg ?? '—'}</p></div>
+              <div><p className="text-xs text-slate-400">Valeur estimée</p><p className="text-sm font-medium">{detailAnimal.estimated_value !== null ? formatCurrency(detailAnimal.estimated_value) : '—'}</p></div>
+              <div><p className="text-xs text-slate-400">Localisation</p><p className="text-sm font-medium">{detailAnimal.location || '—'}</p></div>
+              <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{detailAnimal.status}</p></div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => openEdit(detailAnimal!)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+              <button onClick={() => setConfirmDelete(detailAnimal)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Delete confirmation */}

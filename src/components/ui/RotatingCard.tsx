@@ -1,4 +1,4 @@
-import { useState, KeyboardEvent, ReactNode } from 'react';
+import { useState, useCallback, useRef, KeyboardEvent, ReactNode } from 'react';
 import { RotateCw, RotateCcw } from 'lucide-react';
 
 import './RotatingCard.css';
@@ -9,6 +9,8 @@ interface RotatingCardProps {
   className?: string;
   flipLabel?: string;
   backLabel?: string;
+  disabled?: boolean;
+  onFlip?: (flipped: boolean) => void;
 }
 
 export function RotatingCard({
@@ -17,49 +19,92 @@ export function RotatingCard({
   className,
   flipLabel = 'Détails',
   backLabel = 'Retour',
+  disabled = false,
+  onFlip,
 }: RotatingCardProps) {
   const [flipped, setFlipped] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleKey = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && flipped) {
-      e.preventDefault();
-      setFlipped(false);
-    }
-  };
+  const toggle = useCallback(() => {
+    if (disabled) return;
+    const next = !flipped;
+    setFlipped(next);
+    onFlip?.(next);
+  }, [disabled, flipped, onFlip]);
 
-  const toggle = () => setFlipped((f) => !f);
+  const handleKey = useCallback(
+    (e: KeyboardEvent) => {
+      if (disabled) return;
+      if (e.key === 'Escape' && flipped) {
+        e.preventDefault();
+        setFlipped(false);
+        containerRef.current?.focus();
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && !flipped) {
+        const target = e.target as HTMLElement;
+        if (target?.closest('[data-rc-flip]')) {
+          toggle();
+        }
+      }
+    },
+    [disabled, flipped, toggle]
+  );
+
+  const handleFlipBtnClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (disabled) return;
+      e.stopPropagation();
+      toggle();
+    },
+    [disabled, toggle]
+  );
 
   return (
-    <div className={`rc ${flipped ? 'is-flipped' : ''} ${className ?? ''}`} onKeyDown={handleKey}>
+    <div
+      ref={containerRef}
+      tabIndex={0}
+      role="region"
+      aria-label={flipped ? 'Verso de la carte' : 'Recto de la carte'}
+      aria-expanded={flipped}
+      className={`rc ${flipped ? 'is-flipped' : ''} ${className ?? ''}`}
+      onKeyDown={handleKey}
+      onClick={toggle}
+    >
       <div className="rc-inner">
         {/* Front */}
-        <div className="rc-face rc-face--front">
+        <div
+          className="rc-face rc-face--front"
+          data-rc-face="front"
+          aria-hidden={flipped}
+        >
           {front}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggle();
-            }}
-            className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-green-600 bg-green-50/90 hover:bg-green-100 rounded-lg transition-colors"
+            data-rc-flip
             aria-label={flipLabel}
+            aria-controls="rc-card"
+            onClick={handleFlipBtnClick}
+            className="rc-flip-btn rc-flip-btn--front"
           >
-            <RotateCw size={12} /> {flipLabel}
+            <RotateCw size={12} /> <span>{flipLabel}</span>
           </button>
         </div>
         {/* Back */}
-        <div className="rc-face rc-face--back">
+        <div
+          className="rc-face rc-face--back"
+          data-rc-face="back"
+          aria-hidden={!flipped}
+        >
           {back}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggle();
-            }}
-            className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 bg-white/90 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
+            data-rc-flip
             aria-label={backLabel}
+            aria-controls="rc-card"
+            onClick={handleFlipBtnClick}
+            className="rc-flip-btn rc-flip-btn--back"
           >
-            <RotateCcw size={12} /> {backLabel}
+            <RotateCcw size={12} /> <span>{backLabel}</span>
           </button>
         </div>
       </div>

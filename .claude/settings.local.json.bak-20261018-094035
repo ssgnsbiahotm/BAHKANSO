@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls *)",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(rtk npm *)",
+      "Bash(rtk tsc *)",
+      "Bash(rtk read *)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(timeout 30 npm run dev)",
+      "Bash(rtk grep *)",
+      "Bash(rtk lint *)",
+      "Bash(pkill *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:5174/)",
+      "Bash(timeout 30s npm run dev)",
+      "Bash(rtk git *)",
+      "Bash(rtk find *)",
+      "Bash(npm run *)",
+      "Bash(exit 1)",
+      "Bash(mkdir *)",
+      "Bash(src/main.tsx *)",
+      "Bash(rtk curl *)",
+      "Bash(curl -s http://localhost:5173/app)",
+      "Bash(rtk npx *)",
+      "Bash(grep -r \"onClick=\\\\{[\\\\w\\\\$][^}]*\\\\}\" src/ --include=\"*.tsx\")",
+      "Bash(awk -F'|' '{print $6}')",
+      "Bash(awk -F'|' '{print $2}')",
+      "Bash(git init *)",
+      "Bash(rtk wc *)",
+      "Bash(git hash-object *)",
+      "Bash(npx eslint *)",
+      "Bash(npx-eslint src *)",
+      "Bash(echo \"PID: $!\")",
+      "Read(//tmp/**)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "Bash(python3 -c ' *)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "supabase-bahkanso"
+  ],
+  "disabledMcpjsonServers": [
+    "supabase"
+  ]
+}

@@ -2,11 +2,11 @@ import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
 import { supabase } from '@/lib/supabase';
 import type { Transaction, Funding, Expense, Document } from '@/lib/types';
 
-export const useTreasuryTransactions = () => {
+export const useTreasuryTransactions = (opts?: { page?: number; pageSize?: number }) => {
   const result = usePaginatedQuery<Transaction>({
     table: 'transactions',
-    page: 1,
-    pageSize: 50,
+    page: opts?.page ?? 1,
+    pageSize: opts?.pageSize ?? 50,
     orderBy: { column: 'transaction_date', ascending: false },
   });
   return {
@@ -17,11 +17,11 @@ export const useTreasuryTransactions = () => {
   };
 };
 
-export const useFundings = () => {
+export const useFundings = (opts?: { page?: number; pageSize?: number }) => {
   const result = usePaginatedQuery<Funding>({
     table: 'fundings',
-    page: 1,
-    pageSize: 50,
+    page: opts?.page ?? 1,
+    pageSize: opts?.pageSize ?? 50,
     orderBy: { column: 'date_sent', ascending: false },
   });
   return {
@@ -32,11 +32,11 @@ export const useFundings = () => {
   };
 };
 
-export const useExpenses = () => {
+export const useExpenses = (opts?: { page?: number; pageSize?: number }) => {
   const result = usePaginatedQuery<Expense>({
     table: 'expenses',
-    page: 1,
-    pageSize: 50,
+    page: opts?.page ?? 1,
+    pageSize: opts?.pageSize ?? 50,
     orderBy: { column: 'date', ascending: false },
   });
   return {
@@ -47,11 +47,11 @@ export const useExpenses = () => {
   };
 };
 
-export const useDocuments = () => {
+export const useDocuments = (opts?: { page?: number; pageSize?: number }) => {
   const result = usePaginatedQuery<Document>({
     table: 'documents',
-    page: 1,
-    pageSize: 50,
+    page: opts?.page ?? 1,
+    pageSize: opts?.pageSize ?? 50,
     orderBy: { column: 'upload_date', ascending: false },
   });
   return {

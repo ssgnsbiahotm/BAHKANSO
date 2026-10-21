@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -60,6 +60,7 @@ export function AnimalEventManage() {
   const { appUser } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editEvent, setEditEvent] = useState<AnimalEvent | null>(null);
@@ -68,6 +69,29 @@ export function AnimalEventManage() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
+
+  // Sélection depuis l'URL : ?select=<id>&action=view|edit|delete
+  useEffect(() => {
+    const selectId = searchParams.get('select');
+    const action = searchParams.get('action') || 'edit';
+    if (!selectId) return;
+    const event = animalEvents.find((e: AnimalEvent) => e.id === selectId);
+    if (event) {
+      if (action === 'view') {
+        setDetailEvent(event);
+        setModalOpen(false);
+      } else if (action === 'delete') {
+        setConfirmDelete(event);
+        setModalOpen(false);
+      } else {
+        openEdit(event);
+      }
+      searchParams.delete('select');
+      searchParams.delete('action');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
     schema: eventSchema,

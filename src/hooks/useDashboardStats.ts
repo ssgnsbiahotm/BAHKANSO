@@ -1,191 +1,170 @@
 import { useMemo } from 'react';
 import { useData } from '@/lib/DataContext';
-import type { Animal, Expense, Alert, Transaction, Campaign } from '@/lib/types';
+import type { Transaction } from '@/lib/types';
 
-const formatFCFA = (n: number) =>
+export const formatFCFA = (n: number) =>
   new Intl.NumberFormat('fr-CI', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
 
-interface DashboardStats {
-  totalAnimals: number;
-  activeCrops: number;
-  netTreasury: number;
-  monthExpenses: number;
-  expenseTrend: number;
-  activeAlerts: number;
-  healthScore: number;
-  currentSeason: string;
-  animalsData: Animal[];
-  expensesData: Expense[];
-  alertsData: Alert[];
-  productionData: { mois: string; agriculture: number; elevage: number }[];
+interface PeriodBounds {
+  start: Date;
+  end: Date;
+  label: string;
 }
 
-const MOCK_ANIMALS: Animal[] = [
-  {
-    id: 'm1', identifier: 'BOV-01', species: 'Bovins', breed: null, sex: null,
-    birth_date: null, origin: null, acquisition_date: null,
-    acquisition_value: 0, weight_kg: null, lot_id: null, location: null,
-    status: 'actif', estimated_value: 0,
-  },
-  {
-    id: 'm2', identifier: 'OVI-01', species: 'Ovins', breed: null, sex: null,
-    birth_date: null, origin: null, acquisition_date: null,
-    acquisition_value: 0, weight_kg: null, lot_id: null, location: null,
-    status: 'actif', estimated_value: 0,
-  },
-  {
-    id: 'm3', identifier: 'VOL-01', species: 'Volailles', breed: null, sex: null,
-    birth_date: null, origin: null, acquisition_date: null,
-    acquisition_value: 0, weight_kg: null, lot_id: null, location: null,
-    status: 'actif', estimated_value: 0,
-  },
-];
-
-const MOCK_EXPENSES: Expense[] = [
-  {
-    id: 'e1', reference: 'EXP-001', date: new Date().toISOString().slice(0, 10), amount: 680000,
-    currency: 'XOF', category: 'Alimentation', supplier_id: null, responsible: null,
-    payment_method: 'cash', bank_account_id: null, cash_account_id: null, project_id: null,
-    activity: null, funding_id: null, description: null, status: 'payé', has_justificatif: false,
-    justificatif_url: null, justificatif_file_name: null, justificatif_uploaded_at: null,
-    amount_paid: 680000, date_paid: null, payment_method_detail: null, payment_reference: null,
-    comment: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-    supplier: null,
-  },
-  {
-    id: 'e2', reference: 'EXP-002', date: new Date().toISOString().slice(0, 10), amount: 340000,
-    currency: 'XOF', category: 'Santé animale', supplier_id: null, responsible: null,
-    payment_method: 'cash', bank_account_id: null, cash_account_id: null, project_id: null,
-    activity: null, funding_id: null, description: null, status: 'payé', has_justificatif: false,
-    justificatif_url: null, justificatif_file_name: null, justificatif_uploaded_at: null,
-    amount_paid: 340000, date_paid: null, payment_method_detail: null, payment_reference: null,
-    comment: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-    supplier: null,
-  },
-  {
-    id: 'e3', reference: 'EXP-003', date: new Date().toISOString().slice(0, 10), amount: 290000,
-    currency: 'XOF', category: 'Équipement', supplier_id: null, responsible: null,
-    payment_method: 'cash', bank_account_id: null, cash_account_id: null, project_id: null,
-    activity: null, funding_id: null, description: null, status: 'payé', has_justificatif: false,
-    justificatif_url: null, justificatif_file_name: null, justificatif_uploaded_at: null,
-    amount_paid: 290000, date_paid: null, payment_method_detail: null, payment_reference: null,
-    comment: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-    supplier: null,
-  },
-];
-
-const MOCK_ALERTS: Alert[] = [
-  { id: 'a1', category: 'santé', severity: 'CRITIQUE', title: 'Vaccination bovins en retard', description: null, object_type: null, object_id: null, status: 'ouvert', assigned_to: null, created_at: new Date().toISOString(), resolved_at: null },
-  { id: 'a2', category: 'stock', severity: 'AVERTISSEMENT', title: 'Stock aliment < 20%', description: null, object_type: null, object_id: null, status: 'ouvert', assigned_to: null, created_at: new Date().toISOString(), resolved_at: null },
-  { id: 'a3', category: 'météo', severity: 'INFO', title: 'Saison des pluies dans 3 semaines', description: null, object_type: null, object_id: null, status: 'ouvert', assigned_to: null, created_at: new Date().toISOString(), resolved_at: null },
-];
-
-const MOCK_PRODUCTION = [
-  { mois: 'Jan', agriculture: 320, elevage: 280 },
-  { mois: 'Fév', agriculture: 350, elevage: 300 },
-  { mois: 'Mar', agriculture: 410, elevage: 340 },
-  { mois: 'Avr', agriculture: 480, elevage: 390 },
-  { mois: 'Mai', agriculture: 520, elevage: 420 },
-  { mois: 'Jun', agriculture: 580, elevage: 460 },
-];
-
-const getCurrentSeason = (): string => {
-  const month = new Date().getMonth();
-  if ((month >= 3 && month <= 6) || month === 9 || month === 10) {
-    return 'Saison des pluies';
-  }
-  return 'Saison sèche';
+const monthBounds = (year: number, month: number): PeriodBounds => {
+  const start = new Date(Date.UTC(year, month, 1));
+  const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59));
+  const label = start.toLocaleDateString('fr-CI', { month: 'long', year: 'numeric' });
+  return { start, end, label };
 };
 
-export function useDashboardStats(): DashboardStats {
-  const { animals = [], expenses = [], alerts = [], transactions = [], campaigns = [] } = useData();
+const currentPeriodBounds = (): PeriodBounds => {
+  const now = new Date();
+  return monthBounds(now.getFullYear(), now.getMonth());
+};
 
-  return useMemo(() => {
-    const hasData = animals.length > 0 || expenses.length > 0 || alerts.length > 0;
-    const dataAnimals = hasData ? animals : MOCK_ANIMALS;
-    const dataExpenses = hasData ? expenses : MOCK_EXPENSES;
-    const dataAlerts = hasData ? alerts : MOCK_ALERTS;
-    const dataTransactions = hasData ? transactions : [];
+const previousPeriodBounds = (): PeriodBounds => {
+  const now = new Date();
+  if (now.getMonth() === 0) {
+    return monthBounds(now.getFullYear() - 1, 11);
+  }
+  return monthBounds(now.getFullYear(), now.getMonth() - 1);
+};
 
-    const totalAnimals = dataAnimals.length;
+const inPeriod = (dateString: string | null | undefined, bounds: PeriodBounds): boolean => {
+  if (!dateString) return false;
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return false;
+  return d >= bounds.start && d <= bounds.end;
+};
 
-    const activeCrops = hasData
-      ? campaigns.filter((c: Campaign) => c.status === 'actif').length
-      : 3;
+export function useDashboardStats() {
+  const {
+    animals = [],
+    animalLots = [],
+    campaigns = [],
+    projects = [],
+    expenses = [],
+    transactions = [],
+    inventoryItems = [],
+    alerts = [],
+    loading,
+    error,
+  } = useData();
 
+  const stats = useMemo(() => {
+    const current = currentPeriodBounds();
+    const previous = previousPeriodBounds();
+
+    const currentPeriodTransactions = transactions.filter((t) => inPeriod(t.transaction_date, current));
+    const previousPeriodTransactions = transactions.filter((t) => inPeriod(t.transaction_date, previous));
+
+    const sumByDirection = (list: Transaction[], dir: string) =>
+      list.reduce((s, t) => (t.direction === dir ? s + t.amount : s), 0);
+
+    const entrees = sumByDirection(currentPeriodTransactions, 'entree');
+    const sorties = sumByDirection(currentPeriodTransactions, 'sortie');
+    const netTreasury = sumByDirection(transactions, 'entree') - sumByDirection(transactions, 'sortie');
+
+    const periodIncome = entrees;
+    const periodExpenses = sorties;
+    const previousPeriodExpenses = sumByDirection(previousPeriodTransactions, 'sortie');
+
+    const expenseTrend =
+      previousPeriodExpenses !== 0
+        ? Number(Number(((periodExpenses - previousPeriodExpenses) / previousPeriodExpenses) * 100).toFixed(1))
+        : null;
+
+    // 6 derniers mois pour le graphique de tendance
+    const movementData: { mois: string; entrees: number; sorties: number; net: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth() - i, 1));
+      const bounds = monthBounds(d.getFullYear(), d.getMonth());
+      const mList = transactions.filter((t) => inPeriod(t.transaction_date, bounds));
+      const entrees = sumByDirection(mList, 'entree');
+      const sorties = sumByDirection(mList, 'sortie');
+      movementData.push({
+        mois: bounds.label,
+        entrees,
+        sorties,
+        net: entrees - sorties,
+      });
+    }
+
+    // Dépenses par catégorie (période courante)
+    const catMap = new Map<string, number>();
+    for (const exp of expenses) {
+      if (inPeriod(exp.date, current)) {
+        const key = exp.category || 'Non catégorisé';
+        catMap.set(key, (catMap.get(key) || 0) + exp.amount);
+      }
+    }
+    const expenseByCategory = Array.from(catMap.entries()).map(([cat, montant]) => ({ cat, montant }));
+
+    // Priorités déduites
+    const expensesWithoutJustificatif = expenses.filter((e) => !e.has_justificatif).length;
+    const lowStockItems = inventoryItems.filter((i) => i.current_stock <= i.min_stock).length;
     const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const filterCurrentMonth = (transaction: Transaction) => {
-      const tDate = new Date(transaction.transaction_date);
-      return tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
-    };
-
-    const currentMonthTransactions = dataTransactions.filter(filterCurrentMonth);
-    const entrees = currentMonthTransactions.reduce((sum, t) => sum + (t.direction === 'entree' ? t.amount : 0), 0);
-    const sorties = currentMonthTransactions.reduce((sum, t) => sum + (t.direction === 'sortie' ? t.amount : 0), 0);
-    const netTreasury = entrees - sorties;
-
-    const monthExpensesFromExpenses = hasData
-      ? dataExpenses.reduce((sum, exp) => {
-          const expDate = new Date(exp.date);
-          return expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear
-            ? sum + exp.amount
-            : sum;
-        }, 0)
-      : 0;
-
-    const finalMonthExpenses = hasData ? monthExpensesFromExpenses : sorties;
-
-    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-
-    const filterPreviousMonth = (transaction: Transaction) => {
-      const tDate = new Date(transaction.transaction_date);
-      return tDate.getMonth() === previousMonth && tDate.getFullYear() === previousYear;
-    };
-
-    const previousMonthTransactions = dataTransactions.filter(filterPreviousMonth);
-    const previousSorties = previousMonthTransactions.reduce((sum, t) => sum + (t.direction === 'sortie' ? t.amount : 0), 0);
-    const previousExpenses = hasData
-      ? dataExpenses.reduce((sum, exp) => {
-          const expDate = new Date(exp.date);
-          return expDate.getMonth() === previousMonth && expDate.getFullYear() === previousYear
-            ? sum + exp.amount
-            : sum;
-        }, 0)
-      : 0;
-
-    const previousMonthTotal = hasData ? previousSorties : (previousExpenses || 1);
-    const expenseTrend = previousMonthTotal !== 0
-      ? Number((((finalMonthExpenses - previousMonthTotal) / previousMonthTotal) * 100).toFixed(1))
-      : 0;
-
-    const activeAlerts = dataAlerts.filter(
-      (alert: Alert) => alert.severity === 'CRITIQUE' || alert.severity === 'AVERTISSEMENT'
+    const overdueProjects = projects.filter(
+      (p) => p.expected_end_date && new Date(p.expected_end_date) < now && p.status !== 'terminé'
+    ).length;
+    const openAlerts = alerts.filter((a) => a.status === 'ouvert').length;
+    const openCriticalAlerts = alerts.filter(
+      (a) => (a.severity === 'CRITIQUE' || a.severity === 'AVERTISSEMENT') && a.status === 'ouvert'
     ).length;
 
-    const criticalAlerts = dataAlerts.filter((a: Alert) => a.severity === 'CRITIQUE').length;
-    const warningAlerts = dataAlerts.filter((a: Alert) => a.severity === 'AVERTISSEMENT').length;
-    let healthScore = 100 - criticalAlerts * 20 - warningAlerts * 5;
-    healthScore = Math.max(0, Math.min(100, healthScore));
+    const latestTransactions = [...transactions]
+      .sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+      .slice(0, 5);
+
+    const hasData =
+      animals.length > 0 ||
+      animalLots.length > 0 ||
+      campaigns.length > 0 ||
+      projects.length > 0 ||
+      expenses.length > 0 ||
+      transactions.length > 0 ||
+      inventoryItems.length > 0 ||
+      alerts.length > 0;
 
     return {
-      totalAnimals,
-      activeCrops,
       netTreasury,
-      monthExpenses: finalMonthExpenses,
+      periodIncome,
+      periodExpenses,
+      previousPeriodExpenses,
       expenseTrend,
-      activeAlerts,
-      healthScore,
-      currentSeason: getCurrentSeason(),
-      animalsData: dataAnimals,
-      expensesData: dataExpenses,
-      alertsData: dataAlerts,
-      productionData: hasData ? [] : MOCK_PRODUCTION,
+      currentPeriodTransactions,
+      previousPeriodTransactions,
+      periodBounds: current,
+      previousPeriodBounds: previous,
+      totalAnimals: animals.length,
+      totalAnimalLots: animalLots.length,
+      activeCampaigns: campaigns.filter((c) => c.status === 'actif').length,
+      activeProjects: projects.filter((p) => p.status === 'en cours').length,
+      expensesWithoutJustificatif,
+      lowStockItems,
+      overdueProjects,
+      openAlerts,
+      openCriticalAlerts,
+      movementData,
+      expenseByCategory,
+      latestTransactions,
+      hasData,
+      loading,
+      error,
     };
-  }, [animals, expenses, alerts, transactions, campaigns]);
-}
+  }, [
+    animals,
+    animalLots,
+    campaigns,
+    projects,
+    expenses,
+    transactions,
+    inventoryItems,
+    alerts,
+    loading,
+    error,
+  ]);
 
-export { formatFCFA };
+  return stats;
+}

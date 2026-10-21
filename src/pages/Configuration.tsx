@@ -378,9 +378,9 @@ export function Configuration() {
   // --- État changement de mot de passe ---
   const [passwordForm, setPasswordForm] = useState({ new: '', confirm: '' });
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+const [passwordError, setPasswordError] = useState<string | null>(null);
 
-const handlePasswordChange = async () => {
+const handlePasswordChange = useCallback(async () => {
     setPasswordError(null);
     const validation = validatePasswordStrength(passwordForm.new);
     if (!validation.isValid) {
@@ -405,7 +405,7 @@ const handlePasswordChange = async () => {
     } finally {
       setPasswordLoading(false);
     }
-  };
+  }, [passwordForm.new, passwordForm.confirm, updatePassword, toast]);
 
   // --- Vérification des droits ---
   const isAuthorized = useMemo(() => {
@@ -445,18 +445,25 @@ const handlePasswordChange = async () => {
     return values;
   }, [farm, siteContent]);
 
-  // --- Valeur effective (brouillon si existe, sinon valeur actuelle) ---
-  const getEffectiveValue = useCallback((path: string) => {
-    const draft = drafts.find(d => d.path === path);
-    return draft !== undefined ? draft.value : currentValues[path];
-  }, [drafts, currentValues]);
-
   // --- Détection des champs modifiés ---
   const changedFields = useMemo(() => {
     return drafts.filter(d => JSON.stringify(d.value) !== JSON.stringify(d.originalValue));
   }, [drafts]);
 
   const hasDrafts = changedFields.length > 0;
+  // --- Map des brouillons pour lookup O(1) ---
+  const draftsMap = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const d of drafts) {
+      map[d.path] = d.value;
+    }
+    return map;
+  }, [drafts]);
+
+  // --- Valeur effective (brouillon si existe, sinon valeur actuelle) ---
+  const getEffectiveValue = useCallback((path: string) => {
+    return path in draftsMap ? draftsMap[path] : currentValues[path];
+  }, [draftsMap, currentValues]);
 
   // --- Recherche / filtrage des sections ---
   const filteredSections = useMemo(() => {
@@ -559,7 +566,7 @@ const handlePasswordChange = async () => {
             key: entry.key,
             value: entry.value,
             updated_at: entry.updated_at,
-          });
+          }, { onConflict: 'key' });
         if (error) throw error;
       }
 
@@ -612,9 +619,6 @@ const handlePasswordChange = async () => {
       const { data: pub } = supabase.storage.from('app-assets').getPublicUrl(fileName);
       const logoUrl = pub.publicUrl;
 
-      const path = getDraftPath('exploitation', 'appearance', 'logo_url');
-      updateDraft('exploitation', 'appearance', 'logo_url', logoUrl);
-
       const { error: updErr } = await supabase
         .from('farms')
         .update({ logo_url: logoUrl, updated_at: new Date().toISOString() })
@@ -641,7 +645,7 @@ const handlePasswordChange = async () => {
   };
 
   const handleRemoveLogo = async () => {
-    if (!farm) return;
+    if (!farm || !isAuthorized) return;
     try {
       updateDraft('exploitation', 'appearance', 'logo_url', null);
       const { error } = await supabase
@@ -764,8 +768,10 @@ const handlePasswordChange = async () => {
   const activeSection = activeSections.find(s => s.id === activeSubsection);
 
   // --- Vérifier si une section a des changements ---
-  const sectionHasChanges = (subsection: ConfigSubsection) =>
-    drafts.some(d => d.subsection === subsection);
+  const sectionHasChanges = useMemo(() => {
+    const subsectionsWithChanges = new Set(drafts.map(d => d.subsection));
+    return (subsection: ConfigSubsection) => subsectionsWithChanges.has(subsection);
+  }, [drafts]);
 
   return (
     <div className="flex min-h-screen bg-slate-50">

@@ -1,11 +1,13 @@
 import { ReactNode } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
+type TrendValue = number | null | { value: string; positive: boolean };
+
 interface KpiCardProps {
   label: string;
   value: string;
   icon: ReactNode;
-  trend?: number | null;
+  trend?: TrendValue;
   trendLabel?: string;
   color?: 'green' | 'blue' | 'amber' | 'red' | 'dark' | 'emerald' | 'purple';
   subtitle?: string;
@@ -22,20 +24,39 @@ const colorClasses: Record<string, { bg: string; text: string; ring: string }> =
 };
 export function KpiCard({ label, value, icon, trend, trendLabel, color = 'green', subtitle }: KpiCardProps) {
   const c = colorClasses[color];
+
+  const renderTrend = () => {
+    if (trend === undefined || trend === null) return null;
+
+    if (typeof trend === 'number') {
+      return (
+        <div className={`flex items-center gap-1 text-xs font-medium ${
+          trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-500'
+        }`}>
+          {trend > 0 ? <TrendingUp size={14} /> : trend < 0 ? <TrendingDown size={14} /> : <Minus size={14} />}
+          <span>{Math.abs(trend)}%</span>
+        </div>
+      );
+    }
+
+    // Object format: { value: string; positive: boolean }
+    return (
+      <div className={`flex items-center gap-1 text-xs font-medium ${
+        trend.positive ? 'text-green-600' : 'text-red-600'
+      }`}>
+        {trend.positive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+        <span>{trend.value}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="rotatable-card bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className={`p-2.5 rounded-lg ${c.bg} ${c.text} ring-1 ${c.ring}`}>
           {icon}
         </div>
-        {trend !== undefined && trend !== null && (
-          <div className={`flex items-center gap-1 text-xs font-medium ${
-            trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-500'
-          }`}>
-            {trend > 0 ? <TrendingUp size={14} /> : trend < 0 ? <TrendingDown size={14} /> : <Minus size={14} />}
-            <span>{Math.abs(trend)}%</span>
-          </div>
-        )}
+        {renderTrend()}
       </div>
       <p className="text-sm text-slate-500 mb-1">{label}</p>
       <p className="text-2xl font-bold text-slate-900">{value}</p>

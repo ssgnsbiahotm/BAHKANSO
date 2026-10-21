@@ -1,38 +1,277 @@
-import { useState } from 'react';
-import { Lock, Mail, ArrowRight, Eye, EyeOff, ArrowLeft, Check, User, AlertCircle } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  User,
+  AlertCircle,
+  ShieldCheck,
+  Zap,
+  BarChart3,
+  type LucideIcon,
+} from 'lucide-react';
 import { useToast } from '@/lib/Toast';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
 import { Logo } from '@/components/ui/Logo';
+import { validatePasswordStrength } from '@/lib/password';
 
-interface LoginPageProps {
-  onLogin: () => void;
-  onBack: () => void;
+import './LoginPage.css';
+
+/* ==========================================================================
+   DESIGN TOKENS & CONSTANTS
+   ========================================================================== */
+
+const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
+interface BenefitCard {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  iconColor: string;
 }
+
+const BENEFIT_CARDS: BenefitCard[] = [
+  {
+    icon: ShieldCheck,
+    title: 'Sécurisé',
+    description: 'Vos données sont protégées par Supabase Auth avec chiffrement et authentification renforcée.',
+    iconColor: 'text-primary-400',
+  },
+  {
+    icon: Zap,
+    title: 'Rapide',
+    description: 'Création de compte en quelques secondes. Accédez immédiatement à votre tableau de bord.',
+    iconColor: 'text-accent-400',
+  },
+  {
+    icon: BarChart3,
+    title: 'Pilotage',
+    description: 'Suivez vos financements, dépenses, cultures et élevage avec une traçabilité complète.',
+    iconColor: 'text-secondary-400',
+  },
+] as const;
 
 type Mode = 'login' | 'signup' | 'forgot';
 
-export function LoginPage({ onLogin, onBack }: LoginPageProps) {
+interface FormErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  name?: string;
+  terms?: string;
+}
+
+interface FormState {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  name: string;
+  showPassword: boolean;
+  loading: boolean;
+  errors: FormErrors;
+  acceptedTerms: boolean;
+}
+
+/* ==========================================================================
+   HELPER COMPONENTS
+   ========================================================================== */
+
+function BenefitCard({ card, index }: { card: BenefitCard; index: number }) {
+  const Icon = card.icon;
+  return (
+    <div className="animate-fade-in-up" style={{ animationDelay: `${100 + index * 150}ms` }}>
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-primary-500/40">
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 bg-primary-500/20 {card.iconColor} shadow-lg" aria-hidden="true">
+          <Icon size={28} />
+        </div>
+        <h3 className="text-heading-sm font-bold text-white text-center mb-2">{card.title}</h3>
+        <p className="text-body-sm text-neutral-400 leading-relaxed text-center">{card.description}</p>
+      </div>
+    </div>
+  );
+}
+
+function InputField({
+  label,
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  icon: Icon,
+  error,
+  showPasswordToggle,
+  onTogglePassword,
+  showPassword,
+  autoComplete,
+  disabled,
+}: {
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  icon: LucideIcon;
+  error?: string;
+  showPasswordToggle?: boolean;
+  onTogglePassword?: () => void;
+  showPassword?: boolean;
+  autoComplete?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400">{label}</label>
+      <div className="relative">
+        <Icon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
+        <input
+          type={showPasswordToggle && showPassword ? 'text' : type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          className={`w-full pl-10 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-colors ${
+            error
+              ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/20'
+              : 'border-neutral-200 dark:border-neutral-700 focus:border-primary-500 bg-white dark:bg-neutral-800'
+          }`}
+          aria-invalid={error ? 'true' : 'false'}
+          aria-describedby={error ? `${label.toLowerCase().replace(/\s+/g, '-')}-error` : undefined}
+        />
+        {showPasswordToggle && onTogglePassword && (
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+            aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
+      </div>
+      {error && (
+        <p id={`${label.toLowerCase().replace(/\s+/g, '-')}-error`} className="text-xs text-red-500" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PrimaryButton({
+  children,
+  disabled,
+  loading,
+  className = '',
+  type = 'submit',
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  loading?: boolean;
+  className?: string;
+  type?: 'submit' | 'button';
+}) {
+  return (
+    <button
+      type={type}
+      disabled={disabled || loading}
+      className={`w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:hover:translate-y-0 ${className}`}
+    >
+      {loading ? (
+        <span className="flex items-center gap-2">
+          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" strokeDasharray="32" strokeDashoffset="8" strokeLinecap="round" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <span>Chargement...</span>
+        </span>
+      ) : (
+        children
+      )}
+    </button>
+  );
+}
+
+function ModeLink({
+  text,
+  linkText,
+  onClick,
+}: {
+  text: string;
+  linkText: string;
+  onClick: () => void;
+}) {
+  return (
+    <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
+      {text} <button type="button" onClick={onClick} className="text-primary-600 dark:text-primary-400 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded">{linkText}</button>
+    </p>
+  );
+}
+
+function QuoteSection({ quote, author }: { quote: string; author: string }) {
+  if (!quote && !author) return null;
+  return (
+    <div className="relative mt-12 pt-6 border-t border-white/10 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+      <p className="text-sm text-neutral-200/80 italic leading-relaxed">« {quote} »</p>
+      {author && <p className="text-xs text-neutral-300 mt-2">— {author}</p>}
+    </div>
+  );
+}
+
+/* ==========================================================================
+   MAIN COMPONENT
+   ========================================================================== */
+
+export function LoginPage() {
+  const navigate = useNavigate();
   const toast = useToast();
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, authUser, appUser } = useAuth();
   const { siteContent, farm } = useData();
-  const branding = (siteContent.branding?.value as Record<string, string>) || {};
-  const loginContent = (siteContent.login?.value as Record<string, unknown>) || {};
+
+  const branding = useMemo(() => (siteContent.branding?.value as Record<string, string>) || {}, [siteContent]);
+  const loginContent = useMemo(() => (siteContent.login?.value as Record<string, unknown>) || {}, [siteContent]);
 
   const [mode, setMode] = useState<Mode>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formState, setFormState] = useState<FormState>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    name: '',
+    showPassword: false,
+    loading: false,
+    errors: {},
+    acceptedTerms: false,
+  });
 
-  const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  const updateField = useCallback(<K extends keyof FormState>(field: K, value: FormState[K]) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const clearErrors = useCallback(() => {
+    setFormState((prev) => ({ ...prev, errors: {} }));
+  }, []);
+
+  const switchMode = useCallback((newMode: Mode) => {
+    setMode(newMode);
+    clearErrors();
+    if (newMode !== 'signup') {
+      updateField('confirmPassword', '');
+      updateField('acceptedTerms', false);
+    }
+    if (newMode !== 'login') {
+      updateField('showPassword', false);
+    }
+  }, [clearErrors, updateField]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: Record<string, string> = {};
+    const { email, password, confirmPassword, name, acceptedTerms } = formState;
+    const newErrors: FormErrors = {};
 
     if (!email) {
       newErrors.email = 'Adresse email requise';
@@ -44,239 +283,313 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       if (!name.trim()) newErrors.name = 'Nom requis';
       if (!password) {
         newErrors.password = 'Mot de passe requis';
-      } else if (password.length < 8) {
-        newErrors.password = 'Le mot de passe doit faire au moins 8 caractères';
-      } else if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
-        newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères';
+      } else {
+        const pwdCheck = validatePasswordStrength(password);
+        if (!pwdCheck.isValid) {
+          newErrors.password = pwdCheck.errors.join(', ');
+        }
+      }
+      if (!acceptedTerms) {
+        newErrors.terms = 'Vous devez accepter les conditions d\'utilisation';
       }
       if (password !== confirmPassword) {
         newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
       }
     } else if (mode === 'login') {
       if (!password) newErrors.password = 'Mot de passe requis';
-    }
-
-    if (mode === 'forgot' && !validateEmail(email)) {
+    } else if (mode === 'forgot' && !validateEmail(email)) {
       newErrors.email = 'Format d\'email invalide';
     }
 
-    setErrors(newErrors);
+    setFormState((prev) => ({ ...prev, errors: newErrors }));
     if (Object.keys(newErrors).length > 0) return;
 
-    setLoading(true);
+    setFormState((prev) => ({ ...prev, loading: true }));
 
-    if (mode === 'login') {
-      const { error } = await signIn(email, password);
-      setLoading(false);
-      if (error) {
-        toast.show('Email ou mot de passe incorrect', 'error');
-      } else {
-        toast.show('Connexion réussie');
-        onLogin();
-      }
-    } else if (mode === 'signup') {
-      const { error } = await signUp(email, password, name.trim());
-      setLoading(false);
-      if (error) {
-        if (error.includes('already')) {
-          toast.show('Un compte existe déjà avec cet email', 'error');
+    try {
+      if (mode === 'login') {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast.show('Email ou mot de passe incorrect', 'error');
+       } else {
+         toast.show('Connexion réussie');
+          // Attendre que appUser soit chargé pour éviter que RequireAuth ne redirige vers /login
+          // (race condition : onAuthStateCharge est asynchrone après signIn)
+          if (appUser) {
+            navigate('/app');
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 400));
+            navigate('/app');
+          }
+       }
+      } else if (mode === 'signup') {
+        const { error, emailRequiresConfirmation } = await signUp(email, password, name.trim());
+        if (error) {
+          if (error.includes('already')) {
+            toast.show('Un compte existe déjà avec cet email', 'error');
+          } else {
+            toast.show('Erreur: ' + error, 'error');
+          }
         } else {
-          toast.show('Erreur: ' + error, 'error');
+          if (emailRequiresConfirmation) {
+            toast.show('Compte créé ! Vérifiez votre email pour confirmer votre inscription avant de vous connecter.', 'info');
+          } else {
+            toast.show('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
+          }
+          switchMode('login');
         }
-      } else {
-        toast.show('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
-        setMode('login');
-        setPassword('');
-        setConfirmPassword('');
+      } else if (mode === 'forgot') {
+        const { error } = await resetPassword(email);
+        if (error) {
+          toast.show('Erreur: ' + error, 'error');
+        } else {
+          toast.show('Un lien de réinitialisation a été envoyé à votre email');
+          switchMode('login');
+        }
       }
-    } else if (mode === 'forgot') {
-      const { error } = await resetPassword(email);
-      setLoading(false);
-      if (error) {
-        toast.show('Erreur: ' + error, 'error');
-      } else {
-        toast.show('Un lien de réinitialisation a été envoyé à votre email');
-        setMode('login');
-      }
+    } finally {
+      setFormState((prev) => ({ ...prev, loading: false }));
     }
+  }, [formState, mode, signIn, signUp, resetPassword, toast, navigate, switchMode]);
+
+  const appName = branding.appName || 'Bahkanso';
+  const appTagline = branding.appTagline || '';
+  const logoIcon = branding.logoIcon || 'Sprout';
+  const logoColor = branding.logoColor || '#FFFFFF';
+  const logoBgColor = branding.logoBgColor || '#16A34A';
+  const logoUrl = farm?.logo_url ?? null;
+
+  const heroTitle = (loginContent.title as string) || 'Pilotez votre exploitation en toute transparence';
+  const heroSubtitle = (loginContent.subtitle as string) || 'Gérez financements, dépenses, cultures et élevage avec une traçabilité complète.';
+  const heroQuote = (loginContent.quote as string) || '';
+  const heroQuoteAuthor = (loginContent.quoteAuthor as string) || '';
+
+  const modeLabels = {
+    login: { title: 'Connexion', desc: 'Accédez à votre espace de pilotage' },
+    signup: { title: 'Créer un compte', desc: 'Rejoignez la plateforme Bahkanso' },
+    forgot: { title: 'Mot de passe oublié', desc: 'Entrez votre email pour recevoir un lien de réinitialisation' },
   };
 
+  const currentMode = modeLabels[mode];
+
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-50">
-      <div className="lg:w-1/2 bg-gradient-to-br from-green-700 via-green-800 to-slate-900 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'radial-gradient(circle at 30% 20%, white 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
-        }} />
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-12">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-neutral-50 dark:bg-neutral-950" lang="fr">
+      {/* Marketing Side */}
+      <div className="lg:w-1/2 relative bg-gradient-to-br from-primary-700 via-primary-800 to-neutral-900 text-white p-8 lg:p-12 flex flex-col justify-between overflow-hidden hidden lg:flex">
+        {/* Ambient pattern */}
+        <div className="absolute inset-0 opacity-5" aria-hidden="true">
+          <svg viewBox="0 0 60 60" className="w-full h-full" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                <circle cx="15" cy="15" r="1" fill="white" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+
+        <div className="relative flex flex-col flex-1">
+          {/* Brand */}
+          <div className="flex items-center gap-3 mb-10">
             <Logo
-              icon={branding.logoIcon || 'Sprout'}
-              color={branding.logoColor || '#FFFFFF'}
-              bgColor={branding.logoBgColor || '#16A34A'}
+              icon={logoIcon}
+              color={logoColor}
+              bgColor={logoBgColor}
               size={48}
-              imageUrl={farm?.logo_url}
+              imageUrl={logoUrl}
             />
             <div>
-              <h1 className="font-bold text-xl">{branding.appName || 'Bahkanso'}</h1>
-              <p className="text-xs text-green-200">{branding.appTagline || ''}</p>
+              <h1 className="font-bold text-xl text-white">{appName}</h1>
+              <p className="text-xs text-primary-200">{appTagline}</p>
             </div>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-4">
-            {String(loginContent.title || 'Pilotez votre exploitation en toute transparence')}
-          </h2>
-          <p className="text-green-100 text-lg leading-relaxed mb-8">
-            {String(loginContent.subtitle || 'Gérez financements, dépenses, cultures et élevage avec une traçabilité complète.')}
-          </p>
-          <div className="space-y-3">
-            {((loginContent.benefits as string[]) || []).map(t => (
-              <div key={t} className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Check size={14} className="text-green-300" />
-                </div>
-                <span className="text-sm text-green-50">{t}</span>
-              </div>
-            ))}
+
+          {/* Hero content */}
+          <div className="flex-1 flex flex-col">
+            <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-4 animate-fade-in-up">
+              {heroTitle}
+            </h2>
+            <p className="text-primary-100 text-lg leading-relaxed mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+              {heroSubtitle}
+            </p>
+
+            {/* Benefit cards */}
+            <div className="grid sm:grid-cols-3 gap-4 mb-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+              {BENEFIT_CARDS.map((card, i) => (
+                <BenefitCard key={card.title} card={card} index={i} />
+              ))}
+            </div>
+
+            {/* Quote */}
+            <QuoteSection quote={heroQuote} author={heroQuoteAuthor} />
           </div>
-        </div>
-        <div className="relative mt-12 pt-6 border-t border-white/10">
-          <p className="text-xs text-green-200">
-            « {String(loginContent.quote || '')} »
-          </p>
-          <p className="text-xs text-green-300 mt-2">— {String(loginContent.quoteAuthor || '')}</p>
         </div>
       </div>
 
-      <div className="lg:w-1/2 flex items-center justify-center p-8 lg:p-12">
+      {/* Mobile marketing banner */}
+      <div className="lg:hidden bg-gradient-to-br from-primary-700 via-primary-800 to-neutral-900 text-white p-6 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5" aria-hidden="true">
+          <svg viewBox="0 0 60 60" className="w-full h-full" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid-mobile" width="30" height="30" patternUnits="userSpaceOnUse">
+                <circle cx="15" cy="15" r="1" fill="white" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid-mobile)" />
+          </svg>
+        </div>
+        <div className="relative flex flex-col items-center text-center">
+          <Logo
+            icon={logoIcon}
+            color={logoColor}
+            bgColor={logoBgColor}
+            size={40}
+            imageUrl={logoUrl}
+          />
+          <h1 className="font-bold text-xl mt-2">{appName}</h1>
+          <p className="text-xs text-primary-200 mt-1">{appTagline}</p>
+          <h2 className="text-xl font-bold mt-4">{heroTitle}</h2>
+          <p className="text-primary-100 text-sm mt-2">{heroSubtitle}</p>
+        </div>
+      </div>
+
+      {/* Form Side */}
+      <div className="lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md">
-          <button onClick={onBack} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-8">
+          {/* Back link */}
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-sm text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 mb-8 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
+          >
             <ArrowLeft size={16} /> Retour au site
           </button>
 
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">
-            {mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Créer un compte' : 'Mot de passe oublié'}
-          </h2>
-          <p className="text-sm text-slate-500 mb-8">
-            {mode === 'login' ? 'Accédez à votre espace de pilotage' : mode === 'signup' ? 'Rejoignez la plateforme Bahkanso' : 'Entrez votre email pour recevoir un lien de réinitialisation'}
-          </p>
+          {/* Form header */}
+          <div className="text-center mb-8 animate-fade-in-up">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">{currentMode.title}</h2>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">{currentMode.desc}</p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up" style={{ animationDelay: '100ms' }} noValidate>
+            {/* Name field (signup only) */}
             {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">Nom complet</label>
-                <div className="relative">
-                  <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="Jean Kouassi"
-                    className={`w-full pl-10 pr-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 ${errors.name ? 'border-red-300' : 'border-slate-200 focus:border-green-500'}`}
-                  />
-                </div>
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
-              </div>
+              <InputField
+                label="Nom complet"
+                type="text"
+                value={formState.name}
+                onChange={(v) => updateField('name', v)}
+                placeholder="Jean Kouassi"
+                icon={User}
+                error={formState.errors.name}
+                autoComplete="name"
+              />
             )}
 
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">Adresse email</label>
-              <div className="relative">
-                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="vous@ferme.ci"
-                  className={`w-full pl-10 pr-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 ${errors.email ? 'border-red-300' : 'border-slate-200 focus:border-green-500'}`}
-                />
-              </div>
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
-            </div>
+            {/* Email field */}
+            <InputField
+              label="Adresse email"
+              type="email"
+              value={formState.email}
+              onChange={(v) => updateField('email', v)}
+              placeholder="vous@ferme.ci"
+              icon={Mail}
+              error={formState.errors.email}
+              autoComplete={mode === 'login' ? 'email' : 'email'}
+            />
 
+            {/* Password field (not in forgot mode) */}
             {mode !== 'forgot' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">Mot de passe</label>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-10 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 ${errors.password ? 'border-red-300' : 'border-slate-200 focus:border-green-500'}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
-              </div>
+              <InputField
+                label="Mot de passe"
+                type="password"
+                value={formState.password}
+                onChange={(v) => updateField('password', v)}
+                placeholder="••••••••"
+                icon={Lock}
+                error={formState.errors.password}
+                showPasswordToggle
+                onTogglePassword={() => updateField('showPassword', !formState.showPassword)}
+                showPassword={formState.showPassword}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
             )}
 
+            {/* Confirm password (signup only) */}
             {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">Confirmer le mot de passe</label>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 ${errors.confirmPassword ? 'border-red-300' : 'border-slate-200 focus:border-green-500'}`}
-                  />
-                </div>
-                {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>}
+              <InputField
+                label="Confirmer le mot de passe"
+                type="password"
+                value={formState.confirmPassword}
+                onChange={(v) => updateField('confirmPassword', v)}
+                placeholder="••••••••"
+                icon={Lock}
+                error={formState.errors.confirmPassword}
+                showPasswordToggle
+                onTogglePassword={() => updateField('showPassword', !formState.showPassword)}
+                showPassword={formState.showPassword}
+                autoComplete="new-password"
+              />
+            )}
+
+            {/* Terms checkbox (signup only) */}
+            {mode === 'signup' && (
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={formState.acceptedTerms}
+                  onChange={(e) => updateField('acceptedTerms', e.target.checked)}
+                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20 mt-0.5 flex-shrink-0"
+                  aria-describedby="terms-desc"
+                />
+                <label htmlFor="terms" className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed cursor-pointer" id="terms-desc">
+                  J\'accepte les <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">conditions d\'utilisation</span> et la <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">politique de confidentialité</span>
+                </label>
               </div>
             )}
 
+            {/* Login options */}
             {mode === 'login' && (
               <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-2 text-slate-500">
-                  <input type="checkbox" className="rounded border-slate-300 text-green-600 focus:ring-green-500/20" />
+                <label className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 cursor-pointer">
+                  <input type="checkbox" className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20" />
                   Se souvenir de moi
                 </label>
-                <button type="button" onClick={() => { setMode('forgot'); setErrors({}); }} className="text-green-600 hover:underline">
+                <button
+                  type="button"
+                  onClick={() => switchMode('forgot')}
+                  className="text-primary-600 dark:text-primary-400 hover:underline focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
+                >
                   Mot de passe oublié ?
                 </button>
               </div>
             )}
 
+            {/* Password requirements hint (signup only) */}
             {mode === 'signup' && (
-              <div className="flex items-start gap-2 text-xs text-slate-500">
-                <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-slate-400" />
-                <span>Le mot de passe doit contenir au moins 8 caractères.</span>
+              <div className="flex items-start gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+                <AlertCircle size={14} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <span>Le mot de passe doit contenir : 8+ caractères, majuscule, minuscule, chiffre.</span>
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  {mode === 'login' ? 'Se connecter' : mode === 'signup' ? 'Créer mon compte' : 'Envoyer le lien'} <ArrowRight size={18} />
-                </>
-              )}
-            </button>
+            {/* Submit button */}
+            <PrimaryButton loading={formState.loading}>
+              {mode === 'login' ? 'Se connecter' : mode === 'signup' ? 'Créer mon compte' : 'Envoyer le lien'} <ArrowRight size={18} />
+            </PrimaryButton>
           </form>
 
-          <div className="mt-6 text-center text-sm text-slate-500">
+          {/* Mode switcher */}
+          <div className="mt-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             {mode === 'login' && (
-              <>Pas encore de compte ? <button onClick={() => { setMode('signup'); setErrors({}); }} className="text-green-600 font-medium hover:underline">S'inscrire</button></>
+              <ModeLink text="Pas encore de compte ?" linkText="S'inscrire" onClick={() => switchMode('signup')} />
             )}
             {mode === 'signup' && (
-              <>Déjà inscrit ? <button onClick={() => { setMode('login'); setErrors({}); }} className="text-green-600 font-medium hover:underline">Se connecter</button></>
+              <ModeLink text="Déjà inscrit ?" linkText="Se connecter" onClick={() => switchMode('login')} />
             )}
             {mode === 'forgot' && (
-              <>Retour à la <button onClick={() => { setMode('login'); setErrors({}); }} className="text-green-600 font-medium hover:underline">connexion</button></>
+              <ModeLink text="Retour à la" linkText="connexion" onClick={() => switchMode('login')} />
             )}
           </div>
         </div>
@@ -284,3 +597,5 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
     </div>
   );
 }
+
+export default LoginPage;

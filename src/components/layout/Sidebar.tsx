@@ -1,67 +1,44 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
+import { useAuth } from '@/lib/AuthContext';
 import { Logo } from '@/components/ui/Logo';
+import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Wallet, Landmark, Receipt, FileText, Sprout,
-  Beef, HardHat, Package, Truck, FileBarChart, Bell, ScrollText,
-  Users, Settings, ChevronDown, X, ChefHat, Image, Layout,
+  LayoutDashboard, Wallet, Sprout,
+  Beef, HardHat, Package, Truck, Image, Layout,
+  Users, Settings, X, ShieldAlert, Wrench,
 } from 'lucide-react';
 
 export interface NavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
-  children?: { id: string; label: string }[];
+  module: ModuleKey;
+  children?: { id: string; label: string; module: ModuleKey }[];
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, children: [
-    { id: 'dashboard', label: 'Vue générale' },
-    { id: 'dashboard?funder', label: 'Vue financeur' },
-    { id: 'dashboard?alerts', label: 'Alertes' },
-    { id: 'dashboard?activity', label: 'Activité récente' },
+const ALL_NAV_ITEMS: NavItem[] = [
+  { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, module: 'dashboard' },
+  { id: 'finance', label: 'Finances', icon: <Wallet size={20} />, module: 'finance' },
+  { id: 'agriculture', label: 'Agriculture', icon: <Sprout size={20} />, module: 'agriculture', children: [
+    { id: 'agriculture?plots', label: 'Parcelles', module: 'agriculture' },
+    { id: 'agriculture?campaigns', label: 'Campagnes', module: 'agriculture' },
+    { id: 'agriculture?operations', label: 'Opérations', module: 'agriculture' },
   ]},
-  { id: 'finance', label: 'Finances', icon: <Wallet size={20} />, children: [
-    { id: 'finance?tab=treasury', label: 'Trésorerie' },
-    { id: 'finance?tab=fundings', label: 'Financements' },
-    { id: 'finance?tab=expenses', label: 'Dépenses' },
-    { id: 'finance?tab=documents', label: 'Justificatifs' },
+  { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock', children: [
+    { id: 'livestock/lots', label: 'Lots', module: 'livestock' },
+    { id: 'livestock/animals', label: 'Animaux', module: 'livestock' },
+    { id: 'livestock/events', label: 'Événements', module: 'livestock' },
   ]},
-  { id: 'agriculture', label: 'Agriculture', icon: <Sprout size={20} />, children: [
-    { id: 'agriculture', label: 'Exploitations' },
-    { id: 'agriculture?plots', label: 'Parcelles' },
-    { id: 'agriculture?campaigns', label: 'Campagnes' },
-    { id: 'agriculture?operations', label: 'Opérations' },
-    { id: 'agriculture?harvests', label: 'Récoltes' },
-  ]},
-  { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, children: [
-    { id: 'livestock', label: 'Cheptel' },
-    { id: 'livestock/lots', label: 'Lots' },
-    { id: 'livestock/animals', label: 'Animaux' },
-    { id: 'livestock/events', label: 'Événements' },
-  ]},
-  { id: 'projects', label: 'Projets & Chantiers', icon: <HardHat size={20} />, children: [
-    { id: 'projects', label: 'Tous les projets' },
-    { id: 'projects?ongoing', label: 'En cours' },
-    { id: 'projects?completed', label: 'Terminés' },
-  ]},
-  { id: 'inventory', label: 'Stocks', icon: <Package size={20} />, children: [
-    { id: 'inventory', label: 'Inventaire' },
-    { id: 'inventory?movements', label: 'Mouvements' },
-    { id: 'inventory?counts', label: 'Inventaires physiques' },
-  ]},
-  { id: 'suppliers', label: 'Fournisseurs', icon: <Truck size={20} /> },
-  { id: 'media', label: 'Médias', icon: <Image size={20} /> },
-  { id: 'monitoring', label: 'Surveillance', icon: <Layout size={20} />, children: [
-    { id: 'monitoring', label: 'Tableau de bord' },
-    { id: 'monitoring?audit', label: 'Audit' },
-    { id: 'monitoring?alertes', label: 'Alertes' },
-    { id: 'monitoring?rapports', label: 'Rapports' },
-  ]},
-  { id: 'users', label: 'Utilisateurs', icon: <Users size={20} /> },
-  { id: 'configuration', label: 'Configuration', icon: <Settings size={20} /> },
+  { id: 'projects', label: 'Projets & Chantiers', icon: <HardHat size={20} />, module: 'projects' },
+  { id: 'inventory', label: 'Stocks', icon: <Package size={20} />, module: 'inventory' },
+  { id: 'suppliers', label: 'Fournisseurs', icon: <Truck size={20} />, module: 'suppliers' },
+  { id: 'media', label: 'Médias', icon: <Image size={20} />, module: 'media' },
+  { id: 'monitoring', label: 'Monitoring', icon: <Layout size={20} />, module: 'monitoring' },
+  { id: 'surveillance', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'surveillance' },
+  { id: 'users', label: 'Utilisateurs', icon: <Users size={20} />, module: 'users' },
+  { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration' },
 ];
 
 interface SidebarProps {
@@ -71,20 +48,47 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const { siteContent, farm } = useData();
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const { appUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
 
+  // Filtrer les éléments de navigation selon les permissions du rôle
+  const userRole = appUser?.role as UserRole;
+  const accessibleModules = getAccessibleModules(userRole);
+  const NAV_ITEMS = ALL_NAV_ITEMS.filter(item => accessibleModules.includes(item.module));
+
   // Fonction pour déterminer si un élément de navigation est actif
   const isNavActive = (navId: string): boolean => {
-    // Cette fonction devra être améliorée pour prendre en compte les paramètres d'URL
-    // Pour l'instant, on utilise une approche simplifiée
     return location.pathname.includes(navId.split('?')[0]);
   };
 
   const handleNav = (page: string) => {
-    navigate(page);
+    let target = page;
+
+    const routeMap: Record<string, string> = {
+      dashboard: '/app/dashboard',
+      finance: '/app/finance',
+      agriculture: '/app/agriculture',
+      'agriculture?plots': '/app/agriculture/plots',
+      'agriculture?campaigns': '/app/agriculture/campaigns',
+      'agriculture?operations': '/app/agriculture/operations',
+      livestock: '/app/livestock',
+      'livestock/lots': '/app/livestock/lots',
+      'livestock/animals': '/app/livestock/animals',
+      'livestock/events': '/app/livestock/events',
+      projects: '/app/projects',
+      inventory: '/app/inventory',
+      suppliers: '/app/suppliers',
+      media: '/app/media',
+      monitoring: '/app/monitoring',
+      surveillance: '/app/surveillance',
+      users: '/app/users',
+      configuration: '/app/configuration',
+    };
+
+    target = routeMap[page] || `/app/${page}`;
+    navigate(target);
     onCloseMobile();
   };
 
@@ -118,13 +122,12 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
           {NAV_ITEMS.map(item => {
             const isActive = isNavActive(item.id);
             const hasChildren = item.children && item.children.length > 0;
-            const isExpanded = expanded === item.id;
             return (
               <div key={item.id}>
                 <button
                   onClick={() => {
                     if (hasChildren) {
-                      setExpanded(prev => prev === item.id ? null : item.id);
+                      handleNav(item.children![0].id);
                     } else {
                       handleNav(item.id);
                     }
@@ -137,37 +140,18 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                 >
                   <span className={isActive ? 'text-green-700' : 'text-slate-600'}>{item.icon}</span>
                   <span className="flex-1 text-left">{item.label}</span>
-                  {hasChildren && (
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                    />
-                  )}
                 </button>
-                {hasChildren && isExpanded && (
-                  <div className="ml-6 mt-0.5 space-y-0.5 border-l border-slate-700/50 pl-3">
-                    {item.children!.map(child => (
-                      <button
-                        key={child.id}
-                        onClick={() => handleNav(child.id)}
-                        className={`w-full text-left px-3 py-2 rounded-md text-xs transition-colors ${
-                          // Pour les sous-éléments, on vérifie si le chemin actuel contient l'ID
-                          location.pathname.includes(child.id.split('?')[0])
-                            ? 'text-green-700 font-medium'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                        }`}
-                      >
-                        {child.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             );
           })}
         </nav>
         <div className="px-4 py-3 border-t border-slate-200/50">
           <p className="text-xs text-slate-500 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>
+          {appUser && (
+            <p className="text-xs text-slate-400 text-center mt-1 capitalize">
+              Rôle : {appUser.role.replace('_', ' ')}
+            </p>
+          )}
         </div>
       </aside>
     </>

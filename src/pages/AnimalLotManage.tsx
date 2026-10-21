@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -42,6 +42,7 @@ export function AnimalLotManage() {
   const { appUser } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editLot, setEditLot] = useState<AnimalLot | null>(null);
@@ -49,6 +50,29 @@ export function AnimalLotManage() {
   const [confirmDelete, setConfirmDelete] = useState<AnimalLot | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Sélection depuis l'URL : ?select=<id>&action=view|edit|delete
+  useEffect(() => {
+    const selectId = searchParams.get('select');
+    const action = searchParams.get('action') || 'edit';
+    if (!selectId) return;
+    const lot = animalLots.find((l: AnimalLot) => l.id === selectId);
+    if (lot) {
+      if (action === 'view') {
+        setDetailLot(lot);
+        setModalOpen(false);
+      } else if (action === 'delete') {
+        setConfirmDelete(lot);
+        setModalOpen(false);
+      } else {
+        openEdit(lot);
+      }
+      searchParams.delete('select');
+      searchParams.delete('action');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
     schema: lotSchema,

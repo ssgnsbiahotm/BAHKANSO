@@ -8,7 +8,7 @@ interface PaginatedQueryOptions<T> {
   columns?: string;
   filters?: Array<{
     column: string;
-    operation: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike';
+    operation: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike' | 'is';
     value: unknown;
   }>;
   orderBy?: {
@@ -87,6 +87,9 @@ export function usePaginatedQuery<T = unknown>(
         case 'ilike':
           query = query.ilike(filter.column, filter.value as string);
           break;
+        case 'is':
+          query = query.filter(filter.column, 'is', filter.value);
+          break;
         default:
           query = query.eq(filter.column, filter.value as unknown);
       }
@@ -139,7 +142,7 @@ export function useSimpleQuery<T = unknown>(
     columns?: string;
     filters?: Array<{
       column: string;
-      operation: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike';
+      operation: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike' | 'is';
       value: unknown;
     }>;
     orderBy?: {
@@ -188,6 +191,9 @@ export function useSimpleQuery<T = unknown>(
           break;
         case 'ilike':
           query = query.ilike(filter.column, filter.value as string);
+          break;
+        case 'is':
+          query = query.filter(filter.column, 'is', filter.value);
           break;
         default:
           query = query.eq(filter.column, filter.value as unknown);

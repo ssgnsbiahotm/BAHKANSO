@@ -13,7 +13,9 @@ export function Agriculture() {
 
   const kpis = useMemo(() => {
     const totalArea = plots.reduce((s, p) => s + p.area_hectares, 0);
-    const activeCampaigns = campaigns.filter(c => c.status === 'en cours').length;
+    const activeCampaigns = campaigns.filter(c =>
+      c.status === 'planted' || c.status === 'growing' || c.status === 'harvested'
+    ).length;
     const totalOps = cropOperations.length;
     const totalHarvest = harvests.reduce((s, h) => s + h.quantity, 0);
     const totalRevenue = harvests.reduce((s, h) => s + (h.revenue || 0), 0);
@@ -34,28 +36,24 @@ export function Agriculture() {
         <KpiCard label="Récoltes (kg)" value={String(kpis.totalHarvest)} icon={null} color="dark" />
       </div>
 
-      <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-        {(['plots', 'campaigns', 'operations', 'harvests'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${tab === t ? 'bg-green-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
-            {t === 'plots' ? 'Parcelles' : t === 'campaigns' ? 'Campagnes' : t === 'operations' ? 'Opérations' : 'Récoltes'}
-          </button>
-        ))}
-      </div>
-
       {tab === 'plots' && (
         <>
           <div className="mb-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-slate-900">Parcelles agricoles</h2>
-              <button
-                onClick={() => navigate('/app/agriculture/plots')}
-                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Gérer les parcelles
-              </button>
             </div>
             <p className="mt-2 text-slate-600">
-              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer des parcelles agricoles.
+              Gérer les parcelles sur la page de gestion détaillée.
+              <a
+                href="/app/agriculture/plots"
+                className="text-green-600 underline underline-offset-4 hover:text-green-700 ml-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/app/agriculture/plots');
+                }}
+              >
+                Ouvrir la gestion des parcelles
+              </a>
             </p>
           </div>
           {plots.length === 0 ? (
@@ -104,15 +102,19 @@ export function Agriculture() {
           <div className="mb-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-slate-900">Campagnes culturales</h2>
-              <button
-                onClick={() => navigate('/app/agriculture/campaigns')}
-                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Gérer les campagnes
-              </button>
             </div>
             <p className="mt-2 text-slate-600">
-              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer des campagnes culturales.
+              Gérer les campagnes sur la page de gestion détaillée.
+              <a
+                href="/app/agriculture/campaigns"
+                className="text-green-600 underline underline-offset-4 hover:text-green-700 ml-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/app/agriculture/campaigns');
+                }}
+              >
+                Ouvrir la gestion des campagnes
+              </a>
             </p>
           </div>
           {campaigns.length === 0 ? (
@@ -151,7 +153,13 @@ export function Agriculture() {
                       <td className="px-4 py-3 text-sm text-slate-600">{formatDate(c.start_date)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{formatDate(c.expected_harvest_date)}</td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-900 text-right">{formatCurrency(c.budget)}</td>
-                      <td className="px-4 py-3"><SimpleBadge color={c.status === 'en cours' ? 'green' : 'gray'}>{c.status}</SimpleBadge></td>
+                      <td className="px-4 py-3"><SimpleBadge color={
+                        c.status === 'planned' ? 'yellow' :
+                        c.status === 'planted' ? 'blue' :
+                        c.status === 'growing' ? 'green' :
+                        c.status === 'harvested' ? 'amber' :
+                        'gray'
+                      }>{c.status}</SimpleBadge></td>
                     </tr>
                   ))}
                 </tbody>
@@ -166,15 +174,19 @@ export function Agriculture() {
           <div className="mb-4">
             <div className="flex flex-wrap justify-between items-center gap-2">
               <h2 className="text-xl font-semibold text-slate-900">Opérations culturales</h2>
-              <button
-                onClick={() => navigate('/app/agriculture/operations')}
-                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Gérer les opérations
-              </button>
             </div>
             <p className="mt-2 text-slate-600">
-              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer des opérations culturales.
+              Gérer les opérations sur la page de gestion détaillée.
+              <a
+                href="/app/agriculture/operations"
+                className="text-green-600 underline underline-offset-4 hover:text-green-700 ml-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/app/agriculture/operations');
+                }}
+              >
+                Ouvrir la gestion des opérations
+              </a>
             </p>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -226,15 +238,19 @@ export function Agriculture() {
           <div className="mb-4">
             <div className="flex flex-wrap justify-between items-center gap-2">
               <h2 className="text-xl font-semibold text-slate-900">Récoltes agricoles</h2>
-              <button
-                onClick={() => navigate('/app/agriculture/harvests')}
-                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Gérer les récoltes
-              </button>
             </div>
             <p className="mt-2 text-slate-600">
-              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer des récoltes agricoles.
+              Gérer les récoltes sur la page de gestion détaillée.
+              <a
+                href="/app/agriculture/harvests"
+                className="text-green-600 underline underline-offset-4 hover:text-green-700 ml-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/app/agriculture/harvests');
+                }}
+              >
+                Ouvrir la gestion des récoltes
+              </a>
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

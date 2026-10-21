@@ -5,6 +5,9 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { RotatingCard } from '@/components/ui/RotatingCard';
+import { Plus } from 'lucide-react';
 
 export function Livestock() {
   const { animals, animalLots, animalEvents } = useData();
@@ -19,6 +22,10 @@ export function Livestock() {
     const vaccinations = animalEvents.filter(e => e.type === 'vaccination').length;
     return { totalAnimals, totalValue: totalValue + individualValue, events, vaccinations };
   }, [animals, animalLots, animalEvents]);
+
+  const openCreateAnimal = () => navigate('/app/livestock/animals');
+  const openCreateLot = () => navigate('/app/livestock/lots');
+  const openCreateEvent = () => navigate('/app/livestock/events');
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
@@ -64,32 +71,72 @@ export function Livestock() {
       )}
 
       {tab === 'lots' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
-            <thead><tr className="border-b border-slate-100 bg-slate-50/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Identifiant</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Espèce</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Race</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Effectif</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Localisation</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Valeur</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Statut</th>
-            </tr></thead>
-            <tbody className="divide-y divide-slate-50">
-              {animalLots.map(l => (
-                <tr key={l.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 text-sm font-mono font-medium text-slate-900">{l.identifier}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{l.species}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{l.breed || '—'}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900 text-right">{l.count}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{l.location || '—'}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900 text-right">{formatCurrency(l.estimated_value)}</td>
-                  <td className="px-4 py-3"><SimpleBadge color="green">{l.status}</SimpleBadge></td>
-                </tr>
+        <>
+          <div className="mb-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-slate-900">Lots</h2>
+              <button
+                onClick={openCreateLot}
+                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <Plus size={18} /> Nouveau lot
+              </button>
+            </div>
+            <p className="mt-2 text-slate-600">
+              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer un lot.
+            </p>
+          </div>
+          {animalLots.length === 0 ? (
+            <EmptyState
+              icon={null}
+              title="Aucun lot"
+              message="Aucun lot d'animaux enregistré"
+              action={<button onClick={openCreateLot} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Créer un lot</button>}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {animalLots.map(lot => (
+                <RotatingCard key={lot.id} flipLabel="Détails" backLabel="Retour"
+                  front={
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-slate-900">{lot.identifier}</h3>
+                        <SimpleBadge color={lot.status === 'actif' ? 'green' : lot.status === 'quarantaine' ? 'amber' : 'gray'}>{lot.status}</SimpleBadge>
+                      </div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Espèce</span><span className="font-medium">{lot.species}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Race</span><span className="font-medium">{lot.breed || '—'}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Effectif</span><span className="font-medium">{lot.count} têtes</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Localisation</span><span className="font-medium">{lot.location || '—'}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Valeur estimée</span><span className="font-medium">{formatCurrency(lot.estimated_value)}</span></div>
+                    </div>
+                  }
+                  back={
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => navigate(`/app/livestock/lots?select=${lot.id}&action=view`)}
+                        className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        Voir détails
+                      </button>
+                      <button
+                        onClick={() => navigate(`/app/livestock/lots?select=${lot.id}&action=edit`)}
+                        className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => navigate(`/app/livestock/lots?select=${lot.id}&action=delete`)}
+                        className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  }
+                />
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {tab === 'animals' && (
@@ -98,68 +145,152 @@ export function Livestock() {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-slate-900">Animaux suivis</h2>
               <button
-                onClick={() => navigate('/app/livestock/animals')}
+                onClick={openCreateAnimal}
                 className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
-                Gérer les animaux
+                <Plus size={18} /> Nouveau animal
               </button>
             </div>
             <p className="mt-2 text-slate-600">
-              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer des animaux individuels.
+              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer un animal individuel.
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <table className="w-full">
-              <thead><tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">ID</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Espèce</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Race</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Sexe</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Naissance</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Poids (kg)</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Valeur</th>
-              </tr></thead>
-              <tbody className="divide-y divide-slate-50">
-                {animals.map(a => (
-                  <tr key={a.id} className="hover:bg-slate-50/50">
-                    <td className="px-4 py-3 text-sm font-mono font-medium text-slate-900">{a.identifier}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{a.species}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{a.breed || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{a.sex || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{formatDate(a.birth_date)}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900 text-right">{a.weight_kg || '—'}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-green-600 text-right">{formatCurrency(a.estimated_value)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {animals.length === 0 ? (
+            <EmptyState
+              icon={null}
+              title="Aucun animal"
+              message="Aucun animal suivi enregistré"
+              action={<button onClick={openCreateAnimal} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Créer un animal</button>}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {animals.map(a => (
+                <RotatingCard key={a.id} flipLabel="Détails" backLabel="Retour"
+                  front={
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-slate-900">{a.identifier}</h3>
+                        <SimpleBadge color="blue">{a.status}</SimpleBadge>
+                      </div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Espèce</span><span className="font-medium">{a.species}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Race</span><span className="font-medium">{a.breed || '—'}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Sexe</span><span className="font-medium">{a.sex || '—'}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Naissance</span><span className="font-medium">{formatDate(a.birth_date)}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Poids (kg)</span><span className="font-medium">{a.weight_kg || '—'}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-slate-500">Valeur</span><span className="font-medium text-green-600">{formatCurrency(a.estimated_value)}</span></div>
+                    </div>
+                  }
+                  back={
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => navigate(`/app/livestock/animals?select=${a.id}&action=view`)}
+                        className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        Voir détails
+                      </button>
+                      <button
+                        onClick={() => navigate(`/app/livestock/animals?select=${a.id}&action=edit`)}
+                        className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => navigate(`/app/livestock/animals?select=${a.id}&action=delete`)}
+                        className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  }
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
 
       {tab === 'events' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
-            <thead><tr className="border-b border-slate-100 bg-slate-50/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Type</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Description</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Responsable</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Coût</th>
-            </tr></thead>
-            <tbody className="divide-y divide-slate-50">
-              {animalEvents.map(e => (
-                <tr key={e.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 text-sm text-slate-600">{formatDate(e.date)}</td>
-                  <td className="px-4 py-3"><SimpleBadge color={e.type === 'vaccination' ? 'blue' : e.type === 'traitement' ? 'amber' : e.type === 'naissance' ? 'green' : e.type === 'vente' ? 'purple' : 'gray'}>{e.type}</SimpleBadge></td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{e.description || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{e.responsible || '—'}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900 text-right">{e.cost ? formatCurrency(e.cost) : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="mb-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-slate-900">Événements</h2>
+              <button
+                onClick={openCreateEvent}
+                className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <Plus size={18} /> Nouvel événement
+              </button>
+            </div>
+            <p className="mt-2 text-slate-600">
+              Utilisez la page de gestion détaillée pour créer, modifier ou supprimer un événement.
+            </p>
+          </div>
+          {animalEvents.length === 0 ? (
+            <EmptyState
+              icon={null}
+              title="Aucun événement"
+              message="Aucun événement animal enregistré"
+              action={<button onClick={openCreateEvent} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Créer un événement</button>}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {animalEvents.map(e => {
+                const TYPE_LABELS: Record<string, string> = {
+                  vaccination: 'Vaccination',
+                  traitement: 'Traitement',
+                  maladie: 'Maladie',
+                  naissance: 'Naissance',
+                  vente: 'Vente',
+                  achat: 'Achat',
+                  autre: 'Autre',
+                };
+                const color =
+                  e.type === 'vaccination' ? 'blue' :
+                  e.type === 'traitement' ? 'amber' :
+                  e.type === 'naissance' ? 'green' :
+                  e.type === 'vente' ? 'purple' :
+                  'gray';
+                return (
+                  <RotatingCard key={e.id} flipLabel="Détails" backLabel="Retour"
+                    front={
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-slate-900">{formatDate(e.date)}</h3>
+                          <SimpleBadge color={color}>{TYPE_LABELS[e.type] || e.type}</SimpleBadge>
+                        </div>
+                        <div className="flex justify-between text-sm"><span className="text-slate-500">Description</span><span className="font-medium">{e.description || '—'}</span></div>
+                        <div className="flex justify-between text-sm"><span className="text-slate-500">Responsable</span><span className="font-medium">{e.responsible || '—'}</span></div>
+                        <div className="flex justify-between text-sm"><span className="text-slate-500">Coût</span><span className="font-medium">{e.cost ? formatCurrency(e.cost) : '—'}</span></div>
+                      </div>
+                    }
+                    back={
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => navigate(`/app/livestock/events?select=${e.id}&action=view`)}
+                          className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Voir détails
+                        </button>
+                        <button
+                          onClick={() => navigate(`/app/livestock/events?select=${e.id}&action=edit`)}
+                          className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => navigate(`/app/livestock/events?select=${e.id}&action=delete`)}
+                          className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    }
+                  />
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

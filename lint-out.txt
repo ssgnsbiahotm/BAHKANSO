@@ -1,0 +1,27 @@
+npm notice run vite-react-typescript-starter@0.0.0 npx
+npm notice run 'eslint' src/pages/Dashboard.tsx src/hooks/useDashboardStats.ts
+
+/home/ssgnsa/projects/project-bahkanso/src/hooks/useDashboardStats.ts
+   3:15  error  'Animal' is defined but never used          @typescript-eslint/no-unused-vars
+   3:23  error  'Expense' is defined but never used         @typescript-eslint/no-unused-vars
+   3:32  error  'Alert' is defined but never used           @typescript-eslint/no-unused-vars
+   3:52  error  'Campaign' is defined but never used        @typescript-eslint/no-unused-vars
+   3:62  error  'InventoryItem' is defined but never used   @typescript-eslint/no-unused-vars
+   3:77  error  'Project' is defined but never used         @typescript-eslint/no-unused-vars
+  41:11  error  'DashboardStats' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ssgnsa/projects/project-bahkanso/src/pages/Dashboard.tsx
+    1:17  error  'useMemo' is defined but never used                              @typescript-eslint/no-unused-vars
+    1:26  error  'useState' is defined but never used                             @typescript-eslint/no-unused-vars
+   18:10  error  'Plus' is defined but never used                                 @typescript-eslint/no-unused-vars
+   18:28  error  'AlertTriangle' is defined but never used                        @typescript-eslint/no-unused-vars
+   18:43  error  'Clock' is defined but never used                                @typescript-eslint/no-unused-vars
+   67:5   error  'previousPeriodExpenses' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   69:5   error  'currentPeriodTransactions' is assigned a value but never used   @typescript-eslint/no-unused-vars
+   70:5   error  'previousPeriodTransactions' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   80:5   error  'openAlerts' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+   83:5   error  'expenseByCategory' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  112:9   error  'flipCard' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+
+✖ 18 problems (18 errors, 0 warnings)
+

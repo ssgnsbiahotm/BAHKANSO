@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wheat, Plus, Trash2, Pencil, Eye, Save, List, Calendar, MapPin } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
@@ -22,7 +22,7 @@ const cropOperationSchema = z.object({
   plot_id: z.string().optional(),
   date: z.string().min(1, 'La date est obligatoire'),
   type: z.string().min(1, 'Le type est obligatoire'),
-  description: z.string().optional(),
+  comment: z.string().optional(),
   quantity: z.number().nonnegative().optional(),
   unit: z.string().optional(),
   cost: z.number().nonnegative().optional(),
@@ -34,7 +34,7 @@ interface CropOperationFormValues {
   plot_id?: string;
   date: string;
   type: string;
-  description?: string;
+  comment?: string;
   quantity?: number;
   unit?: string;
   cost?: number;
@@ -53,15 +53,16 @@ export function CropOperationManage() {
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
+  const { values: form, setFieldValue: setForm, errors, handleSubmit } = useValidatedForm({
     schema: cropOperationSchema,
     defaultValues: {
       campaign_id: '',
       plot_id: '',
       date: '',
       type: '',
-      description: '',
+      comment: '',
       quantity: undefined,
       unit: '',
       cost: undefined,
@@ -74,13 +75,14 @@ export function CropOperationManage() {
       }
 
       setSaving(true);
+      setSubmitError(null);
       try {
-        const payload = {
+          const payload = {
           campaign_id: values.campaign_id || null,
           plot_id: values.plot_id || null,
           date: values.date,
           type: values.type,
-          description: values.description || null,
+          comment: values.comment || null,
           quantity: values.quantity != null ? values.quantity : null,
           unit: values.unit || null,
           cost: values.cost != null ? values.cost : null,
@@ -111,13 +113,42 @@ export function CropOperationManage() {
         setModalOpen(false);
         setEditOperation(null);
         refresh();
-      } catch (error) {
-        toast.show(`Erreur : ${(error as Error).message}`, 'error');
+      } catch {
+        setSubmitError(
+          'Impossible d’enregistrer l’opération. Un problème technique empêche sa sauvegarde. Vos saisies sont conservées.',
+        );
+        console.error('Erreur technique sauvegarde opération');
       } finally {
         setSaving(false);
       }
     },
   });
+
+  useEffect(() => {
+    if (editOperation) {
+      setForm('campaign_id', editOperation.campaign_id || '');
+      setForm('plot_id', editOperation.plot_id || '');
+      setForm('date', editOperation.date || '');
+      setForm('type', editOperation.type || '');
+      setForm('comment', editOperation.comment || '');
+      setForm('quantity', editOperation.quantity != null ? editOperation.quantity : undefined);
+      setForm('unit', editOperation.unit || '');
+      setForm('cost', editOperation.cost != null ? editOperation.cost : undefined);
+      setForm('responsible', editOperation.responsible || '');
+      setSubmitError(null);
+    } else {
+      setForm('campaign_id', '');
+      setForm('plot_id', '');
+      setForm('date', '');
+      setForm('type', '');
+      setForm('comment', '');
+      setForm('quantity', undefined);
+      setForm('unit', '');
+      setForm('cost', undefined);
+      setForm('responsible', '');
+      setSubmitError(null);
+    }
+  }, [editOperation]);
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
@@ -144,7 +175,7 @@ export function CropOperationManage() {
       const q = searchTerm.toLowerCase();
       return (
         (o.type?.toLowerCase().includes(q) ?? false) ||
-        (o.description?.toLowerCase().includes(q) ?? false) ||
+        (o.comment?.toLowerCase().includes(q) ?? false) ||
         (o.date?.toLowerCase().includes(q) ?? false) ||
         (o.responsible?.toLowerCase().includes(q) ?? false)
       );
@@ -234,7 +265,7 @@ export function CropOperationManage() {
                     <div>
                       <p className="text-xs text-slate-500 uppercase">{formatDate(o.date)}</p>
                       <h3 className="font-semibold text-slate-900">{o.type}</h3>
-                      <p className="text-sm text-slate-500">{o.description || '—'}</p>
+                      <p className="text-sm text-slate-500">{o.comment || '—'}</p>
                     </div>
                     <div className="p-2 rounded-lg bg-green-50 text-green-700 ring-1 ring-green-100">
                       <MapPin size={20} />
@@ -320,7 +351,12 @@ export function CropOperationManage() {
 
       {/* Modal formulaire création/édition */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editOperation ? 'Modifier l\'opération' : 'Nouvelle opération'} size="lg">
-        <form onSubmit={form.handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {submitError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              {submitError}
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
             <input
@@ -383,8 +419,8 @@ export function CropOperationManage() {
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
             <textarea
-              value={form.description || ''}
-              onChange={(e) => setForm('description', e.target.value)}
+              value={form.comment || ''}
+              onChange={(e) => setForm('comment', e.target.value)}
               className="form-input w-full"
               rows={2}
               placeholder="Détails de l'opération"
@@ -436,18 +472,18 @@ export function CropOperationManage() {
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 pt-2 sm:justify-end w-full">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="w-full sm:w-auto px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
               {saving ? 'Enregistrement...' : editOperation ? 'Modifier' : 'Créer'}
             </button>
@@ -474,7 +510,7 @@ export function CropOperationManage() {
             </div>
             <div>
               <p className="text-xs text-slate-500">Description</p>
-              <p className="text-lg font-semibold">{detailOperation?.description || '—'}</p>
+              <p className="text-lg font-semibold">{detailOperation?.comment || '—'}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Coût</p>

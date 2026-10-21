@@ -13,6 +13,7 @@ import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import * as z from 'zod';
 
@@ -247,6 +248,7 @@ export function CampaignManage() {
           />
         </div>
         <button
+          type="button"
           onClick={() => setSearchTerm('')}
           className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
         >
@@ -262,41 +264,62 @@ export function CampaignManage() {
           action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Créer une campagne</button>}
         />
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Année</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Parcelle</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Culture</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Début</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Récolte prévue</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Budget</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Responsable</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Statut</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredCampaigns.map((campaign: any) => (
-                <tr key={campaign.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900">{campaign.year}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{campaign.plot?.name || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{campaign.crop_name}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{formatDate(campaign.start_date)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{formatDate(campaign.expected_harvest_date)}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900 text-right">{formatCurrency(campaign.budget)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{campaign.responsible || '—'}</td>
-                  <td className="px-4 py-3"><SimpleBadge color={
-                    campaign.status === 'planned' ? 'yellow' :
-                    campaign.status === 'planted' ? 'blue' :
-                    campaign.status === 'growing' ? 'green' :
-                    campaign.status === 'harvested' ? 'amber' :
-                    'gray'
-                  }>{campaign.status}</SimpleBadge></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredCampaigns.map((campaign: any) => (
+            <RotatingCard
+              key={campaign.id}
+              flipLabel="Actions"
+              backLabel="Retour"
+              front={
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{campaign.crop_name}</h3>
+                      <p className="text-xs text-slate-500">Année {campaign.year}</p>
+                    </div>
+                    <SimpleBadge color={
+                      campaign.status === 'planned' ? 'yellow' :
+                      campaign.status === 'planted' ? 'blue' :
+                      campaign.status === 'growing' ? 'green' :
+                      campaign.status === 'harvested' ? 'amber' :
+                      'gray'
+                    }>{campaign.status}</SimpleBadge>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span className="text-slate-500">Parcelle</span><span className="font-medium">{campaign.plot?.name || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Date de début</span><span className="font-medium">{formatDate(campaign.start_date)}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Récolte prévue</span><span className="font-medium">{formatDate(campaign.expected_harvest_date) || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Budget</span><span className="font-medium text-right">{formatCurrency(campaign.budget)}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-500">Responsable</span><span className="font-medium">{campaign.responsible || '—'}</span></div>
+                  </div>
+                </div>
+              }
+              back={
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{campaign.crop_name}</h3>
+                      <p className="text-xs text-slate-500">Année {campaign.year}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => openEdit(campaign)}
+                      className="w-full text-left px-3 py-2 text-xs text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100/50"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(campaign)}
+                      className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-100/50"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              }
+            />
+          ))}
         </div>
       )}
 
@@ -515,7 +538,7 @@ export function CampaignManage() {
         footer={
           <>
             <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Supprimer</button>
+            <button onClick={handleDelete} disabled={saving} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">Supprimer</button>
           </>
         }
       >

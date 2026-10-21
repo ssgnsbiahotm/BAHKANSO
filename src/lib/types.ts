@@ -37,20 +37,31 @@ export interface Funder {
 export interface Funding {
   id: string;
   reference: string | null;
+  label: string | null;
+  source_type: string | null;
+  amount: number;
+  currency: string;
+  funding_date: string | null;
+  expected_date: string | null;
+  status: string;
+  description: string | null;
+  justificatif_url: string | null;
+  justificatif_file_name: string | null;
+  justificatif_uploaded_at: string | null;
+  project_id: string | null;
   funder_id: string | null;
   amount_sent: number;
   currency_sent: string;
   exchange_rate: number | null;
   amount_received: number | null;
   transfer_fees: number | null;
-  date_sent: string;
+  date_sent: string | null;
   date_received: string | null;
   destination_account_id: string | null;
   bank_reference: string | null;
-  status: string;
-  project_id: string | null;
   comment: string | null;
   created_at: string;
+  updated_at: string;
   funder?: Funder | null;
 }
 
@@ -102,6 +113,7 @@ export interface Supplier {
 export interface Expense {
   id: string;
   reference: string | null;
+  label: string | null;
   date: string;
   amount: number;
   currency: string;
@@ -213,10 +225,12 @@ export interface Harvest {
 export interface Animal {
   id: string;
   identifier: string | null;
+  name: string | null;
   species: string;
   breed: string | null;
   sex: string | null;
   birth_date: string | null;
+  date_of_birth: string | null;
   origin: string | null;
   acquisition_date: string | null;
   acquisition_value: number;
@@ -364,6 +378,38 @@ export interface AuditLog {
   new_value: Record<string, unknown> | null;
   description: string | null;
   created_at: string;
+}
+
+export type SurveillanceEventType = 'phyto_traitement' | 'equip_panne';
+export type SurveillanceEventStatus = 'planifie' | 'en_cours' | 'termine' | 'annule';
+
+export interface SurveillanceEvent {
+  id: string;
+  farm_id: string;
+  type: SurveillanceEventType;
+  plot_id: string | null;
+  campaign_id: string | null;
+  lot_id: string | null;
+  animal_id: string | null;
+  project_id: string | null;
+  label: string;
+  description: string | null;
+  scheduled_at: string;
+  completed_at: string | null;
+  status: SurveillanceEventStatus;
+  cost_amount: number | null;
+  responsible_id: string | null;
+  details: Record<string, unknown>;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relations (optionnelles, pour affichage)
+  plot?: { id: string; reference: string | null; name: string } | null;
+  campaign?: { id: string; year: number; crop_name: string } | null;
+  lot?: { id: string; identifier: string; species: string } | null;
+  animal?: { id: string; identifier: string | null; species: string } | null;
+  project?: { id: string; name: string } | null;
+  responsible?: { id: string; name: string } | null;
 }
 
 export interface SiteContent {

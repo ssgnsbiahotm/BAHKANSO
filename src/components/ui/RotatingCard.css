@@ -1,53 +1,203 @@
-/* RotatingCard — classes dédiées rc-*, sans lien avec les anciennes règles .rotating-card-* */
-.rc {
-  position: relative;
-  min-height: 180px;
-  perspective: 1000px;
+/* ==========================================================================
+   RotatingCard — carte retournable professionnelle (style max pro)
+   Retour manuel uniquement : clic, clavier (Entrée/Espace) et tactile.
+   Aucune animation automatique. Respect de prefers-reduced-motion.
+   ========================================================================== */
+
+:root {
+  --rc-radius: 14px;
+  --rc-perspective: 1200px;
+  --rc-transition: 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+  --rc-shadow-front: 0 10px 30px -10px rgba(0, 0, 0, 0.12),
+    0 4px 6px -2px rgba(0, 0, 0, 0.08);
+  --rc-shadow-back: 0 10px 30px -10px rgba(0, 0, 0, 0.15),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  --rc-border: rgba(0, 0, 0, 0.08);
+  --rc-gradient-front: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(250, 250, 250, 0.9)
+  );
+  --rc-gradient-back: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(245, 245, 245, 0.88)
+  );
 }
 
+/* Conteneur de la carte */
+.rc {
+  position: relative;
+  perspective: var(--rc-perspective);
+  min-height: 220px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Intérieur en 3D */
 .rc-inner {
-  display: grid;
+  position: relative;
   width: 100%;
   height: 100%;
-  min-height: 180px;
+  min-height: 220px;
   transform-style: preserve-3d;
-  transition: transform 0.6s ease;
+  transition: transform var(--rc-transition);
 }
 
 .rc.is-flipped .rc-inner {
   transform: rotateY(180deg);
 }
 
+/* Faces */
 .rc-face {
-  grid-area: 1 / 1;
-  position: relative;
+  position: absolute;
+  inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: 12px;
+  border-radius: var(--rc-radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 16px 16px 3rem;
-  background: var(--bg-card, #ffffff);
+  padding: 24px 24px 80px; /* espace pour le bouton de retournement */
+  box-sizing: border-box;
+  transition: opacity 0.2s ease, visibility 0s var(--rc-transition);
+}
+
+.rc-face--front {
+  background: var(--rc-gradient-front);
+  border: 1px solid var(--rc-border);
+  box-shadow: var(--rc-shadow-front);
+  z-index: 2;
 }
 
 .rc-face--back {
+  background: var(--rc-gradient-back);
+  border: 1px solid var(--rc-border);
+  box-shadow: var(--rc-shadow-back);
   transform: rotateY(180deg);
+  z-index: 1;
 }
 
+/* Visibilité des faces */
 .rc:not(.is-flipped) .rc-face--back,
 .rc.is-flipped .rc-face--front {
   visibility: hidden;
-  transition: visibility 0s 0.3s;
+  pointer-events: none;
 }
 
+/* Focus visible pour accessibilité clavier */
+.rc:focus-visible {
+  outline: 3px solid #22c55e;
+  outline-offset: 2px;
+  border-radius: var(--rc-radius);
+}
+
+.rc:focus-visible .rc-face {
+  outline: none;
+}
+
+/* Boutons de retournement */
+.rc-flip-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease,
+    background-color 0.2s ease, border-color 0.2s ease;
+  border: none;
+}
+
+.rc-flip-btn:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+.rc-flip-btn:active {
+  transform: scale(0.97);
+}
+
+.rc-flip-btn--front {
+  background: #ecfdf5;
+  color: #15803d;
+  box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.15);
+}
+
+.rc-flip-btn--front:hover {
+  background: #d1fae5;
+  box-shadow: 0 6px 8px -1px rgba(34, 197, 94, 0.25);
+}
+
+.rc-flip-btn--back {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.rc-flip-btn--back:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* États désactivé */
+.rc[disabled],
+.rc.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Respect des préférences de mouvement réduit */
 @media (prefers-reduced-motion: reduce) {
   .rc-inner {
+    transition: none;
+  }
+  .rc-face {
     transition: none;
   }
   .rc:not(.is-flipped) .rc-face--back,
   .rc.is-flipped .rc-face--front {
     transition: none;
+  }
+  .rc-flip-btn {
+    transition: none;
+  }
+}
+
+/* Hauteur adaptative : pas de texte coupé, la carte grandit avec le contenu */
+@media (min-width: 768px) {
+  .rc {
+    min-height: 260px;
+  }
+  .rc-inner {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 767px) {
+  .rc {
+    min-height: 240px;
+  }
+  .rc-inner {
+    min-height: 240px;
+  }
+  .rc-face {
+    padding: 20px 20px 72px;
+  }
+  .rc-flip-btn {
+    bottom: 12px;
+    right: 12px;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
   }
 }

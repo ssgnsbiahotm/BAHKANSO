@@ -32,6 +32,8 @@ interface ValidatedFormReturn<T> {
   isSubmitting: boolean;
   /** Fonction pour mettre à jour une valeur de champ */
   setFieldValue: <K extends keyof T>(field: K, value: T[K]) => void;
+  /** Fonction pour mettre à jour plusieurs valeurs de champ */
+  setFieldValues: (newValues: Partial<T>) => void;
   /** Fonction pour réinitialiser le formulaire */
   resetForm: () => void;
   /** Fonction pour soumettre le formulaire */
@@ -57,6 +59,7 @@ export function ValidatedForm<T extends object = Record<string, unknown>>({
     isValid,
     isDirty,
     setFieldValue,
+    setFieldValues,
     resetForm,
     validateForm,
   } = useFormValidation<T>(schema, defaultValues);
@@ -99,6 +102,7 @@ export function ValidatedForm<T extends object = Record<string, unknown>>({
     isDirty,
     isSubmitting,
     setFieldValue,
+    setFieldValues,
     resetForm,
     handleSubmit,
   };
@@ -148,6 +152,7 @@ export function useValidatedForm<T extends object = Record<string, unknown>>({
     isSubmitting,
     resetForm: formState.resetForm,
     setFieldValue: formState.setFieldValue,
+    setFieldValues: formState.setFieldValues,
     handleSubmit,
   };
 }

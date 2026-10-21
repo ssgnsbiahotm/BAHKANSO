@@ -54,7 +54,7 @@ export function HarvestManage() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
+  const { values: form, setFieldValue: setForm, errors, handleSubmit } = useValidatedForm({
     schema: harvestSchema,
     defaultValues: {
       campaign_id: '',
@@ -177,7 +177,7 @@ export function HarvestManage() {
       <PageHeader title="Récoltes" subtitle="Gestion des récoltes agricoles" />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <KpiCard label="Total récolté" value={formatNumber(totalQuantity)} icon={<Wheat size={20} />} trend={0} unit="kg" />
+        <KpiCard label="Total récolté" value={`${formatNumber(totalQuantity)} kg`} icon={<Wheat size={20} />} trend={0} />
         <KpiCard label="Chiffre d'affaires" value={formatCurrency(totalRevenue)} icon={<Save size={20} />} trend={0} />
         <KpiCard label="Nombre de récoltes" value={String(harvests.length)} icon={<List size={20} />} trend={0} />
       </div>
@@ -293,7 +293,7 @@ export function HarvestManage() {
 
       {/* Modal formulaire création/édition */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editHarvest ? 'Modifier la récolte' : 'Nouvelle récolte'} size="lg">
-        <form onSubmit={form.handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
             <input

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Sprout, Wallet, FileText, HardHat, Package, Beef, Shield, TrendingUp,
   Check, BarChart3, ScrollText, Bell, Users, Landmark, Receipt, Truck,
@@ -27,13 +28,16 @@ interface LogoProps {
 }
 
 export function Logo({ icon = 'Sprout', color = '#FFFFFF', bgColor = '#16A34A', size = 40, className = '', imageUrl }: LogoProps) {
-  if (imageUrl) {
+  const [useFallback, setUseFallback] = useState(false);
+
+  if (imageUrl && !useFallback) {
     return (
       <img
         src={imageUrl}
         alt="Logo"
         className={`rounded-xl object-cover flex-shrink-0 ${className}`}
         style={{ width: size, height: size }}
+        onError={() => setUseFallback(true)}
       />
     );
   }
