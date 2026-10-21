@@ -17,7 +17,7 @@ import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import * as z from 'zod';
 import type { CropOperation } from '@/lib/types';
 
-const cropOperationSchema = z.object({
+export const cropOperationSchema = z.object({
   campaign_id: z.string().optional(),
   plot_id: z.string().optional(),
   date: z.string().min(1, 'La date est obligatoire'),
@@ -27,7 +27,13 @@ const cropOperationSchema = z.object({
   unit: z.string().optional(),
   cost: z.number().nonnegative().optional(),
   responsible: z.string().optional(),
-});
+}).refine(
+  (data) => !!(data.campaign_id || data.plot_id),
+  {
+    message: 'Une opération doit être liée à au moins une campagne ou une parcelle.',
+    path: ['campaign_id'],
+  }
+);
 
 interface CropOperationFormValues {
   campaign_id?: string;

@@ -21,6 +21,7 @@ export interface AppUser {
   active: boolean;
   last_login: string | null;
   created_at: string;
+  site_id: string | null;
 }
 
 export interface Funder {
@@ -124,6 +125,7 @@ export interface Expense {
   bank_account_id: string | null;
   cash_account_id: string | null;
   project_id: string | null;
+  site_id: string | null;
   activity: string | null;
   funding_id: string | null;
   description: string | null;
@@ -167,6 +169,9 @@ export interface Site {
   location: string | null;
   area_hectares: number | null;
   responsible: string | null;
+  farm_id: string | null;
+  code: string | null;
+  status: string | null;
 }
 
 export interface Plot {
@@ -191,6 +196,7 @@ export interface Campaign {
   budget: number;
   responsible: string | null;
   status: string;
+  site_id: string | null;
   plot?: Plot | null;
 }
 
@@ -250,6 +256,7 @@ export interface AnimalLot {
   location: string | null;
   status: string;
   estimated_value: number;
+  site_id: string | null;
 }
 
 export interface AnimalEvent {
@@ -277,6 +284,7 @@ export interface Project {
   progress: number;
   description: string | null;
   funding_id: string | null;
+  site_id: string | null;
 }
 
 export interface ProjectStep {
@@ -429,6 +437,56 @@ export interface Media {
   uploaded_by: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface FundingAllocation {
+  id: string;
+  funding_id: string;
+  site_id: string;
+  amount_fcfa: number;
+  created_at: string;
+}
+
+export interface Customer {
+  id: string;
+  site_id: string | null;
+  name: string;
+  type: string;
+  phone: string | null;
+  email: string | null;
+  total_purchases: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Sale {
+  id: string;
+  reference: string | null;
+  site_id: string | null;
+  customer_id: string | null;
+  date: string;
+  payment_method: string;
+  bank_account_id: string | null;
+  cash_account_id: string | null;
+  total_amount: number;
+  status: string;
+  comment: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SaleItem {
+  id: string;
+  sale_id: string;
+  source_type: string; // 'harvest' | 'animal' | 'animal_lot' | 'inventory_item'
+  source_id: string;
+  description: string | null;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  total: number;
+  created_at: string;
 }
 
 export async function logAudit(
