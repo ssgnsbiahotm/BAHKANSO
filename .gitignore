@@ -93,3 +93,21 @@ skills-lock.json
 # Backups locaux
 *.backup
 *.working
+
+# Artefacts de build Surge / hébergement
+200.html
+CNAME
+
+# Fichiers Windows
+.Identifier
+*.Zone.Identifier
+
+# Backups locaux et logs
+*.bak-*
+lint-out.txt
+*.log
+
+# Captures d'écran locales
+*.png
+!public/**/*.png
+!src/assets/**/*.png
