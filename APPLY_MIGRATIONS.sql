@@ -65,6 +65,9 @@ CREATE TABLE IF NOT EXISTS funding_allocations (
 
 ALTER TABLE funding_allocations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "auth_select_funding_allocations" ON funding_allocations;
+DROP POLICY IF EXISTS "auth_insert_funding_allocations" ON funding_allocations;
+DROP POLICY IF EXISTS "auth_update_funding_allocations" ON funding_allocations;
+DROP POLICY IF EXISTS "auth_delete_funding_allocations" ON funding_allocations;
 CREATE POLICY "auth_select_funding_allocations" ON funding_allocations
   FOR SELECT TO authenticated USING (true);
 CREATE POLICY "auth_insert_funding_allocations" ON funding_allocations
@@ -154,6 +157,9 @@ CREATE TABLE IF NOT EXISTS customers (
 
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "auth_select_customers" ON customers;
+DROP POLICY IF EXISTS "auth_insert_customers" ON customers;
+DROP POLICY IF EXISTS "auth_update_customers" ON customers;
+DROP POLICY IF EXISTS "auth_delete_customers" ON customers;
 CREATE POLICY "auth_select_customers" ON customers FOR SELECT TO authenticated USING (true);
 CREATE POLICY "auth_insert_customers" ON customers FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "auth_update_customers" ON customers FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
@@ -186,6 +192,9 @@ CREATE TABLE IF NOT EXISTS sales (
 
 ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "auth_select_sales" ON sales;
+DROP POLICY IF EXISTS "auth_insert_sales" ON sales;
+DROP POLICY IF EXISTS "auth_update_sales" ON sales;
+DROP POLICY IF EXISTS "auth_delete_sales" ON sales;
 CREATE POLICY "auth_select_sales" ON sales FOR SELECT TO authenticated USING (true);
 CREATE POLICY "auth_insert_sales" ON sales FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "auth_update_sales" ON sales FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
@@ -218,6 +227,9 @@ CREATE TABLE IF NOT EXISTS sale_items (
 
 ALTER TABLE sale_items ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "auth_select_sale_items" ON sale_items;
+DROP POLICY IF EXISTS "auth_insert_sale_items" ON sale_items;
+DROP POLICY IF EXISTS "auth_update_sale_items" ON sale_items;
+DROP POLICY IF EXISTS "auth_delete_sale_items" ON sale_items;
 CREATE POLICY "auth_select_sale_items" ON sale_items FOR SELECT TO authenticated USING (true);
 CREATE POLICY "auth_insert_sale_items" ON sale_items FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "auth_update_sale_items" ON sale_items FOR UPDATE TO authenticated USING (true) WITH CHECK (true);

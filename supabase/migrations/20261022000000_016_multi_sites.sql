@@ -65,6 +65,9 @@ CREATE TABLE IF NOT EXISTS funding_allocations (
 
 ALTER TABLE funding_allocations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "auth_select_funding_allocations" ON funding_allocations;
+DROP POLICY IF EXISTS "auth_insert_funding_allocations" ON funding_allocations;
+DROP POLICY IF EXISTS "auth_update_funding_allocations" ON funding_allocations;
+DROP POLICY IF EXISTS "auth_delete_funding_allocations" ON funding_allocations;
 CREATE POLICY "auth_select_funding_allocations" ON funding_allocations
   FOR SELECT TO authenticated USING (true);
 CREATE POLICY "auth_insert_funding_allocations" ON funding_allocations
