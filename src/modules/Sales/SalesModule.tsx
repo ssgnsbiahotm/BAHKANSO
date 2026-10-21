@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
-import { ShoppingBag, Wheat, MapPin, CreditCard, Eye, Edit, Filter, ChevronDown, Plus, TrendingUp, Users } from 'lucide-react';
+import { ShoppingBag, Wheat, MapPin, CreditCard, Eye, Edit, Filter, ChevronDown, Plus, TrendingUp, Users, RefreshCw } from 'lucide-react';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useSalesData } from './hooks/useSalesData';
+import { useToast } from '@/lib/Toast';
 import type { SaleWithRelations } from './hooks/useSalesData';
 
 interface StatusBadgeProps {
@@ -81,7 +82,13 @@ function SaleCardFront({ sale, index }: { sale: SaleWithRelations; index: number
   );
 }
 
-function SaleCardBack({ sale }: { sale: SaleWithRelations }) {
+interface SaleCardBackProps {
+  sale: SaleWithRelations;
+  onViewDetails: () => void;
+  onEdit: () => void;
+}
+
+function SaleCardBack({ sale, onViewDetails, onEdit }: SaleCardBackProps) {
   return (
     <div className="h-full p-5 bg-slate-50 overflow-y-auto">
       <h4 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
@@ -143,10 +150,10 @@ function SaleCardBack({ sale }: { sale: SaleWithRelations }) {
 
       {/* Actions */}
       <div className="flex gap-2 mt-6 pt-4 border-t border-slate-200">
-        <button className="flex-1 py-2 px-4 bg-primary text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
+        <button onClick={onViewDetails} className="flex-1 py-2 px-4 bg-primary text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
           <Eye size={14} /> Voir détails
         </button>
-        <button className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
+        <button onClick={onEdit} className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
           <Edit size={14} /> Modifier
         </button>
       </div>
@@ -231,6 +238,7 @@ export const SalesModule = () => {
   const [selectedSite, setSelectedSite] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const toast = useToast();
 
   // Sites uniques pour le filtre
   const sites = useMemo(() => {
@@ -306,11 +314,11 @@ export const SalesModule = () => {
           <p className="text-slate-500 mt-1">Gestion des ventes et clients</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
+          <button onClick={() => toast.show('Nouvelle vente — à implémenter', 'info')} className="px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
             <Plus size={16} /> Nouvelle vente
           </button>
-          <button onClick={refresh} className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-sm text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
-            <TrendingUp size={16} /> Actualiser
+          <button onClick={() => { refresh(); toast.show('Données actualisées', 'success'); }} className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-sm text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
+            <RefreshCw size={16} /> Actualiser
           </button>
         </div>
       </div>
@@ -378,7 +386,11 @@ export const SalesModule = () => {
                   backLabel="Retour"
                   className="h-72"
                   front={<SaleCardFront sale={sale} index={index} />}
-                  back={<SaleCardBack sale={sale} />}
+                  back={<SaleCardBack
+                    sale={sale}
+                    onViewDetails={() => toast.show(`Détails de la vente ${sale.reference}`, 'info')}
+                    onEdit={() => toast.show(`Édition de la vente ${sale.reference} — à implémenter`, 'info')}
+                  />}
                 />
               ))}
             </div>
