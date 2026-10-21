@@ -24,6 +24,7 @@ const Projects = lazy(() => import('@/pages/Projects').then(m => ({ default: m.P
 const Suppliers = lazy(() => import('@/pages/Suppliers').then(m => ({ default: m.Suppliers })));
 const Media = lazy(() => import('@/pages/Media').then(m => ({ default: m.Media })));
 const FinanceModule = lazy(() => import('@/modules/Finance').then(m => ({ default: m.FinanceModule })));
+const SalesModule = lazy(() => import('@/modules/Sales').then(m => ({ default: m.SalesModule })));
 const AnimalManage = lazy(() => import('@/pages/AnimalManage').then(m => ({ default: m.AnimalManage })));
 const AnimalLotManage = lazy(() => import('@/pages/AnimalLotManage').then(m => ({ default: m.AnimalLotManage })));
 const AnimalEventManage = lazy(() => import('@/pages/AnimalEventManage').then(m => ({ default: m.AnimalEventManage })));
@@ -60,6 +61,7 @@ const ProjectsSuspense = createSuspenseWrapper(Projects);
 const SuppliersSuspense = createSuspenseWrapper(Suppliers);
 const MediaSuspense = createSuspenseWrapper(Media);
 const FinanceModuleSuspense = createSuspenseWrapper(FinanceModule);
+const SalesModuleSuspense = createSuspenseWrapper(SalesModule);
 const AnimalManageSuspense = createSuspenseWrapper(AnimalManage);
 const AnimalLotManageSuspense = createSuspenseWrapper(AnimalLotManage);
 const AnimalEventManageSuspense = createSuspenseWrapper(AnimalEventManage);
@@ -243,6 +245,14 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequireModule module="finance" action="read">
             <FinanceModuleSuspense />
+          </RequireModule>
+        ),
+      },
+      {
+        path: 'ventes',
+        element: (
+          <RequireModule module="ventes" action="read">
+            <SalesModuleSuspense />
           </RequireModule>
         ),
       },

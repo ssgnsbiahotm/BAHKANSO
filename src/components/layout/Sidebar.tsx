@@ -5,7 +5,7 @@ import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Wallet, Sprout,
+  LayoutDashboard, Wallet, Sprout, ShoppingBag,
   Beef, HardHat, Package, Truck, Image, Layout,
   Users, Settings, X, ShieldAlert, Wrench,
 } from 'lucide-react';
@@ -21,6 +21,7 @@ export interface NavItem {
 const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, module: 'dashboard' },
   { id: 'finance', label: 'Finances', icon: <Wallet size={20} />, module: 'finance' },
+  { id: 'ventes', label: 'Ventes', icon: <ShoppingBag size={20} />, module: 'ventes' },
   { id: 'agriculture', label: 'Agriculture', icon: <Sprout size={20} />, module: 'agriculture', children: [
     { id: 'agriculture?plots', label: 'Parcelles', module: 'agriculture' },
     { id: 'agriculture?campaigns', label: 'Campagnes', module: 'agriculture' },
@@ -69,6 +70,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     const routeMap: Record<string, string> = {
       dashboard: '/app/dashboard',
       finance: '/app/finance',
+      ventes: '/app/ventes',
       agriculture: '/app/agriculture',
       'agriculture?plots': '/app/agriculture/plots',
       'agriculture?campaigns': '/app/agriculture/campaigns',

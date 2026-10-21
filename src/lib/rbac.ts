@@ -16,6 +16,7 @@ export type UserRole =
 export type ModuleKey =
   | 'dashboard'
   | 'finance'
+  | 'ventes'
   | 'agriculture'
   | 'livestock'
   | 'projects'
@@ -82,6 +83,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   administrateur: {
     dashboard: { read: true, write: true, delete: true, admin: true },
     finance: { read: true, write: true, delete: true, admin: true },
+    ventes: { read: true, write: true, delete: true, admin: true },
     agriculture: { read: true, write: true, delete: true, admin: true },
     livestock: { read: true, write: true, delete: true, admin: true },
     projects: { read: true, write: true, delete: true, admin: true },
@@ -98,6 +100,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   propriétaire: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: true, delete: false, admin: false }, // Validation budgétaire
+    ventes: { read: true, write: true, delete: false, admin: false }, // Validation commerciale
     agriculture: { read: true, write: false, delete: false, admin: false },
     livestock: { read: true, write: false, delete: false, admin: false },
     projects: { read: true, write: true, delete: false, admin: false }, // Suivi chantiers
@@ -114,6 +117,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   financeur: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: true, delete: false, admin: false }, // Ses financements uniquement
+    ventes: { read: true, write: false, delete: false, admin: false }, // Vue uniquement
     agriculture: { read: false, write: false, delete: false, admin: false },
     livestock: { read: false, write: false, delete: false, admin: false },
     projects: { read: true, write: false, delete: false, admin: false }, // Projets financés
@@ -130,6 +134,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   gestionnaire: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: true, delete: false, admin: false }, // Dépenses courantes
+    ventes: { read: true, write: true, delete: false, admin: false }, // Ventes courantes
     agriculture: { read: true, write: true, delete: false, admin: false },
     livestock: { read: true, write: true, delete: false, admin: false },
     projects: { read: true, write: true, delete: false, admin: false },
@@ -146,6 +151,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   comptable: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: true, delete: true, admin: false }, // Complet: dépenses, trésorerie, docs
+    ventes: { read: true, write: true, delete: true, admin: false }, // Complet: ventes, clients, facturation
     agriculture: { read: true, write: false, delete: false, admin: false }, // Coûts seulement
     livestock: { read: true, write: false, delete: false, admin: false }, // Coûts seulement
     projects: { read: true, write: false, delete: false, admin: false }, // Budgets seulement
@@ -162,6 +168,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   responsable_agricole: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: true, delete: false, admin: false }, // Dépenses agricoles
+    ventes: { read: true, write: false, delete: false, admin: false }, // Vue ventes agricoles
     agriculture: { read: true, write: true, delete: true, admin: false }, // Complet: parcelles, campagnes, opérations, récoltes
     livestock: { read: true, write: false, delete: false, admin: false }, // Vue seulement
     projects: { read: true, write: true, delete: false, admin: false }, // Projets agricoles
@@ -178,6 +185,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   responsable_élevage: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: true, delete: false, admin: false }, // Dépenses élevage
+    ventes: { read: true, write: false, delete: false, admin: false }, // Vue ventes élevage
     agriculture: { read: true, write: false, delete: false, admin: false }, // Vue seulement
     livestock: { read: true, write: true, delete: true, admin: false }, // Complet: lots, animaux, événements
     projects: { read: true, write: true, delete: false, admin: false }, // Projets élevage
@@ -194,6 +202,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   auditeur: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: false, delete: false, admin: false },
+    ventes: { read: true, write: false, delete: false, admin: false },
     agriculture: { read: true, write: false, delete: false, admin: false },
     livestock: { read: true, write: false, delete: false, admin: false },
     projects: { read: true, write: false, delete: false, admin: false },
