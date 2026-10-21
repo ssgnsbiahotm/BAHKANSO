@@ -1,11 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ShoppingBag, Wheat, MapPin, CreditCard, Eye, Edit, Filter, ChevronDown, Plus, TrendingUp, Users, RefreshCw, Trash2, AlertCircle } from 'lucide-react';
+import { ShoppingBag, Wheat, MapPin, CreditCard, Edit, Filter, ChevronDown, Plus, TrendingUp, Users, RefreshCw, Trash2 } from 'lucide-react';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useSalesData } from './hooks/useSalesData';
 import { useToast } from '@/lib/Toast';
-import { supabase } from '@/lib/supabase';
 import type { SaleWithRelations } from './hooks/useSalesData';
 import { SaleFormModal } from './components/SaleFormModal';
 
@@ -86,81 +85,79 @@ function SaleCardFront({ sale, index }: { sale: SaleWithRelations; index: number
 
 interface SaleCardBackProps {
   sale: SaleWithRelations;
-  onViewDetails: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-function SaleCardBack({ sale, onViewDetails, onEdit, onDelete }: SaleCardBackProps) {
+function SaleCardBack({ sale, onEdit, onDelete }: SaleCardBackProps) {
   return (
-    <div className="h-full p-5 bg-slate-50 overflow-y-auto">
-      <h4 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-        <ShoppingBag size={18} className="text-green-600" />
-        Détails de la vente
-      </h4>
+    <div className="h-full flex flex-col justify-between p-5 bg-slate-50">
+      <div>
+        <h4 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <ShoppingBag size={18} className="text-green-600" />
+          Détails de la vente
+        </h4>
 
-      {/* Référence + client + date */}
-      <div className="space-y-2 mb-4 p-3 bg-white rounded-lg border border-slate-100">
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p className="text-slate-500">Référence</p>
-            <p className="font-mono text-slate-900">{sale.reference || '—'}</p>
-          </div>
-          <div>
-            <p className="text-slate-500">Date</p>
-            <p className="font-medium text-slate-900">{formatDate(sale.date)}</p>
-          </div>
-          <div>
-            <p className="text-slate-500">Client</p>
-            <p className="font-medium text-slate-900">{sale.customer?.name || '—'}</p>
-          </div>
-          <div>
-            <p className="text-slate-500">Site</p>
-            <p className="font-medium text-slate-900">{sale.site?.name || '—'}</p>
-          </div>
-          <div className="col-span-2">
-            <p className="text-slate-500">Paiement</p>
-            <p className="font-medium text-slate-900 capitalize">{sale.payment_method || 'espèces'}</p>
+        {/* Référence + client + date */}
+        <div className="space-y-2 mb-4 p-3 bg-white rounded-lg border border-slate-100">
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <p className="text-slate-500">Référence</p>
+              <p className="font-mono text-slate-900">{sale.reference || '—'}</p>
+            </div>
+            <div>
+              <p className="text-slate-500">Date</p>
+              <p className="font-medium text-slate-900">{formatDate(sale.date)}</p>
+            </div>
+            <div>
+              <p className="text-slate-500">Client</p>
+              <p className="font-medium text-slate-900">{sale.customer?.name || '—'}</p>
+            </div>
+            <div>
+              <p className="text-slate-500">Site</p>
+              <p className="font-medium text-slate-900">{sale.site?.name || '—'}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-slate-500">Paiement</p>
+              <p className="font-medium text-slate-900 capitalize">{sale.payment_method || 'espèces'}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Lignes de vente */}
-      <div className="mb-4">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Articles</p>
-        <div className="space-y-2">
-          {sale.items && sale.items.length > 0 ? (
-            sale.items.map((item, i) => (
-              <div key={item.id || i} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-900 truncate">{item.description || 'Article'}</p>
-                  <p className="text-xs text-slate-500">{item.quantity} {item.unit} × {formatCurrency(item.unit_price)}</p>
+        {/* Lignes de vente - avec scroll uniquement sur cette liste */}
+        <div className="mb-4 overflow-y-auto max-h-[40vh] pr-2">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Articles</p>
+          <div className="space-y-2">
+            {sale.items && sale.items.length > 0 ? (
+              sale.items.map((item, i) => (
+                <div key={item.id || i} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 truncate">{item.description || 'Article'}</p>
+                    <p className="text-xs text-slate-500">{item.quantity} {item.unit} × {formatCurrency(item.unit_price)}</p>
+                  </div>
+                  <p className="font-semibold text-slate-900 ml-4 whitespace-nowrap">{formatCurrency(item.total)}</p>
                 </div>
-                <p className="font-semibold text-slate-900 ml-4 whitespace-nowrap">{formatCurrency(item.total)}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-slate-500 text-center py-4">Aucun article</p>
-          )}
+              ))
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-4">Aucun article</p>
+            )}
+          </div>
+        </div>
+
+        {/* Total */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+          <span className="font-semibold text-slate-700">Total</span>
+          <span className="text-xl font-bold text-slate-900">{formatCurrency(sale.total_amount)}</span>
         </div>
       </div>
 
-      {/* Total */}
-      <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-        <span className="font-semibold text-slate-700">Total</span>
-        <span className="text-xl font-bold text-slate-900">{formatCurrency(sale.total_amount)}</span>
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 mt-6 pt-4 border-t border-slate-200">
-        <button onClick={onViewDetails} className="flex-1 py-2 px-4 bg-primary text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
-          <Eye size={14} /> Voir détails
-        </button>
+      {/* Actions - deux boutons côte à côte en bas */}
+      <div className="flex gap-2 pt-4 border-t border-slate-200">
         <button onClick={onEdit} className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
           <Edit size={14} /> Modifier
         </button>
-        <button onClick={onDelete} className="py-2 px-4 bg-red-100 text-red-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-red-200 transition-colors" title="Supprimer">
-          <Trash2 size={14} />
+        <button onClick={onDelete} className="flex-1 py-2 px-4 bg-red-50 text-red-600 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-red-100 transition-colors">
+          <Trash2 size={14} /> Supprimer
         </button>
       </div>
     </div>
@@ -240,7 +237,7 @@ function SalesFilters({
 }
 
 export const SalesModule = () => {
-  const { sales, customers, stats, loading, error, refresh } = useSalesData();
+  const { sales, customers, stats, loading, error, refresh, deleteSale } = useSalesData();
   const [selectedSite, setSelectedSite] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
@@ -341,15 +338,13 @@ export const SalesModule = () => {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase.from('sales').delete().eq('id', sale.id);
-      if (error) throw error;
+      await deleteSale(sale.id);
       toast.show('Vente supprimée', 'success');
-      refresh();
     } catch (err) {
       console.error('Erreur suppression:', err);
       toast.show('Erreur lors de la suppression', 'error');
     }
-  }, [refresh, toast]);
+  }, [deleteSale, toast]);
 
   if (loading) {
     return (
@@ -466,7 +461,6 @@ export const SalesModule = () => {
                   front={<SaleCardFront sale={sale} index={index} />}
                   back={<SaleCardBack
                     sale={sale}
-                    onViewDetails={() => toast.show(`Détails de la vente ${sale.reference}`, 'info')}
                     onEdit={() => openEditModal(sale)}
                     onDelete={() => handleDelete(sale)}
                   />}

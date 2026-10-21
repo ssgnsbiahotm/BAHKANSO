@@ -66,6 +66,15 @@ export function useSalesData() {
       })()
     : null;
 
+  // Supprimer une vente
+  const deleteSale = async (id: string) => {
+    const { error } = await supabase.from('sales').delete().eq('id', id);
+    if (error) throw error;
+    // Rafraîchir les données
+    salesQuery.refetch();
+    customersQuery.refetch();
+  };
+
   return {
     sales: salesQuery.data ?? [],
     customers: customersQuery.data ?? [],
@@ -76,5 +85,6 @@ export function useSalesData() {
       salesQuery.refetch();
       customersQuery.refetch();
     },
+    deleteSale,
   };
 }
