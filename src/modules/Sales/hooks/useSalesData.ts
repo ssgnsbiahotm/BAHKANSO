@@ -1,7 +1,15 @@
 import { useSimpleQuery } from '@/hooks/usePaginatedQuery';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/AuthContext';
 import type { Sale, Customer } from '@/lib/types';
 import { formatCurrency } from '@/lib/format';
+
+const ROLES_ACCES_GLOBAL = ['administrateur', 'propriétaire'];
+
+const isAccesGlobal = (appUser: { role: string | null } | null) => {
+  if (!appUser?.role) return false;
+  return ROLES_ACCES_GLOBAL.includes(appUser.role);
+};
 
 export interface SaleWithRelations extends Sale {
   customer: Pick<Customer, 'id' | 'name' | 'type'> | null;
@@ -17,12 +25,17 @@ export interface SalesStats {
 }
 
 export function useSalesData() {
+  const { appUser } = useAuth();
+  const siteId = appUser?.site_id ?? null;
+  const filters = isAccesGlobal(appUser) ? [] : [{ column: 'site_id', operation: 'eq', value: siteId }];
+
   // Requête ventes avec jointures customer + site + items
   const salesQuery = useSimpleQuery<SaleWithRelations>(
     'sales',
     {
       columns: '*, customer:customers(id,name,type), site:sites(id,name,code), items:sale_items(id,description,quantity,unit,unit_price,total)',
       orderBy: { column: 'date', ascending: false },
+      filters,
     },
     true
   );

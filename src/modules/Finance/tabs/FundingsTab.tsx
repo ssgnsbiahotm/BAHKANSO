@@ -29,6 +29,7 @@ const fundingSchema = z.object({
   description: z.string().nullable(),
   justificatif_url: z.string().url().nullable().or(z.literal('')),
   justificatif_file: z.any().optional(),
+  site_id: z.string().nullable().optional(),
 });
 
 interface FundingFormValues {
@@ -43,6 +44,7 @@ interface FundingFormValues {
   description: string | null;
   justificatif_url: string | null;
   justificatif_file?: File | null | undefined;
+  site_id: string | null;
 }
 
 const SOURCE_TYPE_LABELS: Record<string, string> = {
@@ -254,6 +256,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
       description: null,
       justificatif_url: null,
       justificatif_file: null,
+      site_id: appUser?.site_id ?? null,
     },
     onSubmit: async (values) => {
       await executeAction(async () => {
@@ -268,6 +271,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           status: values.status,
           description: values.description,
           justificatif_url: values.justificatif_url || null,
+          site_id: values.site_id ?? null,
         };
 
         let createdId: string | null = null;
@@ -335,6 +339,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
       description: funding.description ?? null,
       justificatif_url: funding.justificatif_url ?? null,
       justificatif_file: null,
+      site_id: funding.site_id ?? null,
     });
     setEditingFunding(funding);
     setModalOpen(true);
@@ -550,6 +555,27 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               className="form-input w-full"
               placeholder="https://..."
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+            {isAuthorized ? (
+              <input
+                type="text"
+                value={form.values.site_id ?? ''}
+                onChange={(e) => form.setFieldValue('site_id', e.target.value || null)}
+                className="form-input w-full"
+                placeholder="ID du site"
+              />
+            ) : (
+              <input
+                type="text"
+                value={form.values.site_id ?? ''}
+                readOnly
+                disabled
+                className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+                title="Site déterminé automatiquement depuis votre session"
+              />
+            )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button

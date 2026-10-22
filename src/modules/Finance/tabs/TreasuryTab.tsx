@@ -25,6 +25,7 @@ const transactionSchema = z.object({
   cash_account_id: z.string().nullable(),
   description: z.string().nullable(),
   transaction_date: z.string().min(1, 'Date obligatoire'),
+  site_id: z.string().nullable().optional(),
 });
 
 interface TransactionFormValues {
@@ -37,6 +38,7 @@ interface TransactionFormValues {
   cash_account_id: string | null;
   description: string | null;
   transaction_date: string;
+  site_id: string | null;
 }
 
 const DIRECTION_LABELS: Record<string, string> = {
@@ -193,6 +195,7 @@ const CreateTransactionCard = ({ onCreate }: { onCreate: () => void }) => (
 export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
   const { data, loading, error, refetch } = treasuryData;
   const { executeAction, loading: actionLoading } = useAsyncAction();
+  const { appUser } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
@@ -209,6 +212,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
       cash_account_id: null,
       description: null,
       transaction_date: new Date().toISOString().slice(0, 16),
+      site_id: null,
     },
     onSubmit: async (values) => {
       await executeAction(async () => {
@@ -222,6 +226,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
           cash_account_id: values.cash_account_id,
           description: values.description,
           transaction_date: values.transaction_date,
+          site_id: values.site_id ?? appUser?.site_id ?? null,
         };
 
         if (editingTransaction) {
@@ -265,6 +270,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
       cash_account_id: transaction.cash_account_id ?? null,
       description: transaction.description ?? null,
       transaction_date: transaction.transaction_date ? transaction.transaction_date.slice(0, 16) : new Date().toISOString().slice(0, 16),
+      site_id: transaction.site_id ?? null,
     });
     setEditingTransaction(transaction);
     setModalOpen(true);
@@ -447,6 +453,17 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
               className="form-input w-full"
             />
             {form.errors.transaction_date && <p className="text-xs text-red-500 mt-1">{form.errors.transaction_date}</p>}
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+            <input
+              type="text"
+              value={form.values.site_id ?? appUser?.site_id ?? ''}
+              readOnly
+              disabled
+              className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+              title="Site déterminé automatiquement depuis votre session"
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button

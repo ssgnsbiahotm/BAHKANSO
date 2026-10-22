@@ -64,6 +64,7 @@ export interface Funding {
   created_at: string;
   updated_at: string;
   funder?: Funder | null;
+  site_id: string | null;
 }
 
 export interface BankAccount {
@@ -97,6 +98,7 @@ export interface Transaction {
   description: string | null;
   funding_id: string | null;
   transaction_date: string;
+  site_id: string | null;
 }
 
 export interface Supplier {
@@ -161,6 +163,7 @@ export interface Document {
   verified_date: string | null;
   verified_by: string | null;
   comment: string | null;
+  site_id: string | null;
 }
 
 export interface Site {

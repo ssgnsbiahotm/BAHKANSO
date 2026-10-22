@@ -25,6 +25,7 @@ const documentSchema = z.object({
   upload_date: z.string().min(1, 'Date d\'upload obligatoire'),
   uploaded_by: z.string().nullable(),
   comment: z.string().nullable(),
+  site_id: z.string().nullable().optional(),
 });
 
 interface DocumentFormValues {
@@ -35,6 +36,7 @@ interface DocumentFormValues {
   upload_date: string;
   uploaded_by: string | null;
   comment: string | null;
+  site_id: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -299,6 +301,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
       upload_date: new Date().toISOString().slice(0, 16),
       uploaded_by: currentUploader,
       comment: null,
+      site_id: appUser?.site_id ?? null,
     },
     onSubmit: async (values) => {
       await executeAction(async () => {
@@ -327,7 +330,8 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
           uploaded_by: values.uploaded_by,
           comment: values.comment,
           object_type: null,
-        object_id: null,
+          object_id: null,
+          site_id: values.site_id ?? null,
         };
         let createdId: string | null = editingDocument?.id ?? null;
 
@@ -389,6 +393,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
       upload_date: document.upload_date ? document.upload_date.slice(0, 16) : new Date().toISOString().slice(0, 16),
       uploaded_by: document.uploaded_by ?? currentUploader,
       comment: document.comment ?? null,
+      site_id: document.site_id ?? null,
     });
     setEditingDocument(document);
     setSelectedFile(null);
@@ -586,6 +591,27 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
               className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
               title="Déterminé automatiquement depuis votre session"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+            {isAuthorized ? (
+              <input
+                type="text"
+                value={form.values.site_id ?? ''}
+                onChange={(e) => form.setFieldValue('site_id', e.target.value || null)}
+                className="form-input w-full"
+                placeholder="ID du site"
+              />
+            ) : (
+              <input
+                type="text"
+                value={form.values.site_id ?? ''}
+                readOnly
+                disabled
+                className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+                title="Site déterminé automatiquement depuis votre session"
+              />
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Commentaire</label>
