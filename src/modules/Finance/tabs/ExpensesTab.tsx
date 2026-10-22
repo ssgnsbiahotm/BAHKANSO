@@ -16,8 +16,8 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
 
   const rows = data ?? [];
 
-  const total = rows.reduce((sum, e) => sum + e.amount_paid, 0);
-  const ceMois = rows.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).reduce((sum, e) => sum + e.amount_paid, 0);
+  const total = rows.reduce((sum, e) => sum + (Number(e.amount_paid) || 0), 0);
+  const ceMois = rows.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).reduce((sum, e) => sum + (Number(e.amount_paid) || 0), 0);
   const avecJustificatif = rows.filter(e => e.has_justificatif).length;
 
   return (

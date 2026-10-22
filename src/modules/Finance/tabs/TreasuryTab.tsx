@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/AuthContext';
 import { z } from 'zod';
 import type { Transaction } from '@/lib/types';
 import { useTreasuryTransactions } from '@/modules/Finance/hooks/useFinanceData';

@@ -19,53 +19,46 @@ interface FundingsTabProps {
 
 const fundingSchema = z.object({
   reference: z.string().min(1, 'Référence obligatoire'),
-  label: z.string().min(1, 'Libellé obligatoire'),
-  amount: z.number().positive('Montant doit être positif'),
-  currency: z.string().min(1, 'Devise obligatoire'),
-  source_type: z.enum(['investissement', 'pret', 'subvention', 'autre']),
-  funding_date: z.string().min(1, 'Date obligatoire'),
-  expected_date: z.string().nullable(),
-  status: z.enum(['prevue', 'recue', 'en_cours', 'annulee']),
-  description: z.string().nullable(),
-  justificatif_url: z.string().url().nullable().or(z.literal('')),
-  justificatif_file: z.any().optional(),
-  site_id: z.string().nullable().optional(),
+  funder_id: z.string().nullable(),
+  amount_sent: z.number().positive('Montant envoyé doit être positif'),
+  currency_sent: z.string().min(1, 'Devise obligatoire'),
+  exchange_rate: z.number().nonnegative('Taux de change doit être positif').default(1),
+  amount_received: z.number().nonnegative('Montant reçu doit être positif').nullable().default(null),
+  transfer_fees: z.number().nonnegative('Frais de transfert doivent être positifs').nullable().default(null),
+  date_sent: z.string().min(1, 'Date d\'envoi obligatoire'),
+  date_received: z.string().nullable().default(null),
+  status: z.string().min(1, 'Statut obligatoire'),
+  comment: z.string().nullable().default(null),
+  site_id: z.string().nullable(),
 });
 
 interface FundingFormValues {
   reference: string;
-  label: string;
-  amount: number;
-  currency: string;
-  source_type: 'investissement' | 'pret' | 'subvention' | 'autre';
-  funding_date: string;
-  expected_date: string | null;
-  status: 'prevue' | 'recue' | 'en_cours' | 'annulee';
-  description: string | null;
-  justificatif_url: string | null;
-  justificatif_file?: File | null | undefined;
+  funder_id: string | null;
+  amount_sent: number;
+  currency_sent: string;
+  exchange_rate: number;
+  amount_received: number | null;
+  transfer_fees: number | null;
+  date_sent: string;
+  date_received: string | null;
+  status: string;
+  comment: string | null;
   site_id: string | null;
 }
 
-const SOURCE_TYPE_LABELS: Record<string, string> = {
-  investissement: 'Investissement',
-  pret: 'Prêt',
-  subvention: 'Subvention',
-  autre: 'Autre',
-};
-
 const STATUS_LABELS: Record<string, string> = {
-  prevue: 'Prévue',
-  recue: 'Reçue',
-  en_cours: 'En cours',
-  annulee: 'Annulée',
+  prévu: 'Prévu',
+  envoyé: 'Envoyé',
+  reçu: 'Reçu',
+  annulé: 'Annulé',
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  prevue: 'text-blue-700 bg-blue-50',
-  recue: 'text-green-700 bg-green-50',
-  en_cours: 'text-amber-700 bg-amber-50',
-  annulee: 'text-slate-700 bg-slate-100',
+  prévu: 'text-blue-700 bg-blue-50',
+  envoyé: 'text-indigo-700 bg-indigo-50',
+  reçu: 'text-green-700 bg-green-50',
+  annulé: 'text-slate-700 bg-slate-100',
 };
 
 const FundingCardFront = ({ funding, onEdit, onDelete, onView }: {
@@ -74,24 +67,23 @@ const FundingCardFront = ({ funding, onEdit, onDelete, onView }: {
   onDelete: () => void;
   onView: () => void;
 }) => {
-  const status = funding.status || 'prevue';
-  const sourceType = funding.source_type || 'autre';
+  const status = funding.status || 'prévu';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{funding.label}</p>
-          <p className="text-xs text-slate-500 truncate">{funding.reference ?? '—'}</p>
+          <p className="text-sm font-medium truncate">{funding.reference}</p>
+          <p className="text-xs text-slate-500 truncate">{funding.funder_id ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
         </span>
       </div>
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-        <span className="text-xs text-slate-500 capitalize">{SOURCE_TYPE_LABELS[sourceType] ?? sourceType}</span>
+        <span className="text-xs text-slate-500 capitalize">{funding.currency_sent}</span>
         <div className="text-right">
-          <p className="text-lg font-bold text-slate-900">{formatCurrency(funding.amount)}</p>
-          <p className="text-xs text-slate-500">{formatDate(funding.funding_date)}</p>
+          <p className="text-lg font-bold text-slate-900">{formatCurrency(funding.amount_sent)}</p>
+          <p className="text-xs text-slate-500">{formatDate(funding.date_sent)}</p>
         </div>
       </div>
       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
@@ -124,14 +116,13 @@ const FundingCardFront = ({ funding, onEdit, onDelete, onView }: {
 };
 
 const FundingCardBack = ({ funding, onClose, onEdit, onDelete }: { funding: Funding; onClose: () => void; onEdit: () => void; onDelete: () => void }) => {
-  const status = funding.status || 'prevue';
-  const sourceType = funding.source_type || 'autre';
+  const status = funding.status || 'prévu';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-base font-semibold">{funding.label}</h3>
-          <p className="text-xs text-slate-500">{funding.reference ?? '—'}</p>
+          <h3 className="text-base font-semibold">{funding.reference}</h3>
+          <p className="text-xs text-slate-500">{funding.funder_id ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
@@ -139,42 +130,34 @@ const FundingCardBack = ({ funding, onClose, onEdit, onDelete }: { funding: Fund
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-slate-500">Type</p>
-          <p className="font-medium capitalize">{SOURCE_TYPE_LABELS[sourceType] ?? sourceType}</p>
+          <p className="text-slate-500">Montant envoyé</p>
+          <p className="font-bold text-slate-900">{formatCurrency(funding.amount_sent)} {funding.currency_sent}</p>
         </div>
         <div>
-          <p className="text-slate-500">Statut</p>
-          <p className="font-medium capitalize">{STATUS_LABELS[status] ?? status}</p>
+          <p className="text-slate-500">Montant reçu</p>
+          <p className="font-medium">{funding.amount_received ? formatCurrency(funding.amount_received) : '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Montant</p>
-          <p className="font-bold text-slate-900">{formatCurrency(funding.amount)}</p>
+          <p className="text-slate-500">Taux de change</p>
+          <p className="font-medium">{funding.exchange_rate}</p>
         </div>
         <div>
-          <p className="text-slate-500">Devise</p>
-          <p className="font-medium">{funding.currency}</p>
+          <p className="text-slate-500">Frais de transfert</p>
+          <p className="font-medium">{funding.transfer_fees ? formatCurrency(funding.transfer_fees) : '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Date financement</p>
-          <p className="font-medium">{formatDate(funding.funding_date)}</p>
+          <p className="text-slate-500">Date d'envoi</p>
+          <p className="font-medium">{formatDate(funding.date_sent)}</p>
         </div>
         <div>
-          <p className="text-slate-500">Date attendue</p>
-          <p className="font-medium">{funding.expected_date ? formatDate(funding.expected_date) : '—'}</p>
+          <p className="text-slate-500">Date de réception</p>
+          <p className="font-medium">{funding.date_received ? formatDate(funding.date_received) : '—'}</p>
         </div>
       </div>
-      {funding.description && (
+      {funding.comment && (
         <div>
-          <p className="text-slate-500 text-sm">Description</p>
-          <p className="text-sm">{funding.description}</p>
-        </div>
-      )}
-      {funding.justificatif_url && (
-        <div>
-          <p className="text-slate-500 text-sm">Justificatif</p>
-          <a href={funding.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-sm text-green-700 hover:underline flex items-center gap-1">
-            <ExternalLink size={12} /> Voir le document
-          </a>
+          <p className="text-slate-500 text-sm">Commentaire</p>
+          <p className="text-sm">{funding.comment}</p>
         </div>
       )}
       <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -246,31 +229,32 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
     schema: fundingSchema,
     defaultValues: {
       reference: '',
-      label: '',
-      amount: 0,
-      currency: 'FCFA',
-      source_type: 'investissement',
-      funding_date: new Date().toISOString().slice(0, 10),
-      expected_date: null,
-      status: 'prevue',
-      description: null,
-      justificatif_url: null,
-      justificatif_file: null,
+      funder_id: null,
+      amount_sent: 0,
+      currency_sent: 'FCFA',
+      exchange_rate: 1,
+      amount_received: null,
+      transfer_fees: null,
+      date_sent: new Date().toISOString().slice(0, 10),
+      date_received: null,
+      status: 'prévu',
+      comment: null,
       site_id: appUser?.site_id ?? null,
     },
     onSubmit: async (values) => {
       await executeAction(async () => {
         const fundingData = {
           reference: values.reference,
-          label: values.label,
-          amount: values.amount,
-          currency: values.currency,
-          source_type: values.source_type,
-          funding_date: values.funding_date,
-          expected_date: values.expected_date,
+          funder_id: values.funder_id ?? null,
+          amount_sent: values.amount_sent,
+          currency_sent: values.currency_sent,
+          exchange_rate: values.exchange_rate,
+          amount_received: values.amount_received ?? null,
+          transfer_fees: values.transfer_fees ?? null,
+          date_sent: values.date_sent,
+          date_received: values.date_received ?? null,
           status: values.status,
-          description: values.description,
-          justificatif_url: values.justificatif_url || null,
+          comment: values.comment ?? null,
           site_id: values.site_id ?? null,
         };
 
@@ -329,16 +313,16 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
     }
     form.setFieldValues({
       reference: funding.reference ?? '',
-      label: funding.label ?? '',
-      amount: funding.amount,
-      currency: funding.currency,
-      source_type: (funding.source_type ?? 'investissement') as FundingFormValues['source_type'],
-      funding_date: funding.funding_date ? funding.funding_date.slice(0, 10) : new Date().toISOString().slice(0, 10),
-      expected_date: funding.expected_date ? funding.expected_date.slice(0, 10) : null,
-      status: (funding.status ?? 'prevue') as FundingFormValues['status'],
-      description: funding.description ?? null,
-      justificatif_url: funding.justificatif_url ?? null,
-      justificatif_file: null,
+      funder_id: funding.funder_id ?? null,
+      amount_sent: funding.amount_sent ?? 0,
+      currency_sent: funding.currency_sent,
+      exchange_rate: funding.exchange_rate ?? 1,
+      amount_received: funding.amount_received ?? null,
+      transfer_fees: funding.transfer_fees ?? null,
+      date_sent: funding.date_sent ? funding.date_sent.slice(0, 10) : new Date().toISOString().slice(0, 10),
+      date_received: funding.date_received ? funding.date_received.slice(0, 10) : null,
+      status: (funding.status ?? 'prévu') as FundingFormValues['status'],
+      comment: funding.comment ?? null,
       site_id: funding.site_id ?? null,
     });
     setEditingFunding(funding);
@@ -368,7 +352,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
         'DELETE',
         'funding',
         deletingFunding.id,
-        `Suppression du financement "${deletingFunding.label}"`,
+        `Suppression du financement "${deletingFunding.reference}"`,
         { ...deletingFunding },
         null,
       );
@@ -387,9 +371,9 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
 
   const rows = data ?? [];
 
-  const totalAmount = rows.reduce((sum, f) => sum + f.amount, 0);
-  const receivedAmount = rows.filter(f => f.status === 'recue').reduce((sum, f) => sum + f.amount, 0);
-  const pendingAmount = rows.filter(f => f.status === 'prevue' || f.status === 'en_cours').reduce((sum, f) => sum + f.amount, 0);
+  const totalAmount = rows.reduce((sum, f) => sum + (f.amount_sent ?? 0), 0);
+  const receivedAmount = rows.filter(f => f.status === 'reçu').reduce((sum, f) => sum + (f.amount_received ?? f.amount_sent ?? 0), 0);
+  const pendingAmount = rows.filter(f => f.status === 'prévu' || f.status === 'envoyé').reduce((sum, f) => sum + (f.amount_sent ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -414,7 +398,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
         {rows.map((funding) => (
           <RotatingCard
             key={funding.id}
-            flipLabel={`Détail — ${funding.label}`}
+            flipLabel={`Détail — ${funding.reference}`}
             backLabel="Retour"
             front={<FundingCardFront funding={funding} onEdit={() => handleEdit(funding)} onDelete={() => handleDelete(funding)} onView={() => handleEdit(funding)} />}
             back={<FundingCardBack funding={funding} onClose={() => {}} onEdit={() => handleEdit(funding)} onDelete={() => handleDelete(funding)} />}
@@ -452,55 +436,76 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Libellé *</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Bailleur de fonds</label>
               <input
                 type="text"
-                value={form.values.label}
-                onChange={(e) => form.setFieldValue('label', e.target.value)}
+                value={form.values.funder_id ?? ''}
+                onChange={(e) => form.setFieldValue('funder_id', e.target.value || null)}
                 className="form-input w-full"
-                placeholder="Apport initial"
+                placeholder="Nom du bailleur"
               />
-              {form.errors.label && <p className="text-xs text-red-500 mt-1">{form.errors.label}</p>}
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Montant *</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Montant envoyé *</label>
               <input
                 type="number"
-                value={form.values.amount}
-                onChange={(e) => form.setFieldValue('amount', parseFloat(e.target.value) || 0)}
+                value={form.values.amount_sent}
+                onChange={(e) => form.setFieldValue('amount_sent', parseFloat(e.target.value) || 0)}
                 className="form-input w-full"
                 placeholder="0"
               />
-              {form.errors.amount && <p className="text-xs text-red-500 mt-1">{form.errors.amount}</p>}
+              {form.errors.amount_sent && <p className="text-xs text-red-500 mt-1">{form.errors.amount_sent}</p>}
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Devise *</label>
               <input
                 type="text"
-                value={form.values.currency}
-                onChange={(e) => form.setFieldValue('currency', e.target.value)}
+                value={form.values.currency_sent}
+                onChange={(e) => form.setFieldValue('currency_sent', e.target.value)}
                 className="form-input w-full"
                 placeholder="FCFA"
               />
-              {form.errors.currency && <p className="text-xs text-red-500 mt-1">{form.errors.currency}</p>}
+              {form.errors.currency_sent && <p className="text-xs text-red-500 mt-1">{form.errors.currency_sent}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Taux de change</label>
+              <input
+                type="number"
+                value={form.values.exchange_rate}
+                onChange={(e) => form.setFieldValue('exchange_rate', parseFloat(e.target.value) || 1)}
+                className="form-input w-full"
+                placeholder="1"
+              />
+              {form.errors.exchange_rate && <p className="text-xs text-red-500 mt-1">{form.errors.exchange_rate}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Type de source *</label>
-              <select
-                value={form.values.source_type}
-                onChange={(e) => form.setFieldValue('source_type', e.target.value as FundingFormValues['source_type'])}
+              <label className="block text-xs font-medium text-slate-600 mb-1">Montant reçu</label>
+              <input
+                type="number"
+                value={form.values.amount_received ?? 0}
+                onChange={(e) => form.setFieldValue('amount_received', parseFloat(e.target.value) || null)}
                 className="form-input w-full"
-              >
-                <option value="investissement">Investissement</option>
-                <option value="pret">Prêt</option>
-                <option value="subvention">Subvention</option>
-                <option value="autre">Autre</option>
-              </select>
+                placeholder="0"
+              />
+              {form.errors.amount_received && <p className="text-xs text-red-500 mt-1">{form.errors.amount_received}</p>}
             </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Frais de transfert</label>
+              <input
+                type="number"
+                value={form.values.transfer_fees ?? 0}
+                onChange={(e) => form.setFieldValue('transfer_fees', parseFloat(e.target.value) || null)}
+                className="form-input w-full"
+                placeholder="0"
+              />
+              {form.errors.transfer_fees && <p className="text-xs text-red-500 mt-1">{form.errors.transfer_fees}</p>}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Statut *</label>
               <select
@@ -508,52 +513,42 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
                 onChange={(e) => form.setFieldValue('status', e.target.value as FundingFormValues['status'])}
                 className="form-input w-full"
               >
-                <option value="prevue">Prévue</option>
-                <option value="recue">Reçue</option>
-                <option value="en_cours">En cours</option>
-                <option value="annulee">Annulée</option>
+                <option value="prévu">Prévu</option>
+                <option value="envoyé">Envoyé</option>
+                <option value="reçu">Reçu</option>
+                <option value="annulé">Annulé</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Date d'envoi *</label>
+              <input
+                type="date"
+                value={form.values.date_sent}
+                onChange={(e) => form.setFieldValue('date_sent', e.target.value)}
+                className="form-input w-full"
+              />
+              {form.errors.date_sent && <p className="text-xs text-red-500 mt-1">{form.errors.date_sent}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date financement *</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Date de réception</label>
               <input
                 type="date"
-                value={form.values.funding_date}
-                onChange={(e) => form.setFieldValue('funding_date', e.target.value)}
-                className="form-input w-full"
-              />
-              {form.errors.funding_date && <p className="text-xs text-red-500 mt-1">{form.errors.funding_date}</p>}
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date attendue</label>
-              <input
-                type="date"
-                value={form.values.expected_date ?? ''}
-                onChange={(e) => form.setFieldValue('expected_date', e.target.value || null)}
+                value={form.values.date_received ?? ''}
+                onChange={(e) => form.setFieldValue('date_received', e.target.value || null)}
                 className="form-input w-full"
               />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Commentaire</label>
             <textarea
-              value={form.values.description ?? ''}
-              onChange={(e) => form.setFieldValue('description', e.target.value || null)}
+              value={form.values.comment ?? ''}
+              onChange={(e) => form.setFieldValue('comment', e.target.value || null)}
               className="form-input w-full"
               rows={3}
-              placeholder="Description du financement"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">URL justificatif</label>
-            <input
-              type="url"
-              value={form.values.justificatif_url ?? ''}
-              onChange={(e) => form.setFieldValue('justificatif_url', e.target.value || null)}
-              className="form-input w-full"
-              placeholder="https://..."
+              placeholder="Commentaire sur le financement"
             />
           </div>
           <div>
@@ -605,7 +600,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           size="sm"
         >
           <p className="text-sm text-slate-600 mb-4">
-            Supprimer le financement <strong>{deletingFunding.label}</strong> ({deletingFunding.reference ?? '—'}) ?
+            Supprimer le financement <strong>{deletingFunding.reference}</strong> ?
           </p>
           <div className="flex justify-end gap-2">
             <button
