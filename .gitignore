@@ -116,3 +116,4 @@ lint-out.txt
 output/
 test-results/
 playwright/.auth/
+supabase/.temp/

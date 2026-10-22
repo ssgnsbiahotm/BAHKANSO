@@ -367,118 +367,120 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
         title={editingTransaction ? 'Modifier l\'opération' : 'Nouvelle opération de trésorerie'}
         size="md"
       >
-        <form onSubmit={form.handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Référence *</label>
-            <input
-              type="text"
-              value={form.values.reference}
-              onChange={(e) => form.setFieldValue('reference', e.target.value)}
-              className="form-input w-full"
-              placeholder="OP-2024-0001"
-            />
-            {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={form.handleSubmit} className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Référence *</label>
               <input
                 type="text"
-                value={form.values.type}
-                onChange={(e) => form.setFieldValue('type', e.target.value)}
+                value={form.values.reference}
+                onChange={(e) => form.setFieldValue('reference', e.target.value)}
                 className="form-input w-full"
-                placeholder="Virement"
+                placeholder="OP-2024-0001"
               />
-              {form.errors.type && <p className="text-xs text-red-500 mt-1">{form.errors.type}</p>}
+              {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
+                <input
+                  type="text"
+                  value={form.values.type}
+                  onChange={(e) => form.setFieldValue('type', e.target.value)}
+                  className="form-input w-full"
+                  placeholder="Virement"
+                />
+                {form.errors.type && <p className="text-xs text-red-500 mt-1">{form.errors.type}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Direction *</label>
+                <select
+                  value={form.values.direction}
+                  onChange={(e) => form.setFieldValue('direction', e.target.value as 'entrée' | 'sortie')}
+                  className="form-input w-full"
+                >
+                  <option value="entrée">Entrée</option>
+                  <option value="sortie">Sortie</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Montant *</label>
+                <input
+                  type="number"
+                  value={form.values.amount}
+                  onChange={(e) => form.setFieldValue('amount', parseFloat(e.target.value) || 0)}
+                  className="form-input w-full"
+                  placeholder="0"
+                />
+                {form.errors.amount && <p className="text-xs text-red-500 mt-1">{form.errors.amount}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Devise *</label>
+                <input
+                  type="text"
+                  value={form.values.currency}
+                  onChange={(e) => form.setFieldValue('currency', e.target.value)}
+                  className="form-input w-full"
+                  placeholder="FCFA"
+                />
+                {form.errors.currency && <p className="text-xs text-red-500 mt-1">{form.errors.currency}</p>}
+              </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Direction *</label>
-              <select
-                value={form.values.direction}
-                onChange={(e) => form.setFieldValue('direction', e.target.value as 'entrée' | 'sortie')}
-                className="form-input w-full"
-              >
-                <option value="entrée">Entrée</option>
-                <option value="sortie">Sortie</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Montant *</label>
-              <input
-                type="number"
-                value={form.values.amount}
-                onChange={(e) => form.setFieldValue('amount', parseFloat(e.target.value) || 0)}
-                className="form-input w-full"
-                placeholder="0"
-              />
-              {form.errors.amount && <p className="text-xs text-red-500 mt-1">{form.errors.amount}</p>}
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Devise *</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Compte Banque</label>
               <input
                 type="text"
-                value={form.values.currency}
-                onChange={(e) => form.setFieldValue('currency', e.target.value)}
+                value={form.values.bank_account_id ?? ''}
+                onChange={(e) => form.setFieldValue('bank_account_id', e.target.value || null)}
                 className="form-input w-full"
-                placeholder="FCFA"
+                placeholder="ID du compte bancaire"
               />
-              {form.errors.currency && <p className="text-xs text-red-500 mt-1">{form.errors.currency}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Compte Caisse</label>
+              <input
+                type="text"
+                value={form.values.cash_account_id ?? ''}
+                onChange={(e) => form.setFieldValue('cash_account_id', e.target.value || null)}
+                className="form-input w-full"
+                placeholder="ID de la caisse"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+              <input
+                type="text"
+                value={form.values.description ?? ''}
+                onChange={(e) => form.setFieldValue('description', e.target.value || null)}
+                className="form-input w-full"
+                placeholder="Libellé de l'opération"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
+              <input
+                type="datetime-local"
+                value={form.values.transaction_date}
+                onChange={(e) => form.setFieldValue('transaction_date', e.target.value)}
+                className="form-input w-full"
+              />
+              {form.errors.transaction_date && <p className="text-xs text-red-500 mt-1">{form.errors.transaction_date}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+              <input
+                type="text"
+                value={form.values.site_id ?? appUser?.site_id ?? ''}
+                readOnly
+                disabled
+                className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+                title="Site déterminé automatiquement depuis votre session"
+              />
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Compte Banque</label>
-            <input
-              type="text"
-              value={form.values.bank_account_id ?? ''}
-              onChange={(e) => form.setFieldValue('bank_account_id', e.target.value || null)}
-              className="form-input w-full"
-              placeholder="ID du compte bancaire"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Compte Caisse</label>
-            <input
-              type="text"
-              value={form.values.cash_account_id ?? ''}
-              onChange={(e) => form.setFieldValue('cash_account_id', e.target.value || null)}
-              className="form-input w-full"
-              placeholder="ID de la caisse"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
-            <input
-              type="text"
-              value={form.values.description ?? ''}
-              onChange={(e) => form.setFieldValue('description', e.target.value || null)}
-              className="form-input w-full"
-              placeholder="Libellé de l'opération"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
-            <input
-              type="datetime-local"
-              value={form.values.transaction_date}
-              onChange={(e) => form.setFieldValue('transaction_date', e.target.value)}
-              className="form-input w-full"
-            />
-            {form.errors.transaction_date && <p className="text-xs text-red-500 mt-1">{form.errors.transaction_date}</p>}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
-            <input
-              type="text"
-              value={form.values.site_id ?? appUser?.site_id ?? ''}
-              readOnly
-              disabled
-              className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
-              title="Site déterminé automatiquement depuis votre session"
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="shrink-0 border-t pt-4 mt-4 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => { setModalOpen(false); setEditingTransaction(null); }}
