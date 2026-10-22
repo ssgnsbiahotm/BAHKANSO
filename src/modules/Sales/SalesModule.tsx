@@ -387,7 +387,7 @@ export const SalesModule = () => {
           <p className="text-slate-500 mt-1">Gestion des ventes et clients</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={openCreateModal} className="px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors">
+          <button onClick={openCreateModal} className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium text-sm flex items-center gap-2 hover:bg-primary-700 transition-colors">
             <Plus size={16} /> Nouvelle vente
           </button>
           <button onClick={() => { refresh(); toast.show('Données actualisées', 'success'); }} className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-sm text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
