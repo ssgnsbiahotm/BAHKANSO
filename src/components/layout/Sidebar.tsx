@@ -5,9 +5,7 @@ import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Wallet, Sprout, ShoppingBag,
-  Beef, HardHat, Package, Truck, Image, Layout,
-  Users, Settings, X, ShieldAlert, Wrench,
+  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -20,26 +18,33 @@ export interface NavItem {
 
 const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, module: 'dashboard' },
-  { id: 'finance', label: 'Finances', icon: <Wallet size={20} />, module: 'finance' },
-  { id: 'ventes', label: 'Ventes', icon: <ShoppingBag size={20} />, module: 'ventes' },
-  { id: 'agriculture', label: 'Agriculture', icon: <Sprout size={20} />, module: 'agriculture', children: [
+  { id: 'agriculture', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture', children: [
     { id: 'agriculture?plots', label: 'Parcelles', module: 'agriculture' },
     { id: 'agriculture?campaigns', label: 'Campagnes', module: 'agriculture' },
     { id: 'agriculture?operations', label: 'Opérations', module: 'agriculture' },
+    { id: 'agriculture?harvests', label: 'Récoltes', module: 'agriculture' },
   ]},
   { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock', children: [
     { id: 'livestock/lots', label: 'Lots', module: 'livestock' },
     { id: 'livestock/animals', label: 'Animaux', module: 'livestock' },
     { id: 'livestock/events', label: 'Événements', module: 'livestock' },
   ]},
-  { id: 'projects', label: 'Projets & Chantiers', icon: <HardHat size={20} />, module: 'projects' },
-  { id: 'inventory', label: 'Stocks', icon: <Package size={20} />, module: 'inventory' },
-  { id: 'suppliers', label: 'Fournisseurs', icon: <Truck size={20} />, module: 'suppliers' },
+  { id: 'finance', label: 'Gestion', icon: <Briefcase size={20} />, module: 'finance', children: [
+    { id: 'finance', label: 'Finances', module: 'finance' },
+    { id: 'ventes', label: 'Ventes', module: 'ventes' },
+    { id: 'inventory', label: 'Stocks', module: 'inventory' },
+    { id: 'projects', label: 'Projets', module: 'projects' },
+    { id: 'suppliers', label: 'Fournisseurs', module: 'suppliers' },
+  ]},
+  { id: 'monitoring', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'monitoring', children: [
+    { id: 'monitoring', label: 'Alertes', module: 'monitoring' },
+    { id: 'surveillance', label: 'Événements', module: 'surveillance' },
+  ]},
   { id: 'media', label: 'Médias', icon: <Image size={20} />, module: 'media' },
-  { id: 'monitoring', label: 'Monitoring', icon: <Layout size={20} />, module: 'monitoring' },
-  { id: 'surveillance', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'surveillance' },
-  { id: 'users', label: 'Utilisateurs', icon: <Users size={20} />, module: 'users' },
-  { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration' },
+  { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', children: [
+    { id: 'users', label: 'Utilisateurs', module: 'users' },
+    { id: 'configuration', label: 'Paramètres', module: 'configuration' },
+  ]},
 ];
 
 interface SidebarProps {
@@ -75,6 +80,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       'agriculture?plots': '/app/agriculture/plots',
       'agriculture?campaigns': '/app/agriculture/campaigns',
       'agriculture?operations': '/app/agriculture/operations',
+      'agriculture?harvests': '/app/agriculture/harvests',
       livestock: '/app/livestock',
       'livestock/lots': '/app/livestock/lots',
       'livestock/animals': '/app/livestock/animals',
@@ -97,26 +103,26 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   return (
     <>
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" onClick={onCloseMobile} />
+        <div className="fixed inset-0 z-30 bg-slate/80 lg:hidden" onClick={onCloseMobile} />
       )}
       <aside className={`
-        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 bg-white flex flex-col border-r border-slate-200
+        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 bg-slate flex flex-col border-r border-ivory/10
         transition-transform duration-300
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200/50">
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-ivory/10">
           <Logo
             icon={branding.logoIcon || 'Sprout'}
-            color={branding.logoColor || '#FFFFFF'}
-            bgColor={branding.logoBgColor || '#16A34A'}
+            color="#F4F1E8" // exception logo, cf. design-system
+            bgColor="#B9D86B" // exception logo, cf. design-system
             size={40}
             imageUrl={farm?.logo_url}
           />
           <div>
-            <h1 className="text-slate-900 font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</h1>
-            <p className="text-slate-600 text-xs">{branding.appTagline || ''}</p>
+            <h1 className="text-ivory font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</h1>
+            <p className="text-ivory/70 text-xs">{branding.appTagline || ''}</p>
           </div>
-          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-slate-600">
+          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-ivory/70">
             <X size={20} />
           </button>
         </div>
@@ -134,23 +140,23 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                       handleNav(item.id);
                     }
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-green-100 text-green-700'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-slate-hover text-ivory border-l-3 border-signal pl-2'
+                      : 'text-ivory/70 hover:bg-slate-hover hover:text-ivory'
                   }`}
                 >
-                  <span className={isActive ? 'text-green-700' : 'text-slate-600'}>{item.icon}</span>
+                  <span className={isActive ? 'text-ivory' : 'text-ivory/70'}>{item.icon}</span>
                   <span className="flex-1 text-left">{item.label}</span>
                 </button>
               </div>
             );
           })}
         </nav>
-        <div className="px-4 py-3 border-t border-slate-200/50">
-          <p className="text-xs text-slate-500 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>
+        <div className="px-4 py-3 border-t border-ivory/10">
+          <p className="text-xs text-ivory/50 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>
           {appUser && (
-            <p className="text-xs text-slate-400 text-center mt-1 capitalize">
+            <p className="text-xs text-ivory/50 text-center mt-1 capitalize">
               Rôle : {appUser.role.replace('_', ' ')}
             </p>
           )}

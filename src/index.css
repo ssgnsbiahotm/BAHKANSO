@@ -1,3 +1,7 @@
+@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/geist-mono";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,19 +10,22 @@
   --color-primary: #16a34a;
   --color-secondary: #3b82f6;
   --color-accent: #f59e0b;
+  --color-slate: #1C2925;
+  --page-bg-image: none;
+  --page-bg-overlay: rgba(28, 41, 37, 0.45);
 }
 
 /* Global application styles */
 body {
   margin: 0;
-  background-color: #f8fafc;
+  background-color: var(--color-ivory);
   color: #0f172a;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 #root {
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--color-ivory);
 }
 
 /* Rotatable card effect */

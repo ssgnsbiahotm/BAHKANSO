@@ -2,6 +2,8 @@
    RotatingCard — carte retournable professionnelle (style max pro)
    Retour manuel uniquement : clic, clavier (Entrée/Espace) et tactile.
    Aucune animation automatique. Respect de prefers-reduced-motion.
+   Thème par défaut : fond ivoire (ivory-alt) + texte ink (cartes sur fond clair).
+   Variante sombre : classe rc--dark (fond slate, texte ivory).
    ========================================================================== */
 
 :root {
@@ -12,17 +14,40 @@
     0 4px 6px -2px rgba(0, 0, 0, 0.08);
   --rc-shadow-back: 0 10px 30px -10px rgba(0, 0, 0, 0.15),
     0 4px 6px -2px rgba(0, 0, 0, 0.1);
-  --rc-border: rgba(0, 0, 0, 0.08);
-  --rc-gradient-front: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.95),
-    rgba(250, 250, 250, 0.9)
-  );
-  --rc-gradient-back: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(245, 245, 245, 0.88)
-  );
+  --rc-border: rgba(221, 213, 196, 0.2);
+}
+
+/* --- Thème par défaut : ivoire dominant (cartes sur fond clair) --- */
+.rc-face--front {
+  background: #EBE6DA; /* ivory-alt */
+  border: 1px solid var(--rc-border);
+  box-shadow: var(--rc-shadow-front);
+  z-index: 2;
+  color: #202824; /* ink */
+}
+
+.rc-face--back {
+  background: #F4F1E8; /* ivory */
+  border: 1px solid var(--rc-border);
+  box-shadow: var(--rc-shadow-back);
+  transform: rotateY(180deg);
+  z-index: 1;
+  color: #202824; /* ink */
+}
+
+/* --- Variante sombre : rc--dark --- */
+.rc--dark .rc-face--front {
+  background: #1C2925; /* slate */
+  border: 1px solid rgba(221, 213, 196, 0.15);
+  box-shadow: var(--rc-shadow-front);
+  color: #F4F1E8; /* ivory */
+}
+
+.rc--dark .rc-face--back {
+  background: #243430; /* slate-hover */
+  border: 1px solid rgba(221, 213, 196, 0.15);
+  box-shadow: var(--rc-shadow-back);
+  color: #F4F1E8; /* ivory */
 }
 
 /* Conteneur de la carte */
@@ -67,16 +92,10 @@
 }
 
 .rc-face--front {
-  background: var(--rc-gradient-front);
-  border: 1px solid var(--rc-border);
-  box-shadow: var(--rc-shadow-front);
   z-index: 2;
 }
 
 .rc-face--back {
-  background: var(--rc-gradient-back);
-  border: 1px solid var(--rc-border);
-  box-shadow: var(--rc-shadow-back);
   transform: rotateY(180deg);
   z-index: 1;
 }
@@ -90,7 +109,7 @@
 
 /* Focus visible pour accessibilité clavier */
 .rc:focus-visible {
-  outline: 3px solid #22c55e;
+  outline: 3px solid #6B8E3A; /* signal */
   outline-offset: 2px;
   border-radius: var(--rc-radius);
 }
@@ -118,7 +137,7 @@
 }
 
 .rc-flip-btn:focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid #6B8E3A; /* signal */
   outline-offset: 2px;
 }
 
@@ -127,27 +146,46 @@
 }
 
 .rc-flip-btn--front {
-  background: #ecfdf5;
-  color: #15803d;
-  box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.15);
+  background: #E8F0D8; /* signal-soft */
+  color: #6B8E3A; /* signal */
+  box-shadow: 0 4px 6px -1px rgba(107, 142, 58, 0.15);
 }
 
 .rc-flip-btn--front:hover {
-  background: #d1fae5;
-  box-shadow: 0 6px 8px -1px rgba(34, 197, 94, 0.25);
+  background: #D9E8C7;
+  box-shadow: 0 6px 8px -1px rgba(107, 142, 58, 0.25);
 }
 
 .rc-flip-btn--back {
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e2e8f0;
+  background: #F4F1E8; /* ivory */
+  color: #5A6560; /* ink-mut */
+  border: 1px solid #DDD5C4; /* ivory-deep */
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
 }
 
 .rc-flip-btn--back:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: #EBE6DA; /* ivory-alt */
+  border-color: #C9A961; /* gold */
   box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Variante sombre : boutons adaptés */
+.rc--dark .rc-flip-btn--front {
+  background: #6B8E3A; /* signal */
+  color: #111A18; /* night */
+  box-shadow: 0 4px 6px -1px rgba(107, 142, 58, 0.25);
+}
+
+.rc--dark .rc-flip-btn--back {
+  background: #1C2925; /* slate */
+  color: #F4F1E8; /* ivory */
+  border: 1px solid #DDD5C4; /* ivory-deep */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+}
+
+.rc--dark .rc-flip-btn--back:hover {
+  background: #243430; /* slate-hover */
+  border-color: #C9A961; /* gold */
 }
 
 /* États désactivé */

@@ -77,9 +77,18 @@ export default {
           600: '#dc2626',
           700: '#b91c1c',
         },
+        night:   { DEFAULT: '#111A18', hover: '#172220' },
+        gold:    { DEFAULT: '#C9A961' },
+        slate:   { DEFAULT: '#1C2925', hover: '#243430', deep: '#0F1815' },
+        ivory:   { DEFAULT: '#F4F1E8', alt: '#EBE6DA', deep: '#DDD5C4' },
+        ink:     { DEFAULT: '#202824', mut: '#5A6560', dim: '#8A948E' },
+        signal:  { DEFAULT: '#6B8E3A', hover: '#7DA347', soft: '#E8F0D8' },
+        terra:   { DEFAULT: '#C87551', soft: '#F5E4DC' },
       },
       fontFamily: {
         sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        editorial: ['Fraunces', 'Georgia', 'serif'],
+        mono:      ['Geist Mono', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         'display-xl': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '800' }],
