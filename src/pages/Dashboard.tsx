@@ -518,7 +518,7 @@ export function Dashboard() {
             }
           />
 
-          <div className="operations-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+          <div className="operations-grid" style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
             {latestTransactions.length === 0 ? (
               <EmptyState
                 icon={<DollarSign size={32} />}
@@ -527,13 +527,14 @@ export function Dashboard() {
               />
             ) : (
               latestTransactions.slice(0, 3).map((t) => (
-                <RotatingCard
-                  key={t.id}
-                  flipLabel={`Détail — ${t.description || t.reference || 'Opération'}`}
-                  backLabel="Retour"
-                  front={<OpCardFront transaction={t} />}
-                  back={<OpCardBack transaction={t} />}
-                />
+                <div key={t.id} style={{ flex: '0 0 280px' }}>
+                  <RotatingCard
+                    flipLabel={`Détail — ${t.description || t.reference || 'Opération'}`}
+                    backLabel="Retour"
+                    front={<OpCardFront transaction={t} />}
+                    back={<OpCardBack transaction={t} />}
+                  />
+                </div>
               ))
             )}
           </div>
