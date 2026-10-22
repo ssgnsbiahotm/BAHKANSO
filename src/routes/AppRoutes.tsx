@@ -32,6 +32,7 @@ const PlotManage = lazy(() => import('@/pages/PlotManage').then(m => ({ default:
 const CampaignManage = lazy(() => import('@/pages/CampaignManage').then(m => ({ default: m.CampaignManage })));
 const HarvestManage = lazy(() => import('@/pages/HarvestManage').then(m => ({ default: m.HarvestManage })));
 const CropOperationManage = lazy(() => import('@/pages/CropOperationManage').then(m => ({ default: m.CropOperationManage })));
+const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
 
 // Créer les composants wrapper avec Suspense
 function createSuspenseWrapper(Component: ComponentType<Record<string, unknown>>) {
@@ -69,6 +70,7 @@ const PlotManageSuspense = createSuspenseWrapper(PlotManage);
 const CampaignManageSuspense = createSuspenseWrapper(CampaignManage);
 const HarvestManageSuspense = createSuspenseWrapper(HarvestManage);
 const CropOperationManageSuspense = createSuspenseWrapper(CropOperationManage);
+const ParcellesPageSuspense = createSuspenseWrapper(ParcellesPage);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const appRouter = createBrowserRouter([
@@ -149,6 +151,14 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequireModule module="agriculture" action="read">
             <PlotManageSuspense />
+          </RequireModule>
+        ),
+      },
+      {
+        path: 'exploitation/parcelles',
+        element: (
+          <RequireModule module="agriculture" action="read">
+            <ParcellesPageSuspense />
           </RequireModule>
         ),
       },

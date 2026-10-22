@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { ValidatedForm } from './ValidatedForm';
+import { useCallback, useEffect } from 'react';
+import { useValidatedForm } from './ValidatedForm';
 
 interface FormGroupProps {
   title: string;
@@ -8,14 +8,22 @@ interface FormGroupProps {
 
 interface FormActionsProps {
   children: React.ReactNode;
+  onCancel?: () => void;
 }
 
 interface FormSimplifieProps<T extends object> {
-  schema: Parameters<typeof ValidatedForm<T>>[0]['schema'];
-  defaultValues: Parameters<typeof ValidatedForm<T>>[0]['defaultValues'];
-  onSubmit: Parameters<typeof ValidatedForm<T>>[0]['onSubmit'];
+  schema: Parameters<typeof useValidatedForm<T>>[0]['schema'];
+  defaultValues: Parameters<typeof useValidatedForm<T>>[0]['defaultValues'];
+  onSubmit: Parameters<typeof useValidatedForm<T>>[0]['onSubmit'];
   title: string;
   submitLabel?: string;
+  /** État contrôlé du formulaire (optionnel). Si fourni, le parent gère l'état. */
+  values?: T;
+  /** Callback pour synchroniser les valeurs contrôlées. */
+  onChange?: (values: T) => void;
+  /** Callback appelé quand les valeurs changent (optionnel). */
+  /** Callback pour le bouton Annuler (optionnel). */
+  onCancel?: () => void;
 }
 
 function FormGroup({ title, children }: FormGroupProps) {
@@ -27,9 +35,20 @@ function FormGroup({ title, children }: FormGroupProps) {
   );
 }
 
-function FormActions({ children }: FormActionsProps) {
+function FormActions({ children, onCancel }: FormActionsProps) {
   return (
-    <div className="sticky bottom-0 z-10 flex items-center gap-2 pt-4 pb-2 border-t border-ivory/20 bg-ivory/80 backdrop-blur-sm">{children}</div>
+    <div className="sticky bottom-0 z-10 flex items-center gap-2 pt-4 pb-2 border-t border-ivory/20 bg-ivory/80 backdrop-blur-sm">
+      {onCancel && (
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-3 rounded-sm font-medium text-sm text-ink-mut hover:bg-ivory/20 transition-colors"
+        >
+          Annuler
+        </button>
+      )}
+      {children}
+    </div>
   );
 }
 
@@ -39,18 +58,36 @@ export function FormSimplifie<T extends object>({
   onSubmit,
   title,
   submitLabel = 'Valider',
+  values,
+  onChange,
+  onCancel,
   children,
 }: FormSimplifieProps<T> & { children: React.ReactNode }) {
   const {
     isValid,
     isSubmitting,
     handleSubmit,
-  } = ValidatedForm<T>({
+    setFieldValues,
+  } = useValidatedForm<T>({
     schema,
     defaultValues,
     onSubmit,
     submitLabel,
   });
+
+  // Synchronise les valeurs contrôlées (prop `values`) vers l'état interne
+  // de ValidatedForm afin que la validation et le bouton Enregistrer restent à jour.
+  useEffect(() => {
+    if (values !== undefined) {
+      setFieldValues(values);
+    }
+  }, [values, setFieldValues]);
+  // Synchronise les changements internes vers le parent si onChange est fourni
+  useEffect(() => {
+    if (onChange) {
+      onChange(values as T);
+    }
+  }, [values, onChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -69,7 +106,16 @@ export function FormSimplifie<T extends object>({
     >
       <h2 className="font-editorial text-xl text-ink mb-6">{title}</h2>
       <div className="space-y-6 mb-8">{children}</div>
-      <FormActions>
+      <FormActions onCancel={onCancel}>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-3 rounded-sm font-medium text-sm text-ink-mut hover:bg-ivory/20 transition-colors"
+          >
+            Annuler
+          </button>
+        )}
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
