@@ -72,7 +72,7 @@
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--dn-ivoire);
+  color: var(--dn-text);
 }
 
 .header-subtitle {
@@ -102,7 +102,7 @@
 .clock-time {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--dn-ivoire);
+  color: var(--dn-text);
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -183,7 +183,7 @@
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--dn-ivoire);
+  color: var(--dn-text);
 }
 
 .section-description {
@@ -504,7 +504,7 @@
   margin: 0 0 0.25rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--dn-ivoire);
+  color: var(--dn-text);
 }
 
 .activity-detail {
