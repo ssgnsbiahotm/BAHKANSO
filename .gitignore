@@ -111,3 +111,8 @@ lint-out.txt
 *.png
 !public/**/*.png
 !src/assets/**/*.png
+
+# Audits Playwright locaux
+output/
+test-results/
+playwright/.auth/
