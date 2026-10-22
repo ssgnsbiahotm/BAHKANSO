@@ -48,7 +48,7 @@ function setup(overrides: {
   return renderHook(() => useDashboardStats());
 }
 
-function current(result: ReturnType<typeof renderHook>) {
+function current(result: ReturnType<typeof renderHook>): any {
   return result.result.current;
 }
 

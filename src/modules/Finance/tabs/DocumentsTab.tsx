@@ -25,7 +25,7 @@ const documentSchema = z.object({
   upload_date: z.string().min(1, 'Date d\'upload obligatoire'),
   uploaded_by: z.string().nullable(),
   comment: z.string().nullable(),
-  site_id: z.string().nullable().optional(),
+  site_id: z.string().nullable(),
 });
 
 interface DocumentFormValues {
@@ -138,7 +138,7 @@ const DocumentCardFront = ({ document, onEdit, onDelete, onView }: {
   );
 };
 
-const DocumentCardBack = ({ document, onClose }: { document: Document; onClose: () => void }) => {
+const DocumentCardBack = ({ document, onClose, onEdit, onDelete }: { document: Document; onClose: () => void; onEdit: () => void; onDelete: () => void }) => {
   const status = document.status || 'ajouté';
   const FileIcon = getFileIcon(document.mime_type);
   return (
@@ -197,6 +197,18 @@ const DocumentCardBack = ({ document, onClose }: { document: Document; onClose: 
         </div>
       )}
       <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button
+          onClick={onEdit}
+          className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
+        >
+          <Edit2 size={14} /> Modifier
+        </button>
+        <button
+          onClick={onDelete}
+          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
+        >
+          <Trash2 size={14} /> Supprimer
+        </button>
         <button
           onClick={onClose}
           className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
@@ -474,7 +486,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             flipLabel={`Détail — ${document.name}`}
             backLabel="Retour"
             front={<DocumentCardFront document={document} onEdit={() => handleEdit(document)} onDelete={() => handleDelete(document)} onView={() => handleEdit(document)} />}
-            back={<DocumentCardBack document={document} onClose={() => {}} />}
+            back={<DocumentCardBack document={document} onClose={() => {}} onEdit={() => handleEdit(document)} onDelete={() => handleDelete(document)} />}
           />
         ))}
         <CreateDocumentCard onCreate={handleNewDocument} />

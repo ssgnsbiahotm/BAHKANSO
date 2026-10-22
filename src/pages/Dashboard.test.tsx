@@ -29,12 +29,12 @@ const mockUseAuth = useAuth as ReturnType<typeof vi.fn>;
 
 function renderDash(overrides: {
   role?: string;
-  sourceStatus?: Partial<SourceStatus>;
+  sourceStatus?: Partial<Record<string, SourceStatus>>;
   arrays?: Record<string, any[]>;
   loading?: boolean;
   error?: string | null;
 } = {}) {
-  const status: SourceStatus = {
+  const status: Record<string, SourceStatus> = {
     transactions: 'success', expenses: 'success', inventoryItems: 'success',
     projects: 'success', alerts: 'success', animals: 'success',
     animalLots: 'success', campaigns: 'success',
@@ -92,7 +92,7 @@ describe('Dashboard', () => {
   });
 
   it("la mention 'Aucune priorite detectee' n apparait pas si une source prioritaire est indisponible", () => {
-    renderDash({ sourceStatus: { expenses: 'error' }, arrays: { expenses: [], transactions: [] } });
+    renderDash({ sourceStatus: { expenses: 'error' as const }, arrays: { expenses: [], transactions: [] } });
     expect(screen.queryByText(/Aucune priorit\u00e9 d\u00e9tecte/)).not.toBeInTheDocument();
     expect(screen.getByText(/Certaines sources de priorit\u00e9 sont indisponibles/)).toBeInTheDocument();
   });
@@ -109,7 +109,7 @@ describe('Dashboard', () => {
   });
 
   it("les transactions en erreur n affichent pas 'Aucune operation' mais une indisponibilite explicite", () => {
-    renderDash({ sourceStatus: { transactions: 'error' }, arrays: { transactions: [] } });
+    renderDash({ sourceStatus: { transactions: 'error' as const }, arrays: { transactions: [] } });
     expect(screen.getByText(/La source des transactions est indisponible/)).toBeInTheDocument();
     expect(screen.queryByText(/Aucune op\u00e9ration/)).not.toBeInTheDocument();
   });

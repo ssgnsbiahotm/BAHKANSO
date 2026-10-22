@@ -130,8 +130,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     // Une requête qui échoue ne doit pas annuler les autres : on encapsule
     // chaque appel pour qu'il ne rejette jamais le Promise.all.
-    const safeRequest = <T,>(p: Promise<{ data: T | null; error: unknown }>) =>
-      p.then((r) => r as { data: T | null; error: unknown }).catch((err) => ({ data: null, error: err }));
+    const safeRequest = <T,>(p: PromiseLike<{ data: T | null; error: unknown }>) =>
+      Promise.resolve(p).then((r) => r as { data: T | null; error: unknown }).catch((err) => ({ data: null, error: err }));
 
     const results = await Promise.all([
       safeRequest(supabase.from('farms').select('*').limit(1).maybeSingle()),

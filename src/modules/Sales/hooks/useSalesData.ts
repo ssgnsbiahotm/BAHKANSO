@@ -27,7 +27,7 @@ export interface SalesStats {
 export function useSalesData() {
   const { appUser } = useAuth();
   const siteId = appUser?.site_id ?? null;
-  const filters = isAccesGlobal(appUser) ? [] : [{ column: 'site_id', operation: 'eq', value: siteId }];
+  const filters = isAccesGlobal(appUser) ? [] : [{ column: 'site_id', operation: 'eq' as const, value: siteId }];
 
   // Requête ventes avec jointures customer + site + items
   const salesQuery = useSimpleQuery<SaleWithRelations>(

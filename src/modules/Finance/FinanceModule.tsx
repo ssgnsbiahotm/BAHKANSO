@@ -36,8 +36,8 @@ export const FinanceModule = () => {
               key={t.key}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 tab === t.key
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-primary text-slate-800 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-gray-100'
               }`}
               onClick={() => setSearchParams({ tab: t.key })}
             >

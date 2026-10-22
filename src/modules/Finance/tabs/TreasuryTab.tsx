@@ -26,7 +26,7 @@ const transactionSchema = z.object({
   cash_account_id: z.string().nullable(),
   description: z.string().nullable(),
   transaction_date: z.string().min(1, 'Date obligatoire'),
-  site_id: z.string().nullable().optional(),
+  site_id: z.string().nullable(),
 });
 
 interface TransactionFormValues {
@@ -109,7 +109,7 @@ const TransactionCardFront = ({ transaction, onEdit, onDelete, onView }: {
   );
 };
 
-const TransactionCardBack = ({ transaction, onClose }: { transaction: Transaction; onClose: () => void }) => {
+const TransactionCardBack = ({ transaction, onClose, onEdit, onDelete }: { transaction: Transaction; onClose: () => void; onEdit: () => void; onDelete: () => void }) => {
   const isIncome = transaction.direction === 'entrée';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
@@ -156,6 +156,18 @@ const TransactionCardBack = ({ transaction, onClose }: { transaction: Transactio
         </div>
       )}
       <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button
+          onClick={onEdit}
+          className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
+        >
+          <Edit2 size={14} /> Modifier
+        </button>
+        <button
+          onClick={onDelete}
+          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
+        >
+          <Trash2 size={14} /> Supprimer
+        </button>
         <button
           onClick={onClose}
           className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
@@ -334,7 +346,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
             flipLabel={`Détail — ${transaction.description || transaction.reference || 'Opération'}`}
             backLabel="Retour"
             front={<TransactionCardFront transaction={transaction} onEdit={() => handleEdit(transaction)} onDelete={() => handleDelete(transaction)} onView={() => handleEdit(transaction)} />}
-            back={<TransactionCardBack transaction={transaction} onClose={() => {}} />}
+            back={<TransactionCardBack transaction={transaction} onClose={() => {}} onEdit={() => handleEdit(transaction)} onDelete={() => handleDelete(transaction)} />}
           />
         ))}
         <CreateTransactionCard onCreate={handleNewTransaction} />

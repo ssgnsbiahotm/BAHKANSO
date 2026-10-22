@@ -5,7 +5,7 @@ import type { Transaction, Funding, Expense, Document } from '@/lib/types';
 
 const ROLES_ACCES_GLOBAL = ['administrateur', 'propriétaire'];
 
-const siteFilters = (siteId: string | null) => {
+const siteFilters = (siteId: string | null): { column: string; operation: 'eq'; value: string }[] => {
   if (!siteId) return [];
   return [{ column: 'site_id', operation: 'eq', value: siteId }];
 };
