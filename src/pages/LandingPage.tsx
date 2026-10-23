@@ -339,7 +339,7 @@ function Hero({ siteContent }: { siteContent: Record<string, SiteContent> }) {
 
   return (
     <section
-      className="relative min-h-screen flex items-center bg-gradient-to-b from-white via-neutral-50 to-neutral-100 overflow-hidden"
+      className="relative min-h-0 lg:min-h-screen flex items-center bg-gradient-to-b from-white via-neutral-50 to-neutral-100 overflow-hidden"
       aria-labelledby="hero-title"
     >
       {/* Ambient background gradients */}
@@ -380,19 +380,15 @@ function Hero({ siteContent }: { siteContent: Record<string, SiteContent> }) {
 
           <div className="relative animate-fade-in-up" style={{ animationDelay: '300ms' }}>
             {heroImage ? (
-              <picture>
-                <source type="image/avif" srcSet={heroImage} />
-                <source type="image/webp" srcSet={heroImage} />
-                <img
+              <img
                   src={heroImage}
                   alt={heroAlt}
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                   fetchPriority="high"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="w-full aspect-[4/3] object-cover rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] border border-neutral-200 transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)]"
                 />
-              </picture>
             ) : (
               <div className="flex flex-col items-center justify-center gap-3 h-64 sm:h-80 border-2 dashed neutral-400 rounded-2xl text-neutral-500 text-sm bg-gradient-to-br from-primary-50/50 to-neutral-100/50">
                 <div className="w-16 h-16 bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%221.5%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%222%22%20ry%3D%222%22%2F%3E%3Ccircle%20cx%3D%228.5%22%20cy%3D%228.5%22%20r%3D%221.5%22%2F%3E%3Cpolyline%20points%3D%2221%2015%2016%2010%205%2021%22%2F%3E%3C%2Fsvg%3E')] bg-center bg-contain bg-no-repeat opacity-50" aria-hidden="true" />
@@ -400,11 +396,6 @@ function Hero({ siteContent }: { siteContent: Record<string, SiteContent> }) {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Mobile hero subtitle fallback */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white/80 px-4 py-4 sm:py-6 text-center lg:hidden animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-          <p className="text-body-sm text-neutral-600 max-w-3xl mx-auto">{heroSubtitle}</p>
         </div>
       </div>
     </section>

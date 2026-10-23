@@ -8,8 +8,9 @@
 }
 
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  /* Motion-only entrance: content must remain visible during delayed/full-page captures. */
+  from { transform: translateY(12px); }
+  to { transform: translateY(0); }
 }
 
 @keyframes pulse-soft {
@@ -19,8 +20,9 @@
 
 /* Utility: fade-in-up animation */
 .animate-fade-in-up {
-  animation: fade-in-up 0.6s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
-  opacity: 0;
+  animation: fade-in-up 0.6s cubic-bezier(0.4, 0.0, 0.2, 1) both;
+  /* Never hide page content while an entrance animation is waiting to start. */
+  opacity: 1;
 }
 
 /* Smooth scroll */
