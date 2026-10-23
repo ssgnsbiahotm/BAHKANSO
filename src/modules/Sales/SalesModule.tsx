@@ -7,6 +7,7 @@ import { useSalesData } from './hooks/useSalesData';
 import { useToast } from '@/lib/Toast';
 import type { SaleWithRelations } from './hooks/useSalesData';
 import { SaleFormModal } from './components/SaleFormModal';
+import { SaleDetailsModal } from './components/SaleDetailsModal';
 
 interface StatusBadgeProps {
   status: string;
@@ -39,7 +40,7 @@ function StatusBadge({ status }: StatusBadgeProps) {
   );
 }
 
-function SaleCardFront({ sale, index }: { sale: SaleWithRelations; index: number }) {
+function SaleCardFront({ sale, index, onDetails, onEdit, onDelete }: { sale: SaleWithRelations; index: number; onDetails: () => void; onEdit: () => void; onDelete: () => void }) {
   const isCrop = sale.items?.some(item => item.description?.toLowerCase().includes('maïs') || item.description?.toLowerCase().includes('mais') || item.description?.toLowerCase().includes('blé') || item.description?.toLowerCase().includes('ble') || item.description?.toLowerCase().includes('riz')) ?? false;
 
   return (
@@ -79,17 +80,40 @@ function SaleCardFront({ sale, index }: { sale: SaleWithRelations; index: number
           {isCrop ? <Wheat size={14} /> : <ShoppingBag size={14} />}
         </div>
       </div>
+
+      {/* Boutons CRUD en bas du recto */}
+      <div className="flex gap-2 mt-4">
+        <button
+          onClick={onDetails}
+          className="flex-1 bg-slate-100 text-slate-700 px-3 py-2 rounded text-sm hover:bg-slate-200"
+        >
+          Détails
+        </button>
+        <button
+          onClick={onEdit}
+          className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded text-sm hover:bg-blue-200"
+        >
+          Modifier
+        </button>
+        <button
+          onClick={onDelete}
+          className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200"
+        >
+          Supprimer
+        </button>
+      </div>
     </div>
   );
 }
 
 interface SaleCardBackProps {
   sale: SaleWithRelations;
+  onDetails: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-function SaleCardBack({ sale, onEdit, onDelete }: SaleCardBackProps) {
+function SaleCardBack({ sale, onDetails, onEdit, onDelete }: SaleCardBackProps) {
   return (
     <div className="h-full flex flex-col justify-between p-5 bg-slate-50">
       <div>
@@ -153,6 +177,9 @@ function SaleCardBack({ sale, onEdit, onDelete }: SaleCardBackProps) {
 
       {/* Actions - deux boutons côte à côte en bas */}
       <div className="flex gap-2 pt-4 border-t border-slate-200">
+        <button onClick={onDetails} className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
+          Détails
+        </button>
         <button onClick={onEdit} className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
           <Edit size={14} /> Modifier
         </button>
@@ -278,6 +305,25 @@ export const SalesModule = () => {
 
   // État pour la modale de formulaire
   const [isFormOpen, setIsFormOpen] = useState(false);
+  // État pour la modale de détails (lecture seule)
+  const [saleToView, setSaleToView] = useState<{
+    id: string;
+    reference: string | null;
+    date: string;
+    status: string | null;
+    payment_method: string | null;
+    total_amount: number;
+    customer: { name: string | null; type: string | null } | null;
+    site: { name: string | null; code: string | null } | null;
+    items: Array<{
+      id: string;
+      description: string | null;
+      quantity: number;
+      unit: string | null;
+      unit_price: number;
+      total: number;
+    }>;
+  } | null>(null);
   const [saleToEdit, setSaleToEdit] = useState<{
     id: string;
     site_id: string;
@@ -320,31 +366,20 @@ export const SalesModule = () => {
     setIsFormOpen(true);
   }, []);
 
-  // Fermer la modale
-  const closeModal = useCallback(() => {
-    setIsFormOpen(false);
-    setSaleToEdit(null);
-  }, []);
-
-  // Rafraîchir après succès
-  const handleFormSuccess = useCallback(() => {
-    refresh();
-    closeModal();
-  }, [refresh, closeModal]);
-
   // Supprimer une vente
-  const handleDelete = useCallback(async (sale: SaleWithRelations) => {
-    const confirmed = window.confirm(`Supprimer la vente "${sale.reference}" ? Cette action est irréversible.`);
+  const handleDelete = useCallback(async (saleId: string) => {
+    const sale = sales.find(s => s.id === saleId);
+    const confirmed = window.confirm(`Supprimer la vente "${sale?.reference}" ? Cette action est irréversible.`);
     if (!confirmed) return;
 
     try {
-      await deleteSale(sale.id);
+      await deleteSale(saleId);
       toast.show('Vente supprimée', 'success');
     } catch (err) {
       console.error('Erreur suppression:', err);
       toast.show('Erreur lors de la suppression', 'error');
     }
-  }, [deleteSale, toast]);
+  }, [deleteSale, toast, sales]);
 
   if (loading) {
     return (
@@ -388,11 +423,11 @@ export const SalesModule = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => { console.log('[DEBUG] Bouton Nouvelle vente cliqué'); setIsFormOpen(true); }}
-            data-testid="new-sale-button"
-            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-3 rounded-lg shadow-lg"
+            onClick={() => setIsFormOpen(true)}
+            data-testid="btn-new-sale"
+            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-3 rounded-lg shadow-md transition"
           >
-            <Plus size={16} /> Nouvelle vente
+            <Plus size={20} /> Nouvelle vente
           </button>
           <button onClick={() => { refresh(); toast.show('Données actualisées', 'success'); }} className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-sm text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
             <RefreshCw size={16} /> Actualiser
@@ -462,11 +497,18 @@ export const SalesModule = () => {
                   flipLabel="Détails"
                   backLabel="Retour"
                   className="h-72"
-                  front={<SaleCardFront sale={sale} index={index} />}
+                  front={<SaleCardFront
+                    sale={sale}
+                    index={index}
+                    onDetails={() => setSaleToView(sale)}
+                    onEdit={() => { openEditModal(sale); setIsFormOpen(true); }}
+                    onDelete={() => handleDelete(sale.id)}
+                  />}
                   back={<SaleCardBack
                     sale={sale}
-                    onEdit={() => openEditModal(sale)}
-                    onDelete={() => handleDelete(sale)}
+                    onDetails={() => setSaleToView(sale)}
+                    onEdit={() => { openEditModal(sale); setIsFormOpen(true); }}
+                    onDelete={() => handleDelete(sale.id)}
                   />}
                 />
               ))}
@@ -483,9 +525,14 @@ export const SalesModule = () => {
       {/* Modale formulaire vente */}
       <SaleFormModal
         isOpen={isFormOpen}
-        onClose={closeModal}
-        onSuccess={handleFormSuccess}
+        onClose={() => setIsFormOpen(false)}
         saleToEdit={saleToEdit}
+        onSuccess={refresh}
+      />
+      <SaleDetailsModal
+        isOpen={!!saleToView}
+        onClose={() => setSaleToView(null)}
+        sale={saleToView}
       />
     </div>
   );

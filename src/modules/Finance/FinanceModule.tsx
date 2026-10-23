@@ -8,6 +8,7 @@ import { FundingsTab } from '@/modules/Finance/tabs/FundingsTab';
 import { ExpensesTab } from '@/modules/Finance/tabs/ExpensesTab';
 import { DocumentsTab } from '@/modules/Finance/tabs/DocumentsTab';
 import { TreasuryTab } from '@/modules/Finance/tabs/TreasuryTab';
+import { SalesModule } from '@/modules/Sales/SalesModule';
 import { ModuleFinanceView } from '@/modules/Finance/tabs/ModuleFinanceView';
 
 export const FinanceModule = () => {
@@ -25,6 +26,7 @@ export const FinanceModule = () => {
     { key: 'documents', label: 'Documents' },
     { key: 'treasury', label: 'Trésorerie' },
     { key: 'by-module', label: 'Par module' },
+    { key: 'ventes', label: 'Ventes' },
   ] as const;
 
   return (
@@ -51,6 +53,7 @@ export const FinanceModule = () => {
         {tab === 'documents' && <DocumentsTab documentsData={documentsData} />}
         {tab === 'treasury' && <TreasuryTab treasuryData={treasuryData} />}
         {tab === 'by-module' && <ModuleFinanceView expensesData={expensesData} fundingsData={fundingsData} />}
+        {tab === 'ventes' && <SalesModule />}
       </div>
     </RequireModule>
   );

@@ -261,7 +261,7 @@ export function Dashboard() {
     hasData,
     loading,
     error,
-  } = useDashboardStats();
+  , sourceStatus, } = useDashboardStats();
 
   const showFinance = !isFinanceSensitive(appUser?.role);
 
@@ -275,36 +275,31 @@ export function Dashboard() {
   }
 
   if (error && !hasData) {
-    return (
-      <div className="dashboard-error">
-        <AlertCircle size={32} style={{ color: COLORS.alert }} />
-        <h3>Impossible de charger les données</h3>
-        <p>{error}</p>
-      </div>
-    );
-  }
+          {sourceStatus.transactions === "error" ? (
+            <EmptyState
+              icon={<AlertCircle size={32} />}
+              title="La source des transactions est indisponible"
+              message="Veuillez vérifier la connectivité Supabase ou contacter le support."
+            />
+          ) : latestTransactions.length === 0 ? (
+            <EmptyState
+              icon={<DollarSign size={32} />}
+              title="Aucune opération"
+              message="Aucune transaction enregistrée pour le moment."
+            />
+          ) : (
+            latestTransactions.slice(0, 3).map((t) => (
+              <div key={t.id} style={{ flex: "0 0 280px" }}>
+                <RotatingCard
+                  flipLabel={`Détail — ${t.description || t.reference || "Opération"}`}
+                  backLabel="Retour"
+                  front={<OpCardFront transaction={t} />}
+                  back={<OpCardBack transaction={t} />}
+                />
+              </div>
+            ))
+          )}
 
-  // Calcul de tendance simple pour la trésorerie
-  const treasuryTrend = movementData.length >= 2
-    ? {
-        value: `${Math.abs(movementData[movementData.length - 1].net - movementData[movementData.length - 2].net).toLocaleString()} FCFA`,
-        positive: movementData[movementData.length - 1].net >= movementData[movementData.length - 2].net,
-      }
-    : undefined;
-
-  const incomeTrend = movementData.length >= 2
-    ? {
-        value: `${Math.abs(movementData[movementData.length - 1].entrees - movementData[movementData.length - 2].entrees).toLocaleString()} FCFA`,
-        positive: movementData[movementData.length - 1].entrees >= movementData[movementData.length - 2].entrees,
-      }
-    : undefined;
-
-  const expenseTrend = movementData.length >= 2
-    ? {
-        value: `${Math.abs(movementData[movementData.length - 1].sorties - movementData[movementData.length - 2].sorties).toLocaleString()} FCFA`,
-        positive: movementData[movementData.length - 1].sorties <= movementData[movementData.length - 2].sorties,
-      }
-    : undefined;
 
   // Priorités
   const priorities = [

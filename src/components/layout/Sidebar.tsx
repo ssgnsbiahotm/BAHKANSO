@@ -31,7 +31,6 @@ const ALL_NAV_ITEMS: NavItem[] = [
   ]},
   { id: 'finance', label: 'Gestion', icon: <Briefcase size={20} />, module: 'finance', children: [
     { id: 'finance', label: 'Finances', module: 'finance' },
-    { id: 'ventes', label: 'Ventes', module: 'ventes' },
     { id: 'inventory', label: 'Stocks', module: 'inventory' },
     { id: 'projects', label: 'Projets', module: 'projects' },
     { id: 'suppliers', label: 'Fournisseurs', module: 'suppliers' },
@@ -75,7 +74,6 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     const routeMap: Record<string, string> = {
       dashboard: '/app/dashboard',
       finance: '/app/finance',
-      ventes: '/app/ventes',
       agriculture: '/app/agriculture',
       'agriculture?plots': '/app/agriculture/plots',
       'agriculture?campaigns': '/app/agriculture/campaigns',
