@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { Logo } from '@/components/ui/Logo';
-import { IMAGES } from '@/lib/images';
 import {
   ArrowRight,
   Beef,
   HardHat,
   Leaf,
-  Image,
   MapPin,
   Clock,
 } from 'lucide-react';
@@ -31,18 +28,21 @@ const ACTIVITY_CARDS = [
     icon: Leaf,
     title: 'Cultures',
     description: 'Gestion des parcelles, semis et suivi des récoltes.',
+    detail: 'Suivi des semis à la récolte, parcelle par parcelle, avec saisie terrain en temps réel.',
     href: '/app/agriculture/campaigns',
   },
   {
     icon: Beef,
     title: 'Élevage',
     description: 'Suivi du cheptel, alimentation et santé des animaux.',
+    detail: 'Alimentation, état de santé et événements de chaque animal, tracés dans le temps.',
     href: '/app/livestock/animals',
   },
   {
     icon: HardHat,
     title: 'Travaux',
     description: 'Aménagements, infrastructures et chantiers en cours.',
+    detail: 'Suivi des chantiers d’aménagements et d’infrastructures, de la planification à la réception.',
     href: '/app/projects',
   },
 ] as const;
@@ -71,27 +71,85 @@ const TRACKING_STEPS = [
 ] as const;
 
 /* ==========================================================================
-   HELPER COMPONENTS
+   HERO ILLUSTRATION (SVG sobre — pas de photo distante ni de placeholder)
    ========================================================================== */
 
-function ImageFallback() {
+function HeroScene() {
   return (
-    <div className="flex flex-col items-center justify-center text-center p-8">
-      <div className="w-16 h-16 rounded-full bg-signal/10 flex items-center justify-center mb-3">
-        <Image size={32} className="text-signal" aria-hidden="true" />
-      </div>
-      <p className="font-sans text-body-sm text-ink-mut">Image à venir</p>
-    </div>
+    <svg
+      width="1200"
+      height="800"
+      viewBox="0 0 1200 800"
+      fill="none"
+      role="img"
+      aria-label="Paysage agro-pastoral de l’exploitation BAHKANSO : champs, parcelles et horizon"
+      className="w-full h-auto block"
+    >
+      {/* Ciel dégradé */}
+      <defs>
+        <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#F4F1E8" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#E8E4D8" stopOpacity="1" />
+        </linearGradient>
+        <linearGradient id="fieldGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2E4A3F" />
+          <stop offset="100%" stopColor="#1C2925" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1200" height="540" fill="url(#skyGradient)" />
+      {/* Soleil */}
+      <circle cx="950" cy="180" r="60" fill="#C87551" opacity="0.85" />
+      <circle cx="950" cy="180" r="60" fill="#C87551" opacity="0.15" />
+      {/* Horizon */}
+      <line x1="0" y1="540" x2="1200" y2="540" stroke="#C87551" strokeWidth="2" opacity="0.5" />
+      {/* Sol */}
+      <rect x="0" y="540" width="1200" height="260" fill="url(#fieldGradient)" />
+      {/* Parcelles (perspective) */}
+      <polygon points="0,800 400,560 500,560 200,800" fill="#2E4A3F" opacity="0.6" />
+      <polygon points="300,800 700,560 800,560 500,800" fill="#3A5A4A" opacity="0.5" />
+      <polygon points="600,800 1000,560 1100,560 800,800" fill="#2E4A3F" opacity="0.6" />
+      <polygon points="900,800 1200,580 1200,700 1100,800" fill="#3A5A4A" opacity="0.5" />
+      {/* Lignes de culture */}
+      <line x1="120" y1="800" x2="420" y2="560" stroke="#6B8E3A" strokeWidth="3" opacity="0.8" />
+      <line x1="380" y1="800" x2="780" y2="580" stroke="#6B8E3A" strokeWidth="3" opacity="0.7" />
+      <line x1="700" y1="800" x2="1120" y2="620" stroke="#6B8E3A" strokeWidth="3" opacity="0.8" />
+      <line x1="1020" y1="800" x2="1200" y2="700" stroke="#6B8E3A" strokeWidth="3" opacity="0.6" />
+    </svg>
   );
 }
 
+function ProjectScene() {
+  return (
+    <svg
+      width="900"
+      height="700"
+      viewBox="0 0 900 700"
+      fill="none"
+      role="img"
+      aria-label="Illustration : suivi documentaire des activités du projet BAHKANSO"
+      className="w-full h-auto block"
+    >
+      <rect x="60" y="80" width="780" height="560" rx="10" fill="#1C2925" />
+      <rect x="60" y="80" width="780" height="60" rx="10" fill="#202824" />
+      <line x1="100" y1="220" x2="700" y2="220" stroke="#6B8E3A" strokeWidth="2" opacity="0.75" />
+      <line x1="100" y1="340" x2="780" y2="340" stroke="#6B8E3A" strokeWidth="2" opacity="0.6" />
+      <line x1="100" y1="460" x2="840" y2="460" stroke="#6B8E3A" strokeWidth="2" opacity="0.75" />
+      <circle cx="100" cy="220" r="6" fill="#C87551" />
+      <circle cx="100" cy="340" r="6" fill="#C87551" />
+      <circle cx="100" cy="460" r="6" fill="#C87551" />
+    </svg>
+  );
+}
 
+/* ==========================================================================
+   HELPER COMPONENTS
+   ========================================================================== */
 
 function NavLink({ href, label, className = '' }: { href: string; label: string; className?: string }) {
   return (
     <a
       href={href}
-      className={`text-sm font-medium text-ink-mut hover:text-signal transition-colors focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2 ${className}`}
+      className={`text-base font-medium text-ink-mut hover:text-[#1d6b2e] transition-colors min-w-[44px] min-h-[44px] px-3 py-2 focus-visible:outline-2 focus-visible:outline-[#202824] focus-visible:outline-offset-2 ${className}`}
     >
       {label}
     </a>
@@ -99,8 +157,6 @@ function NavLink({ href, label, className = '' }: { href: string; label: string;
 }
 
 function MobileNavLink({ href, label, onClose }: { href: string; label: string; onClose: () => void }) {
-  // Utilise un bouton pour la navigation programmatique (fermeture menu + scroll)
-  // Respecte prefers-reduced-motion
   const prefersReducedMotion = typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -116,7 +172,7 @@ function MobileNavLink({ href, label, onClose }: { href: string; label: string; 
     <button
       type="button"
       onClick={handleClick}
-      className="block w-full text-left px-4 py-3 text-base font-medium text-ivory hover:text-signal-soft transition-colors focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
+      className="block w-full text-left px-4 py-3 min-h-[44px] text-base font-medium text-ivory hover:text-signal-soft transition-colors focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
     >
       {label}
     </button>
@@ -124,16 +180,44 @@ function MobileNavLink({ href, label, onClose }: { href: string; label: string; 
 }
 
 /* ==========================================================================
-   HEADER
+   HEADER (variante publique — l’horloge n’y figure pas)
    ========================================================================== */
 
-function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
+function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen }: {
   scrolled: boolean;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
-  currentTime: Date;
 }) {
   const farm = useData().farm;
+
+  // Focus trap pour le menu mobile (WCAG 2.4.3)
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const menu = document.getElementById('bk-mobile-menu');
+    if (!menu) return;
+    const focusable = menu.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab' || focusable.length === 0) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    first?.focus();
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen, setMobileMenuOpen]);
 
   return (
     <header
@@ -144,7 +228,7 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
       }`}
       role="banner"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container">
         <div className="flex items-center justify-between gap-4 h-16 sm:h-18">
           <Link
             to="/"
@@ -171,31 +255,6 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
           </nav>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-signal/10 backdrop-blur-sm border border-ivory-deep rounded-lg shadow-sm">
-              <div className="relative flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-signal text-night shadow-sm">
-                  <Clock size={16} className="text-white" aria-hidden="true" />
-                </div>
-                <div className="text-left min-w-[160px]">
-                  <time
-                    dateTime={new Date(currentTime.getTime() - (currentTime.getTimezoneOffset() * 60000)).toISOString().slice(0, -1) + '+00:00'}
-                    className="block font-mono text-sm font-semibold text-ink tabular-nums"
-                    aria-label={`Heure actuelle : ${currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`}
-                  >
-                    {currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                  </time>
-                  <span className="block text-[10px] font-medium text-signal uppercase tracking-wider">
-                    {currentTime.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
-                </div>
-                <div className="w-px h-6 bg-signal/30 mx-1 hidden lg:block" aria-hidden="true" />
-                <div className="flex items-center gap-1.5 text-signal">
-                  <CalendarIcon size={14} aria-hidden="true" />
-                  <span className="text-xs font-medium hidden xs:block">Côte d'Ivoire (GMT)</span>
-                </div>
-              </div>
-            </div>
-
             <button
               id="bk-mobile-menu-toggle"
               type="button"
@@ -225,7 +284,7 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-left mt-2 bg-signal text-night font-semibold rounded-lg hover:bg-signal/90 transition-colors"
+              className="block px-4 py-3 text-left mt-2 min-h-[44px] bg-signal text-night font-semibold rounded-lg hover:bg-signal/90 transition-colors"
             >
               Espace de gestion
             </Link>
@@ -236,40 +295,13 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
   );
 }
 
-function CalendarIcon({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-      focusable="false"
-    >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-
 /* ==========================================================================
    HERO
    ========================================================================== */
 
 function Hero({ siteContent }: { siteContent: Record<string, { value: Record<string, unknown> | unknown[] }> }) {
   const hero = useMemo(() => (siteContent?.hero?.value as Record<string, unknown> | undefined) || {}, [siteContent]);
-  const [imageError, setImageError] = useState(false);
 
-  const heroImage = (hero.heroImage as string | undefined) || IMAGES.hero;
-  const heroAlt = (hero.heroAlt as string | undefined) || 'Projet agro-pastoral BAHKANSO — vue du terrain';
   const heroBadge = (hero.badge as string | undefined) || 'PLATEFORME DE GOUVERNANCE AGRO-PASTORALE';
   const heroTitle = (hero.title as string | undefined) || 'Pilotez vos investissements agro-pastoraux en toute transparence';
   const heroSubtitle = (hero.subtitle as string | undefined) || 'BAHKANSO relie les investissements, les opérations de terrain et le suivi des résultats, pour que l\'équipe et le responsable à distance travaillent avec les mêmes données.';
@@ -277,56 +309,42 @@ function Hero({ siteContent }: { siteContent: Record<string, { value: Record<str
   const heroCtaSecondary = (hero.ctaSecondary as string | undefined) || 'Consulter notre suivi';
 
   return (
-    <section className="relative bg-ivory overflow-hidden" aria-labelledby="hero-title">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24 relative z-10">
-        <div className="grid grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Texte : col-span-5 (gauche) */}
-          <div className="col-span-12 lg:col-span-5">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-night text-ivory text-xs font-sans font-semibold uppercase tracking-wider rounded-sm mb-6">
-              <span>{heroBadge}</span>
+    <section className="relative bg-ivory overflow-hidden section" aria-labelledby="hero-title">
+      <div className="container relative z-10">
+        <div className="grid grid-cols-1 gap-8 lg:gap-12 items-center lg:grid-cols-12">
+          {/* Texte : gauche sur desktop */}
+          <div className="lg:col-span-6 lg:col-start-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-night text-ivory text-xs font-sans font-semibold uppercase tracking-wider rounded-sm mb-6">
+              {heroBadge}
             </div>
             <h1
               id="hero-title"
-              className="font-editorial text-6xl md:text-7xl lg:text-8xl font-medium text-ink leading-tight mb-8 text-wrap-balance"
+              className="hero-title font-editorial font-medium text-ink leading-tight mb-8"
             >
               {heroTitle}
             </h1>
-            <p className="font-sans text-body-lg text-ink-mut leading-relaxed mb-10">
+            <p className="font-sans text-base text-ink-mut leading-relaxed mb-10">
               {heroSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href="#projet"
-                className="inline-flex items-center justify-center gap-2 bg-signal text-night font-sans font-semibold text-base px-6 py-4 rounded-md min-h-[56px] transition-colors hover:bg-signal/90 focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
+                className="inline-flex items-center justify-center gap-2 bg-signal text-night font-sans font-semibold text-base px-6 py-4 rounded-md min-h-[56px] transition-colors hover:bg-signal/90 focus-visible:outline-2 focus-visible:outline-[#202824] focus-visible:outline-offset-2"
               >
                 {heroCtaPrimary} <ArrowRight size={18} className="flex-shrink-0" aria-hidden="true" />
               </a>
               <a
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 border-2 border-signal text-signal font-sans font-semibold text-base px-6 py-4 rounded-md min-h-[56px] transition-colors hover:bg-signal/10 focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
+                className="inline-flex items-center justify-center gap-2 border-2 border-[#1d6b2e] text-[#1d6b2e] font-sans font-semibold text-base px-6 py-4 rounded-md min-h-[56px] transition-colors hover:text-[#155525] hover:border-[#155525] hover:bg-signal/10 focus-visible:outline-2 focus-visible:outline-[#202824] focus-visible:outline-offset-2"
               >
                 {heroCtaSecondary}
               </a>
             </div>
           </div>
 
-          {/* Image : col-span-7 (droite) */}
-          <div className="col-span-12 lg:col-span-7 relative">
-            {!imageError && heroImage ? (
-              <img
-                src={heroImage}
-                alt={heroAlt}
-                width={1200}
-                height={900}
-                loading="eager"
-                decoding="async"
-                {...({ fetchpriority: high } as Record<string, string>)}
-                className="w-full aspect-[4/3] object-cover rounded-xl border border-ivory-deep block"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <ImageFallback />
-            )}
+          {/* Visuel : droite sur desktop */}
+          <div className="lg:col-span-6 lg:col-start-7 relative">
+            <HeroScene />
           </div>
         </div>
       </div>
@@ -340,13 +358,13 @@ function Hero({ siteContent }: { siteContent: Record<string, { value: Record<str
 
 function ActivitiesSection() {
   return (
-    <section id="activites" className="scroll-mt-24 py-12 sm:py-16 lg:py-24 bg-ivory" aria-labelledby="activites-title">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="activites" className="scroll-mt-24 section bg-ivory" aria-labelledby="activites-title">
+      <div className="container">
         <div className="mb-12 lg:mb-16">
           <h2 id="activites-title" className="font-editorial text-4xl md:text-5xl font-medium text-ink text-wrap-balance">
             Nos activités
           </h2>
-          <p className="mt-4 font-sans text-body-lg text-ink-mut leading-relaxed">
+          <p className="mt-4 font-sans text-base text-ink-mut leading-relaxed">
             Ce qui fait vivre le projet, entre élevage, cultures et aménagements.
           </p>
         </div>
@@ -362,19 +380,22 @@ function ActivitiesSection() {
               <div key={card.title} role="listitem" className="flex flex-col h-full">
                 <a
                   href={card.href}
-                  className="flex-1 flex flex-col bg-ivory border border-ivory-deep rounded-lg p-6 lg:p-8 transition-colors focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
+                  className="card-link flex-1 flex flex-col bg-ivory border border-ivory-deep rounded-lg p-6 lg:p-8 focus-visible:outline-2 focus-visible:outline-[#202824] focus-visible:outline-offset-2"
                 >
-                  <div className="w-12 h-12 rounded-md flex items-center justify-center flex-shrink-0 bg-signal/10 text-signal mb-6">
+                  <div className="w-12 h-12 rounded-md flex items-center justify-center flex-shrink-0 bg-signal/10 text-signal mb-4">
                     <Icon size={48} aria-hidden="true" />
                   </div>
                   <h3 className="font-editorial text-2xl font-medium text-ink mb-3">
                     {card.title}
                   </h3>
-                  <p className="font-sans text-body-sm text-ink-mut leading-relaxed mb-6 flex-1">
+                  <p className="font-sans text-base text-ink-mut leading-relaxed mb-3">
                     {card.description}
                   </p>
-                  <span className="font-sans text-sm font-semibold text-signal flex items-center gap-1.5">
-                    Voir <span aria-hidden="true">→</span>
+                  <p className="font-sans text-base text-ink-mut leading-relaxed flex-1 mb-6">
+                    {card.detail}
+                  </p>
+                  <span className="font-sans text-base font-semibold text-[#1d6b2e] flex items-center gap-1.5 hover:text-[#155525] transition-colors">
+                    Voir {card.title} <span aria-hidden="true">→</span>
                   </span>
                 </a>
               </div>
@@ -392,13 +413,13 @@ function ActivitiesSection() {
 
 function TrackingSection() {
   return (
-    <section id="suivi" className="scroll-mt-24 py-12 sm:py-16 lg:py-24 bg-night text-ivory" aria-labelledby="suivi-title">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="suivi" className="scroll-mt-24 section bg-night text-ivory" aria-labelledby="suivi-title">
+      <div className="container">
         <div className="mb-12 lg:mb-16">
           <h2 id="suivi-title" className="font-editorial text-4xl md:text-5xl font-medium text-ivory text-wrap-balance">
             Notre suivi
           </h2>
-          <p className="mt-4 font-sans text-body-lg text-ivory/80 leading-relaxed">
+          <p className="mt-4 font-sans text-base text-ivory/80 leading-relaxed">
             Transparence et traçabilité : chaque étape est documentée et partagée.
           </p>
         </div>
@@ -415,7 +436,7 @@ function TrackingSection() {
                   <h3 className="font-editorial text-xl font-medium text-ivory mb-2">
                     {step.title}
                   </h3>
-                  <p className="font-sans text-body-sm text-ivory/70 leading-relaxed">
+                  <p className="font-sans text-base text-ivory/70 leading-relaxed">
                     {step.desc}
                   </p>
                 </div>
@@ -424,7 +445,7 @@ function TrackingSection() {
           </div>
         </div>
 
-        <p className="mt-16 font-sans text-caption text-ivory/60 max-w-2xl mx-auto px-4 bg-night/50 border border-signal/30 rounded-lg py-6 px-8">
+        <p className="mt-16 font-sans text-base text-ivory/70 max-w-2xl mx-auto px-4 bg-night/50 border border-signal/30 rounded-lg py-6 px-8">
           L’application privée BAHKANSO structure ce cycle : l’équipe terrain saisit, le responsable valide, les données restent synchronisées.
         </p>
       </div>
@@ -437,38 +458,36 @@ function TrackingSection() {
    ========================================================================== */
 
 function ProjectSection() {
-  const [imageError, setImageError] = useState(false);
-
   return (
-    <section id="projet" className="scroll-mt-24 py-12 sm:py-16 lg:py-24 bg-ivory" aria-labelledby="projet-title">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="projet" className="scroll-mt-24 section bg-ivory" aria-labelledby="projet-title">
+      <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           <div className="space-y-10">
             <h2 id="projet-title" className="font-editorial text-4xl md:text-5xl font-medium text-ink text-wrap-balance">
               Notre projet
             </h2>
-            <p className="font-sans text-body-lg text-ink-mut leading-relaxed">
+            <p className="font-sans text-base text-ink-mut leading-relaxed">
               Une exploitation agro-pastorale suivie entre le terrain et le responsable à distance.
             </p>
 
             <div className="space-y-8">
               <div>
                 <h3 className="font-editorial text-xl font-medium text-ink mb-3">Objectif</h3>
-                <p className="font-sans text-body-sm text-ink-mut leading-relaxed">
+                <p className="font-sans text-base text-ink-mut leading-relaxed">
                   Centraliser le suivi des financements, des dépenses, des activités d’élevage et de culture, ainsi que des chantiers, afin que chaque acteur dispose d’une information commune et à jour.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-editorial text-xl font-medium text-ink mb-3">Organisation</h3>
-                <p className="font-sans text-body-sm text-ink-mut leading-relaxed">
+                <p className="font-sans text-base text-ink-mut leading-relaxed">
                   L’équipe de terrain gère les activités sur place. Le responsable à distance envoie les fonds et suit l’avancement depuis l’espace privé de l’application.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-editorial text-xl font-medium text-ink mb-3">Engagement</h3>
-                <p className="font-sans text-body-sm text-ink-mut leading-relaxed">
+                <p className="font-sans text-base text-ink-mut leading-relaxed">
                   La gestion des activités (élevage, cultures, aménagements) est opérationnelle dans l’application privée. Les détails financiers restent réservés aux personnes autorisées.
                 </p>
               </div>
@@ -476,18 +495,7 @@ function ProjectSection() {
           </div>
 
           <div className="relative">
-            {!imageError ? (
-              <img
-                src={IMAGES.hero}
-                alt="Projet agro-pastoral BAHKANSO — vue du terrain"
-                width={1200}
-                height={900}
-                loading="lazy"
-                className="w-full aspect-[4/3] object-cover rounded-xl border border-ivory-deep block"
-                onError={() => setImageError(true)}
-              />
-            ) : null}
-            {imageError && <ImageFallback />}
+            <ProjectScene />
           </div>
         </div>
       </div>
@@ -499,24 +507,21 @@ function ProjectSection() {
    CONTACT
    ========================================================================== */
 
-function ContactSection({ goToLogin }: { goToLogin: () => void }) {
+function ContactSection() {
   return (
-    <section id="contact" className="scroll-mt-24 py-12 sm:py-16 lg:py-24 bg-ivory" aria-labelledby="contact-title">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="contact" className="scroll-mt-24 section bg-ivory" aria-labelledby="contact-title">
+      <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Gauche : carte Espace de gestion */}
           <div>
             <div className="bg-ivory border border-ivory-deep rounded-lg p-8 lg:p-12">
               <h3 className="font-editorial text-2xl font-medium text-ink mb-4 text-wrap-balance">Espace de gestion</h3>
-              <p className="font-sans text-body-sm text-ink-mut leading-relaxed mb-8">
+              <p className="font-sans text-base text-ink-mut leading-relaxed mb-8">
                 Retrouvez les financements, les dépenses et l’avancement du projet.
               </p>
-              <button
-                onClick={goToLogin}
-                className="inline-flex items-center justify-center gap-2 bg-signal text-night font-sans font-semibold text-base px-6 py-4 rounded-md min-h-[56px] transition-colors hover:bg-signal/90 focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
-              >
+              <Link to="/login" className="inline-flex items-center justify-center gap-2 bg-signal text-night font-sans font-semibold text-base px-6 py-4 rounded-md min-h-[56px] transition-colors hover:bg-signal/90 focus-visible:outline-2 focus-visible:outline-[#202824] focus-visible:outline-offset-2">
                 Accéder à l’espace de suivi <ArrowRight size={18} className="flex-shrink-0" aria-hidden="true" />
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -529,7 +534,7 @@ function ContactSection({ goToLogin }: { goToLogin: () => void }) {
                 </div>
                 <h3 className="font-editorial text-xl font-medium text-ink text-wrap-balance">Localisation</h3>
               </div>
-              <p className="font-sans text-body-sm text-ink-mut leading-relaxed">
+              <p className="font-sans text-base text-ink-mut leading-relaxed">
                 Côte d’Ivoire — Région du Bélier, Département de Dimbokro. Exploitation située à 45 km au nord de Yamoussoukro.
               </p>
             </div>
@@ -541,7 +546,7 @@ function ContactSection({ goToLogin }: { goToLogin: () => void }) {
                 </div>
                 <h3 className="font-editorial text-xl font-medium text-ink text-wrap-balance">Horaires de suivi</h3>
               </div>
-              <p className="font-sans text-body-sm text-ink-mut leading-relaxed">
+              <p className="font-sans text-base text-ink-mut leading-relaxed">
                 L’équipe de terrain est joignable du lundi au samedi, de 7h à 18h (GMT). Le responsable à distance répond sous 24h ouvrées via l’espace de gestion.
               </p>
             </div>
@@ -575,8 +580,8 @@ function Footer({ farm }: { farm: { name: string | null; logo_url: string | null
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-night text-ivory border-t border-night/50" role="contentinfo">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+    <footer className="bg-night text-ivory border-t border-night/50 section" role="contentinfo">
+      <div className="container">
         <div className="grid lg:grid-cols-4 gap-8 lg:gap-12">
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4" aria-label="Accueil BAHKANSO">
@@ -584,12 +589,12 @@ function Footer({ farm }: { farm: { name: string | null; logo_url: string | null
                 icon="Sprout"
                 color="#FFFFFF"
                 bgColor="#6B8E3A"
-                size={32}
+                size={44}
                 imageUrl={farm?.logo_url ?? null}
               />
               <span className="font-editorial font-semibold text-xl text-ivory">BAHKANSO</span>
             </Link>
-            <p className="font-sans text-body-sm text-ivory/60 leading-relaxed max-w-xs">Projet agro-pastoral. Suivi partagé entre l’équipe de terrain et le responsable à distance.</p>
+            <p className="font-sans text-base text-ivory/60 leading-relaxed max-w-xs">Projet agro-pastoral. Suivi partagé entre l’équipe de terrain et le responsable à distance.</p>
           </div>
 
           <nav aria-label="Navigation principale">
@@ -597,7 +602,7 @@ function Footer({ farm }: { farm: { name: string | null; logo_url: string | null
             <ul className="space-y-3">
               {FOOTER_LINKS.navigation.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="font-sans text-body-sm text-ivory/60 hover:text-signal transition-colors flex items-center gap-2">{link.label}</a>
+                  <a href={link.href} className="block text-base text-ivory/60 hover:text-signal transition-colors min-w-[44px] min-h-[44px] px-3 py-2 flex items-center gap-2">{link.label}</a>
                 </li>
               ))}
             </ul>
@@ -608,7 +613,7 @@ function Footer({ farm }: { farm: { name: string | null; logo_url: string | null
             <ul className="space-y-3">
               {FOOTER_LINKS.useful.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="font-sans text-body-sm text-ivory/60 hover:text-signal transition-colors flex items-center gap-2">{link.label}</a>
+                  <a href={link.href} className="block text-base text-ivory/60 hover:text-signal transition-colors min-w-[44px] min-h-[44px] px-3 py-2 flex items-center gap-2">{link.label}</a>
                 </li>
               ))}
             </ul>
@@ -628,16 +633,9 @@ function Footer({ farm }: { farm: { name: string | null; logo_url: string | null
    ========================================================================== */
 
 export function LandingPage() {
-  const navigate = useNavigate();
   const { farm, siteContent } = useData();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -673,10 +671,6 @@ export function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  const goToLogin = useCallback(() => {
-    navigate('/login');
-  }, [navigate]);
-
   return (
     <div className="min-h-screen flex flex-col bg-ivory" lang="fr">
       <a
@@ -689,14 +683,13 @@ export function LandingPage() {
         scrolled={scrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        currentTime={currentTime}
       />
       <main className="flex-1" id="contenu-principal">
         <Hero siteContent={siteContent} />
         <ActivitiesSection />
         <TrackingSection />
         <ProjectSection />
-        <ContactSection goToLogin={goToLogin} />
+        <ContactSection />
       </main>
       <Footer farm={farm} />
     </div>

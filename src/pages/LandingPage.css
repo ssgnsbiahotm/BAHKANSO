@@ -6,8 +6,10 @@
    ========================================================================== */
 
 /* Smooth scroll */
-html {
-  scroll-behavior: smooth;
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 /* Focus visible pour accessibilité clavier */
@@ -41,6 +43,57 @@ html {
 ::selection {
   background-color: #6B8E3A;
   color: white;
+}
+
+/* ==========================================================================
+   Conteneur de référence unique (header, hero, sections, footer)
+   width: 100% · max-width: 1200px · margin-inline: auto · padding-inline responsive
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+  .container { padding-inline: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .container { padding-inline: 2rem; }
+}
+
+/* ==========================================================================
+   Espacement des sections principales : padding-block clamp(4rem, 8vw, 7rem)
+   ========================================================================== */
+.section {
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+/* ==========================================================================
+   Titre du hero : clamp(2.25rem, 5vw, 4rem), text-wrap: balance, ~18ch
+   ========================================================================== */
+.hero-title {
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.15;
+  text-wrap: balance;
+  max-width: 18ch;
+  overflow-wrap: break-word;
+}
+
+/* ==========================================================================
+   Cartes d’activités interactives : hover translateY(-2px), ombre douce,
+   transition 200ms sur transform + box-shadow uniquement, focus-visible net
+   ========================================================================== */
+.card-link {
+  transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+}
+.card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+}
+.card-link:focus-visible {
+  outline: 2px solid #202824;
+  outline-offset: 2px;
 }
 
 /* Scrollbar styling (WebKit) */

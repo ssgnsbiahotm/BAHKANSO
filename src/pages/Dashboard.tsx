@@ -261,7 +261,8 @@ export function Dashboard() {
     hasData,
     loading,
     error,
-  , sourceStatus, } = useDashboardStats();
+    expenseTrend,
+  } = useDashboardStats();
 
   const showFinance = !isFinanceSensitive(appUser?.role);
 
@@ -299,6 +300,7 @@ export function Dashboard() {
               </div>
             ))
           )}
+          }
 
 
   // Priorités
