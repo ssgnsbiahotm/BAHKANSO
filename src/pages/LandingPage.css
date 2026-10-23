@@ -1,64 +1,24 @@
 /* ==========================================================================
-   BAHKANSO — LandingPage styles (minimal, Tailwind-aligned)
-   Only keyframes, complex gradients, and fallbacks not expressible in Tailwind.
+   BAHKANSO — LandingPage styles
+   Design : Field Intelligence. Pas de dégradé excessif, pas d'animation
+   décorative inutile, focus clavier visible, contrastes WCAG AA.
    ========================================================================== */
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes fade-in-up {
-  /* Motion-only entrance: content must remain visible during delayed/full-page captures. */
-  from { transform: translateY(12px); }
-  to { transform: translateY(0); }
-}
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* Utility: fade-in-up animation */
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s cubic-bezier(0.4, 0.0, 0.2, 1) both;
-  /* Never hide page content while an entrance animation is waiting to start. */
-  opacity: 1;
-}
 
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
 }
 
-/* Focus visible for accessibility */
+/* Focus visible pour accessibilité clavier */
 *:focus-visible {
-  outline: 2px solid #16a34a;
+  outline: 2px solid #6B8E3A;
   outline-offset: 2px;
-}
-
-/* Hero fallback image (kept as CSS for the pseudo-element approach) */
-.bk-hero-fallback::before {
-  content: '';
-  display: block;
-  width: 48px;
-  height: 48px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E") center/contain no-repeat;
-  opacity: 0.5;
-}
-
-/* Mobile menu animation (already handled by Tailwind, but keep as backup) */
-#bk-mobile-menu {
-  transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 
 /* Print styles */
 @media print {
-  header, footer, .bk-hero-actions, button {
+  header, footer, button {
     display: none !important;
-  }
-  .bk-hero {
-    min-height: auto;
-    page-break-inside: avoid;
   }
   section {
     page-break-inside: avoid;
@@ -67,13 +27,6 @@ html {
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in-up {
-    animation: none;
-    opacity: 1;
-  }
-  html {
-    scroll-behavior: auto;
-  }
   *,
   *::before,
   *::after {
@@ -85,7 +38,7 @@ html {
 
 /* Selection styling */
 ::selection {
-  background-color: #16a34a;
+  background-color: #6B8E3A;
   color: white;
 }
 
@@ -96,7 +49,7 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #F4F1E8;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -111,7 +64,7 @@ html {
 /* Dark mode scrollbar */
 @media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-track {
-    background: #1e293b;
+    background: #111A18;
   }
   ::-webkit-scrollbar-thumb {
     background: #475569;

@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { Logo } from '@/components/ui/Logo';
-import { RotatingCard } from '@/components/ui/RotatingCard';
-import type { Farm, SiteContent } from '@/lib/types';
+import { IMAGES } from '@/lib/images';
 import {
   ArrowRight,
   Beef,
@@ -37,62 +35,40 @@ const ACTIVITY_CARDS = [
     icon: Beef,
     title: 'Élevage',
     description: 'Suivi du cheptel, alimentation et santé des animaux.',
-    detail: 'Suivi individuel des animaux, gestion des lots, alimentation, santé, reproduction.',
-    status: 'En cours',
-    statusColor: 'primary',
-    gradient: 'from-primary-500 to-primary-600',
-    iconBg: 'bg-primary-500/20',
-    iconColor: 'text-primary-400',
-    ctaColor: 'primary',
+    href: '/app/livestock/animals',
   },
   {
     icon: Leaf,
     title: 'Cultures',
     description: 'Gestion des parcelles, semis et suivi des récoltes.',
-    detail: 'Parcelles, campagnes, opérations culturales, récoltes, rendements.',
-    status: 'En cours',
-    statusColor: 'accent',
-    gradient: 'from-accent-500 to-accent-600',
-    iconBg: 'bg-accent-500/20',
-    iconColor: 'text-accent-400',
-    ctaColor: 'accent',
+    href: '/app/agriculture/campaigns',
   },
   {
     icon: HardHat,
     title: 'Travaux',
     description: 'Aménagements, infrastructures et chantiers en cours.',
-    detail: 'Projets d\'infrastructure, chantiers, budgétisation, avancement, planning.',
-    status: 'Prévu',
-    statusColor: 'secondary',
-    gradient: 'from-secondary-500 to-secondary-600',
-    iconBg: 'bg-secondary-500/20',
-    iconColor: 'text-secondary-400',
-    ctaColor: 'secondary',
+    href: '/app/projects',
   },
 ] as const;
 
 const TRACKING_STEPS = [
   {
     num: '01',
-    icon: '🌱',
     title: 'Planification',
     desc: 'Définition des objectifs, budgétisation et calendrier prévisionnel avec l\'équipe terrain.',
   },
   {
     num: '02',
-    icon: '💰',
     title: 'Financement',
     desc: 'Envoi des fonds par le responsable à distance, traçabilité bancaire et notification instantanée.',
   },
   {
     num: '03',
-    icon: '🚜',
     title: 'Exécution',
     desc: 'Réalisation des opérations sur le terrain, saisie en temps réel, photos et justificatifs.',
   },
   {
     num: '04',
-    icon: '📊',
     title: 'Reporting',
     desc: 'Tableaux de bord automatiques, alertes seuils, exports PDF pour le responsable à distance.',
   },
@@ -126,66 +102,33 @@ type ActivityCard = typeof ACTIVITY_CARDS[number];
    HELPER COMPONENTS
    ========================================================================== */
 
-function StatusBadge({ label, color }: { label: string; color: 'primary' | 'accent' | 'secondary' }) {
-  const variants = {
-    primary: 'bg-primary-500/20 text-primary-400 border-primary-500/30',
-    accent: 'bg-accent-500/20 text-accent-400 border-accent-500/30',
-    secondary: 'bg-secondary-500/20 text-secondary-400 border-secondary-500/30',
-  };
-  return (
-    <span className={`text-overline font-medium px-3 py-1 rounded-full border ${variants[color]}`}>
-      {label}
-    </span>
-  );
-}
-
-function ActivityCardFront({ card }: { card: ActivityCard }) {
+function ActivityCard({ card }: { card: ActivityCard }) {
   const Icon = card.icon;
   return (
-    <div className="relative bg-white/5 border border-white/10 rounded-2xl p-6 flex gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-primary-500/40 overflow-hidden group">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
-      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${card.iconBg} ${card.iconColor} shadow-lg relative z-10`}>
-        <Icon size={32} aria-hidden="true" />
+    <a
+      href={card.href}
+      className="block bg-white border border-ivory-deep rounded-xl p-6 transition-all duration-300 hover:border-signal hover:shadow-md focus-visible:outline-signal focus-visible:outline-2 focus-visible:outline-offset-2"
+    >
+      <div className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 bg-signal-soft text-signal mb-4">
+        <Icon size={28} aria-hidden="true" />
       </div>
-      <div className="flex flex-col justify-between flex-1 min-w-0 relative z-10">
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <h3 className="text-heading-sm font-bold text-white">{card.title}</h3>
-          <StatusBadge label={card.status} color={card.statusColor} />
-        </div>
-        <p className="text-body-sm text-neutral-400 leading-relaxed flex-1">{card.description}</p>
+      <h3 className="text-heading-md font-bold text-ink mb-2">{card.title}</h3>
+      <p className="text-body-sm text-ink-mut leading-relaxed mb-4">{card.description}</p>
+      <div className="flex items-center gap-2 text-sm font-semibold text-signal">
+        Voir {card.title.toLowerCase()} <ArrowRight size={14} className="flex-shrink-0" />
       </div>
-    </div>
-  );
-}
-
-function ActivityCardBack({ card }: { card: ActivityCard }) {
-  const ctaColors = {
-    primary: 'text-primary-400 hover:text-primary-300 hover:border-primary-400',
-    accent: 'text-accent-400 hover:text-accent-300 hover:border-accent-400',
-    secondary: 'text-secondary-400 hover:text-secondary-300 hover:border-secondary-400',
-  };
-  return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
-      <h3 className="text-heading-sm font-bold text-white">{card.title} — Détails</h3>
-      <p className="text-body-sm text-neutral-400 leading-relaxed">{card.detail}</p>
-      <a
-        href="/login"
-        className={`inline-flex items-center gap-2 text-base font-semibold ${ctaColors[card.ctaColor]} transition-colors pb-1 border-b-2 border-transparent mt-auto`}
-      >
-        Espace privé — se connecter <ArrowRight size={16} />
-      </a>
-    </div>
+    </a>
   );
 }
 
 function FeatureHighlight({ icon: Icon, title, desc }: { icon: LucideIcon; title: string; desc: string }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:border-primary-500/40 hover:shadow-xl">
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-primary-500/20 text-primary-400 shadow-lg mb-4" aria-hidden="true">
+    <div className="bg-white border border-ivory-deep rounded-xl p-6 transition-all duration-300 hover:border-signal">
+      <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-signal-soft text-signal shadow-sm mb-4" aria-hidden="true">
         <Icon size={24} />
       </div>
-      <h4 className="text-heading-sm font-bold text-white">{title}</h4>
-      <p className="mt-2 text-body-sm text-neutral-400 leading-relaxed">{desc}</p>
+      <h4 className="text-heading-sm font-bold text-ink">{title}</h4>
+      <p className="mt-2 text-body-sm text-ink-mut leading-relaxed">{desc}</p>
     </div>
   );
 }
@@ -194,7 +137,7 @@ function NavLink({ href, label, className = '' }: { href: string; label: string;
   return (
     <a
       href={href}
-      className={`text-sm font-medium text-neutral-700 hover:text-primary-600 dark:text-neutral-300 dark:hover:text-primary-400 transition-colors ${className}`}
+      className={`text-sm font-medium text-ink-mut hover:text-signal transition-colors ${className}`}
     >
       {label}
     </a>
@@ -205,7 +148,7 @@ function MobileNavLink({ href, label, onClose }: { href: string; label: string; 
   return (
     <a
       href={href}
-      className="block px-4 py-3 text-base font-medium text-white hover:text-primary-400 transition-colors"
+      className="block px-4 py-3 text-base font-medium text-ivory hover:text-signal-soft transition-colors"
       onClick={onClose}
     >
       {label}
@@ -229,7 +172,7 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-neutral-950/95 backdrop-blur-md shadow-xl border-b border-neutral-800'
+          ? 'bg-ivory/95 backdrop-blur-md shadow-sm border-b border-ivory-deep'
           : 'bg-transparent'
       }`}
       role="banner"
@@ -245,11 +188,11 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
             <Logo
               icon="Sprout"
               color="#FFFFFF"
-              bgColor="#16a34a"
+              bgColor="#6B8E3A"
               size={40}
               imageUrl={farm?.logo_url ?? null}
             />
-            <span className="font-bold text-xl text-neutral-900 dark:text-white hidden sm:block">
+            <span className="font-bold text-xl text-ink dark:text-white hidden sm:block">
               BAHKANSO
             </span>
           </Link>
@@ -261,26 +204,25 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
           </nav>
 
           <div className="flex items-center gap-3">
-            {/* Horloge professionnelle agro-pastorale */}
-            <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border border-primary-100 dark:border-primary-900/30 rounded-xl shadow-sm transition-all hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800/50">
+            <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-white/90 backdrop-blur-sm border border-ivory-deep rounded-xl shadow-sm">
               <div className="relative flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-inner">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-signal text-night shadow-sm">
                   <Clock size={16} className="text-white" aria-hidden="true" />
                 </div>
                 <div className="text-left min-w-[160px]">
                   <time
                     dateTime={currentTime.toISOString()}
-                    className="block font-mono text-sm font-semibold text-neutral-900 dark:text-white tabular-nums"
+                    className="block font-mono text-sm font-semibold text-ink tabular-nums"
                     aria-label={`Heure actuelle : ${currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`}
                   >
                     {currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </time>
-                  <span className="block text-[10px] font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                  <span className="block text-[10px] font-medium text-signal uppercase tracking-wider">
                     {currentTime.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   </span>
                 </div>
-                <div className="w-px h-6 bg-gradient-to-b from-transparent via-primary-300 to-transparent dark:via-primary-700/50 mx-1 hidden lg:block" aria-hidden="true" />
-                <div className="flex items-center gap-1.5 text-primary-600 dark:text-primary-400">
+                <div className="w-px h-6 bg-gradient-to-b from-transparent via-signal-soft to-transparent mx-1 hidden lg:block" aria-hidden="true" />
+                <div className="flex items-center gap-1.5 text-signal">
                   <Calendar size={14} aria-hidden="true" />
                   <span className="text-xs font-medium hidden xs:block">Côte d'Ivoire (GMT)</span>
                 </div>
@@ -290,7 +232,7 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
             <button
               id="bk-mobile-menu-toggle"
               type="button"
-              className="md:hidden p-2 rounded-lg text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 transition-colors min-w-[44px] min-h-[44px]"
+              className="md:hidden p-2 rounded-lg text-ink hover:bg-ivory-deep border border-ivory-deep transition-colors min-w-[44px] min-h-[44px]"
               aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
               aria-expanded={mobileMenuOpen}
               aria-controls="bk-mobile-menu"
@@ -309,14 +251,14 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
           role="navigation"
           aria-label="Menu mobile"
         >
-          <div className="py-4 space-y-1 bg-neutral-950 border-t border-neutral-800">
+          <div className="py-4 space-y-1 bg-night border-t border-ivory-deep">
             {NAV_LINKS.map((link) => (
               <MobileNavLink key={link.href} href={link.href} label={link.label} onClose={() => setMobileMenuOpen(false)} />
             ))}
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-center mt-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+              className="block px-4 py-3 text-center mt-2 bg-signal text-night font-semibold rounded-lg hover:bg-signal hover:opacity-90 transition-colors"
             >
               Espace de gestion
             </Link>
@@ -327,72 +269,76 @@ function Header({ scrolled, mobileMenuOpen, setMobileMenuOpen, currentTime }: {
   );
 }
 
-function Hero({ siteContent }: { siteContent: Record<string, SiteContent> }) {
+function Hero({ siteContent }: { siteContent: Record<string, unknown> }) {
   const hero = useMemo(() => (siteContent?.hero?.value as Record<string, unknown> | undefined) || {}, [siteContent]);
-  const heroImage = (hero.heroImage as string | undefined) || undefined;
-  const heroAlt = (hero.heroAlt as string | undefined) || 'Bandeau d\'accueil BAHKANSO';
-  const heroBadge = (hero.badge as string | undefined) || 'Projet agro-pastoral · Côte d\'Ivoire';
-  const heroTitle = (hero.title as string | undefined) || 'Bahkanso, un projet agro-pastoral ancré dans le terrain';
-  const heroSubtitle = (hero.subtitle as string | undefined) || 'BAHKANSO rassemble les informations de notre exploitation pour que l\'équipe de terrain et le responsable à distance travaillent avec les mêmes données.';
+  const heroImage = (hero.heroImage as string | undefined) || IMAGES.hero;
+  const heroAlt = (hero.heroAlt as string | undefined) || 'Projet agro-pastoral BAHKANSO — vue du terrain';
+  const heroBadge = (hero.badge as string | undefined) || 'PLATEFORME DE GOUVERNANCE AGRO-PASTORALE';
+  const heroTitle = (hero.title as string | undefined) || 'Pilotez vos investissements agro-pastoraux en toute transparence';
+  const heroSubtitle = (hero.subtitle as string | undefined) || 'BAHKANSO relie les investissements, les opérations de terrain et le suivi des résultats, pour que l\'équipe et le responsable à distance travaillent avec les mêmes données.';
   const heroCtaPrimary = (hero.ctaPrimary as string | undefined) || 'Découvrir le projet';
-  const heroCtaSecondary = (hero.ctaSecondary as string | undefined) || 'Espace de gestion';
+  const heroCtaSecondary = (hero.ctaSecondary as string | undefined) || 'Consulter notre suivi';
 
   return (
     <section
-      className="relative min-h-0 lg:min-h-screen flex items-center bg-gradient-to-b from-white via-neutral-50 to-neutral-100 overflow-hidden"
+      className="relative bg-ivory overflow-hidden"
       aria-labelledby="hero-title"
     >
-      {/* Ambient background gradients */}
-      <div className="absolute top-[-50%] right-[-20%] w-[60%] h-[150%] bg-[radial-gradient(ellipse_at_center,rgba(22,163,74,0.08)_0%,transparent_70%)] pointer-events-none" aria-hidden="true" />
-      <div className="absolute bottom-[-30%] left-[-10%] w-[40%] h-[100%] bg-[radial-gradient(ellipse_at_center,rgba(92,64,51,0.06)_0%,transparent_70%)] pointer-events-none" aria-hidden="true" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative z-10 w-full">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="text-center lg:text-left animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 text-xs font-bold uppercase tracking-wider rounded-full border border-primary-100 shadow-sm mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-night text-ivory text-xs font-bold uppercase tracking-wider rounded-full mb-6">
               <span>{heroBadge}</span>
             </div>
             <h1
               id="hero-title"
-              className="text-display-md sm:text-display-lg lg:text-display-xl text-neutral-900 bg-gradient-to-r from-neutral-900 via-primary-600 to-primary-700 bg-clip-text text-transparent animate-fade-in-up"
-              style={{ animationDelay: '200ms' }}
+              className="text-display-sm sm:text-display-md lg:text-display-lg font-bold text-night leading-tight mb-6"
             >
               {heroTitle}
             </h1>
-            <p className="mt-6 text-body-lg text-neutral-600 max-w-2xl mx-auto lg:mx-0 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <p className="text-body-lg text-ink-mut max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-8">
               {heroSubtitle}
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center sm:items-center justify-center lg:justify-start gap-4 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center lg:justify-start gap-4">
               <a
                 href="#projet"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold text-base px-6 py-3.5 rounded-xl min-h-[52px] transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-signal text-night font-semibold text-base px-6 py-4 rounded-xl min-h-[56px] transition-all hover:bg-signal hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-signal focus:ring-offset-2 focus:ring-offset-ivory"
               >
                 {heroCtaPrimary} <ArrowRight size={18} className="flex-shrink-0" />
               </a>
               <a
                 href="/login"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border-2 border-primary-600 text-primary-600 font-semibold text-base px-6 py-3.5 rounded-xl min-h-[52px] bg-transparent transition-all hover:bg-primary-50 hover:border-primary-500 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border-2 border-signal text-signal font-semibold text-base px-6 py-4 rounded-xl min-h-[56px] bg-transparent transition-all hover:bg-signal/10 hover:border-signal focus:outline-none focus:ring-2 focus:ring-signal focus:ring-offset-2 focus:ring-offset-ivory"
               >
                 {heroCtaSecondary}
               </a>
             </div>
           </div>
 
-          <div className="relative animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+          <div className="relative">
             {heroImage ? (
-              <img
+              <picture>
+                <source type="image/avif" srcSet={`${heroImage}?avif`} />
+                <source type="image/webp" srcSet={`${heroImage}?webp`} />
+                <img
                   src={heroImage}
                   alt={heroAlt}
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="w-full aspect-[4/3] object-cover rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] border border-neutral-200 transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)]"
+                  className="w-full aspect-[4/3] object-cover rounded-xl border border-ivory-deep shadow-lg transition-all duration-500 hover:scale-[1.01]"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
+              </picture>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-3 h-64 sm:h-80 border-2 dashed neutral-400 rounded-2xl text-neutral-500 text-sm bg-gradient-to-br from-primary-50/50 to-neutral-100/50">
-                <div className="w-16 h-16 bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%221.5%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%222%22%20ry%3D%222%22%2F%3E%3Ccircle%20cx%3D%228.5%22%20cy%3D%228.5%22%20r%3D%221.5%22%2F%3E%3Cpolyline%20points%3D%2221%2015%2016%2010%205%2021%22%2F%3E%3C%2Fsvg%3E')] bg-center bg-contain bg-no-repeat opacity-50" aria-hidden="true" />
-                <p className="text-center px-4">Aucune image configurée pour le bandeau d\'accueil.</p>
+              <div className="w-full aspect-[4/3] rounded-xl border-2 border-dashed border-ivory-deep bg-night/5 flex flex-col items-center justify-center text-center p-8">
+                <div className="w-16 h-16 bg-night/10 rounded-full flex items-center justify-center mb-3">
+                  <ImageIcon size={32} className="text-night/30" aria-hidden="true" />
+                </div>
+                <p className="text-body-sm text-ink-mut max-w-xs">Image du projet attendue : <code className="font-mono text-xs bg-night/10 px-2 py-1 rounded">public/images/hero-projet.jpg</code></p>
               </div>
             )}
           </div>
@@ -402,59 +348,84 @@ function Hero({ siteContent }: { siteContent: Record<string, SiteContent> }) {
   );
 }
 
+function ImageIcon({ size, className }: { size: number; className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <polyline points="21 15 16 10 5 21" />
+    </svg>
+  );
+}
+
 function ProjectSection() {
   return (
     <section
       id="projet"
-      className="py-16 sm:py-24 lg:py-32 bg-neutral-50"
+      className="py-12 sm:py-16 lg:py-20 bg-white"
       aria-labelledby="projet-title"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16 animate-fade-in-up">
-          <h2 id="projet-title" className="text-display-sm sm:text-display-md text-neutral-900 font-bold">
+        <div className="text-center max-w-3xl mx-auto mb-10 lg:mb-14">
+          <h2 id="projet-title" className="text-display-sm sm:text-display-md font-bold text-night">
             Notre projet
           </h2>
-          <p className="mt-4 text-body-lg text-neutral-600">
+          <p className="mt-4 text-body-lg text-ink-mut">
             Une exploitation agro-pastorale suivie entre le terrain et le responsable à distance.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 items-start">
-          <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+          <div className="space-y-6">
             <div>
-              <h3 className="text-heading-md text-neutral-900 font-bold relative pb-3 inline-block">Objectif</h3>
-              <div className="w-12 h-1 bg-gradient-to-r from-primary-600 to-accent-500 rounded mt-3" />
+              <h3 className="text-heading-md font-bold text-night relative pb-3 inline-block">Objectif</h3>
+              <div className="w-12 h-1 bg-signal rounded mt-3" />
+              <p className="text-body-lg text-ink-mut leading-relaxed">
+                Centraliser le suivi des financements, des dépenses, des activités d\'élevage et de culture, ainsi que des chantiers, afin que chaque acteur dispose d\'une information commune et à jour.
+              </p>
             </div>
-            <p className="text-body-lg text-neutral-600 leading-relaxed">
-              Centraliser le suivi des financements, des dépenses, des activités d\'élevage et de culture, ainsi que des chantiers, afin que chaque acteur dispose d\'une information commune et à jour.
-            </p>
 
-            <h3 className="text-heading-md text-neutral-900 font-bold relative pb-3 inline-block mt-2">Organisation</h3>
-            <div className="w-12 h-1 bg-gradient-to-r from-primary-600 to-accent-500 rounded mt-3" />
-            <p className="mt-4 text-body-lg text-neutral-600 leading-relaxed">
-              L\'équipe de terrain gère les activités sur place. Le responsable à distance envoie les fonds et suit l\'avancement depuis l\'espace privé de l\'application.
-            </p>
+            <div className="mt-2">
+              <h3 className="text-heading-md font-bold text-night relative pb-3 inline-block">Organisation</h3>
+              <div className="w-12 h-1 bg-signal rounded mt-3" />
+              <p className="mt-4 text-body-lg text-ink-mut leading-relaxed">
+                L\'équipe de terrain gère les activités sur place. Le responsable à distance envoie les fonds et suit l\'avancement depuis l\'espace privé de l\'application.
+              </p>
+            </div>
 
-            <h3 className="text-heading-md text-neutral-900 font-bold relative pb-3 inline-block mt-2">Ce qui est engagé</h3>
-            <div className="w-12 h-1 bg-gradient-to-r from-primary-600 to-accent-500 rounded mt-3" />
-            <p className="mt-4 text-body-lg text-neutral-600 leading-relaxed">
-              La gestion des activités (élevage, cultures, aménagements) est déjà opérationnelle dans l\'application privée. Les détails financiers restent réservés aux personnes autorisées.
-            </p>
+            <div className="mt-2">
+              <h3 className="text-heading-md font-bold text-night relative pb-3 inline-block">Ce qui est engagé</h3>
+              <div className="w-12 h-1 bg-signal rounded mt-3" />
+              <p className="mt-4 text-body-lg text-ink-mut leading-relaxed">
+                La gestion des activités (élevage, cultures, aménagements) est déjà opérationnelle dans l\'application privée. Les détails financiers restent réservés aux personnes autorisées.
+              </p>
+            </div>
           </div>
 
-          <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="border-b border-neutral-100 p-6 flex items-start gap-4 transition-colors hover:bg-primary-50/30">
-              <span className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl bg-primary-50/80 text-primary-700 shadow-sm" aria-hidden="true">🏡</span>
+          <div className="bg-night border border-night/50 rounded-xl shadow-sm overflow-hidden">
+            <div className="border-b border-night/30 p-6 flex items-start gap-4 transition-colors hover:bg-night/80">
+              <span className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl bg-signal/20 text-signal shadow-sm" aria-hidden="true">🏡</span>
               <div>
-                <h4 className="text-heading-sm text-neutral-900 font-semibold">Sur le terrain</h4>
-                <p className="mt-1 text-body-sm text-neutral-600 leading-relaxed">Gestion des activités et des opérations au quotidien.</p>
+                <h4 className="text-heading-sm font-bold text-ivory">Sur le terrain</h4>
+                <p className="mt-1 text-body-sm text-ivory/80 leading-relaxed">Gestion des activités et des opérations au quotidien.</p>
               </div>
             </div>
-            <div className="p-6 flex items-start gap-4 transition-colors hover:bg-accent-50/30">
-              <span className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl bg-accent-50/80 text-accent-700 shadow-sm" aria-hidden="true">🌍</span>
+            <div className="p-6 flex items-start gap-4 transition-colors hover:bg-night/80">
+              <span className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl bg-signal/20 text-signal shadow-sm" aria-hidden="true">🌍</span>
               <div>
-                <h4 className="text-heading-sm text-neutral-900 font-semibold">À distance</h4>
-                <p className="mt-1 text-body-sm text-neutral-600 leading-relaxed">Financement et suivi de l\'avancement du projet.</p>
+                <h4 className="text-heading-sm font-bold text-ivory">À distance</h4>
+                <p className="mt-1 text-body-sm text-ivory/80 leading-relaxed">Financement et suivi de l\'avancement du projet.</p>
               </div>
             </div>
           </div>
@@ -468,40 +439,34 @@ function ActivitiesSection() {
   return (
     <section
       id="activites"
-      className="py-16 sm:py-24 lg:py-32 bg-neutral-950 text-white relative overflow-hidden"
+      className="py-12 sm:py-16 lg:py-20 bg-ivory"
       aria-labelledby="activites-title"
     >
-      {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_center,rgba(22,163,74,0.12)_0%,transparent_70%)] pointer-events-none" aria-hidden="true" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16 animate-fade-in-up">
-          <h2 id="activites-title" className="text-display-sm sm:text-display-md font-bold">Nos activités</h2>
-          <p className="mt-4 text-body-lg text-neutral-400">Ce qui fait vivre le projet, entre élevage, cultures et aménagements.</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-10 lg:mb-14">
+          <h2 id="activites-title" className="text-display-sm sm:text-display-md font-bold text-night">
+            Nos activités
+          </h2>
+          <p className="mt-4 text-body-lg text-ink-mut">
+            Ce qui fait vivre le projet, entre élevage, cultures et aménagements.
+          </p>
         </div>
 
         <div
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}
+          className="grid sm:grid-cols-3 gap-6"
           role="list"
           aria-label="Activités du projet"
         >
           {ACTIVITY_CARDS.map((card) => (
             <div key={card.title} role="listitem">
-              <RotatingCard
-                flipLabel="En savoir plus"
-                backLabel="Retour"
-                front={<ActivityCardFront card={card} />}
-                back={<ActivityCardBack card={card} />}
-              />
+              <ActivityCard card={card} />
             </div>
           ))}
         </div>
 
-        {/* Feature highlights */}
-        <div className="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up" style={{ animationDelay: '200ms' }} role="list" aria-label="Points forts de l'application">
-          {FEATURE_HIGHLIGHTS.map((feature, index) => (
-            <div key={feature.title} role="listitem" style={{ animationDelay: `${300 + index * 100}ms` }}>
+        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {FEATURE_HIGHLIGHTS.map((feature) => (
+            <div key={feature.title}>
               <FeatureHighlight {...feature} />
             </div>
           ))}
@@ -515,34 +480,34 @@ function TrackingSection() {
   return (
     <section
       id="suivi"
-      className="py-16 sm:py-24 lg:py-32 bg-neutral-950 text-white relative overflow-hidden"
+      className="py-12 sm:py-16 lg:py-20 bg-night text-ivory"
       aria-labelledby="suivi-title"
     >
-      <div className="absolute top-0 right-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_center,rgba(92,64,51,0.1)_0%,transparent_70%)] pointer-events-none" aria-hidden="true" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16 animate-fade-in-up">
-          <h2 id="suivi-title" className="text-display-sm sm:text-display-md font-bold">Notre suivi</h2>
-          <p className="mt-4 text-body-lg text-neutral-400">Transparence et traçabilité : chaque étape est documentée et partagée.</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-10 lg:mb-14">
+          <h2 id="suivi-title" className="text-display-sm sm:text-display-md font-bold text-ivory">
+            Notre suivi
+          </h2>
+          <p className="mt-4 text-body-lg text-ivory/80">
+            Transparence et traçabilité : chaque étape est documentée et partagée.
+          </p>
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-          <div className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-gradient-to-b from-primary-600 via-accent-500 to-secondary-600 rounded-full" aria-hidden="true" />
+          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 -translate-x-1/2 bg-signal/30 rounded-full" aria-hidden="true" />
           <div className="space-y-8">
             {TRACKING_STEPS.map((step, index) => (
               <div
                 key={step.num}
-                className="relative flex gap-6 sm:gap-8 animate-fade-in-up"
-                style={{ animationDelay: `${index * 150}ms` }}
+                className="relative flex gap-6 sm:gap-8"
               >
-                <div className="absolute left-1/2 top-4 -translate-x-1/2 w-11 h-11 rounded-full bg-gradient-to-br from-primary-600 to-primary-500 text-white font-bold text-lg flex items-center justify-center shadow-lg ring-4 ring-neutral-950 z-10" aria-hidden="true">
+                <div className="absolute left-1/2 top-2 -translate-x-1/2 w-10 h-10 rounded-full bg-signal text-night font-bold text-lg flex items-center justify-center shadow-lg z-10" aria-hidden="true">
                   {step.num}
                 </div>
                 <div className={`w-1/2 pr-6 sm:pr-8 flex flex-col ${index % 2 === 0 ? 'text-right' : ''} relative z-10`}>
-                  <div className={`bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-primary-500/40 ${index % 2 === 0 ? 'mr-auto' : 'ml-auto'} max-w-md`}>
-                    <span className="text-3xl leading-none block mb-3" aria-hidden="true">{step.icon}</span>
-                    <h4 className="text-heading-sm font-bold text-white">{step.title}</h4>
-                    <p className="mt-2 text-body-sm text-neutral-400 leading-relaxed">{step.desc}</p>
+                  <div className={`bg-night/50 border border-night/40 rounded-xl p-6 transition-all duration-300 hover:border-signal ${index % 2 === 0 ? 'mr-auto' : 'ml-auto'} max-w-md`}>
+                    <h4 className="text-heading-sm font-bold text-ivory">{step.title}</h4>
+                    <p className="mt-2 text-body-sm text-ivory/80 leading-relaxed">{step.desc}</p>
                   </div>
                 </div>
                 <div className={`w-1/2 pl-6 sm:pl-8 flex ${index % 2 === 1 ? 'text-left' : ''}`} aria-hidden="true" />
@@ -551,7 +516,7 @@ function TrackingSection() {
           </div>
         </div>
 
-        <p className="mt-10 text-center text-caption text-neutral-500 max-w-2xl mx-auto px-4 bg-white/5 border border-white/10 rounded-xl py-4 px-6 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+        <p className="mt-10 text-center text-caption text-ivory/60 max-w-2xl mx-auto px-4 bg-night/50 border border-night/40 rounded-xl py-4 px-6">
           L\'application privée BAHKANSO structure ce cycle : l\'équipe terrain saisit, le responsable valide, les données restent synchronisées.
         </p>
       </div>
@@ -563,52 +528,54 @@ function ContactSection({ goToLogin }: { goToLogin: () => void }) {
   return (
     <section
       id="contact"
-      className="py-16 sm:py-24 lg:py-32 bg-neutral-950 text-white relative overflow-hidden"
+      className="py-12 sm:py-16 lg:py-20 bg-white"
       aria-labelledby="contact-title"
     >
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-[50%] bg-[radial-gradient(ellipse_at_center,rgba(22,163,74,0.08)_0%,transparent_70%)] pointer-events-none" aria-hidden="true" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16 animate-fade-in-up">
-          <h2 id="contact-title" className="text-display-sm sm:text-display-md font-bold">Accès & Contact</h2>
-          <p className="mt-4 text-body-lg text-neutral-400">Rejoignez l\'espace de suivi ou localisez l\'exploitation.</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-10 lg:mb-14">
+          <h2 id="contact-title" className="text-display-sm sm:text-display-md font-bold text-night">
+            Accès & Contact
+          </h2>
+          <p className="mt-4 text-body-lg text-ink-mut">
+            Rejoignez l\'espace de suivi ou localisez l\'exploitation.
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
-          <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:border-primary-500/40 hover:shadow-2xl">
+          <div>
+            <div className="bg-ivory border border-ivory-deep rounded-xl p-8 shadow-sm transition-all duration-300 hover:border-signal">
               <div className="flex items-center gap-3 mb-4">
-                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-primary-500/20 text-primary-400 shadow-lg" aria-hidden="true">🔐</span>
-                <h3 className="text-heading-md font-bold text-white">Espace de gestion</h3>
+                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-signal/20 text-signal shadow-sm" aria-hidden="true">🔐</span>
+                <h3 className="text-heading-md font-bold text-night">Espace de gestion</h3>
               </div>
-              <p className="text-body-md text-neutral-400 leading-relaxed mb-6">Retrouvez les financements, les dépenses et l\'avancement du projet.</p>
+              <p className="text-body-md text-ink-mut leading-relaxed mb-6">Retrouvez les financements, les dépenses et l\'avancement du projet.</p>
               <button
                 onClick={goToLogin}
-                className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold text-base px-6 py-3.5 rounded-xl min-h-[52px] transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-950"
+                className="w-full inline-flex items-center justify-center gap-2 bg-signal text-night font-semibold text-base px-6 py-4 rounded-xl min-h-[56px] transition-all hover:bg-signal hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-signal focus:ring-offset-2 focus:ring-offset-white"
               >
-                Accéder à l'espace de suivi <ArrowRight size={18} className="flex-shrink-0" />
+                Accéder à l\'espace de suivi <ArrowRight size={18} className="flex-shrink-0" />
               </button>
             </div>
           </div>
 
-          <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg transition-all duration-300 hover:border-primary-500/40 hover:shadow-xl">
+          <div className="space-y-6">
+            <div className="bg-ivory border border-ivory-deep rounded-xl p-6 shadow-sm transition-all duration-300 hover:border-signal">
               <div className="flex items-center gap-3 mb-3">
-                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-primary-500/20 text-primary-400 shadow-lg" aria-hidden="true">
+                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-signal/20 text-signal shadow-sm" aria-hidden="true">
                   <MapPin size={24} />
                 </span>
-                <h3 className="text-heading-md font-bold text-white">Localisation</h3>
+                <h3 className="text-heading-md font-bold text-night">Localisation</h3>
               </div>
-              <p className="text-body-md text-neutral-400 leading-relaxed">Côte d\'Ivoire — Région du Bélier, Département de Dimbokro. Exploitation située à 45 km au nord de Yamoussoukro.</p>
+              <p className="text-body-md text-ink-mut leading-relaxed">Côte d\'Ivoire — Région du Bélier, Département de Dimbokro. Exploitation située à 45 km au nord de Yamoussoukro.</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg transition-all duration-300 hover:border-accent-500/40 hover:shadow-xl">
+            <div className="bg-ivory border border-ivory-deep rounded-xl p-6 shadow-sm transition-all duration-300 hover:border-signal">
               <div className="flex items-center gap-3 mb-3">
-                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-accent-500/20 text-accent-400 shadow-lg" aria-hidden="true">
+                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-signal/20 text-signal shadow-sm" aria-hidden="true">
                   <Clock size={24} />
                 </span>
-                <h3 className="text-heading-md font-bold text-white">Horaires de suivi</h3>
+                <h3 className="text-heading-md font-bold text-night">Horaires de suivi</h3>
               </div>
-              <p className="text-body-md text-neutral-400 leading-relaxed">L\'équipe de terrain est joignable du lundi au samedi, de 7h à 18h (GMT). Le responsable à distance répond sous 24h ouvrées via l\'espace de gestion.</p>
+              <p className="text-body-md text-ink-mut leading-relaxed">L\'équipe de terrain est joignable du lundi au samedi, de 7h à 18h (GMT). Le responsable à distance répond sous 24h ouvrées via l\'espace de gestion.</p>
             </div>
           </div>
         </div>
@@ -617,51 +584,51 @@ function ContactSection({ goToLogin }: { goToLogin: () => void }) {
   );
 }
 
-function Footer({ farm }: { farm: Farm | null }) {
+function Footer({ farm }: { farm: { name: string | null; logo_url: string | null } | null }) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-neutral-950 text-white border-t border-neutral-800" role="contentinfo">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <footer className="bg-night text-ivory border-t border-night/50" role="contentinfo">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
         <div className="grid lg:grid-cols-4 gap-8 lg:gap-12">
-          <div className="lg:col-span-1 animate-fade-in-up">
+          <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4" aria-label="Accueil BAHKANSO">
               <Logo
                 icon="Sprout"
                 color="#FFFFFF"
-                bgColor="#16a34a"
+                bgColor="#6B8E3A"
                 size={32}
                 imageUrl={farm?.logo_url ?? null}
               />
-              <span className="font-bold text-xl bg-gradient-to-r from-white to-primary-400 bg-clip-text text-transparent">BAHKANSO</span>
+              <span className="font-bold text-xl text-ivory">BAHKANSO</span>
             </Link>
-            <p className="text-body-sm text-neutral-500 leading-relaxed max-w-xs">Projet agro-pastoral. Suivi partagé entre l\'équipe de terrain et le responsable à distance.</p>
+            <p className="text-body-sm text-ivory/60 leading-relaxed max-w-xs">Projet agro-pastoral. Suivi partagé entre l\'équipe de terrain et le responsable à distance.</p>
           </div>
 
-          <nav aria-label="Navigation principale" className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <h3 className="text-overline text-neutral-500 mb-4">Navigation</h3>
+          <nav aria-label="Navigation principale">
+            <h3 className="text-overline text-ivory/50 mb-4">Navigation</h3>
             <ul className="space-y-3">
               {FOOTER_LINKS.navigation.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="text-body-sm text-neutral-400 hover:text-primary-400 transition-colors flex items-center gap-2">{link.label}</a>
+                  <a href={link.href} className="text-body-sm text-ivory/60 hover:text-signal transition-colors flex items-center gap-2">{link.label}</a>
                 </li>
               ))}
             </ul>
           </nav>
 
-          <nav aria-label="Liens utiles" className="animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <h3 className="text-overline text-neutral-500 mb-4">Liens utiles</h3>
+          <nav aria-label="Liens utiles">
+            <h3 className="text-overline text-ivory/50 mb-4">Liens utiles</h3>
             <ul className="space-y-3">
               {FOOTER_LINKS.useful.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="text-body-sm text-neutral-400 hover:text-primary-400 transition-colors flex items-center gap-2">{link.label}</a>
+                  <a href={link.href} className="text-body-sm text-ivory/60 hover:text-signal transition-colors flex items-center gap-2">{link.label}</a>
                 </li>
               ))}
             </ul>
           </nav>
 
-          <div className="lg:col-span-4 mt-8 pt-8 border-t border-neutral-800 text-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-            <p className="text-caption text-neutral-500">© {currentYear} BAHKANSO — Projet agro-pastoral</p>
+          <div className="lg:col-span-4 mt-8 pt-8 border-t border-night/50 text-center">
+            <p className="text-caption text-ivory/50">© {currentYear} BAHKANSO — Projet agro-pastoral</p>
           </div>
         </div>
       </div>
@@ -724,7 +691,7 @@ export function LandingPage() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white" lang="fr">
+    <div className="min-h-screen flex flex-col bg-ivory" lang="fr">
       <Header
         scrolled={scrolled}
         mobileMenuOpen={mobileMenuOpen}
@@ -732,10 +699,10 @@ export function LandingPage() {
         currentTime={currentTime}
       />
       <main className="flex-1">
-        <Hero siteContent={siteContent} />
-        <ProjectSection />
+        <Hero siteContent={siteContent as Record<string, unknown>} />
         <ActivitiesSection />
         <TrackingSection />
+        <ProjectSection />
         <ContactSection goToLogin={goToLogin} />
       </main>
       <Footer farm={farm} />
