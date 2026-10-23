@@ -179,32 +179,6 @@ const TransactionCardBack = ({ transaction, onClose, onEdit, onDelete }: { trans
   );
 };
 
-const CreateTransactionCard = ({ onCreate }: { onCreate: () => void }) => (
-  <div className="rc" style={{ minHeight: '180px' }}>
-    <div className="rc-inner" style={{ transform: 'none' }}>
-      <div className="rc-face rc-face--front" style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: '1rem', padding: '2rem', border: '2px dashed #CBD5E1', background: '#FAFAFA',
-        transform: 'rotateY(0deg)', backfaceVisibility: 'hidden'
-      }}>
-        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-          <Plus size={28} className="text-primary" />
-        </div>
-        <div className="text-center">
-          <h4 className="font-semibold text-slate-900">Nouvelle opération</h4>
-          <p className="text-sm text-slate-500">Enregistrer une entrée ou sortie</p>
-        </div>
-        <button
-          onClick={onCreate}
-          className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
-        >
-          Créer une opération
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
 export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
   const { data, loading, error, refetch } = treasuryData;
   const { executeAction, loading: actionLoading } = useAsyncAction();
@@ -329,14 +303,23 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
         <KpiCard label="Transactions" value={String(rows.length)} icon={<List size={20} />} />
       </div>
 
-      <div className="flex justify-end">
-        <button
-          onClick={handleNewTransaction}
-          disabled={actionLoading || form.isSubmitting}
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2 disabled:opacity-50"
-        >
-          <Plus size={16} /> Nouvelle opération
-        </button>
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+        <p className="text-sm text-amber-800">
+          💡 La Trésorerie agrège automatiquement les recettes (Ventes), dépenses (Dépenses) et financements (Financements). Utilisez ce formulaire UNIQUEMENT pour les virements internes et frais bancaires.
+        </p>
+      </div>
+
+      <div className="flex items-start gap-3">
+        <div>
+          <button
+            onClick={handleNewTransaction}
+            disabled={actionLoading || form.isSubmitting}
+            className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <Plus size={16} /> Nouveau mouvement interne
+          </button>
+        </div>
+        <p className="text-xs text-slate-500 mt-1 leading-relaxed">Virement entre comptes ou frais bancaires.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{ minHeight: '200px' }}>
@@ -349,7 +332,6 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
             back={<TransactionCardBack transaction={transaction} onClose={() => {}} onEdit={() => handleEdit(transaction)} onDelete={() => handleDelete(transaction)} />}
           />
         ))}
-        <CreateTransactionCard onCreate={handleNewTransaction} />
       </div>
 
       {rows.length === 0 && (
@@ -383,13 +365,15 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
-                <input
-                  type="text"
+                <select
                   value={form.values.type}
                   onChange={(e) => form.setFieldValue('type', e.target.value)}
                   className="form-input w-full"
-                  placeholder="Virement"
-                />
+                >
+                  <option value="transfer">Virement banque → caisse</option>
+                  <option value="transfer">Virement caisse → banque</option>
+                  <option value="bank_fees">Frais bancaires</option>
+                </select>
                 {form.errors.type && <p className="text-xs text-red-500 mt-1">{form.errors.type}</p>}
               </div>
               <div>

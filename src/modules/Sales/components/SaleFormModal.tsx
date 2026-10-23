@@ -3,6 +3,7 @@ import { X, Plus, Trash2, Save, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/format';
 import { useToast } from '@/lib/Toast';
+import { useAuth } from '@/lib/AuthContext';
 
 interface SaleItemForm {
   id?: string;
@@ -11,9 +12,10 @@ interface SaleItemForm {
   unit: string;
   unit_price: number;
   total: number;
+  source_type: 'harvest' | 'animal' | 'animal_lot' | 'inventory_item' | 'other';
+  source_id: string | null;
 }
 
-// Types simplifiés pour les données de référence (sélects)
 interface SiteRef {
   id: string;
   name: string;
@@ -50,6 +52,14 @@ interface SaleFormModalProps {
 
 const UNITS = ['kg', 'unité', 'litre', 'mètre', 'sac', 'caisse'];
 
+const SOURCE_TYPES: Array<{ value: SaleItemForm['source_type']; label: string }> = [
+  { value: 'harvest', label: 'Récolte' },
+  { value: 'animal', label: 'Animal' },
+  { value: 'animal_lot', label: 'Lot d\'animaux' },
+  { value: 'inventory_item', label: 'Stock' },
+  { value: 'other', label: 'Autre' },
+];
+
 export function SaleFormModal({
   isOpen,
   onClose,
@@ -57,6 +67,7 @@ export function SaleFormModal({
   saleToEdit,
 }: SaleFormModalProps) {
   const toast = useToast();
+  const { appUser } = useAuth();
   const [sites, setSites] = useState<SiteRef[]>([]);
   const [customers, setCustomers] = useState<CustomerRef[]>([]);
   const [loadingData, setLoadingData] = useState(false);
@@ -94,12 +105,14 @@ export function SaleFormModal({
           unit: item.unit || 'kg',
           unit_price: item.unit_price,
           total: item.total,
+          source_type: 'inventory_item',
+          source_id: null,
         })),
       });
-    } else {
+    } else if (isOpen) {
       // Reset pour nouvelle vente
       setFormData({
-        site_id: '',
+        site_id: appUser?.site_id ?? '',
         customer_id: '',
         date: new Date().toISOString().split('T')[0],
         payment_method: 'espèces',
@@ -107,7 +120,7 @@ export function SaleFormModal({
       });
     }
     setErrors({});
-  }, [saleToEdit, isOpen]);
+  }, [saleToEdit, isOpen, appUser?.site_id]);
 
   const loadReferenceData = async () => {
     setLoadingData(true);
@@ -139,6 +152,14 @@ export function SaleFormModal({
     if (!formData.payment_method) newErrors.payment_method = 'Mode de paiement requis';
     if (formData.items.length === 0) newErrors.items = 'Au moins un article requis';
 
+    let hasInvalidLine = false;
+    formData.items.forEach((item, i) => {
+      if (!item.description) newErrors[`item_${i}_description`] = 'Description requise';
+      if (!item.quantity || item.quantity <= 0) newErrors[`item_${i}_quantity`] = 'Quantité > 0 requise';
+      if (!item.unit_price || item.unit_price <= 0) newErrors[`item_${i}_unit_price`] = 'Prix > 0 requis';
+      if (item.quantity <= 0 || item.unit_price <= 0 || !item.description) hasInvalidLine = true;
+    });
+
     const totalAmount = formData.items.reduce((sum, item) => sum + item.total, 0);
     if (totalAmount <= 0) newErrors.items = 'Le total doit être supérieur à 0';
 
@@ -150,9 +171,9 @@ export function SaleFormModal({
     return Math.round(quantity * unit_price * 100) / 100;
   };
 
-  const handleItemChange = (index: number, field: keyof SaleItemForm, value: string | number) => {
+  const handleItemChange = (index: number, field: keyof SaleItemForm, value: string | number | null) => {
     const newItems = [...formData.items];
-    const numValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+    const numValue = typeof value === 'string' ? parseFloat(value) || 0 : (value ?? 0);
     newItems[index] = { ...newItems[index], [field]: numValue };
 
     if (field === 'quantity' || field === 'unit_price') {
@@ -168,7 +189,7 @@ export function SaleFormModal({
   const addItem = () => {
     setFormData(prev => ({
       ...prev,
-      items: [...prev.items, { description: '', quantity: 1, unit: 'kg', unit_price: 0, total: 0 }],
+      items: [...prev.items, { description: '', quantity: 1, unit: 'kg', unit_price: 0, total: 0, source_type: 'other', source_id: null }],
     }));
   };
 
@@ -190,7 +211,6 @@ export function SaleFormModal({
 
       if (saleToEdit) {
         // MODE ÉDITION
-        // 1. Mettre à jour la vente
         const { error: saleError } = await supabase
           .from('sales')
           .update({
@@ -205,7 +225,7 @@ export function SaleFormModal({
 
         if (saleError) throw saleError;
 
-        // 2. Supprimer les anciens items
+        // Supprimer les anciens items
         const { error: deleteError } = await supabase
           .from('sale_items')
           .delete()
@@ -213,16 +233,16 @@ export function SaleFormModal({
 
         if (deleteError) throw deleteError;
 
-        // 3. Insérer les nouveaux items
+        // Insérer les nouveaux items
         const itemsToInsert = formData.items.map(item => ({
           sale_id: saleToEdit.id,
+          source_type: item.source_type,
+          source_id: item.source_id,
           description: item.description,
           quantity: item.quantity,
           unit: item.unit,
           unit_price: item.unit_price,
           total: item.total,
-          source_type: 'inventory_item',
-          source_id: null,
         }));
 
         const { error: insertError } = await supabase
@@ -243,7 +263,7 @@ export function SaleFormModal({
             payment_method: formData.payment_method,
             total_amount: totalAmount,
             status: 'payée',
-            created_by: (await supabase.auth.getUser()).data.user?.id,
+            created_by: appUser?.id ?? null,
           })
           .select('id')
           .single();
@@ -254,13 +274,13 @@ export function SaleFormModal({
         // Insérer les items
         const itemsToInsert = formData.items.map(item => ({
           sale_id: newSale.id,
+          source_type: item.source_type,
+          source_id: item.source_id,
           description: item.description,
           quantity: item.quantity,
           unit: item.unit,
           unit_price: item.unit_price,
           total: item.total,
-          source_type: 'inventory_item',
-          source_id: null,
         }));
 
         const { error: insertError } = await supabase
@@ -416,7 +436,7 @@ export function SaleFormModal({
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
                       {/* Description */}
                       <div className="lg:col-span-2">
                         <label className="block text-xs font-medium text-slate-500 mb-1">Description <span className="text-red-500">*</span></label>
@@ -428,6 +448,9 @@ export function SaleFormModal({
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           disabled={saving}
                         />
+                        {errors[`item_${index}_description`] && (
+                          <p className="mt-1 text-xs text-red-600">{errors[`item_${index}_description`]}</p>
+                        )}
                       </div>
 
                       {/* Quantité */}
@@ -442,6 +465,9 @@ export function SaleFormModal({
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           disabled={saving}
                         />
+                        {errors[`item_${index}_quantity`] && (
+                          <p className="mt-1 text-xs text-red-600">{errors[`item_${index}_quantity`]}</p>
+                        )}
                       </div>
 
                       {/* Unité */}
@@ -471,11 +497,41 @@ export function SaleFormModal({
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           disabled={saving}
                         />
+                        {errors[`item_${index}_unit_price`] && (
+                          <p className="mt-1 text-xs text-red-600">{errors[`item_${index}_unit_price`]}</p>
+                        )}
+                      </div>
+
+                      {/* Type de source */}
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Type de source</label>
+                        <select
+                          value={item.source_type}
+                          onChange={e => handleItemChange(index, 'source_type', e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          disabled={saving}
+                        >
+                          {SOURCE_TYPES.map(t => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Référence source */}
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Référence source</label>
+                        <input
+                          type="text"
+                          value={item.source_id ?? ''}
+                          onChange={e => handleItemChange(index, 'source_id', e.target.value || null)}
+                          placeholder="ID récolte ou lot si connu"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          disabled={saving}
+                        />
                       </div>
 
                       {/* Total (calculé) */}
-                      <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Total</label>
+                      <div className="flex items-end">
                         <div className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-semibold text-slate-900">
                           {formatCurrency(item.total)}
                         </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { List, CreditCard, FileText, Plus, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -267,6 +267,27 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
 
   const currentUser = appUser?.name ?? authUser?.email ?? 'Utilisateur inconnu';
+
+  const [siteName, setSiteName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!appUser?.site_id) {
+      setSiteName(null);
+      return;
+    }
+    supabase
+      .from('sites')
+      .select('name')
+      .eq('id', appUser.site_id)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setSiteName(null);
+          return;
+        }
+        setSiteName((data as { name: string }).name ?? null);
+      });
+  }, [appUser?.site_id]);
 
   const form = ValidatedForm<ExpenseFormValues>({
     schema: expenseSchema,
@@ -639,24 +660,19 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
-            {isAuthorized ? (
-              <input
-                type="text"
-                value={form.values.site_id ?? ''}
-                onChange={(e) => form.setFieldValue('site_id', e.target.value || null)}
-                className="form-input w-full"
-                placeholder="ID du site"
-              />
-            ) : (
-              <input
-                type="text"
-                value={form.values.site_id ?? ''}
-                readOnly
-                disabled
-                className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
-                title="Site déterminé automatiquement depuis votre session"
-              />
-            )}
+            <input
+              type="text"
+              value={siteName ?? form.values.site_id ?? ''}
+              readOnly
+              disabled
+              className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+              title="Site déterminé automatiquement depuis votre session"
+            />
+            <input
+              type="hidden"
+              value={form.values.site_id ?? appUser?.site_id ?? ''}
+              onChange={(e) => form.setFieldValue('site_id', e.target.value || null)}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button

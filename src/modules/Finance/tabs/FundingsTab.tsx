@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, DollarSign, FileText, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -224,6 +224,34 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFunding, setEditingFunding] = useState<Funding | null>(null);
   const [deletingFunding, setDeletingFunding] = useState<Funding | null>(null);
+  const [funders, setFunders] = useState<{ id: string; name: string }[]>([]);
+  const [sites, setSites] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('funders')
+      .select('id, name')
+      .order('name', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Erreur chargement bailleurs:', error);
+          return;
+        }
+        setFunders((data ?? []).map(f => ({ id: f.id, name: f.name })));
+      });
+
+    supabase
+      .from('sites')
+      .select('id, name')
+      .order('name', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Erreur chargement sites:', error);
+          return;
+        }
+        setSites((data ?? []).map(s => ({ id: s.id, name: s.name })));
+      });
+  }, []);
 
   const form = ValidatedForm<FundingFormValues>({
     schema: fundingSchema,
@@ -243,27 +271,33 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
     },
     onSubmit: async (values) => {
       await executeAction(async () => {
-        const fundingData = {
-          reference: values.reference,
+        const payload = {
           funder_id: values.funder_id ?? null,
-          amount_sent: values.amount_sent,
+          amount_sent: Number(values.amount_sent) || 0,
           currency_sent: values.currency_sent,
-          exchange_rate: values.exchange_rate,
-          amount_received: values.amount_received ?? null,
-          transfer_fees: values.transfer_fees ?? null,
-          date_sent: values.date_sent,
-          date_received: values.date_received ?? null,
+          exchange_rate: Number(values.exchange_rate) || 1,
+          amount_received: values.amount_received ? Number(values.amount_received) : null,
+          transfer_fees: values.transfer_fees ? Number(values.transfer_fees) : null,
+          date_sent: values.date_sent || null,
+          date_received: values.date_received || null,
           status: values.status,
           comment: values.comment ?? null,
           site_id: values.site_id ?? null,
         };
+
+        const fundingData = {
+          ...payload,
+          reference: values.reference,
+        };
+
+        console.log('PAYLOAD UPDATE:', payload);
 
         let createdId: string | null = null;
 
         if (editingFunding) {
           const { error: updateError } = await supabase
             .from('fundings')
-            .update(fundingData)
+            .update(payload)
             .eq('id', editingFunding.id);
           if (updateError) throw updateError;
           createdId = editingFunding.id;
@@ -284,7 +318,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           createdId,
           `${editingFunding ? 'Modification' : 'Création'} du financement "${values.reference}"`,
           editingFunding ? { ...editingFunding } : null,
-          fundingData,
+          editingFunding ? payload : fundingData,
         );
       }, {
         successMessage: editingFunding ? 'Financement mis à jour' : 'Financement créé avec succès',
@@ -437,13 +471,19 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Bailleur de fonds</label>
-              <input
-                type="text"
+              <select
                 value={form.values.funder_id ?? ''}
                 onChange={(e) => form.setFieldValue('funder_id', e.target.value || null)}
                 className="form-input w-full"
-                placeholder="Nom du bailleur"
-              />
+              >
+                <option value="">Sélectionner un bailleur…</option>
+                {funders.map(funder => (
+                  <option key={funder.id} value={funder.id}>
+                    {funder.name}
+                  </option>
+                ))}
+              </select>
+              {form.errors.funder_id && <p className="text-xs text-red-500 mt-1">{form.errors.funder_id}</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Montant envoyé *</label>
@@ -554,13 +594,16 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
             {isAuthorized ? (
-              <input
-                type="text"
+              <select
                 value={form.values.site_id ?? ''}
                 onChange={(e) => form.setFieldValue('site_id', e.target.value || null)}
                 className="form-input w-full"
-                placeholder="ID du site"
-              />
+              >
+                <option value="">Sélectionner un site</option>
+                {sites.map(site => (
+                  <option key={site.id} value={site.id}>{site.name}</option>
+                ))}
+              </select>
             ) : (
               <input
                 type="text"

@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
-import { Sprout, Beef, HardHat, Package, Truck, DollarSign, CreditCard, FileText, Wallet, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Sprout, Beef, HardHat, Package, Truck, DollarSign, CreditCard, FileText, Wallet, ArrowUp, ArrowDown, Minus, RotateCw, RotateCcw, ChevronRight } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
+import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useFundings } from '@/modules/Finance/hooks/useFinanceData';
 import { useExpenses } from '@/modules/Finance/hooks/useFinanceData';
 import { formatCurrency } from '@/lib/format';
@@ -82,14 +83,18 @@ function parseActivity(activity: string | null): { module: string; type: string;
   }
 }
 
+function parseAmount(value: number | string | null | undefined): number {
+  return parseFloat(String(value ?? 0)) || 0;
+}
+
 export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceViewProps) => {
   const { data: expenses = [] } = expensesData;
   const { data: fundings = [] } = fundingsData;
+  const [flippedModule, setFlippedModule] = useState<string | null>(null);
 
   const moduleSummaries = useMemo(() => {
     const summaries: Record<string, ModuleSummary> = {};
 
-    // Initialiser tous les modules
     Object.entries(MODULE_CONFIG).forEach(([key, config]) => {
       summaries[key] = {
         ...config,
@@ -101,24 +106,21 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
       };
     });
 
-    // Agréger les dépenses
     expenses.forEach(expense => {
       const activity = parseActivity(expense.activity);
       const moduleKey = activity?.module || (expense.project_id ? 'projet' : 'aucun');
       const summary = summaries[moduleKey] || summaries.aucun;
-      summary.expenses += expense.amount_paid || 0;
+      summary.expenses += parseAmount(expense.amount);
       summary.expenseCount += 1;
     });
 
-    // Agréger les financements
     fundings.forEach(funding => {
       const moduleKey = funding.project_id ? 'projet' : 'aucun';
       const summary = summaries[moduleKey] || summaries.aucun;
-      summary.fundings += funding.amount || 0;
+      summary.fundings += parseAmount(funding.amount);
       summary.fundingCount += 1;
     });
 
-    // Calculer le net par module
     Object.values(summaries).forEach(s => {
       s.net = s.fundings - s.expenses;
     });
@@ -127,12 +129,38 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
   }, [expenses, fundings]);
 
   const totals = useMemo(() => ({
-    totalExpenses: expenses.reduce((sum, e) => sum + (e.amount_paid || 0), 0),
-    totalFundings: fundings.reduce((sum, f) => sum + (f.amount || 0), 0),
+    totalExpenses: expenses.reduce((sum, e) => sum + parseAmount(e.amount), 0),
+    totalFundings: fundings.reduce((sum, f) => sum + parseAmount(f.amount), 0),
     totalExpenseCount: expenses.length,
     totalFundingCount: fundings.length,
-    net: fundings.reduce((sum, f) => sum + (f.amount || 0), 0) - expenses.reduce((sum, e) => sum + (e.amount_paid || 0), 0),
+    net: fundings.reduce((sum, f) => sum + parseAmount(f.amount), 0) - expenses.reduce((sum, e) => sum + parseAmount(e.amount), 0),
   }), [expenses, fundings]);
+
+  const expensesByModule = useMemo(() => {
+    const grouped: Record<string, typeof expenses> = {};
+    expenses.forEach(expense => {
+      const activity = parseActivity(expense.activity);
+      const moduleKey = activity?.module || (expense.project_id ? 'projet' : 'aucun');
+      if (!grouped[moduleKey]) grouped[moduleKey] = [];
+      grouped[moduleKey].push(expense);
+    });
+    return grouped;
+  }, [expenses]);
+
+  const moduleActivityLabel = (activity: { module: string; type: string; id: string } | null, expense: typeof expenses[number]) => {
+    if (activity) {
+      const typeLabel = activity.type === 'campaign' ? 'Campagne'
+        : activity.type === 'plot' ? 'Parcelle'
+        : activity.type === 'lot' ? 'Lot'
+        : activity.type === 'animal' ? 'Animal'
+        : activity.type;
+      return `${typeLabel} #${activity.id.slice(0, 8)}`;
+    }
+    if (expense.project_id) return `Projet #${expense.project_id.slice(0, 8)}`;
+    return '—';
+  };
+
+  const formatAmount = (value: number) => value > 0 ? formatCurrency(value) : '0 FCFA';
 
   return (
     <div className="space-y-6">
@@ -168,150 +196,117 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
         />
       </div>
 
-      {/* Vue par module */}
+      {/* Vue par module — cartes rotatives */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
           <h3 className="text-lg font-semibold text-slate-900">Répartition par module</h3>
           <p className="text-sm text-slate-500 mt-1">Synthèse des flux financiers rattachés à chaque activité</p>
         </div>
-        <div className="divide-y divide-slate-100">
-          {moduleSummaries.map(module => (
-            <div
-              key={module.key}
-              className="px-6 py-4 hover:bg-slate-50/50 transition-colors"
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${module.bgColor} ${module.color}`}>
-                    {module.icon}
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {moduleSummaries.map(module => (
+              <RotatingCard
+                key={module.key}
+                flipLabel={`Détail — ${module.label}`}
+                backLabel="Retour"
+                disabled={flippedModule !== null && flippedModule !== module.key}
+                front={(
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${module.bgColor} ${module.color}`}>
+                          {module.icon}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-900">{module.label}</h4>
+                          <p className="text-xs text-slate-500">
+                            {module.expenseCount} dépense{module.expenseCount > 1 ? 's' : ''} •
+                            {module.fundingCount} financement{module.fundingCount > 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Solde</p>
+                        <p className={`font-bold text-slate-900 ${module.net >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                          {module.net >= 0 ? '+' : ''}{formatAmount(module.net)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-auto grid grid-cols-3 gap-4 pt-4 border-t border-slate-200">
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Financements</p>
+                        <p className="font-bold text-green-700">{formatAmount(module.fundings)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Dépenses</p>
+                        <p className="font-bold text-amber-700">{formatAmount(module.expenses)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Écart</p>
+                        <p className="font-bold text-slate-900">{formatAmount(Math.abs(module.net))}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-900">{module.label}</h4>
-                    <p className="text-sm text-slate-500">
-                      {module.expenseCount} dépense{module.expenseCount > 1 ? 's' : ''} •
-                      {module.fundingCount} financement{module.fundingCount > 1 ? 's' : ''}
-                    </p>
+                )}
+                back={(
+                  <div className="h-full flex flex-col">
+                    <div className="flex items-start justify-between gap-2 mb-4">
+                      <div>
+                        <h4 className="font-semibold text-slate-900">{module.label}</h4>
+                        <p className="text-xs text-slate-500">Activités liées</p>
+                      </div>
+                      <button
+                        onClick={() => setFlippedModule(null)}
+                        className="text-xs text-slate-600 hover:text-slate-800 flex items-center gap-1"
+                      >
+                        <RotateCcw size={12} /> Retour
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {expensesByModule[module.key]?.length ? (
+                        expensesByModule[module.key].map(expense => {
+                          const activity = parseActivity(expense.activity);
+                          return (
+                            <div key={expense.id} className="flex items-center justify-between px-3 py-2 rounded-lg border border-slate-100 bg-slate-50/50 text-sm">
+                              <div className="flex items-center gap-3">
+                                <ChevronRight size={14} className={module.color} />
+                                <div className="min-w-0">
+                                  <p className="font-medium text-slate-900 truncate">{expense.label}</p>
+                                  <p className="text-xs text-slate-500 truncate">
+                                    {moduleActivityLabel(activity, expense)} • {new Date(expense.date).toLocaleDateString('fr-FR')}
+                                  </p>
+                                </div>
+                              </div>
+                              <p className="font-semibold text-slate-900 text-right">{formatAmount(parseAmount(expense.amount))}</p>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-6 text-xs text-slate-400 uppercase tracking-wider">
+                          Aucune activité liée
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-auto pt-4 border-t border-slate-200">
+                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Total dépenses</p>
+                      <p className="font-bold text-amber-700">{formatAmount(module.expenses)}</p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 md:grid-cols-4 text-right">
-                  <div>
-                    <p className="text-xs text-slate-500">Financements</p>
-                    <p className="font-bold text-green-700">{formatCurrency(module.fundings)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500">Dépenses</p>
-                    <p className="font-bold text-amber-700">{formatCurrency(module.expenses)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500">Solde</p>
-                    <p className={`font-bold ${module.net >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                      {module.net >= 0 ? '+' : ''}{formatCurrency(module.net)}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-end gap-2">
-                    {module.net >= 0 ? (
-                      <ArrowUp size={16} className="text-green-600" />
-                    ) : (
-                      <ArrowDown size={16} className="text-red-600" />
-                    )}
-                  </div>
-                </div>
+                )}
+              />
+            ))}
+            {moduleSummaries.length === 0 && (
+              <div className="col-span-3 px-6 py-12 text-center text-slate-500">
+                <DollarSign size={48} className="mx-auto mb-4 text-slate-300" />
+                <p className="text-lg font-medium">Aucune donnée financière</p>
+                <p className="text-sm">Créez des financements ou des dépenses pour voir la répartition</p>
               </div>
-
-              {/* Barre de progression visuelle */}
-              {(module.fundings > 0 || module.expenses > 0) && (
-                <div className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 transition-all duration-500"
-                    style={{
-                      width: module.fundings > 0
-                        ? `${Math.min(100, (module.expenses / module.fundings) * 100)}%`
-                        : module.expenses > 0
-                        ? '100%'
-                        : '0%',
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-
-          {moduleSummaries.length === 0 && (
-            <div className="px-6 py-12 text-center text-slate-500">
-              <DollarSign size={48} className="mx-auto mb-4 text-slate-300" />
-              <p className="text-lg font-medium">Aucune donnée financière</p>
-              <p className="text-sm">Créez des financements ou des dépenses pour voir la répartition</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Détail des dépenses par module (tableau repliable) */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <h3 className="text-lg font-semibold text-slate-900">Détail des dépenses par module</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Module</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Activité liée</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Libellé</th>
-                <th className="px-4 py-3 text-right font-medium text-slate-600">Montant</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Statut</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {expenses.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
-                    Aucune dépense enregistrée
-                  </td>
-                </tr>
-              ) : (
-                expenses
-                  .sort((a, b) => {
-                    const moduleA = parseActivity(a.activity)?.module || 'zzz';
-                    const moduleB = parseActivity(b.activity)?.module || 'zzz';
-                    if (moduleA !== moduleB) return moduleA.localeCompare(moduleB);
-                    return new Date(b.date).getTime() - new Date(a.date).getTime();
-                  })
-                  .map(expense => {
-                    const activity = parseActivity(expense.activity);
-                    const moduleKey = activity?.module || (expense.project_id ? 'projet' : 'aucun');
-                    const moduleConfig = MODULE_CONFIG[moduleKey] || MODULE_CONFIG.aucun;
-                    const status = expense.status || 'en_attente';
-
-                    return (
-                      <tr key={expense.id} className="hover:bg-slate-50/50">
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${moduleConfig.bgColor} ${moduleConfig.color}`}>
-                            {moduleConfig.icon}
-                            {moduleConfig.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">
-                          {activity ? `${activity.type === 'campaign' ? 'Campagne' : activity.type === 'plot' ? 'Parcelle' : activity.type === 'lot' ? 'Lot' : activity.type === 'animal' ? 'Animal' : activity.type} #${activity.id.slice(0, 8)}` : expense.project_id ? `Projet #${expense.project_id.slice(0, 8)}` : '—'}
-                        </td>
-                        <td className="px-4 py-3 font-medium text-slate-900">{expense.label}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-slate-900">{formatCurrency(expense.amount_paid)}</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded text-xs font-medium capitalize">
-                            {status.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">{expense.date ? new Date(expense.date).toLocaleDateString('fr-FR') : '—'}</td>
-                      </tr>
-                    );
-                  })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Détail des dépenses par module — supprimé, remplacé par les cartes rotatives */}
     </div>
   );
 };
