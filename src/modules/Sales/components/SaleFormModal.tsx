@@ -83,6 +83,10 @@ export function SaleFormModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (isOpen) console.log('[DEBUG] Modal ouverte');
+  }, [isOpen]);
+
   // Charger sites et clients au montage
   useEffect(() => {
     if (isOpen) {
