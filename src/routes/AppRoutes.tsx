@@ -37,6 +37,10 @@ const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
 const BailleursPage = lazy(() => import('@/pages/configuration/BailleursPage').then(m => ({ default: m.BailleursPage })));
 const BailleursPageSuspense = createSuspenseWrapper(BailleursPage);
 
+// Clients page
+const ClientsPage = lazy(() => import('@/pages/configuration/ClientsPage').then(m => ({ default: m.ClientsPage })));
+const ClientsPageSuspense = createSuspenseWrapper(ClientsPage);
+
 // Créer les composants wrapper avec Suspense
 function createSuspenseWrapper(Component: ComponentType<Record<string, unknown>>) {
   const Wrapper = () => (
@@ -117,6 +121,14 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequireModule module="configuration" action="read">
             <ConfigurationSuspense />
+          </RequireModule>
+        ),
+      },
+      {
+        path: 'configuration/clients',
+        element: (
+          <RequireModule module="configuration" action="read">
+            <ClientsPageSuspense />
           </RequireModule>
         ),
       },

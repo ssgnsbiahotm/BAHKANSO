@@ -5,7 +5,7 @@ import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Users,
+  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Users, UserCircle,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -42,6 +42,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'media', label: 'Médias', icon: <Image size={20} />, module: 'media' },
   { id: 'users', label: 'Utilisateurs', icon: <Users size={20} />, module: 'users' },
   { id: 'bailleurs', label: 'Bailleurs de fonds', icon: <Users size={20} />, module: 'bailleurs' },
+  { id: 'clients', label: 'Clients', icon: <UserCircle size={20} />, module: 'clients' },
   { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', children: [
     { id: 'users', label: 'Utilisateurs', module: 'users' },
     { id: 'bailleurs', label: 'Bailleurs de fonds', module: 'bailleurs' },
@@ -95,6 +96,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       users: '/app/users',
       configuration: '/app/configuration',
       bailleurs: '/app/configuration/bailleurs',
+      clients: '/app/configuration/clients',
     };
 
     target = routeMap[page] || `/app/${page}`;
