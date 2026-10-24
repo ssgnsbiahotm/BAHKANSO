@@ -382,21 +382,21 @@ function ActivitiesSection() {
                   href={card.href}
                   className="card-link flex-1 flex flex-col bg-ivory border border-ivory-deep rounded-lg p-6 lg:p-8 focus-visible:outline-2 focus-visible:outline-[#202824] focus-visible:outline-offset-2"
                 >
-                  <div className="w-12 h-12 rounded-md flex items-center justify-center flex-shrink-0 bg-signal/10 text-signal mb-4">
-                    <Icon size={48} aria-hidden="true" />
-                  </div>
-                  <h3 className="font-editorial text-2xl font-medium text-ink mb-3">
-                    {card.title}
-                  </h3>
-                  <p className="font-sans text-base text-ink-mut leading-relaxed mb-3">
-                    {card.description}
-                  </p>
-                  <p className="font-sans text-base text-ink-mut leading-relaxed flex-1 mb-6">
-                    {card.detail}
-                  </p>
-                  <span className="font-sans text-base font-semibold text-[#1d6b2e] flex items-center gap-1.5 hover:text-[#155525] transition-colors">
-                    Voir {card.title} <span aria-hidden="true">→</span>
-                  </span>
+                <div className="w-12 h-12 rounded-md flex items-center justify-center flex-shrink-0 bg-signal/10 text-signal mb-4">
+                  <Icon size={48} aria-hidden="true" />
+                </div>
+                <h3 className="font-editorial text-2xl font-medium text-ink mb-3">
+                  {card.title}
+                </h3>
+                <p className="font-sans text-base text-ink leading-relaxed mb-3">
+                  {card.description}
+                </p>
+                <p className="font-sans text-base text-ink leading-relaxed flex-1 mb-6">
+                  {card.detail}
+                </p>
+                <span className="font-sans text-base font-semibold text-[#1d6b2e] flex items-center gap-1.5 hover:text-[#155525] transition-colors">
+                  Voir {card.title} <span aria-hidden="true">→</span>
+                </span>
                 </a>
               </div>
             );
@@ -445,7 +445,7 @@ function TrackingSection() {
           </div>
         </div>
 
-        <p className="mt-16 font-sans text-base text-ivory/70 max-w-2xl mx-auto px-4 bg-night/50 border border-signal/30 rounded-lg py-6 px-8">
+        <p className="mt-16 font-sans text-base text-ivory/85 max-w-2xl mx-auto px-4 bg-night/50 border border-signal/30 rounded-lg py-6 px-8">
           L’application privée BAHKANSO structure ce cycle : l’équipe terrain saisit, le responsable valide, les données restent synchronisées.
         </p>
       </div>
