@@ -64,6 +64,8 @@ export function useDashboardStats() {
 
     const entrees = sumByDirection(currentPeriodTransactions, 'entree');
     const sorties = sumByDirection(currentPeriodTransactions, 'sortie');
+    const currentPeriodNetTreasury = entrees - sorties;
+    const previousPeriodNetTreasury = sumByDirection(previousPeriodTransactions, 'entree') - sumByDirection(previousPeriodTransactions, 'sortie');
     const netTreasury = sumByDirection(transactions, 'entree') - sumByDirection(transactions, 'sortie');
 
     const periodIncome = entrees;
@@ -73,6 +75,11 @@ export function useDashboardStats() {
     const expenseTrend =
       previousPeriodExpenses !== 0
         ? Number(Number(((periodExpenses - previousPeriodExpenses) / previousPeriodExpenses) * 100).toFixed(1))
+        : null;
+
+    const treasuryTrend =
+      previousPeriodNetTreasury !== 0
+        ? Number(((currentPeriodNetTreasury - previousPeriodNetTreasury) / Math.abs(previousPeriodNetTreasury)) * 100).toFixed(1)
         : null;
 
     // 6 derniers mois pour le graphique de tendance
@@ -152,6 +159,7 @@ export function useDashboardStats() {
       hasData,
       loading,
       error,
+      treasuryTrend,
     };
   }, [
     animals,
