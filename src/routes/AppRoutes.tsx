@@ -73,6 +73,9 @@ const ParcellesPageSuspense = createSuspenseWrapper(ParcellesPage);
 const CampagnesPage = lazy(() => import('@/pages/exploitation/CampagnesPage').then(m => ({ default: m.CampagnesPage })));
 const CampagnesPageSuspense = createSuspenseWrapper(CampagnesPage);
 
+const OperationsPage = lazy(() => import('@/pages/exploitation/OperationsPage').then(m => ({ default: m.OperationsPage })));
+const OperationsPageSuspense = createSuspenseWrapper(OperationsPage);
+
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const appRouter = createBrowserRouter([
@@ -165,6 +168,14 @@ export const appRouter = createBrowserRouter([
         ),
       },
       {
+        path: 'exploitation/operations',
+        element: (
+          <RequireModule module="agriculture" action="read">
+            <OperationsPageSuspense />
+          </RequireModule>
+        ),
+      },
+      {
        path: 'agriculture/campaigns',
        element: (
          <RequireModule module="agriculture" action="read">
@@ -191,6 +202,10 @@ export const appRouter = createBrowserRouter([
             <CropOperationManageSuspense />
           </RequireModule>
         ),
+      },
+      {
+        path: 'agriculture/operations',
+        element: <Navigate to="/app/exploitation/operations" replace />,
       },
       {
         path: 'agriculture/harvests',
