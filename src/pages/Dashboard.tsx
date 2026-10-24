@@ -262,6 +262,8 @@ export function Dashboard() {
     loading,
     error,
     expenseTrend,
+    incomeTrend,
+    treasuryTrend,
   } = useDashboardStats();
 
   const showFinance = !isFinanceSensitive(appUser?.role);
@@ -274,6 +276,10 @@ export function Dashboard() {
       </div>
     );
   }
+
+  const sourceStatus = error
+      ? { transactions: "error" }
+      : { transactions: "unknown" };
 
   if (error && !hasData) {
           {sourceStatus.transactions === "error" ? (
@@ -421,7 +427,7 @@ export function Dashboard() {
                   sub="Toutes périodes confondues"
                   color={netTreasury >= 0 ? COLORS.grass : COLORS.alert}
                   icon={<Wallet size={20} />}
-                  trend={treasuryTrend}
+                  trend={{ value: treasuryTrend || '0', positive: treasuryTrend >= 0 }}
                 />
                 <KpiCard
                   label={`Entrées — ${periodLabel(periodBounds)}`}
@@ -429,7 +435,7 @@ export function Dashboard() {
                   sub="Mouvements de la période"
                   color={COLORS.grass}
                   icon={<TrendingUp size={20} />}
-                  trend={incomeTrend}
+                  trend={{ value: incomeTrend || '0', positive: incomeTrend >= 0 }}
                 />
                 <KpiCard
                   label={`Sorties — ${periodLabel(periodBounds)}`}
@@ -437,7 +443,7 @@ export function Dashboard() {
                   sub="Mouvements de la période"
                   color={COLORS.earth}
                   icon={<TrendingDown size={20} />}
-                  trend={expenseTrend}
+                  trend={{ value: expenseTrend || '0', positive: expenseTrend >= 0 }}
                 />
               </>
             ) : (
