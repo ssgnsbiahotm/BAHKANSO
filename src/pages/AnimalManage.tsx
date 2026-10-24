@@ -68,6 +68,10 @@ export function AnimalManage() {
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openDeathModal, setOpenDeathModal] = useState(false);
+  const [deathAnimal, setDeathAnimal] = useState<any>(null);
+  const [deathReason, setDeathReason] = useState('');
+  const [deathCost, setDeathCost] = useState(0);
 
   // Sélection depuis l'URL : ?select=<id>&action=view|edit|delete
   useEffect(() => {
@@ -202,6 +206,13 @@ export function AnimalManage() {
     setModalOpen(true);
   };
 
+  const handleOpenDeathModal = (animal: any) => {
+    setDeathAnimal(animal);
+    setDeathReason('');
+    setDeathCost(0);
+    setOpenDeathModal(true);
+  };
+
   const updateStatus = async (animal: any, status: string) => {
     const { error } = await supabase.from('animals').update({ status }).eq('id', animal.id);
     if (error) {
@@ -224,6 +235,30 @@ export function AnimalManage() {
       setConfirmDelete(null);
         refresh();
     }
+  };
+
+  const handleDeathSubmit = async () => {
+    const { error: eventError } = await supabase.from('animal_events').insert({
+      type: 'mortalité',
+      date: new Date().toISOString().split('T')[0],
+      animal_id: deathAnimal?.id || null,
+      cost: 0,
+      description: 'Décès de l\'animal',
+      responsible: appUser?.name || 'Système',
+    });
+    if (eventError) {
+      toast.show('Erreur: ' + eventError.message, 'error');
+      return;
+    }
+    const { error: animalError } = await supabase.from('animals').update({ status: 'deceased' }).eq('id', deathAnimal?.id);
+    if (animalError) {
+      toast.show('Erreur: ' + animalError.message, 'error');
+      return;
+    }
+    await logAudit(appUser?.name || 'Système', 'UPDATE', 'animal', deathAnimal?.identifier, `Animal ${deathAnimal?.identifier} → décédé`);
+    toast.show('Décès enregistré');
+    setModalOpen(false);
+    refresh();
   };
 
   return (
@@ -374,6 +409,16 @@ export function AnimalManage() {
                         >
                           Retirer de quarantaine
                         </button>
+                      )}
+                      {(animal.status !== 'deceased') && (
+                        <>
+                          <button
+                            onClick={() => { handleOpenDeathModal(animal); }}
+                            className="px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                          >
+                            Déclarer décès
+                          </button>
+                        </>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -577,6 +622,25 @@ export function AnimalManage() {
                   className="form-input"
                 />
               </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Raison du décès</label>
+                <input
+                  type="text"
+                  value={deathReason}
+                  onChange={(e) => setDeathReason(e.target.value)}
+                  className="form-input"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Coût du décès (FCFA)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={deathCost}
+                  onChange={(e) => setDeathCost(e.target.value ? parseFloat(e.target.value) : 0)}
+                  className="form-input"
+                />
+              </div>
             </div>
           </div>
         </form>
@@ -632,6 +696,56 @@ export function AnimalManage() {
         }
       >
         <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer l'animal « {confirmDelete?.identifier} » ? Cette action est irréversible.</p>
+      </Modal>
+      {/* Modal declaration décès */}
+      <Modal
+        open={!!openDeathModal}
+        onClose={() => setOpenDeathModal(false)}
+        title="Déclarer le décès"
+        size="lg"
+        footer={
+          <>
+            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
+            <button onClick={handleDeathSubmit} disabled={saving} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enregistrement...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  <span>Enregistrer</span>
+                </>
+              )}
+            </button>
+          </>
+        }
+      >
+        {deathAnimal && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Vous allez déclarer le décès de l'animal {deathAnimal.identifier}.{deathAnimal.name ? ' – ' + deathAnimal.name : ''}
+            </p>
+            <p className="text-sm text-slate-500">Un événement de décès sera créé et le statut de l'animal sera mis à jour à "décédé".</p>
+            <div className="pt-4 border-t border-slate-100">
+              <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
+              <button onClick={handleDeathSubmit} disabled={saving} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enregistrement...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    <span>Enregistrer</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

@@ -32,6 +32,10 @@ const CampaignManage = lazy(() => import('@/pages/CampaignManage').then(m => ({ 
 const HarvestManage = lazy(() => import('@/pages/HarvestManage').then(m => ({ default: m.HarvestManage })));
 const CropOperationManage = lazy(() => import('@/pages/CropOperationManage').then(m => ({ default: m.CropOperationManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
+const RecoltesPage = lazy(() => import('@/pages/exploitation/RecoltesPage').then(m => ({ default: m.RecoltesPage })));
+const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
+const BailleursPage = lazy(() => import('@/pages/configuration/BailleursPage').then(m => ({ default: m.BailleursPage })));
+const BailleursPageSuspense = createSuspenseWrapper(BailleursPage);
 
 // Créer les composants wrapper avec Suspense
 function createSuspenseWrapper(Component: ComponentType<Record<string, unknown>>) {
@@ -117,6 +121,22 @@ export const appRouter = createBrowserRouter([
         ),
       },
       {
+        path: 'configuration/bailleurs',
+        element: (
+          <RequireModule module="configuration" action="read">
+            <BailleursPageSuspense />
+          </RequireModule>
+        ),
+      },
+      {
+        path: 'bailleurs',
+        element: (
+          <RequireModule module="configuration" action="read">
+            <BailleursPageSuspense />
+          </RequireModule>
+        ),
+      },
+      {
         path: 'users',
         element: (
           <RequireModule module="users" action="read">
@@ -183,6 +203,14 @@ export const appRouter = createBrowserRouter([
          </RequireModule>
        ),
      },
+      {
+        path: 'exploitation/recoltes',
+        element: (
+          <RequireModule module="agriculture" action="read">
+            <RecoltesPageSuspense />
+          </RequireModule>
+        ),
+      },
       {
         path: 'agriculture/campaigns',
         element: <Navigate to="/app/exploitation/campagnes" replace />,

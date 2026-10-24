@@ -33,6 +33,9 @@ export interface Funder {
   country: string | null;
   total_sent: number;
   total_received: number;
+  active?: boolean;
+  created_at?: string;
+  user_id?: string | null;
 }
 
 export interface Funding {

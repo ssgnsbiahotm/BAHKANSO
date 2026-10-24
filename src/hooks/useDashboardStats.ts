@@ -71,10 +71,16 @@ export function useDashboardStats() {
     const periodIncome = entrees;
     const periodExpenses = sorties;
     const previousPeriodExpenses = sumByDirection(previousPeriodTransactions, 'sortie');
+    const previousPeriodIncome = sumByDirection(previousPeriodTransactions, 'entree');
 
     const expenseTrend =
       previousPeriodExpenses !== 0
         ? Number(Number(((periodExpenses - previousPeriodExpenses) / previousPeriodExpenses) * 100).toFixed(1))
+        : null;
+
+    const incomeTrend =
+      previousPeriodIncome !== 0
+        ? Number(((periodIncome - previousPeriodIncome) / previousPeriodIncome) * 100).toFixed(1)
         : null;
 
     const treasuryTrend =
@@ -139,6 +145,7 @@ export function useDashboardStats() {
       periodIncome,
       periodExpenses,
       previousPeriodExpenses,
+      incomeTrend,
       expenseTrend,
       currentPeriodTransactions,
       previousPeriodTransactions,

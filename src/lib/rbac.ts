@@ -27,6 +27,7 @@ export type ModuleKey =
   | 'surveillance'
   | 'users'
   | 'configuration'
+  | 'bailleurs'
   | 'profile';
 
 export type PermissionAction = 'read' | 'write' | 'delete' | 'admin';
@@ -94,6 +95,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     surveillance: { read: true, write: true, delete: true, admin: true },
     users: { read: true, write: true, delete: true, admin: true },
     configuration: { read: true, write: true, delete: true, admin: true },
+    bailleurs: { read: true, write: true, delete: true, admin: true },
     profile: { read: true, write: true, delete: false, admin: false },
   },
 

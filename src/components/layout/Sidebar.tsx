@@ -5,7 +5,7 @@ import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase,
+  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Users,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -40,8 +40,11 @@ const ALL_NAV_ITEMS: NavItem[] = [
     { id: 'surveillance', label: 'Événements', module: 'surveillance' },
   ]},
   { id: 'media', label: 'Médias', icon: <Image size={20} />, module: 'media' },
+  { id: 'users', label: 'Utilisateurs', icon: <Users size={20} />, module: 'users' },
+  { id: 'bailleurs', label: 'Bailleurs de fonds', icon: <Users size={20} />, module: 'bailleurs' },
   { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', children: [
     { id: 'users', label: 'Utilisateurs', module: 'users' },
+    { id: 'bailleurs', label: 'Bailleurs de fonds', module: 'bailleurs' },
     { id: 'configuration', label: 'Paramètres', module: 'configuration' },
   ]},
 ];
@@ -91,6 +94,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       surveillance: '/app/surveillance',
       users: '/app/users',
       configuration: '/app/configuration',
+      bailleurs: '/app/configuration/bailleurs',
     };
 
     target = routeMap[page] || `/app/${page}`;
@@ -133,7 +137,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                 <button
                   onClick={() => {
                     if (hasChildren) {
-                      handleNav(item.children![0].id);
+                      handleNav(item.id);
                     } else {
                       handleNav(item.id);
                     }
