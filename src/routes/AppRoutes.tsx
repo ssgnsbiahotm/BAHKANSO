@@ -34,6 +34,9 @@ const CropOperationManage = lazy(() => import('@/pages/CropOperationManage').the
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
 const RecoltesPage = lazy(() => import('@/pages/exploitation/RecoltesPage').then(m => ({ default: m.RecoltesPage })));
 const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
+
+const LotsPage = lazy(() => import('@/pages/exploitation/LotsPage').then(m => ({ default: m.LotsPage })));
+const LotsPageSuspense = createSuspenseWrapper(LotsPage);
 const BailleursPage = lazy(() => import('@/pages/configuration/BailleursPage').then(m => ({ default: m.BailleursPage })));
 const BailleursPageSuspense = createSuspenseWrapper(BailleursPage);
 
@@ -256,6 +259,14 @@ export const appRouter = createBrowserRouter([
         ),
       },
       {
+        path: 'exploitation/lots',
+        element: (
+          <RequireModule module="agriculture" action="read">
+            <LotsPageSuspense />
+          </RequireModule>
+        ),
+      },
+      {
         path: 'livestock',
         element: (
           <RequireModule module="livestock" action="read">
@@ -265,11 +276,7 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'livestock/lots',
-        element: (
-          <RequireModule module="livestock" action="read">
-            <AnimalLotManageSuspense />
-          </RequireModule>
-        ),
+        element: <Navigate to="/app/exploitation/lots" replace />,
       },
       {
         path: 'livestock/animals',
