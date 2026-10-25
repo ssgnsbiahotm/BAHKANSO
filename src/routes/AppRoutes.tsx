@@ -156,9 +156,9 @@ export const appRouter = createBrowserRouter([
           </RequireModule>
         ),
       },
-      { path: 'reports', element: <Navigate to="/app/monitoring" replace /> },
-      { path: 'alerts', element: <Navigate to="/app/monitoring" replace /> },
-      { path: 'audit', element: <Navigate to="/app/monitoring" replace /> },
+      { path: 'reports', element: <Navigate to="/app/surveillance?tab=historique" replace /> },
+      { path: 'alerts', element: <Navigate to="/app/surveillance?tab=alertes" replace /> },
+      { path: 'audit', element: <Navigate to="/app/surveillance?tab=historique" replace /> },
       {
         path: 'monitoring',
         element: (
