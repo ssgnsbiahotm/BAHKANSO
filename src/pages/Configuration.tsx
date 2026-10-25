@@ -111,8 +111,8 @@ const ICON_CHOICES = [
 ];
 
 const COLOR_CHOICES = [
-  '#16A34A', '#15803D', '#22C55E', '#2563EB', '#1D4ED8', '#F59E0B',
-  '#DC2626', '#7C3AED', '#0891B2', '#EA580C', '#0F172A', '#FFFFFF',
+  '#6B8E3A', '#15803D', '#22C55E', '#2563EB', '#1D4ED8', '#F59E0B',
+  '#DC2626', '#7C3AED', '#0891B2', '#EA580C', '#202824', '#F4F1E8',
 ];
 
 /* ============================================================================
@@ -336,7 +336,7 @@ const domainLabel = (d: ConfigDomain): string =>
   d === 'exploitation' ? 'Paramètres de l’exploitation' : 'Contenu du site';
 
 const domainColor = (d: ConfigDomain): string =>
-  d === 'exploitation' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-blue-50 text-blue-700 border-blue-100';
+  d === 'exploitation' ? 'bg-signal/20 text-signal border-ivory-deep' : 'bg-signal/20 text-signal border-ivory-deep';
 
 const getDraftPath = (domain: ConfigDomain, subsection: ConfigSubsection, fieldId: string): string =>
   `${domain}:${subsection}:${fieldId}`;
@@ -722,8 +722,8 @@ const handlePasswordChange = useCallback(async () => {
       appName: getEffectiveValue(brandingPath) || 'Bahkanso',
       appTagline: getEffectiveValue(taglinePath) || '',
       logoIcon: getEffectiveValue(iconPath) || 'Sprout',
-      logoColor: getEffectiveValue(colorPath) || '#16A34A',
-      logoBgColor: getEffectiveValue(bgColorPath) || '#FFFFFF',
+      logoColor: getEffectiveValue(colorPath) || '#6B8E3A',
+      logoBgColor: getEffectiveValue(bgColorPath) || '#F4F1E8',
       logoUrl: getEffectiveValue(logoPath) || undefined,
     };
   }, [getEffectiveValue]);
@@ -774,17 +774,17 @@ const handlePasswordChange = useCallback(async () => {
   }, [drafts]);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-ivory">
       {/* ==================================================================== */}
       {/* SIDEBAR DE CONFIGURATION */}
       {/* ==================================================================== */}
-      <aside className="hidden lg:flex lg:w-72 flex-col border-r border-slate-200 bg-white">
-        <div className="p-5 border-b border-slate-200">
+      <aside className="hidden lg:flex lg:w-72 flex-col border-r border-ivory-deep bg-ivory-alt">
+        <div className="p-5 border-b border-ivory-deep">
           <div className="flex items-center gap-2">
-            <Settings size={24} className="text-indigo-600" />
-            <h2 className="font-bold text-lg text-slate-800">Configuration</h2>
+            <Settings size={24} className="text-signal" />
+            <h2 className="font-bold text-lg text-ink">Configuration</h2>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Gestion unifiée des paramètres</p>
+          <p className="text-xs text-ink-mut mt-1">Gestion unifiée des paramètres</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
@@ -799,10 +799,10 @@ const handlePasswordChange = useCallback(async () => {
                     (d === 'exploitation' ? EXPLOITATION_SECTIONS : CONTENU_SECTIONS)[0].id
                   );
                 }}
-                className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-2 rounded-sm text-sm font-medium transition-colors ${
                   activeDomain === d
-                    ? d === 'exploitation' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-blue-100 text-blue-700 border border-blue-300'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? d === 'exploitation' ? 'bg-signal/20 text-signal border border-green-300' : 'bg-signal/20 text-signal border border-blue-300'
+                    : 'bg-ivory-alt text-ink-mut hover:bg-ivory-deep'
                 }`}
               >
                 {d === 'exploitation' ? <Building2 size={14} className="mr-2" /> : <Globe size={14} className="mr-2" />}
@@ -819,16 +819,16 @@ const handlePasswordChange = useCallback(async () => {
                 <button
                   key={section.id}
                   onClick={() => setActiveSubsection(section.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm transition-colors ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  } ${hasChanges ? 'border-l-2 border-amber-500' : ''}`}
+                      ? 'bg-signal/10 text-signal border border-signal/30'
+                      : 'text-ink-mut hover:bg-ivory-alt hover:text-ink'
+                  } ${hasChanges ? 'border-l-2 border-gold/30' : ''}`}
                 >
                   {section.icon}
                   <span className="flex-1 text-left">{section.label}</span>
                   {hasChanges && (
-                    <span className="flex-shrink-0 bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded">
+                    <span className="flex-shrink-0 bg-gold/20 text-gold text-xs px-1.5 py-0.5 rounded">
                       Modifié
                     </span>
                   )}
@@ -838,14 +838,14 @@ const handlePasswordChange = useCallback(async () => {
           </div>
 
           {hasDrafts && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <div className="flex items-center gap-2 text-xs text-amber-700 mb-2">
+            <div className="mt-4 p-3 bg-gold/10 border border-gold/30 rounded-sm">
+              <div className="flex items-center gap-2 text-xs text-gold mb-2">
                 <AlertCircle size={14} /> {changedFields.length} modification(s) en attente
               </div>
               <button
                 onClick={saveAllDrafts}
                 disabled={saving}
-                className="w-full py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1"
+                className="w-full py-1.5 bg-gold hover:bg-gold/90 disabled:opacity-50 text-white text-xs font-medium rounded-sm transition-colors flex items-center justify-center gap-1"
               >
                 {saving ? <Loader2 size={14} /> : <Save size={14} />} Publier tout
               </button>
@@ -853,8 +853,8 @@ const handlePasswordChange = useCallback(async () => {
           )}
         </div>
 
-        <div className="p-3 border-t border-slate-200">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="p-3 border-t border-ivory-deep">
+          <div className="flex items-center gap-2 text-xs text-ink-mut">
             <Clock size={12} />
             <span>Dernière sauvegarde : {lastSaved ? lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Jamais'}</span>
           </div>
@@ -865,32 +865,32 @@ const handlePasswordChange = useCallback(async () => {
       {/* CONTENU PRINCIPAL */}
       {/* ==================================================================== */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <header className="bg-white border-b border-ivory-deep px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">
+            <h1 className="text-xl font-bold text-ink">
               {activeSection ? activeSection.label : 'Configuration'}
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-mut">
               {domainLabel(activeDomain)} · {activeSection?.fields.length || 0} paramètre(s)
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-3 text-slate-400" />
+              <Search size={16} className="absolute left-3 top-3 text-ink-dim" />
               <input
                 type="text"
                 placeholder="Rechercher un paramètre…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none w-64"
+                className="pl-9 pr-3 py-2 border border-ivory-deep rounded-sm text-sm focus:ring-2 focus:ring-signal focus:border-signal outline-none w-64"
               />
             </div>
 
             <button
               onClick={resetAllDrafts}
               disabled={!hasDrafts || saving}
-              className={`px-3 py-2 text-xs text-slate-500 hover:text-slate-700 ${
+              className={`px-3 py-2 text-xs text-ink-mut hover:text-ink ${
                 !hasDrafts || saving ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
@@ -899,8 +899,8 @@ const handlePasswordChange = useCallback(async () => {
 
             <button
               onClick={() => setPreviewMode(!previewMode)}
-              className={`px-3 py-2 text-xs rounded-md transition-colors ${
-                previewMode ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              className={`px-3 py-2 text-xs rounded-sm transition-colors ${
+                previewMode ? 'bg-signal/20 text-signal' : 'bg-ivory-alt text-ink-mut hover:bg-ivory-deep'
               }`}
             >
               {previewMode ? <EyeOff size={14} className="mr-1" /> : <Eye size={14} className="mr-1" />}
@@ -910,10 +910,10 @@ const handlePasswordChange = useCallback(async () => {
             <button
               onClick={saveAllDrafts}
               disabled={!hasDrafts || saving}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-sm text-sm font-medium transition-colors ${
                 !hasDrafts || saving
-                  ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  ? 'bg-ivory-deep text-ink-mut cursor-not-allowed'
+                  : 'bg-signal/20 text-white hover:bg-signal'
               }`}
             >
               {saving ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Save size={14} className="mr-2" />}
@@ -924,8 +924,8 @@ const handlePasswordChange = useCallback(async () => {
 
         {/* Zone d’alerte si non autorisé */}
         {!isAuthorized && (
-          <div className="bg-amber-50 border border-amber-200 p-4">
-            <div className="flex items-center gap-2 text-amber-800 text-sm">
+          <div className="bg-gold/10 border border-gold/30 p-4">
+            <div className="flex items-center gap-2 text-gold text-sm">
               <AlertCircle size={16} />
               <strong>Accès en lecture seule.</strong> Seuls les administrateurs et propriétaires peuvent modifier la configuration.
             </div>
@@ -935,9 +935,9 @@ const handlePasswordChange = useCallback(async () => {
         <main className="flex-1 overflow-y-auto p-6">
           {!activeSection ? (
             <div className="text-center py-20">
-              <Globe size={48} className="mx-auto mb-4 text-slate-400" />
-              <h3 className="text-lg font-medium text-slate-900">Aucune section sélectionnée</h3>
-              <p className="text-slate-500">Choisissez une section dans la barre latérale.</p>
+              <Globe size={48} className="mx-auto mb-4 text-ink-dim" />
+              <h3 className="text-lg font-medium text-ink">Aucune section sélectionnée</h3>
+              <p className="text-ink-mut">Choisissez une section dans la barre latérale.</p>
             </div>
           ) : (
             <div className="max-w-3xl mx-auto space-y-6">
@@ -949,14 +949,14 @@ const handlePasswordChange = useCallback(async () => {
 
               {/* Logo upload pour la section appearance */}
               {activeSubsection === 'appearance' && farm && (
-                <div className="bg-white p-5 rounded-xl border border-slate-200">
-                  <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4"><ImageIcon size={18} /> Logo de l’application</h3>
-                  <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-                    <div className="w-20 h-20 rounded-xl border-2 border-slate-200 overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                  <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Logo de l’application</h3>
+                  <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
+                    <div className="w-20 h-20 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
                       {farm.logo_url ? (
                         <img src={farm.logo_url} alt="Logo actuel" className="w-full h-full object-cover" />
                       ) : (
-                        <ImageIcon size={28} className="text-slate-300" />
+                        <ImageIcon size={28} className="text-ink-dim" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -970,7 +970,7 @@ const handlePasswordChange = useCallback(async () => {
                       <button
                         onClick={() => logoFileRef.current?.click()}
                         disabled={uploadingLogo || !farm}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
                       >
                         {uploadingLogo ? (
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -982,12 +982,12 @@ const handlePasswordChange = useCallback(async () => {
                       {farm.logo_url && (
                         <button
                           onClick={handleRemoveLogo}
-                          className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                          className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-terra border border-red-200 rounded-sm hover:bg-red-50"
                         >
                           <Trash2 size={14} /> Retirer
                         </button>
                       )}
-                      <p className="text-xs text-slate-400 mt-2">PNG, JPG — max 2 Mo. L’image est recadrée en carré.</p>
+                      <p className="text-xs text-ink-dim mt-2">PNG, JPG — max 2 Mo. L’image est recadrée en carré.</p>
                     </div>
                   </div>
                 </div>
@@ -995,10 +995,10 @@ const handlePasswordChange = useCallback(async () => {
 
               {/* Upload image hero pour la section hero */}
               {activeSubsection === 'hero' && (
-                <div className="bg-white p-5 rounded-xl border border-slate-200">
-                  <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-4"><ImageIcon size={18} /> Image du bandeau d’accueil</h3>
-                  <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-                    <div className="w-64 h-40 rounded-xl border-2 border-slate-200 overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                  <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Image du bandeau d’accueil</h3>
+                  <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
+                    <div className="w-64 h-40 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
                       {getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage')) ? (
                         <img
                           src={String(getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage')))}
@@ -1006,7 +1006,7 @@ const handlePasswordChange = useCallback(async () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <ImageIcon size={32} className="text-slate-300" />
+                        <ImageIcon size={32} className="text-ink-dim" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -1020,7 +1020,7 @@ const handlePasswordChange = useCallback(async () => {
                       <button
                         onClick={() => heroFileRef.current?.click()}
                         disabled={uploadingHeroImage || !isAuthorized}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
                       >
                         {uploadingHeroImage ? (
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1032,21 +1032,21 @@ const handlePasswordChange = useCallback(async () => {
                       {Boolean(getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage'))) && (
                         <button
                           onClick={handleRemoveHeroImage}
-                          className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                          className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-terra border border-red-200 rounded-sm hover:bg-red-50"
                         >
                           <Trash2 size={14} /> Retirer
                         </button>
                       )}
-                      <p className="text-xs text-slate-400 mt-2">JPEG, PNG ou WebP — max 5 Mo. Pas de SVG.</p>
+                      <p className="text-xs text-ink-dim mt-2">JPEG, PNG ou WebP — max 5 Mo. Pas de SVG.</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Description de la section */}
-              <div className="bg-white p-5 rounded-xl border border-slate-200">
-                <h2 className="text-lg font-bold text-slate-900 mb-2">{activeSection.label}</h2>
-                <p className="text-slate-500 text-sm">
+              <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                <h2 className="text-lg font-bold text-ink mb-2">{activeSection.label}</h2>
+                <p className="text-ink-mut text-sm">
                   Configurez les paramètres de {activeSection.label.toLowerCase()}.
                   {hasDrafts ? 'Les modifications apparaissent en brouillon jusqu’à publication.' : ''}
                 </p>
@@ -1062,27 +1062,27 @@ const handlePasswordChange = useCallback(async () => {
                   const isInvalid = validateField(field, effectiveValue);
 
                   return (
-                    <div key={field.id} className="bg-white p-5 rounded-xl border border-slate-200 relative group">
+                    <div key={field.id} className="bg-white p-5 rounded-sm border border-ivory-deep relative group">
                       {isChanged && (
-                        <div className="absolute top-3 right-3 bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded">
+                        <div className="absolute top-3 right-3 bg-gold/20 text-gold text-xs px-2 py-0.5 rounded">
                           <RefreshCw size={12} className="mr-1" /> Modifié
                         </div>
                       )}
 
                       <div className="flex items-start gap-4">
                         <div className="flex-shrink-0">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-indigo-50 text-indigo-600">
+                          <div className="w-10 h-10 rounded-sm flex items-center justify-center bg-signal/10 text-signal">
                             {getFieldIcon(field.type)}
                           </div>
                         </div>
 
                         <div className="flex-1">
-                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                          <label className="block text-sm font-medium text-ink mb-1">
                             {field.label}
                             {field.required && <span className="text-red-500 ml-1">*</span>}
                           </label>
                           {field.description && (
-                            <p className="text-xs text-slate-400 mb-2">{field.description}</p>
+                            <p className="text-xs text-ink-dim mb-2">{field.description}</p>
                           )}
 
                           {field.type === 'list' ? (
@@ -1104,7 +1104,7 @@ const handlePasswordChange = useCallback(async () => {
                         </div>
 
                         {!isAuthorized && (
-                          <Lock size={16} className="text-slate-400 mt-1 self-start" />
+                          <Lock size={16} className="text-ink-dim mt-1 self-start" />
                         )}
                       </div>
 
@@ -1112,7 +1112,7 @@ const handlePasswordChange = useCallback(async () => {
                         <button
                           onClick={() => resetField(path)}
                           disabled={!isChanged || saving || !isAuthorized}
-                          className="absolute bottom-2 right-2 text-xs text-slate-400 hover:text-slate-600 disabled:opacity-30 transition-colors"
+                          className="absolute bottom-2 right-2 text-xs text-ink-dim hover:text-ink-mut disabled:opacity-30 transition-colors"
                         >
                           <RotateCcw size={12} /> Annuler
                         </button>
@@ -1124,18 +1124,18 @@ const handlePasswordChange = useCallback(async () => {
 
               {/* Boutons d’action supplémentaires */}
               {hasDrafts && (
-                <div className="flex items-center gap-3 pt-6 border-t border-slate-200">
+                <div className="flex items-center gap-3 pt-6 border-t border-ivory-deep">
                   <button
                     onClick={saveAllDrafts}
                     disabled={saving || !isAuthorized}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+                    className="flex-1 bg-signal/20 hover:bg-signal disabled:opacity-50 text-white py-3 rounded-sm font-medium flex items-center justify-center gap-2 transition-colors"
                   >
                     <Save size={18} /> Publier {changedFields.length} modification(s)
                   </button>
                   <button
                     onClick={resetAllDrafts}
                     disabled={saving || !isAuthorized}
-                    className="px-6 py-3 border border-slate-300 rounded-xl text-slate-600 hover:bg-slate-50 disabled:opacity-50 font-medium transition-colors"
+                    className="px-6 py-3 border border-ivory-deep rounded-sm text-ink-mut hover:bg-ivory disabled:opacity-50 font-medium transition-colors"
                   >
                     Annuler tout
                   </button>
@@ -1143,43 +1143,43 @@ const handlePasswordChange = useCallback(async () => {
               )}
 
               {/* Section : Changer mon mot de passe */}
-              <div className="mt-6 pt-6 border-t border-slate-200">
-                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <div className="mt-6 pt-6 border-t border-ivory-deep">
+                <h3 className="font-semibold text-ink mb-3 flex items-center gap-2">
                   <Lock size={16} /> Changer mon mot de passe
                 </h3>
                 <div className="space-y-3 max-w-md">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-ink mb-1">
                       Nouveau mot de passe
                     </label>
                     <input
                       type="password"
                       value={passwordForm.new}
                       onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                      className="w-full px-3 py-2 border border-ivory-deep rounded-sm"
                       placeholder="Au moins 8 caractères"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-ink mb-1">
                       Confirmer le nouveau mot de passe
                     </label>
                     <input
                       type="password"
                       value={passwordForm.confirm}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                      className="w-full px-3 py-2 border border-ivory-deep rounded-sm"
                       placeholder="Répéter le mot de passe"
                     />
                   </div>
                   {passwordError && (
-                    <p className="text-sm text-red-600">{passwordError}</p>
+                    <p className="text-sm text-terra">{passwordError}</p>
                   )}
                   <button
                     type="button"
                     onClick={handlePasswordChange}
                     disabled={passwordLoading || !passwordForm.new}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
                   >
                     {passwordLoading ? 'Modification…' : 'Modifier le mot de passe'}
                   </button>
@@ -1194,26 +1194,26 @@ const handlePasswordChange = useCallback(async () => {
       {/* MODAL D’APERÇU */}
       {/* ==================================================================== */}
       {previewMode && (
-        <div className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 bg-night/95 backdrop-blur-sm">
           <div className="absolute top-6 right-6">
             <button
               onClick={() => setPreviewMode(false)}
-              className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors"
+              className="bg-white text-ink px-4 py-2 rounded-sm text-sm font-medium hover:bg-ivory-alt transition-colors"
             >
               <X size={18} className="mr-2" /> Fermer l’aperçu
             </button>
           </div>
           <div className="h-full overflow-y-auto p-8">
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-2xl shadow-2xl p-8 border border-slate-200">
+              <div className="bg-white rounded-2xl shadow-2xl p-8 border border-ivory-deep">
                 <div className="text-center mb-8">
                   <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${previewBranding.logoBgColor} text-white`}>
+                    <div className={`w-12 h-12 rounded-sm flex items-center justify-center ${previewBranding.logoBgColor} text-white`}>
                       <Palette size={24} />
                     </div>
                     <div>
-                      <h1 className="text-2xl font-bold text-slate-900">{previewBranding.appName}</h1>
-                      <p className="text-slate-500 text-sm">{previewBranding.appTagline}</p>
+                      <h1 className="text-2xl font-bold text-ink">{previewBranding.appName}</h1>
+                      <p className="text-ink-mut text-sm">{previewBranding.appTagline}</p>
                     </div>
                   </div>
                 </div>
@@ -1224,27 +1224,27 @@ const handlePasswordChange = useCallback(async () => {
                     const statValue = getEffectiveValue(getDraftPath('contenu', 'stats', `stat${i}Value`));
                     if (!stats && !statValue) return null;
                     return (
-                      <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500 uppercase font-semibold">{stats || `Stat ${i}`}</p>
-                        <p className="text-2xl font-bold text-slate-900 mt-1">{statValue || '—'}</p>
+                      <div key={i} className="p-4 bg-ivory rounded-sm border border-ivory-deep">
+                        <p className="text-xs text-ink-mut uppercase font-semibold">{stats || `Stat ${i}`}</p>
+                        <p className="text-2xl font-bold text-ink mt-1">{statValue || '—'}</p>
                       </div>
                     );
                   })}
                 </div>
 
                 <div className="space-y-6">
-                  <h3 className="text-lg font-bold text-slate-900">Fonctionnalités</h3>
+                  <h3 className="text-lg font-bold text-ink">Fonctionnalités</h3>
                   <div className="space-y-4">
                     {[1, 2, 3].map(i => {
                       const title = getEffectiveValue(getDraftPath('contenu', 'features', `feature${i}Title`));
                       const desc = getEffectiveValue(getDraftPath('contenu', 'features', `feature${i}Desc`));
                       if (!title && !desc) return null;
                       return (
-                        <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                          <Zap size={18} className="text-indigo-500 mt-0.5" />
+                        <div key={i} className="flex items-start gap-3 p-3 bg-ivory rounded-sm">
+                          <Zap size={18} className="text-signal mt-0.5" />
                           <div>
-                            <h4 className="font-semibold text-slate-900">{title}</h4>
-                            <p className="text-sm text-slate-600">{desc}</p>
+                            <h4 className="font-semibold text-ink">{title}</h4>
+                            <p className="text-sm text-ink-mut">{desc}</p>
                           </div>
                         </div>
                       );
@@ -1252,8 +1252,8 @@ const handlePasswordChange = useCallback(async () => {
                   </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-slate-100 text-center">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider">
+                <div className="mt-8 pt-8 border-t border-ivory-deep text-center">
+                  <p className="text-xs text-ink-dim uppercase tracking-wider">
                     {getEffectiveValue(getDraftPath('contenu', 'branding', 'footerText')) || 'Bahkanso'} · v1.0
                   </p>
                 </div>
@@ -1333,14 +1333,14 @@ function ListEditor({
     onChange(next);
   };
 
-  const inputClasses = `w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors ${
-    !isAuthorized ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'border-slate-300'
+  const inputClasses = `w-full px-3 py-2 border rounded-sm text-sm focus:ring-2 focus:ring-signal focus:border-signal outline-none transition-colors ${
+    !isAuthorized ? 'bg-ivory text-ink-dim cursor-not-allowed' : 'border-ivory-deep'
   }`;
 
   return (
     <div className="space-y-3">
       {value.length === 0 ? (
-        <div className="p-4 bg-slate-50 rounded-xl text-center text-slate-500">
+        <div className="p-4 bg-ivory rounded-sm text-center text-ink-mut">
           Aucun élément enregistré. Commencez par ajouter votre premier élément ci-dessous.
         </div>
       ) : (
@@ -1348,12 +1348,12 @@ function ListEditor({
           {value.map((item, i) => {
             const isEditing = editingIndex === i;
             return (
-              <div key={i} className="p-3 bg-slate-50 rounded-xl space-y-3 border border-slate-200">
+              <div key={i} className="p-3 bg-ivory rounded-sm space-y-3 border border-ivory-deep">
                 {isEditing ? (
                   <div className="space-y-2">
                     {itemFields.map(f => (
                       <div key={f.id} className="space-y-1">
-                        <label className="text-xs font-medium text-slate-600">{f.label}</label>
+                        <label className="text-xs font-medium text-ink-mut">{f.label}</label>
                         <input
                           type={f.type === 'textarea' ? 'textarea' : 'text'}
                           value={editValues[f.id] || ''}
@@ -1369,7 +1369,7 @@ function ListEditor({
                         <Save size={14} /> Appliquer
                       </button>
                       <button onClick={() => cancelEdit(i)}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-red-600 hover:text-red-800">
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-terra hover:text-red-800">
                         <X size={14} /> Annuler
                       </button>
                     </div>
@@ -1381,31 +1381,31 @@ function ListEditor({
                         const val = item[f.id];
                         if (f.type === 'select') {
                           return (
-                            <span key={f.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded border border-indigo-100">
+                            <span key={f.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-signal/10 text-signal text-xs rounded border border-signal/30">
                               {val || '—'}
                             </span>
                           );
                         }
                         return (
-                          <span key={f.id} className="text-sm text-slate-700 truncate max-w-[200px]">{val || '—'}</span>
+                          <span key={f.id} className="text-sm text-ink truncate max-w-[200px]">{val || '—'}</span>
                         );
                       })}
                     </div>
                     <div className="flex items-center gap-1">
                       <button onClick={() => startEdit(i)} disabled={!isAuthorized}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-800 disabled:opacity-50">
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-ink-mut hover:text-ink disabled:opacity-50">
                         <FileText size={14} /> Modifier
                       </button>
                       <button onClick={() => moveUp(i)} disabled={i === 0 || !isAuthorized}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-800 disabled:opacity-50">
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-ink-mut hover:text-ink disabled:opacity-50">
                         <ArrowUp size={14} />
                       </button>
                       <button onClick={() => moveDown(i)} disabled={i === value.length - 1 || !isAuthorized}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-800 disabled:opacity-50">
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-ink-mut hover:text-ink disabled:opacity-50">
                         <ArrowDown size={14} />
                       </button>
                       <button onClick={() => removeItem(i)} disabled={!isAuthorized}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-red-600 hover:text-red-800 disabled:opacity-50">
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-terra hover:text-red-800 disabled:opacity-50">
                         <Trash size={14} />
                       </button>
                     </div>
@@ -1417,9 +1417,9 @@ function ListEditor({
         </div>
       )}
 
-      <div className="pt-3 border-t border-slate-200">
+      <div className="pt-3 border-t border-ivory-deep">
         <button onClick={addItem} disabled={!isAuthorized}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50">
           <Plus size={16} /> Ajouter un élément
         </button>
       </div>
@@ -1438,9 +1438,9 @@ function renderFieldInput(
   isAuthorized: boolean,
   onChange: (v: any) => void
 ) {
-  const inputClasses = `w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors ${
-    isInvalid ? 'border-red-500 focus:ring-red-500' : 'border-slate-300'
-  } ${!isAuthorized ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : ''}`;
+  const inputClasses = `w-full px-3 py-2 border rounded-sm text-sm focus:ring-2 focus:ring-signal focus:border-signal outline-none transition-colors ${
+    isInvalid ? 'border-red-500 focus:ring-red-500' : 'border-ivory-deep'
+  } ${!isAuthorized ? 'bg-ivory text-ink-dim cursor-not-allowed' : ''}`;
 
   switch (field.type) {
     case 'color':
@@ -1451,16 +1451,16 @@ function renderFieldInput(
               key={c}
               onClick={() => onChange(c)}
               disabled={!isAuthorized}
-              className={`w-8 h-8 rounded-lg border-2 ${(value || '#FFFFFF') === c ? 'border-slate-900 ring-2 ring-indigo-500' : 'border-slate-200 hover:border-slate-300'}`}
+              className={`w-8 h-8 rounded-sm border-2 ${(value || '#F4F1E8') === c ? 'border-ink ring-2 ring-signal' : 'border-ivory-deep hover:border-ivory-deep'}`}
               style={{ backgroundColor: c }}
             />
           ))}
           <input
             type="color"
-            value={value || '#ffffff'}
+            value={value || '#F4F1E8'}
             onChange={e => onChange(e.target.value)}
             disabled={!isAuthorized}
-            className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent"
+            className="w-8 h-8 rounded-sm border border-ivory-deep cursor-pointer bg-transparent"
           />
         </div>
       );
@@ -1473,9 +1473,9 @@ function renderFieldInput(
             checked={Boolean(value)}
             onChange={e => onChange(e.target.checked)}
             disabled={!isAuthorized}
-            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            className="rounded border-ivory-deep text-signal focus:ring-signal"
           />
-          <span className="text-sm text-slate-600">{Boolean(value) ? 'Activé' : 'Désactivé'}</span>
+          <span className="text-sm text-ink-mut">{Boolean(value) ? 'Activé' : 'Désactivé'}</span>
         </div>
       );
 
