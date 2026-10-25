@@ -406,7 +406,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
   const rows = data ?? [];
 
   const totalAmount = rows.reduce((sum, f) => sum + (f.amount_sent ?? 0), 0);
-  const receivedAmount = rows.filter(f => f.status === 'reçu').reduce((sum, f) => sum + (f.amount_received ?? f.amount_sent ?? 0), 0);
+  const receivedAmount = rows.filter(f => f.status === 'reçu').reduce((sum, f) => sum + (f.amount_received ?? 0), 0);
   const pendingAmount = rows.filter(f => f.status === 'prévu' || f.status === 'envoyé').reduce((sum, f) => sum + (f.amount_sent ?? 0), 0);
 
   return (

@@ -19,7 +19,7 @@ export function SurveillancePage() {
 
   // Récupérer l'onglet actif depuis l'URL (?tab=)
   const activeTab = (() => {
-    const tab = searchParams.get('tab');
+    const tab = searchParams.get('tab') || 'alertes';
     if (tab === 'alertes') return 'AlertesTab';
     if (tab === 'evenements') return 'EvenementsTab';
     if (tab === 'historique') return 'HistoriqueTab';
