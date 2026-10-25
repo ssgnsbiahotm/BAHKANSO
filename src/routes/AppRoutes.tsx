@@ -37,6 +37,8 @@ const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
 
 const LotsPage = lazy(() => import('@/pages/exploitation/LotsPage').then(m => ({ default: m.LotsPage })));
 const LotsPageSuspense = createSuspenseWrapper(LotsPage);
+const AnimauxPage = lazy(() => import('@/pages/exploitation/AnimauxPage').then(m => ({ default: m.AnimauxPage })));
+const AnimauxPageSuspense = createSuspenseWrapper(AnimauxPage);
 const BailleursPage = lazy(() => import('@/pages/configuration/BailleursPage').then(m => ({ default: m.BailleursPage })));
 const BailleursPageSuspense = createSuspenseWrapper(BailleursPage);
 
@@ -267,6 +269,10 @@ export const appRouter = createBrowserRouter([
         ),
       },
       {
+        path: 'exploitation/animaux',
+        element: <AnimauxPageSuspense />,
+      },
+      {
         path: 'livestock',
         element: (
           <RequireModule module="livestock" action="read">
@@ -280,11 +286,7 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'livestock/animals',
-        element: (
-          <RequireModule module="livestock" action="read">
-            <AnimalManageSuspense />
-          </RequireModule>
-        ),
+        element: <Navigate to="/app/exploitation/animaux" replace />,
       },
       {
         path: 'livestock/events',
