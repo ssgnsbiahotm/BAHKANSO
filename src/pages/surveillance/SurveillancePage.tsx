@@ -61,12 +61,6 @@ export function SurveillancePage() {
       {activeTab === 'HistoriqueTab' && <HistoriqueTab />}
       {activeTab === 'EvenementsTab' && <EvenementsTab />}
 
-      {/* Badge d'indication de l'onglet actif */}
-      {activeTab && (
-        <div className="mt-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600">
-          <span className="font-medium">{activeTab}</span>
-        </div>
-      )}
     </div>
   );
 }

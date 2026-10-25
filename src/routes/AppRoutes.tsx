@@ -16,7 +16,7 @@ const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ defaul
 const Configuration = lazy(() => import('@/pages/Configuration').then(m => ({ default: m.Configuration })));
 const UsersPage = lazy(() => import('@/pages/UsersPage').then(m => ({ default: m.UsersPage })));
 const Monitoring = lazy(() => import('@/pages/Monitoring').then(m => ({ default: m.Monitoring })));
-const Surveillance = lazy(() => import('@/pages/Surveillance').then(m => ({ default: m.Surveillance })));
+const SurveillancePage = lazy(() => import('@/pages/surveillance/SurveillancePage').then(m => ({ default: m.SurveillancePage })));
 const Agriculture = lazy(() => import('@/pages/Agriculture').then(m => ({ default: m.Agriculture })));
 const Livestock = lazy(() => import('@/pages/Livestock').then(m => ({ default: m.Livestock })));
 const Inventory = lazy(() => import('@/pages/Inventory').then(m => ({ default: m.Inventory })));
@@ -61,7 +61,7 @@ const ProfilePageSuspense = createSuspenseWrapper(ProfilePage);
 const ConfigurationSuspense = createSuspenseWrapper(Configuration);
 const UsersPageSuspense = createSuspenseWrapper(UsersPage);
 const MonitoringSuspense = createSuspenseWrapper(Monitoring);
-const SurveillanceSuspense = createSuspenseWrapper(Surveillance);
+const SurveillancePageSuspense = createSuspenseWrapper(SurveillancePage);
 const AgricultureSuspense = createSuspenseWrapper(Agriculture);
 const LivestockSuspense = createSuspenseWrapper(Livestock);
 const InventorySuspense = createSuspenseWrapper(Inventory);
@@ -171,7 +171,7 @@ export const appRouter = createBrowserRouter([
         path: 'surveillance',
         element: (
           <RequireModule module="surveillance" action="read">
-            <SurveillanceSuspense />
+            <SurveillancePageSuspense />
           </RequireModule>
         ),
       },
