@@ -427,7 +427,7 @@ export function Dashboard() {
                   sub="Toutes périodes confondues"
                   color={netTreasury >= 0 ? COLORS.grass : COLORS.alert}
                   icon={<Wallet size={20} />}
-                  trend={{ value: treasuryTrend || '0', positive: treasuryTrend >= 0 }}
+                  trend={{ value: treasuryTrend?.toString() || '0', positive: (treasuryTrend ?? 0) >= 0 }}
                 />
                 <KpiCard
                   label={`Entrées — ${periodLabel(periodBounds)}`}
@@ -435,7 +435,7 @@ export function Dashboard() {
                   sub="Mouvements de la période"
                   color={COLORS.grass}
                   icon={<TrendingUp size={20} />}
-                  trend={{ value: incomeTrend || '0', positive: incomeTrend >= 0 }}
+                  trend={{ value: incomeTrend?.toString() || '0', positive: (incomeTrend ?? 0) >= 0 }}
                 />
                 <KpiCard
                   label={`Sorties — ${periodLabel(periodBounds)}`}
@@ -443,7 +443,7 @@ export function Dashboard() {
                   sub="Mouvements de la période"
                   color={COLORS.earth}
                   icon={<TrendingDown size={20} />}
-                  trend={{ value: expenseTrend || '0', positive: expenseTrend >= 0 }}
+                  trend={{ value: expenseTrend?.toString() || '0', positive: (expenseTrend ?? 0) >= 0 }}
                 />
               </>
             ) : (

@@ -75,17 +75,17 @@ export function useDashboardStats() {
 
     const expenseTrend =
       previousPeriodExpenses !== 0
-        ? Number(Number(((periodExpenses - previousPeriodExpenses) / previousPeriodExpenses) * 100).toFixed(1))
+        ? Number(Number(((periodExpenses - previousPeriodExpenses) / previousPeriodExpenses) * 100))
         : null;
 
     const incomeTrend =
       previousPeriodIncome !== 0
-        ? Number(((periodIncome - previousPeriodIncome) / previousPeriodIncome) * 100).toFixed(1)
+        ? Number(((periodIncome - previousPeriodIncome) / previousPeriodIncome) * 100)
         : null;
 
     const treasuryTrend =
       previousPeriodNetTreasury !== 0
-        ? Number(((currentPeriodNetTreasury - previousPeriodNetTreasury) / Math.abs(previousPeriodNetTreasury)) * 100).toFixed(1)
+        ? Number(((currentPeriodNetTreasury - previousPeriodNetTreasury) / Math.abs(previousPeriodNetTreasury)) * 100)
         : null;
 
     // 6 derniers mois pour le graphique de tendance
