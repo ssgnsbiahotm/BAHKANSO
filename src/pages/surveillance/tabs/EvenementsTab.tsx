@@ -14,6 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { z } from 'zod';
 import { Plus, Edit2, Trash2, CheckCircle, Calendar, Filter, Search , Wrench, AlertTriangle, RotateCw} from 'lucide-react';
+import { logAudit } from '@/lib/types';
 
 const TYPE_LABELS: Record<string, string> = {
   phyto_traitement: 'Traitement phytosanitaire',
@@ -77,6 +78,8 @@ type SurveillanceFormValues = z.infer<typeof surveillanceSchema>;
 export function EvenementsTab() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { appUser } = useAuth();
+  const toast = useToast();
 
   // Détecter l'onglet actif depuis l'URL (?tab=) ET le mettre à jour
   const [activeTab, setActiveTab] = useState<'tous' | 'planifie' | 'en_cours' | 'termine' | 'annule'>('tous');
@@ -145,19 +148,78 @@ export function EvenementsTab() {
     setModalOpen(true);
   };
 
-  const handleDelete = (event: any) => {
+  const handleDelete = async (event: any) => {
     if (!window.confirm('Supprimer cet événement ?')) return;
-    // TODO: appeler softDelete via useSurveillanceMutations
-    setEditingEvent(null);
-    setModalOpen(false);
-    refetch();
+    const { error } = await supabase.from('surveillance_events').delete().eq('id', event.id);
+    if (error) {
+      toast.show('Erreur: ' + error.message, 'error');
+    } else {
+      await logAudit(appUser?.name || 'Système', 'DELETE', 'surveillance_event', event.id, `Événement ${event.label} supprimé`);
+      toast.show('Événement supprimé');
+      setEditingEvent(null);
+      setModalOpen(false);
+      refetch();
+    }
   };
 
   const handleModalSubmit = async (values: SurveillanceFormValues) => {
-    // TODO: implémenter create/update via useSurveillanceMutations
-    setModalOpen(false);
-    setEditingEvent(null);
-    refetch();
+    if (editingEvent) {
+      // Mise à jour de l'événement existant
+      const { error } = await supabase
+        .from('surveillance_events')
+        .update({
+          type: values.type,
+          plot_id: values.plot_id,
+          campaign_id: values.campaign_id,
+          lot_id: values.lot_id,
+          animal_id: values.animal_id,
+          project_id: values.project_id,
+          label: values.label,
+          description: values.description,
+          scheduled_at: values.scheduled_at,
+          completed_at: values.completed_at,
+          status: values.status,
+          cost_amount: values.cost_amount,
+          responsible_id: values.responsible_id,
+          details: values.details,
+        })
+        .eq('id', editingEvent.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'UPDATE', 'surveillance_event', editingEvent.id, `Événement ${editingEvent.label} modifié`);
+        toast.show('Événement mis à jour');
+        setModalOpen(false);
+        setEditingEvent(null);
+        refetch();
+      }
+    } else {
+      // Création d'un nouvel événement
+      const payload = {
+        type: values.type,
+        plot_id: values.plot_id,
+        campaign_id: values.campaign_id,
+        lot_id: values.lot_id,
+        animal_id: values.animal_id,
+        project_id: values.project_id,
+        label: values.label,
+        description: values.description,
+        scheduled_at: values.scheduled_at,
+        status: values.status,
+        cost_amount: values.cost_amount,
+        responsible_id: values.responsible_id,
+        details: values.details,
+      };
+      const { error } = await supabase.from('surveillance_events').insert(payload);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'CREATE', 'surveillance_event', null, `Création d'événement ${values.label}`);
+        toast.show('Événement créé avec succès');
+        setModalOpen(false);
+        refetch();
+      }
+    }
   };
 
   return (

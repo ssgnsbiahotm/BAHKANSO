@@ -1,11 +1,13 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Users, UserCircle,
+  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Users, UserCircle, MapPin,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -40,9 +42,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
     { id: 'surveillance', label: 'Événements', module: 'surveillance' },
   ]},
   { id: 'media', label: 'Médias', icon: <Image size={20} />, module: 'media' },
-  { id: 'users', label: 'Utilisateurs', icon: <Users size={20} />, module: 'users' },
-  { id: 'bailleurs', label: 'Bailleurs de fonds', icon: <Users size={20} />, module: 'bailleurs' },
-  { id: 'clients', label: 'Clients', icon: <UserCircle size={20} />, module: 'clients' },
+    { id: 'clients', label: 'Clients', icon: <UserCircle size={20} />, module: 'clients' },
   { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', children: [
     { id: 'users', label: 'Utilisateurs', module: 'users' },
     { id: 'bailleurs', label: 'Bailleurs de fonds', module: 'bailleurs' },
@@ -61,6 +61,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
+  const [alertCount, setAlertCount] = useState(0);
 
   // Filtrer les éléments de navigation selon les permissions du rôle
   const userRole = appUser?.role as UserRole;
@@ -103,6 +104,24 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     navigate(target);
     onCloseMobile();
   };
+
+  useEffect(() => {
+    async function fetchAlertCount() {
+      try {
+        const { data: alerts, error } = await supabase
+          .from('alerts')
+          .select('status')
+          .eq('status', 'ouverte');
+
+        if (error) throw error;
+        setAlertCount(alerts?.length || 0);
+      } catch (err) {
+        console.error('Erreur récupération alertes:', err);
+        setAlertCount(0);
+      }
+    }
+    fetchAlertCount();
+  }, [supabase]);
 
   return (
     <>
@@ -151,11 +170,34 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                   }`}
                 >
                   <span className={isActive ? 'text-ivory' : 'text-ivory/70'}>{item.icon}</span>
-                  <span className="flex-1 text-left">{item.label}</span>
+                  <span className="flex-1 text-left">
+                    {item.label}
+                    {item.id === 'surveillance' && alertCount > 0 && (
+                      <span className="bg-red-100 text-red-600 rounded px-2 py-1 text-xs ml-1">
+                        {alertCount}
+                      </span>
+                    )}
+                  </span>
                 </button>
               </div>
             );
           })}
+          {/* Site navigation item hardcodé EN DUR entre Utilisateurs et Bailleurs de fonds */}
+          <div key="sites">
+            <button
+              onClick={() => handleNav('configuration/sites')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
+                isNavActive('configuration/sites')
+                  ? 'bg-slate-hover text-ivory border-l-3 border-signal pl-2'
+                  : 'text-ivory/70 hover:bg-slate-hover hover:text-ivory'
+              }`}
+            >
+              <span className={isNavActive('configuration/sites') ? 'text-ivory' : 'text-ivory/70'}>
+                <MapPin size={20} />
+              </span>
+              <span className="flex-1 text-left">Sites</span>
+            </button>
+          </div>
         </nav>
         <div className="px-4 py-3 border-t border-ivory/10">
           <p className="text-xs text-ivory/50 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>

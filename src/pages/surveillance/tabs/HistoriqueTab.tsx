@@ -1,8 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useData } from '@/lib/DataContext';
-import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/lib/Toast';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -13,9 +12,33 @@ export function HistoriqueTab() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { auditLogs, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
+
+  // Fetch direct des logs audit depuis Supabase (contourne le contexte global)
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchLogs() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      console.log('AUDIT LOGS FETCHED:', data?.length, data);
+
+      if (error) {
+        console.error('AUDIT FETCH ERROR:', error);
+      } else {
+        setLogs(data || []);
+      }
+      setLoading(false);
+    }
+    fetchLogs();
+  }, []);
 
   // Détecter l'onglet actif depuis l'URL (?tab=) ET le mettre à jour
   const [activeTab, setActiveTab] = useState<'tous' | 'hier' | 'semaine' | 'mois'>('tous');
@@ -45,7 +68,7 @@ export function HistoriqueTab() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredLogs = useMemo(() => {
-    return (auditLogs ?? []).filter((log: any) => {
+    return (logs ?? []).filter((log: any) => {
       // Filtre date
       if (filterDate) {
         const logDate = new Date(log.created_at);
@@ -80,11 +103,11 @@ export function HistoriqueTab() {
 
       return true;
     });
-  }, [auditLogs, filterDate, filterUser, filterAction, searchQuery, activeTab]);
+  }, [logs, filterDate, filterUser, filterAction, searchQuery, activeTab]);
 
   // KPIs
   const kpis = useMemo(() => {
-    const data = auditLogs ?? [];
+    const data = logs ?? [];
     return {
       total: data.length,
       today: data.filter((l: any) => {
@@ -96,14 +119,14 @@ export function HistoriqueTab() {
         return lToday.getTime() === today.getTime();
       }).length,
     };
-  }, [auditLogs]);
+  }, [logs]);
 
   // Options de filtre
   const users = useMemo(() => {
     const usersSet = new Set<string>();
-    (auditLogs ?? []).forEach((log: any) => usersSet.add(log.user_id));
+    (logs ?? []).forEach((log: any) => usersSet.add(log.user_id));
     return Array.from(usersSet).map(id => ({ id, name: `Utilisateur ${id}` }));
-  }, [auditLogs]);
+  }, [logs]);
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">

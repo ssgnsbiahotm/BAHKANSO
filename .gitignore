@@ -121,3 +121,6 @@ supabase/.temp/
 # Fichiers de travail temporaires (refonte accueil)
 BAHKANSO-REFONTE-ACCUEIL-README.txt
 *.Zone.Identifier
+e2e/
+test-results/
+playwright/.auth/

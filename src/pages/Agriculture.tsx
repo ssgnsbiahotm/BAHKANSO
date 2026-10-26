@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { RotatingCard } from '@/components/ui/RotatingCard';
+import { Eye } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
@@ -13,13 +15,15 @@ export function Agriculture() {
 
   const kpis = useMemo(() => {
     const totalArea = plots.reduce((s, p) => s + p.area_hectares, 0);
-    const activeCampaigns = campaigns.filter(c =>
-      c.status === 'planted' || c.status === 'growing' || c.status === 'harvested'
-    ).length;
+    // Parcelles actives : count where status === 'actif' || 'active'
+    const activeParcels = {
+      active: plots.filter(p => p.status === 'actif' || p.status === 'active').length,
+      total: plots.length
+    };
     const totalOps = cropOperations.length;
     const totalHarvest = harvests.reduce((s, h) => s + h.quantity, 0);
     const totalRevenue = harvests.reduce((s, h) => s + (h.revenue || 0), 0);
-    return { totalArea, activeCampaigns, totalOps, totalHarvest, totalRevenue };
+    return { totalArea, activeParcels, totalOps, totalHarvest, totalRevenue };
   }, [plots, campaigns, cropOperations, harvests]);
 
   return (
@@ -30,10 +34,14 @@ export function Agriculture() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Surface totale" value={`${kpis.totalArea} ha`} icon={null} color="green" />
-        <KpiCard label="Campagnes actives" value={String(kpis.activeCampaigns)} icon={null} color="blue" />
+        {/* Surface totale : somme de toutes les parcelles (actives + inactives) */}
+        <KpiCard label="Surface totale" value={`${(kpis.totalArea).toFixed(1)} ha`} icon={null} color="green" />
+        {/* Parcelles actives : count where status === 'actif' || 'active', display "X / Y" */}
+        <KpiCard label="Parcelles actives" value={`${kpis.activeParcels.active} / ${kpis.activeParcels.total}`} icon={null} color="blue" />
+        {/* Opérations : length de la liste cropOperations */}
         <KpiCard label="Opérations" value={String(kpis.totalOps)} icon={null} color="amber" />
-        <KpiCard label="Récoltes (kg)" value={String(kpis.totalHarvest)} icon={null} color="dark" />
+        {/* Récoltes (kg) : somme avec format "X kg" ou "X.X t" si > 1000 kg */}
+        <KpiCard label="Récoltes (kg)" value={`${kpis.totalHarvest.toLocaleString('fr-FR')} kg`} icon={null} color="dark" />
       </div>
 
       {tab === 'plots' && (
@@ -72,25 +80,55 @@ export function Agriculture() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {plots.map(p => (
-                <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
+                <RotatingCard
+                  key={p.id}
+                  flipLabel="Détails"
+                  backLabel="Retour"
+                  front={
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
                       <div>
-                        <h3 className="font-semibold text-slate-900">{p.reference}</h3>
-                        <p className="text-xs text-slate-500">{p.name}</p>
-                      </div>
-                    </div>
-                    <SimpleBadge color="green">{p.status}</SimpleBadge>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span className="text-slate-500">Superficie</span><span className="font-medium">{p.area_hectares} ha</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Culture actuelle</span><span className="font-medium">{p.current_crop || '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Type de sol</span><span className="font-medium">{p.soil_type || '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Localisation</span><span className="font-medium">{p.location || '—'}</span></div>
-                  </div>
-                </div>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <h3 className="font-semibold text-slate-900">{p.name}</h3>
+            <p className="text-sm text-slate-500">{p.location || '—'}</p>
+          </div>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${p.status === 'actif' || p.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {p.status || 'actif'}
+          </span>
+        </div>
+        <div className="space-y-1 text-sm">
+          <p><span className="text-slate-500">Culture actuelle :</span> <span className="font-medium">{p.current_crop || '—'}</span></p>
+          <p><span className="text-slate-500">Superficie :</span> <span className="font-medium">{p.area_hectares} ha</span></p>
+        </div>
+      </div>
+      <div className="mt-4 pt-3 border-t border-slate-100">
+        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      </div>
+    </div>
+  }
+  back={
+    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+      <div className="space-y-2 text-sm">
+        <h3 className="font-semibold text-slate-900 mb-3">{p.name}</h3>
+        <p><span className="text-slate-500">Culture :</span> {p.current_crop || '—'}</p>
+        <p><span className="text-slate-500">Superficie :</span> {p.area_hectares} ha</p>
+        <p><span className="text-slate-500">Type de sol :</span> {p.soil_type || '—'}</p>
+        <p><span className="text-slate-500">Localisation :</span> {p.location || '—'}</p>
+      </div>
+      <div className="mt-4 pt-3 border-t border-emerald-200">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); navigate('/app/exploitation/journal/' + p.id); }}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+        >
+          <Eye size={16} /> Ouvrir le journal
+        </button>
+      </div>
+    </div>
+  }
+/>
               ))}
             </div>
           )}

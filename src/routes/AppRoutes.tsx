@@ -32,8 +32,12 @@ const CampaignManage = lazy(() => import('@/pages/CampaignManage').then(m => ({ 
 const HarvestManage = lazy(() => import('@/pages/HarvestManage').then(m => ({ default: m.HarvestManage })));
 const CropOperationManage = lazy(() => import('@/pages/CropOperationManage').then(m => ({ default: m.CropOperationManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
+const SitesPage = lazy(() => import('@/pages/configuration/SitesPage').then(m => ({ default: m.SitesPage })));
 const RecoltesPage = lazy(() => import('@/pages/exploitation/RecoltesPage').then(m => ({ default: m.RecoltesPage })));
 const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
+
+const JournalCulturePage = lazy(() => import("@/pages/exploitation/JournalCulturePage").then(m => ({ default: m.JournalCulturePage })));
+const JournalCulturePageSuspense = createSuspenseWrapper(JournalCulturePage);
 
 const LotsPage = lazy(() => import('@/pages/exploitation/LotsPage').then(m => ({ default: m.LotsPage })));
 const LotsPageSuspense = createSuspenseWrapper(LotsPage);
@@ -146,6 +150,14 @@ export const appRouter = createBrowserRouter([
         ),
       },
       {
+        path: 'configuration/sites',
+        element: (
+          <RequireModule module="configuration" action="read">
+            <SitesPage />
+          </RequireModule>
+        ),
+      },
+      {
         path: 'bailleurs',
         element: (
           <RequireModule module="configuration" action="read">
@@ -237,6 +249,14 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequireModule module="agriculture" action="read">
             <CampagnesPageSuspense />
+          </RequireModule>
+        ),
+      },
+      {
+        path: 'exploitation/journal/:plotId',
+        element: (
+          <RequireModule module="agriculture" action="read">
+            <JournalCulturePageSuspense />
           </RequireModule>
         ),
       },

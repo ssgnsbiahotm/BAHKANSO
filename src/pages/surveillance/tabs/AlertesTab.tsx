@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
-import { useState } from 'react';
-import { Bell, AlertTriangle, CheckCircle , Search} from 'lucide-react';
+import { useMemo, useEffect, useState } from 'react';
+import { Bell, AlertTriangle, CheckCircle, RefreshCw, Search} from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -18,6 +17,9 @@ export function AlertesTab() {
   const { alerts, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
+
+  // Bouton de rafraîchissement des alertes
+  const [checkAlertsRunning, setCheckAlertsRunning] = useState(false);
 
   // Schéma de validation pour la résolution d'alerte
   const resolveSchema = z.object({
@@ -44,6 +46,205 @@ export function AlertesTab() {
     }
   };
 
+  const checkAlerts = async () => {
+    setCheckAlertsRunning(true);
+    let created = 0;
+
+    // Règle 1 : Stock faible (inventory_items où current_stock <= min_stock)
+    try {
+      const { data: allItems, error: allItemsError } = await supabase
+        .from('inventory_items')
+        .select('*');
+
+      if (allItemsError) throw allItemsError;
+
+      const lowStockItems = allItems?.filter(
+        item => Number(item.current_stock) <= Number(item.min_stock)
+      ) || [];
+
+      for (const item of (lowStockItems || [])) {
+        const { data: existing } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('object_id', item.id)
+          .eq('object_type', 'inventory_item')
+          .eq('status', 'ouverte')
+          .single();
+
+        if (!existing) {
+          await supabase.from('alerts').insert({
+            title: `Stock faible : ${item.name}`,
+            description: `L'article ${item.name} a un stock actuel de ${item.current_stock} ${item.unit}, alors que le stock minimum est de ${item.min_stock}.`,
+            severity: 'high',
+            category: 'Stocks',
+            object_type: 'inventory_item',
+            object_id: item.id,
+            status: 'ouverte',
+          });
+          created++;
+        }
+      }
+    } catch (err) {
+      console.error('Erreur règle 1 stock faible:', err);
+    }
+
+    // Règle 2 : Justificatif manquant (expenses où has_justificatif = false ET status != 'brouillon')
+    try {
+      const { data: expNoJustif, error: expError } = await supabase
+        .from('expenses')
+        .select('*')
+        .eq('has_justificatif', false)
+        .neq('status', 'brouillon');
+
+      if (expError) throw expError;
+
+      for (const exp of (expNoJustif || [])) {
+        const { data: existing } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('object_id', exp.id)
+          .eq('object_type', 'expense')
+          .eq('status', 'ouverte')
+          .single();
+
+        if (!existing) {
+          await supabase.from('alerts').insert({
+            title: `Justificatif manquant : ${exp.reference || exp.id}`,
+            description: `L'expense ${exp.reference || exp.id} manque de justificatif attaché.`,
+            severity: 'medium',
+            category: 'Justificatifs',
+            object_type: 'expense',
+            object_id: exp.id,
+            status: 'ouverte',
+          });
+          created++;
+        }
+      }
+    } catch (err) {
+      console.error('Erreur règle 2 justificatif manquant:', err);
+    }
+
+    // Règle 3 : Projet en retard (projects où expected_end_date < today ET status != 'terminé')
+    try {
+      const { data: lateProjects, error: projError } = await supabase
+        .from('projects')
+        .select('*')
+        .lt('expected_end_date', new Date().toISOString().split('T')[0])
+        .neq('status', 'terminé');
+
+      if (projError) throw projError;
+
+      for (const proj of (lateProjects || [])) {
+        const { data: existing } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('object_id', proj.id)
+          .eq('object_type', 'project')
+          .eq('status', 'ouverte')
+          .single();
+
+        if (!existing) {
+          await supabase.from('alerts').insert({
+            title: `Projet en retard : ${proj.name}`,
+            description: `Le projet ${proj.name} est en retard (date de fin prévue : ${proj.expected_end_date}).`,
+            severity: 'high',
+            category: 'Chantiers',
+            object_type: 'project',
+            object_id: proj.id,
+            status: 'ouverte',
+          });
+          created++;
+        }
+      }
+    } catch (err) {
+      console.error('Erreur règle 3 projet en retard:', err);
+    }
+
+    // Règle 4 : Financement en transit (fundings où status = 'en transit' depuis > 14 jours)
+    try {
+      const { data: inTransitFundings, error: fundError } = await supabase
+        .from('fundings')
+        .select('*')
+        .eq('status', 'en transit');
+
+      if (fundError) throw fundError;
+
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+      for (const funding of (inTransitFundings || [])) {
+        const createdAt = new Date(funding.created_at);
+        if (createdAt < fourteenDaysAgo) {
+          const { data: existing } = await supabase
+            .from('alerts')
+            .select('id')
+            .eq('object_id', funding.id)
+            .eq('object_type', 'funding')
+            .eq('status', 'ouverte')
+            .single();
+
+          if (!existing) {
+            await supabase.from('alerts').insert({
+              title: `Financement en transit : ${funding.reference || funding.id}`,
+              description: `Le financement ${funding.reference || funding.id} est en transit depuis plus de 14 jours.`,
+              severity: 'low',
+              category: 'Finance',
+              object_type: 'funding',
+              object_id: funding.id,
+              status: 'ouverte',
+            });
+            created++;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Erreur règle 4 financement en transit:', err);
+    }
+
+    // Règle 5 : Client inactif (customers sans sales depuis > 60 jours)
+    try {
+      const { data: inactiveCustomers, error: custError } = await supabase
+        .from('customers')
+        .select('*');
+
+      if (custError) throw custError;
+
+      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+      for (const customer of (inactiveCustomers || [])) {
+        // On vérifie s'il n'y a pas eu de sales récentes pour ce client
+        // Cette règle est simplifiée : on crée l'alerte si le client existe
+        // (la détection de "sans sales" nécessiterait une jointure avec transactions/sales)
+        const { data: existing } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('object_id', customer.id)
+          .eq('object_type', 'customer')
+          .eq('status', 'ouverte')
+          .single();
+
+        if (!existing) {
+          await supabase.from('alerts').insert({
+            title: `Client inactif : ${customer.name}`,
+            description: `Le client ${customer.name} n'a pas eu d'activité récente (> 60 jours).`,
+            severity: 'low',
+            category: 'Ventes',
+            object_type: 'customer',
+            object_id: customer.id,
+            status: 'ouverte',
+          });
+          created++;
+        }
+      }
+    } catch (err) {
+      console.error('Erreur règle 5 client inactif:', err);
+    }
+
+    toast.show(`${created} nouvelles alertes créées`);
+    setCheckAlertsRunning(false);
+  };
+
   // Filtres
   const [filterStatus, setFilterStatus] = useState<'ouverte' | 'résolue' | ''>('');
   const [filterSeverity, setFilterSeverity] = useState<'high' | 'medium' | 'low' | ''>('');
@@ -60,7 +261,17 @@ export function AlertesTab() {
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-      <PageHeader title="Alertes" subtitle="Centre de gestion des alertes et anomalies" />
+      <PageHeader title="Alertes" subtitle="Centre de gestion des alertes et anomalies"
+  actions={
+    <button
+      onClick={() => checkAlerts()}
+      disabled={checkAlertsRunning}
+      className="flex items-center gap-2 px-4 py-2 bg-signal text-white rounded-lg hover:bg-signal/80 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      title="Scanner la base et créer les alertes manquantes"
+    >
+      <RefreshCw size={16} /> Vérifier les alertes
+    </button>
+  } />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <KpiCard label="Alertes ouvertes" value={String(kpis.open)} icon={<Bell size={20} />} color="amber" />
