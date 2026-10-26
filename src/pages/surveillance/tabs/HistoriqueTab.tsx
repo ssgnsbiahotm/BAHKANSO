@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/lib/Toast';
-import { formatDate, formatDateTime } from '@/lib/format';
+import { formatDate, formatDateTime, timeAgo } from '@/lib/format';
+import { AuditLog } from '@/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { AlertCircle, CheckCircle, Loader2, Calendar, Users, Filter, Search } from 'lucide-react';
@@ -16,25 +17,74 @@ export function HistoriqueTab() {
   const toast = useToast();
 
   // Fetch direct des logs audit depuis Supabase (contourne le contexte global)
-  const [logs, setLogs] = useState<any[]>([]);
+  interface EnrichedLog extends AuditLog {
+    resolved_object: string;
+  }
+
+  const [logs, setLogs] = useState<EnrichedLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchLogs() {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // 1. Charger les logs bruts
+      const { data: rawLogs, error } = await supabase
         .from('audit_logs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
 
-      console.log('AUDIT LOGS FETCHED:', data?.length, data);
+      if (error || !rawLogs) { setLoading(false); return; }
 
-      if (error) {
-        console.error('AUDIT FETCH ERROR:', error);
-      } else {
-        setLogs(data || []);
-      }
+      // 2. Extraire les IDs par type d'objet
+      const getIds = (type: string) =>
+        rawLogs.filter((l: any) => l.object_type === type).map((l: any) => l.object_id).filter(Boolean);
+
+      // 3. Charger les noms correspondants en parallèle (échec partiel toléré)
+      let sites = { data: null as any, error: null as any };
+      let expenses = { data: null as any, error: null as any };
+      let customers = { data: null as any, error: null as any };
+      let funders = { data: null as any, error: null as any };
+      let animals = { data: null as any, error: null as any };
+      let projects = { data: null as any, error: null as any };
+      let plots = { data: null as any, error: null as any };
+
+      await Promise.allSettled([
+        supabase.from('sites').select('id, name').in('id', getIds('site')).then(r => { sites = r; }),
+        supabase.from('expenses').select('id, reference, description').in('id', getIds('expense')).then(r => { expenses = r; }),
+        supabase.from('customers').select('id, name').in('id', getIds('customer')).then(r => { customers = r; }),
+        supabase.from('funders').select('id, name').in('id', getIds('funder')).then(r => { funders = r; }),
+        supabase.from('animals').select('id, identifier').in('id', getIds('animal')).then(r => { animals = r; }),
+        supabase.from('projects').select('id, name').in('id', getIds('project')).then(r => { projects = r; }),
+        supabase.from('plots').select('id, name').in('id', getIds('plot')).then(r => { plots = r; }),
+      ]);
+
+      // 4. Créer un map ID → nom
+      const resolveName = (type: string, id: string): string => {
+        if (!id) return '—';
+        switch (type) {
+          case 'site': return sites.data?.find((s: any) => s.id === id)?.name || id;
+          case 'expense': {
+            const exp = expenses.data?.find((e: any) => e.id === id);
+            return exp ? `${exp.reference} (${exp.description?.slice(0, 30) || 'sans description'})` : id;
+          }
+          case 'customer': return customers.data?.find((c: any) => c.id === id)?.name || id;
+          case 'funder': return funders.data?.find((f: any) => f.id === id)?.name || id;
+          case 'animal': return animals.data?.find((a: any) => a.id === id)?.identifier || id;
+          case 'project': return projects.data?.find((p: any) => p.id === id)?.name || id;
+          case 'plot': return plots.data?.find((p: any) => p.id === id)?.name || id;
+          default: return id.slice(0, 8) + '...';
+        }
+      };
+
+      // 5. Enrichir chaque log
+      const enrichedLogs = rawLogs.map((log: any) => ({
+        ...log,
+        resolved_object: resolveName(log.object_type, log.object_id),
+      }));
+
+      setLogs(enrichedLogs as EnrichedLog[]);
       setLoading(false);
     }
     fetchLogs();
@@ -108,24 +158,48 @@ export function HistoriqueTab() {
   // KPIs
   const kpis = useMemo(() => {
     const data = logs ?? [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const criterialogs = data.filter((l: any) => {
+      const lDate = new Date(l.created_at);
+      return lDate >= yesterday;
+    });
+
+    const lastAction = data.length > 0
+      ? timeAgo(data[0].created_at)
+      : 'aucune';
+
+    const activeUsers = new Set(data.map((l: any) => l.user_id)).size;
+
+    const criticalActions = criterialogs.filter(
+      (l: any) => l.action === 'DELETE' || l.action === 'UPDATE'
+    ).length;
+
     return {
       total: data.length,
       today: data.filter((l: any) => {
         const lDate = new Date(l.created_at);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
         const lToday = new Date(lDate);
         lToday.setHours(0, 0, 0, 0);
         return lToday.getTime() === today.getTime();
       }).length,
+      lastAction,
+      activeUsers,
+      criticalActions,
     };
   }, [logs]);
 
   // Options de filtre
   const users = useMemo(() => {
-    const usersSet = new Set<string>();
-    (logs ?? []).forEach((log: any) => usersSet.add(log.user_id));
-    return Array.from(usersSet).map(id => ({ id, name: `Utilisateur ${id}` }));
+      const usersSet = new Set<string>();
+      (logs ?? []).forEach((log: any) => usersSet.add(log.user_id));
+      return Array.from(usersSet).map(id => {
+        const log = (logs ?? []).find((l: any) => l.user_id === id);
+        return { id, name: log?.user_name || `Utilisateur ${id.slice(0, 8)}...` };
+      });
   }, [logs]);
 
   return (
@@ -187,7 +261,7 @@ export function HistoriqueTab() {
         >
           <option value="">Tous les utilisateurs</option>
           {users.map(u => (
-            <option key={u.id} value={u.id}>Utilisateur {u.id}</option>
+            <option key={u.id} value={u.id}>{u.name}</option>
           ))}
         </select>
         <select
@@ -211,23 +285,28 @@ export function HistoriqueTab() {
           </div>
         ) : (
           filteredLogs.map((log: any) => (
-            <div key={log.id} className={`bg-white rounded-xl border p-4 ${log.status === 'résolue' ? 'border-slate-200 opacity-60' : ''}}`}>
+            <div key={log.id} className={`bg-white rounded-xl border p-4 ${log.status === 'résolue' ? 'border-slate-200 opacity-60' : ''} ${log.action === 'DELETE' ? 'ring-2 ring-red-500/20' : ''}}`}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-slate-400 text-sm">{formatDate(log.created_at)}</span>
+                    <span className="text-slate-400 text-sm">{timeAgo(log.created_at)}</span>
                     {log.user_name && <span>· {log.user_name}</span>}
+                    <span className="ml-2 text-xs font-bold bg-red-100 text-red-800 rounded px-2 py-0.5">{log.action === 'DELETE' ? '🔴 DELETE' : log.action === 'UPDATE' ? '🔵 UPDATE' : '🟢 CREATE'}</span>
                   </div>
                   <h4 className="font-semibold text-slate-900">{log.action}</h4>
                 </div>
-                <div className="text-sm text-slate-400 capitalize">
-                  {log.user_id}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-400 capitalize">
+                    {log.resolved_object || `ID ${log.object_id?.slice(0, 8) ?? '—'}`}
+                  </span>
                 </div>
               </div>
-              <p className="text-sm text-slate-500 truncate">{log.description || log.title || ''}</p>
-              {log.target_type && (
+              <p className="text-sm text-slate-500 truncate mt-2">{log.description || log.title || ''}</p>
+              {log.object_type && (
                 <p className="text-xs text-slate-400 mt-1">
-                  Cible: {log.target_type} {log.target_id ? `#${log.target_id}` : ''}
+                  Cible: <a href={`/app/${log.object_type}/?id=${log.object_id}`} className="text-slate-600 underline hover:text-slate-800" target="_blank" rel="noopener noreferrer">
+                    {log.resolved_object}
+                  </a>
                 </p>
               )}
             </div>

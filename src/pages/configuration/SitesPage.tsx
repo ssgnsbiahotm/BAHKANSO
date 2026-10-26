@@ -31,7 +31,7 @@ export function SitesPage() {
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
-  const [editSite, setEditSite] = useState<any | null>(null);
+  const [editSite, setEditSite] = useState<Site | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -45,7 +45,7 @@ export function SitesPage() {
 
   const kpis = useMemo(() => {
     const total = sites.length;
-    const actifs = sites.filter(s => s.statut !== 'inactif').length;
+    const actifs = sites.filter(s => s.status !== 'inactif').length;
     const surfaceTotale = sites.reduce((sum, s) => sum + (s.area_hectares || 0), 0);
     return { total, actifs, surfaceTotale };
   }, [sites]);
@@ -58,12 +58,12 @@ export function SitesPage() {
       return;
     }
     setEditSite(null);
-    setForm({ name: '', code: '', localisation: '', area_hectares: 0, responsable: '', statut: 'actif' });
+    setForm({ name: '', code: '', location: '', area_hectares: 0, responsible: '', status: 'actif' });
     setModalOpen(true);
     if (formRef.current) formRef.current.reset();
   };
 
-  const openEdit = (s: any) => {
+  const openEdit = (s: Site) => {
     if (!canManageSites) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
       return;
@@ -132,37 +132,31 @@ export function SitesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const [confirmSite, setConfirmSite] = useState<any | null>(null);
+
+const handleDelete = async (id: string) => {
     if (!window.confirm('Supprimer ce site ?')) return;
     if (!canManageSites) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
-      setConfirmDelete(null);
+      setConfirmSite(null);
       return;
     }
     if (confirmSite?.id === appUser?.id) {
       toast.show('Vous ne pouvez pas supprimer votre propre entrée', 'error');
-      setConfirmDelete(null);
+      setConfirmSite(null);
       return;
     }
-    // Actually we need confirmSite, let me fix this
+    const { error } = await supabase.from('sites').delete().eq('id', id);
+    if (error) {
+      toast.show('Erreur: ' + error.message, 'error');
+      setConfirmSite(null);
+      return;
+    }
+    await logAudit(appUser?.name || 'Système', 'DELETE', 'site', id, `Site supprimé`);
+    toast.show('Site supprimé');
+    refresh();
+    setConfirmSite(null);
   };
-
-  // Wait, I have a bug - let me fix the delete logic. Let me re-check the BailleursPage pattern.
-
-  // Actually, let me look at BailleursPage more carefully for the delete pattern...
-  // From BailleursPage:
-  // const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
-  // const handleDelete = async () => {
-  //   if (!confirmDelete) return;
-  //   if (!canManageFunders) { ... }
-  //   if (confirmDelete.id === appUser?.id) { ... }
-  //   const { error } = await supabase.from('funders').delete().eq('id', confirmDelete.id);
-  //   ...
-
-  // So I need to add confirmSite state. Let me rewrite properly.
-
-  // Actually, the file is already written. Let me just fix it properly by reading and rewriting.
-  // But I can't edit within the same call easily. Let me just ensure the file is correct.
 
   // Load sites from Supabase if not loaded via DataContext
   useEffect(() => {
@@ -181,7 +175,7 @@ export function SitesPage() {
   // Fetch users with role for linking
   useEffect(() => {
     ;(async () => {
-      const { data, error } = await supabase.from('app_users').select('*').eq('role', 'responsable');
+      const { data, error } = await supabase.from('app_users').select('*').eq('role', 'responsible');
       if (error) {
         console.error('Error fetching responsables:', error);
       }
@@ -215,7 +209,7 @@ export function SitesPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <KpiCard label="Total sites" value={String(kpis.total)} icon={<Users size={20} />} color="dark" />
         <KpiCard label="Actifs" value={String(kpis.actifs)} icon={<Users size={20} />} color="green" />
-        <KpiCard label="Surface totale" value={String(kpis.surfaceTotale)} ha icon={<MapPin size={20} />} color="blue" />
+        <KpiCard label="Surface totale" value={String(kpis.surfaceTotale)} icon={<MapPin size={20} />} color="blue" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -236,33 +230,12 @@ export function SitesPage() {
                       {s.code && <p className="text-xs text-slate-500">Code: {s.code}</p>}
                     </div>
                   </div>
-                  <SimpleBadge color={s.statut !== 'inactif' ? 'green' : 'gray'}>${s.statut !== 'inactif' ? 'Actif' : 'Inactif'}</SimpleBadge>
+                  <SimpleBadge color={s.status !== 'inactif' ? 'green' : 'gray'}>${s.status !== 'inactif' ? 'Actif' : 'Inactif'}</SimpleBadge>
                 </div>
                 <div className="space-y-2 text-sm">
                   {s.location && <div className="flex items-center gap-2 text-slate-600"><MapPin size={12} className="text-slate-400" /> {s.location}</div>}
                   {s.area_hectares && <div className="flex items-center gap-2 text-slate-500 text-xs">Superficie: {String(s.area_hectares)} ha</div>}
-                  {s.responsable && <div className="flex items-center gap-2 text-slate-500 text-xs">Responsable: {s.responsable}</div>}
-                  {s.created_at && <div className="flex items-center gap-2 text-slate-500 text-xs">Créé le {formatDate(s.created_at)}</div>}
-                </div>
-                <div className="mt-3 flex gap-2">
-                  {canManageSites && (
-                    <button
-                      onClick={() => openEdit(s)}
-                      className="text-blue-600 hover:text-blue-800 text-sm underline"
-                      title="Modifier"
-                    >
-                      Modifier
-                    </button>
-                  )}
-                  {canManageSites && (
-                    <button
-                      onClick={() => setConfirmDelete(s)}
-                      className="text-red-600 hover:text-red-800 text-sm underline"
-                      title="Supprimer"
-                    >
-                      Supprimer
-                    </button>
-                  )}
+                  {s.responsible && <div className="flex items-center gap-2 text-slate-500 text-xs">Responsable: {s.responsible}</div>}
                 </div>
               </div>
             }
@@ -272,13 +245,13 @@ export function SitesPage() {
                   <h3 className="font-semibold text-slate-900 mb-3">{s.name}</h3>
                   {s.location && <p><span className="text-slate-500">Localisation :</span> {s.location}</p>}
                   {s.area_hectares && <p><span className="text-slate-500">Superficie :</span> {String(s.area_hectares)} ha</p>}
-                  {s.responsable && <p><span className="text-slate-500">Responsable :</span> {s.responsable}</p>}
+                  {s.responsible && <p><span className="text-slate-500">Responsable :</span> {s.responsible}</p>}
                 </div>
                 <div className="mt-4 pt-3 border-t border-emerald-200 flex gap-2">
                   {canManageSites && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); handleEditOperation(s); }}
+                      onClick={(e) => { e.stopPropagation(); openEdit(s); }} aria-label={`Modifier le site ${s.name}`}
                       className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
                     >
                       <Pencil size={14} /> Modifier
@@ -287,7 +260,7 @@ export function SitesPage() {
                   {canManageSites && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} aria-label={`Supprimer le site ${s.name}`}
                       className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
                     >
                       <Trash2 size={14} /> Supprimer
@@ -366,37 +339,37 @@ export function SitesPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Responsable</label>
               <input
-                value={form.responsable}
-                onChange={(e) => setForm({ ...form, responsable: e.target.value })}
+                value={form.responsible}
+                onChange={(e) => setForm({ ...form, responsible: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
-                placeholder="Nom du responsable"
+                placeholder="Nom du responsible"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Statut</label>
               <div className="space-y-1">
                 <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-slate-300 cursor-pointer ${
-                  form.statut === 'actif' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'
+                  form.status === 'actif' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'
                 }">
                   <input
                     type="radio"
-                    name="statut"
+                    name="status"
                     value="actif"
-                    checked={form.statut === 'actif'}
-                    onChange={(e) => setForm({ ...form, statut: 'actif' })}
+                    checked={form.status === 'actif'}
+                    onChange={(e) => setForm({ ...form, status: 'actif' })}
                     className="hidden"
                   />
                   Actif
                 </label>
                 <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-slate-300 cursor-pointer ${
-                  form.statut === 'inactif' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'
+                  form.status === 'inactif' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'
                 }">
                   <input
                     type="radio"
-                    name="statut"
+                    name="status"
                     value="inactif"
-                    checked={form.statut === 'inactif'}
-                    onChange={(e) => setForm({ ...form, statut: 'inactif' })}
+                    checked={form.status === 'inactif'}
+                    onChange={(e) => setForm({ ...form, status: 'inactif' })}
                     className="hidden"
                   />
                   Inactif

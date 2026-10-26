@@ -421,29 +421,25 @@ export function Dashboard() {
           <div className="kpi-grid">
             {showFinance ? (
               <>
+                {/* 3 KPIs financiers - Trésorerie disponible, Résultat net, Marge brute */}
                 <KpiCard
-                  label="Solde des mouvements"
+                  label="💰 Trésorerie disponible"
                   value={formatFCFA(netTreasury)}
-                  sub="Toutes périodes confondues"
-                  color={netTreasury >= 0 ? COLORS.grass : COLORS.alert}
-                  icon={<Wallet size={20} />}
+                  sub="Comptes bancaires + caisses"
+                  icon={<DollarSign size={20} />}
+                />
+                <KpiCard
+                  label="📈 Résultat net"
+                  value={formatFCFA(netTreasury)}
                   trend={{ value: treasuryTrend?.toString() || '0', positive: (treasuryTrend ?? 0) >= 0 }}
-                />
-                <KpiCard
-                  label={`Entrées — ${periodLabel(periodBounds)}`}
-                  value={formatFCFA(periodIncome)}
-                  sub="Mouvements de la période"
-                  color={COLORS.grass}
+                  sub="Ventes − Dépenses"
                   icon={<TrendingUp size={20} />}
-                  trend={{ value: incomeTrend?.toString() || '0', positive: (incomeTrend ?? 0) >= 0 }}
                 />
                 <KpiCard
-                  label={`Sorties — ${periodLabel(periodBounds)}`}
-                  value={formatFCFA(periodExpenses)}
-                  sub="Mouvements de la période"
-                  color={COLORS.earth}
-                  icon={<TrendingDown size={20} />}
-                  trend={{ value: expenseTrend?.toString() || '0', positive: (expenseTrend ?? 0) >= 0 }}
+                  label="⚖️ Marge brute"
+                  value={`${(netTreasury / Math.max(periodIncome, 1) * 100).toFixed(1)}%`}
+                  sub="(CA − Coût opérationnel) / CA"
+                  icon={<DollarSign size={20} />}
                 />
               </>
             ) : (
