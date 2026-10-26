@@ -1,5 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Users, Plus, Shield, MapPin, Pencil, Trash2, Loader2 } from 'lucide-react';
+export interface Site {
+  id: string;
+  name: string;
+  location: string | null;
+  area_hectares: number | null;
+  responsible: string | null;
+  farm_id: string | null;
+  code: string | null;
+  status: string | null;
+}
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -26,10 +36,10 @@ export function SitesPage() {
   const [form, setForm] = useState({
     name: '',
     code: '',
-    localisation: '',
+    location: '',
     area_hectares: 0,
-    responsable: '',
-    statut: 'actif',
+    responsible: '',
+    status: 'actif',
   });
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -59,7 +69,7 @@ export function SitesPage() {
       return;
     }
     setEditSite(s);
-    setForm({ name: s.name, code: s.code || '', localisation: s.localisation || '', area_hectares: s.area_hectares || 0, responsable: s.responsable || '', statut: s.statut || 'actif' });
+    setForm({ name: s.name, code: s.code || '', location: s.location || '', area_hectares: s.area_hectares || 0, responsible: s.responsible || '', status: s.status || 'actif' });
     setModalOpen(true);
     if (formRef.current) formRef.current.reset();
   };
@@ -82,10 +92,10 @@ export function SitesPage() {
         const { error } = await supabase.from('sites').update({
           name: form.name,
           code: form.code || null,
-          localisation: form.localisation || null,
+          location: form.location || null,
           area_hectares: form.area_hectares || null,
-          responsable: form.responsable || null,
-          statut: form.statut,
+          responsible: form.responsible || null,
+          status: form.status,
         }).eq('id', editSite.id);
         if (error) {
           toast.show('Erreur: ' + error.message, 'error');
@@ -101,10 +111,10 @@ export function SitesPage() {
         const { error } = await supabase.from('sites').insert({
           name: form.name,
           code: form.code,
-          localisation: form.localisation || null,
+          location: form.location || null,
           area_hectares: form.area_hectares || 0,
-          responsable: form.responsable || null,
-          statut: form.statut,
+          responsible: form.responsible || null,
+          status: form.status,
         });
         if (error) {
           toast.show('Erreur: ' + error.message, 'error');
@@ -229,7 +239,7 @@ export function SitesPage() {
                   <SimpleBadge color={s.statut !== 'inactif' ? 'green' : 'gray'}>${s.statut !== 'inactif' ? 'Actif' : 'Inactif'}</SimpleBadge>
                 </div>
                 <div className="space-y-2 text-sm">
-                  {s.localisation && <div className="flex items-center gap-2 text-slate-600"><MapPin size={12} className="text-slate-400" /> {s.localisation}</div>}
+                  {s.location && <div className="flex items-center gap-2 text-slate-600"><MapPin size={12} className="text-slate-400" /> {s.location}</div>}
                   {s.area_hectares && <div className="flex items-center gap-2 text-slate-500 text-xs">Superficie: {String(s.area_hectares)} ha</div>}
                   {s.responsable && <div className="flex items-center gap-2 text-slate-500 text-xs">Responsable: {s.responsable}</div>}
                   {s.created_at && <div className="flex items-center gap-2 text-slate-500 text-xs">Créé le {formatDate(s.created_at)}</div>}
@@ -260,7 +270,7 @@ export function SitesPage() {
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
                 <div className="space-y-2 text-sm">
                   <h3 className="font-semibold text-slate-900 mb-3">{s.name}</h3>
-                  {s.localisation && <p><span className="text-slate-500">Localisation :</span> {s.localisation}</p>}
+                  {s.location && <p><span className="text-slate-500">Localisation :</span> {s.location}</p>}
                   {s.area_hectares && <p><span className="text-slate-500">Superficie :</span> {String(s.area_hectares)} ha</p>}
                   {s.responsable && <p><span className="text-slate-500">Responsable :</span> {s.responsable}</p>}
                 </div>
@@ -334,8 +344,8 @@ export function SitesPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Localisation</label>
               <input
-                value={form.localisation}
-                onChange={(e) => setForm({ ...form, localisation: e.target.value })}
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Localisation du site"
               />
