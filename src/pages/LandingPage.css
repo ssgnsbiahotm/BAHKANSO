@@ -1,9 +1,22 @@
 /* ==========================================================================
    BAHKANSO — LandingPage styles
    Design : Field Intelligence. Éditorial, asymétrique, photos réelles.
+   Palette harmonisée avec le Dashboard (variables --dn-*)
    Pas de dégradé excessif, pas d’animation décorative inutile,
    focus clavier visible, contrastes WCAG AA.
    ========================================================================== */
+
+:root {
+  /* Palette "Field Intelligence" (alignée sur Dashboard) */
+  --dn-bg-night: #111A18;
+  --dn-bg-surface: #1C2925;
+  --dn-accent: #B9D86B;
+  --dn-ivoire: #F4F1E8;
+  --dn-encre: #202824;
+  --dn-terre: #C87551;
+  --dn-signal: #B9D86B;
+  --dn-signal-soft: #D4E8A3;
+}
 
 /* Smooth scroll */
 @media (prefers-reduced-motion: no-preference) {
@@ -14,7 +27,7 @@
 
 /* Focus visible pour accessibilité clavier */
 *:focus-visible {
-  outline: 2px solid #6B8E3A;
+  outline: 2px solid var(--dn-accent);
   outline-offset: 2px;
 }
 
@@ -41,8 +54,8 @@
 
 /* Selection styling */
 ::selection {
-  background-color: #6B8E3A;
-  color: white;
+  background-color: var(--dn-accent);
+  color: var(--dn-encre);
 }
 
 /* ==========================================================================
@@ -70,6 +83,18 @@
 }
 
 /* ==========================================================================
+   HERO immersif — surcharge spécifique
+   ========================================================================== */
+.hero-immersive {
+  min-height: 75vh;
+}
+@media (min-width: 768px) {
+  .hero-immersive {
+    min-height: 88vh;
+  }
+}
+
+/* ==========================================================================
    Titre du hero : clamp(2.25rem, 5vw, 4rem), text-wrap: balance, ~18ch
    ========================================================================== */
 .hero-title {
@@ -92,7 +117,7 @@
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
 }
 .card-link:focus-visible {
-  outline: 2px solid #202824;
+  outline: 2px solid var(--dn-encre);
   outline-offset: 2px;
 }
 
@@ -103,7 +128,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #F4F1E8;
+  background: var(--dn-ivoire);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -118,7 +143,7 @@
 /* Dark mode scrollbar */
 @media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-track {
-    background: #111A18;
+    background: var(--dn-bg-night);
   }
   ::-webkit-scrollbar-thumb {
     background: #475569;
