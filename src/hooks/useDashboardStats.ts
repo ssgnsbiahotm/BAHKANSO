@@ -50,6 +50,8 @@ export function useDashboardStats() {
     alerts = [],
     loading,
     error,
+    sourceStatus,
+    sourceError,
   } = useData();
 
   const stats = useMemo(() => {
@@ -140,6 +142,26 @@ export function useDashboardStats() {
       inventoryItems.length > 0 ||
       alerts.length > 0;
 
+    // Disponibilité des sources pour l'UI
+    const transactionsAvailable = sourceStatus?.transactions === 'success';
+    const expensesAvailable = sourceStatus?.expenses === 'success';
+    const inventoryAvailable = sourceStatus?.inventoryItems === 'success';
+    const projectsAvailable = sourceStatus?.projects === 'success';
+    const alertsAvailable = sourceStatus?.alerts === 'success';
+    const animalsAvailable = sourceStatus?.animals === 'success';
+    const animalLotsAvailable = sourceStatus?.animalLots === 'success';
+    const campaignsAvailable = sourceStatus?.campaigns === 'success';
+
+    const allSourcesResolved =
+      transactionsAvailable &&
+      expensesAvailable &&
+      inventoryAvailable &&
+      projectsAvailable &&
+      alertsAvailable &&
+      animalsAvailable &&
+      animalLotsAvailable &&
+      campaignsAvailable;
+
     return {
       netTreasury,
       periodIncome,
@@ -167,6 +189,17 @@ export function useDashboardStats() {
       loading,
       error,
       treasuryTrend,
+      sourceStatus,
+      sourceError,
+      transactionsAvailable,
+      expensesAvailable,
+      inventoryAvailable,
+      projectsAvailable,
+      alertsAvailable,
+      animalsAvailable,
+      animalLotsAvailable,
+      campaignsAvailable,
+      allSourcesResolved,
     };
   }, [
     animals,

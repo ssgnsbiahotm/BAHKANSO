@@ -82,7 +82,7 @@ export default {
         slate:   { DEFAULT: '#1C2925', hover: '#243430', deep: '#0F1815' },
         ivory:   { DEFAULT: '#F4F1E8', alt: '#EBE6DA', deep: '#DDD5C4' },
         ink:     { DEFAULT: '#202824', mut: '#5A6560', dim: '#8A948E' },
-        signal:  { DEFAULT: '#6B8E3A', hover: '#7DA347', soft: '#E8F0D8' },
+        signal:  { DEFAULT: '#B9D86B', hover: '#C5E085', soft: '#F0F7E0' },
         terra:   { DEFAULT: '#C87551', soft: '#F5E4DC' },
       },
       fontFamily: {

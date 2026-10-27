@@ -1,9 +1,10 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboardStats, formatFCFA } from '@/hooks/useDashboardStats';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useAuth } from '@/lib/AuthContext';
 import type { Transaction } from '@/lib/types';
+import { useData } from '@/lib/DataContext';
 import {
   Wallet, TrendingUp, TrendingDown, AlertTriangle, Package,
   Beef, Sprout, HardHat, ArrowRight, Clock, CheckCircle2,
@@ -110,17 +111,17 @@ const PriorityCard = ({
   icon: ReactNode;
 }) => (
   <Link to={to} className={`priority-card ${severe ? 'severe' : ''}`}>
-    <div className="priority-icon" style={{ backgroundColor: severe ? '#FEE2E2' : '#F1F5F9', color: severe ? COLORS.alert : COLORS.slate }}>
+    <div className="priority-icon" style={{ backgroundColor: severe ? 'rgba(200, 117, 81, 0.18)' : 'rgba(185, 216, 107, 0.15)', color: severe ? '#D4906A' : '#B9D86B' }}>
       {icon}
     </div>
     <div className="priority-content">
-      <p className="priority-reason" style={{ color: severe ? COLORS.alert : COLORS.slate }}>{reason}</p>
+      <p className="priority-reason" style={{ color: severe ? '#D4906A' : '#E8E4DC' }}>{reason}</p>
       <div className="priority-meta">
-        <span className="priority-count" style={{ color: severe ? COLORS.alert : COLORS.grass }}>{count}</span>
+        <span className="priority-count" style={{ color: severe ? '#D4906A' : '#2E7D32' }}>{count}</span>
         <span className="priority-label">{label}</span>
       </div>
     </div>
-    <ArrowRight size={18} className="priority-arrow" style={{ color: severe ? COLORS.alert : COLORS.grass }} />
+    <ArrowRight size={18} className="priority-arrow" style={{ color: severe ? '#D4906A' : '#B9D86B' }} />
   </Link>
 );
 
@@ -173,30 +174,11 @@ const ActivityCard = ({
   </Link>
 );
 
-const OpCardFront = ({ transaction }: { transaction: Transaction }) => {
+const OpCard = ({ transaction }: { transaction: Transaction }) => {
   const opLabel = transaction.description || transaction.reference || 'Opération';
   const isIncome = transaction.direction === 'entree';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
-      <div className="flex items-center justify-between">
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${isIncome ? 'text-green-700 bg-green-50' : 'text-amber-700 bg-amber-50'}`}>
-          {isIncome ? 'Entrée' : 'Sortie'}
-        </span>
-        <span className="text-xs font-medium">{formatDate(transaction.transaction_date)}</span>
-      </div>
-      <p className="text-sm font-medium">{opLabel}</p>
-      <div className="mt-auto text-right font-bold" style={{ color: isIncome ? '#166534' : '#92400E' }}>
-        {formatCurrency(transaction.amount)}
-      </div>
-    </div>
-  );
-};
-
-const OpCardBack = ({ transaction }: { transaction: Transaction }) => {
-  const opLabel = transaction.description || transaction.reference || 'Opération';
-  const isIncome = transaction.direction === 'entree';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%' }}>
       <div className="flex items-center justify-between">
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${isIncome ? 'text-green-700 bg-green-50' : 'text-amber-700 bg-amber-50'}`}>
           {isIncome ? 'Entrée' : 'Sortie'}
@@ -218,7 +200,7 @@ const EmptyState = ({ icon, title, message, action }: {
   action?: React.ReactNode;
 }) => (
   <div className="empty-state">
-    <div className="empty-icon" style={{ color: '#CBD5E1' }}>
+    <div className="empty-icon" style={{ color: '#8A948E' }}>
       {icon}
     </div>
     <h4 className="empty-title">{title}</h4>
@@ -243,6 +225,7 @@ const SectionHeader = ({ title, description, action }: {
 
 export function Dashboard() {
   const { appUser } = useAuth();
+  const { media, siteContent } = useData();
   const {
     netTreasury,
     periodIncome,
@@ -267,6 +250,27 @@ export function Dashboard() {
   } = useDashboardStats();
 
   const showFinance = !isFinanceSensitive(appUser?.role);
+  const [helpExpanded, setHelpExpanded] = useState(false);
+
+  // Recherche de l'image de couverture configurée
+  // Priorité : siteContent['hero-cover']?.mediaId -> premier media de type 'image' avec catégorie 'cover' -> premier media de type 'image'
+  const getHeroImageUrl = (): string | null => {
+    // 1. Vérifier siteContent pour une clé de configuration
+    const heroCoverContent = siteContent['hero-cover']?.value as { mediaId?: string } | undefined;
+    if (heroCoverContent?.mediaId) {
+      const mediaItem = media.find(m => m.id === heroCoverContent.mediaId);
+      if (mediaItem?.url) return mediaItem.url;
+    }
+    // 2. Chercher un média avec catégorie 'cover' ou 'hero'
+    const coverMedia = media.find(m => m.type === 'image' && (m.category === 'cover' || m.category === 'hero'));
+    if (coverMedia?.url) return coverMedia.url;
+    // 3. Premier média de type image
+    const firstImage = media.find(m => m.type === 'image');
+    if (firstImage?.url) return firstImage.url;
+    return null;
+  };
+
+  const heroImageUrl = getHeroImageUrl();
 
   if (loading) {
     return (
@@ -277,37 +281,21 @@ export function Dashboard() {
     );
   }
 
-  const sourceStatus = error
-      ? { transactions: "error" }
-      : { transactions: "unknown" };
+  // Vérifier la disponibilité des sources pour les priorités
+  const { sourceStatus, sourceError } = useData();
+  const prioritySourcesAvailable =
+    sourceStatus.expenses === 'success' &&
+    sourceStatus.inventoryItems === 'success' &&
+    sourceStatus.projects === 'success' &&
+    sourceStatus.alerts === 'success';
 
-  if (error && !hasData) {
-          {sourceStatus.transactions === "error" ? (
-            <EmptyState
-              icon={<AlertCircle size={32} />}
-              title="La source des transactions est indisponible"
-              message="Veuillez vérifier la connectivité Supabase ou contacter le support."
-            />
-          ) : latestTransactions.length === 0 ? (
-            <EmptyState
-              icon={<DollarSign size={32} />}
-              title="Aucune opération"
-              message="Aucune transaction enregistrée pour le moment."
-            />
-          ) : (
-            latestTransactions.slice(0, 3).map((t) => (
-              <div key={t.id} style={{ flex: "0 0 280px" }}>
-                <RotatingCard
-                  flipLabel={`Détail — ${t.description || t.reference || "Opération"}`}
-                  backLabel="Retour"
-                  front={<OpCardFront transaction={t} />}
-                  back={<OpCardBack transaction={t} />}
-                />
-              </div>
-            ))
-          )}
-          }
+  const prioritySourcesError =
+    sourceStatus.expenses === 'error' ||
+    sourceStatus.inventoryItems === 'error' ||
+    sourceStatus.projects === 'error' ||
+    sourceStatus.alerts === 'error';
 
+  const transactionsSourceError = sourceStatus.transactions === 'error';
 
   // Priorités
   const priorities = [
@@ -396,6 +384,38 @@ export function Dashboard() {
         </div>
       </header>
 
+      {/* ========== HERO PANORAMIQUE ========== */}
+      {heroImageUrl ? (
+        <div className="hero-panorama" role="img" aria-label="Vue panoramique de l'exploitation agricole">
+          <img src={heroImageUrl} alt="" />
+          <div className="hero-overlay" />
+          <div className="hero-content">
+            <h2 className="hero-title">{typeof siteContent['farm-name']?.value === 'string' ? siteContent['farm-name']!.value : 'Exploitation BAHKANSO'}</h2>
+            <p className="hero-subtitle">
+              {typeof siteContent['farm-tagline']?.value === 'string' ? siteContent['farm-tagline']!.value : 'Synthèse opérationnelle — données temps réel'}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="hero-panorama hero-fallback" role="img" aria-label="Illustration agricole générique">
+          <div className="hero-fallback-content">
+            <svg className="hero-fallback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
+              <path d="M12 2L13.5 6H19L15 9.5L16.5 14L12 11.5L7.5 14L9 9.5L5 6H10.5Z" />
+              <path d="M12 22V18" />
+              <path d="M8 18H16" />
+              <path d="M9 6H15" />
+              <path d="M10 14H14" />
+            </svg>
+            <h2 className="hero-fallback-title">Exploitation BAHKANSO</h2>
+            <p className="hero-fallback-message">
+              Aucune photographie de couverture n'est configurée.
+              Ajoutez une image via la bibliothèque Médias (catégorie « cover » ou « hero »),
+              ou définissez la clé « hero-cover » dans le contenu du site.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Erreur partielle */}
       {error && !loading && (
         <div className="partial-error">
@@ -412,7 +432,13 @@ export function Dashboard() {
             title="Synthèse financière"
             description="Un solde est un état à un instant ; un flux se mesure sur une période."
             action={showFinance ? (
-              <button className="help-btn" aria-expanded="false">
+              <button
+                className="help-btn"
+                aria-expanded={helpExpanded}
+                aria-controls="dashboard-finance-help"
+                id="finance-help-btn"
+                onClick={() => setHelpExpanded((prev) => !prev)}
+              >
                 Comprendre les chiffres
               </button>
             ) : null}
@@ -421,45 +447,47 @@ export function Dashboard() {
           <div className="kpi-grid">
             {showFinance ? (
               <>
-                {/* 3 KPIs financiers - Trésorerie disponible, Résultat net, Marge brute */}
                 <KpiCard
                   label="💰 Trésorerie disponible"
                   value={formatFCFA(netTreasury)}
                   sub="Comptes bancaires + caisses"
                   icon={<DollarSign size={20} />}
+                  color="#B9D86B"
                 />
                 <KpiCard
                   label="📈 Résultat net"
                   value={formatFCFA(netTreasury)}
-                  trend={{ value: treasuryTrend?.toString() || '0', positive: (treasuryTrend ?? 0) >= 0 }}
+                  trend={{ value: `${treasuryTrend?.toFixed(1) || '0'}%`, positive: (treasuryTrend ?? 0) >= 0 }}
                   sub="Ventes − Dépenses"
                   icon={<TrendingUp size={20} />}
+                  color="#2E7D32"
                 />
                 <KpiCard
                   label="⚖️ Marge brute"
-                  value={`${(netTreasury / Math.max(periodIncome, 1) * 100).toFixed(1)}%`}
+                  value={`${(periodIncome > 0 ? (netTreasury / periodIncome * 100).toFixed(1) : '0')}%`}
                   sub="(CA − Coût opérationnel) / CA"
                   icon={<DollarSign size={20} />}
+                  color="#0277BD"
                 />
               </>
             ) : (
               <div className="kpi-card restricted" style={{ gridColumn: '1 / -1' }}>
                 <div className="kpi-header">
-                  <div className="kpi-icon" style={{ backgroundColor: '#F1F5F9', color: COLORS.slate }}>
+                  <div className="kpi-icon" style={{ backgroundColor: 'rgba(100, 116, 139, 0.15)', color: '#64748B' }}>
                     <Lock size={20} />
                   </div>
                 </div>
                 <div className="kpi-body">
                   <p className="kpi-label">Données financières</p>
-                  <div className="kpi-value" style={{ color: COLORS.slate }}>Accès réservé</div>
+                  <div className="kpi-value" style={{ color: '#64748B' }}>Accès réservé</div>
                   <p className="kpi-sub">Réservé aux rôles admin, responsable et gestionnaire</p>
                 </div>
               </div>
             )}
           </div>
 
-          {showFinance && (
-            <div className="finance-help">
+          {showFinance && helpExpanded && (
+            <div id="dashboard-finance-help" className="finance-help" role="region" aria-labelledby="finance-help-btn">
               <Info size={16} />
               <div>
                 <p>Ces indicateurs présentent les entrées et sorties enregistrées, sans distinction entre financements, recettes commerciales et transferts internes.</p>
@@ -476,7 +504,16 @@ export function Dashboard() {
             description="Chaque alerte est déduite des données. L'absence de donnée ne signifie pas « tout va bien »."
           />
 
-          {hasAnyPriority ? (
+          {prioritySourcesError ? (
+            <div className="source-unavailable-state">
+              <AlertCircle className="empty-icon" size={32} />
+              <h4 className="empty-title">Certaines sources de priorité sont indisponibles</h4>
+              <p className="empty-message">
+                Les alertes ne peuvent pas être évaluées fiablement tant que les sources
+                dépenses, stocks, projets ou alertes ne sont pas accessibles.
+              </p>
+            </div>
+          ) : hasAnyPriority ? (
             <div className="priorities-grid">
               {visiblePriorities.map((p) => (
                 <PriorityCard key={p.to} {...p} />
@@ -517,8 +554,17 @@ export function Dashboard() {
             }
           />
 
-          <div className="operations-grid" style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-            {latestTransactions.length === 0 ? (
+          <div className="operations-grid">
+            {transactionsSourceError ? (
+              <div className="source-unavailable-state" style={{ flex: '0 0 280px' }}>
+                <AlertCircle className="empty-icon" size={32} />
+                <h4 className="empty-title">La source des transactions est indisponible</h4>
+                <p className="empty-message">
+                  Impossible de charger les dernières opérations. Vérifiez la connectivité
+                  ou réessayez plus tard.
+                </p>
+              </div>
+            ) : latestTransactions.length === 0 ? (
               <EmptyState
                 icon={<DollarSign size={32} />}
                 title="Aucune opération"
@@ -526,13 +572,22 @@ export function Dashboard() {
               />
             ) : (
               latestTransactions.slice(0, 3).map((t) => (
-                <div key={t.id} style={{ flex: '0 0 280px' }}>
-                  <RotatingCard
-                    flipLabel={`Détail — ${t.description || t.reference || 'Opération'}`}
-                    backLabel="Retour"
-                    front={<OpCardFront transaction={t} />}
-                    back={<OpCardBack transaction={t} />}
-                  />
+                <div key={t.id} className="operation-card">
+                  <Link to={`/app/finance/transactions/${t.id}`} className="op-card-inner">
+                    <div className="op-header">
+                      <span className={`op-type ${t.direction === 'entree' ? 'op-type-income' : 'op-type-outcome'}`}>
+                        {t.direction === 'entree' ? 'Entrée' : 'Sortie'}
+                      </span>
+                      <span className="op-date">{formatDate(t.transaction_date)}</span>
+                    </div>
+                    <p className="op-label">{t.description || t.reference || 'Opération'}</p>
+                    <div className="op-footer">
+                      <span className={`op-amount ${t.direction === 'entree' ? 'op-amount-income' : 'op-amount-outcome'}`}>
+                        {formatCurrency(t.amount)}
+                      </span>
+                      <ArrowRight size={14} style={{ color: 'var(--dn-accent)', opacity: 0.5 }} />
+                    </div>
+                  </Link>
                 </div>
               ))
             )}

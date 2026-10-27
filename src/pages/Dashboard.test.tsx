@@ -55,6 +55,8 @@ function renderDash(overrides: {
     error: overrides.error ?? null,
     sourceStatus: status,
     sourceError,
+    siteContent: {},
+    media: [],
   });
   mockUseAuth.mockReturnValue({
     appUser: { id: 'u1', name: 'Test', auth_id: 'a1', farm_id: 'f1', role: overrides.role ?? 'administrateur' },
@@ -97,15 +99,9 @@ describe('Dashboard', () => {
     expect(screen.getByText(/Certaines sources de priorit\u00e9 sont indisponibles/)).toBeInTheDocument();
   });
 
-  it("l etat vraiment vide affiche 'Aucune priorite detectee' quand toutes les sources sont disponibles", () => {
+  it("l etat vraiment vide affiche 'Aucune priorité détectée' quand toutes les sources sont disponibles", () => {
     renderDash({});
-    // eslint-disable-next-line no-console
-    console.log("DEBUG4_BODY_START");
-    // eslint-disable-next-line no-console
-    console.log(document.body.innerHTML);
-    // eslint-disable-next-line no-console
-    console.log("DEBUG4_BODY_END");
-    expect(document.body.innerHTML).toContain("Aucune priorité détecte");
+    expect(screen.getByText("Aucune priorité détectée")).toBeInTheDocument();
   });
 
   it("les transactions en erreur n affichent pas 'Aucune operation' mais une indisponibilite explicite", () => {
