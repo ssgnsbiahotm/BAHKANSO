@@ -111,6 +111,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       surveillance: '/app/surveillance',
       users: '/app/users',
       configuration: '/app/configuration',
+      'config-general': '/app/configuration',
       bailleurs: '/app/configuration/bailleurs',
       clients: '/app/configuration/clients',
       sites: '/app/configuration/sites',
