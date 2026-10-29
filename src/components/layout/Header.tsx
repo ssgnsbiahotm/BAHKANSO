@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, User, Menu, Wifi, LogOut, Settings, ExternalLink } from 'lucide-react';
+import { Bell, ChevronDown, User, Menu, Wifi, LogOut, Settings, ExternalLink, Globe } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useSite } from '@/lib/SiteContext';
 import { ROLE_LABELS } from '@/lib/constants';
 import { timeAgo } from '@/lib/format';
+import { SiteSelector } from '@/components/ui/SiteSelector';
 
 interface HeaderProps {
   onOpenMobile: () => void;
@@ -13,6 +15,7 @@ interface HeaderProps {
 export function Header({ onOpenMobile }: HeaderProps) {
   const { farm, notifications, alerts, siteContent } = useData();
   const { appUser, signOut } = useAuth();
+  const { isGlobalView, currentSite } = useSite();
   const navigate = useNavigate();
   const [showNotif, setShowNotif] = useState(false);
   const [showUser, setShowUser] = useState(false);
@@ -38,6 +41,10 @@ export function Header({ onOpenMobile }: HeaderProps) {
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-signal-soft text-xs text-signal">
           <Wifi size={14} className="text-signal" />
           <span>Synchronisé</span>
+        </div>
+
+        <div className="hidden md:block ml-2">
+          <SiteSelector />
         </div>
 
         <div className="relative">
@@ -113,6 +120,11 @@ export function Header({ onOpenMobile }: HeaderProps) {
                   <p className="text-sm font-medium text-ivory">{appUser?.name}</p>
                   <p className="text-xs text-ivory/70">{appUser?.email}</p>
                 </div>
+                {isGlobalView && (
+                  <div className="px-4 py-3 border-b border-ivory/10">
+                    <label className="block text-xs text-ivory/60 mb-1">Site actif</label>
+                  </div>
+                )}
                 <div className="py-1">
                   <button
                     onClick={() => { navigate('/app/profile'); setShowUser(false); }}

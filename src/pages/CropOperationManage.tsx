@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wheat, Plus, Trash2, Pencil, Eye, Save, List, Calendar, MapPin } from 'lucide-react';
+import { Wheat, Plus } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -14,6 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
+import { FormField, FormInput, FormSelect, FormTextarea, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import * as z from 'zod';
 import type { CropOperation } from '@/lib/types';
 
@@ -35,17 +36,35 @@ export const cropOperationSchema = z.object({
   }
 );
 
-interface CropOperationFormValues {
-  campaign_id?: string;
-  plot_id?: string;
-  date: string;
-  type: string;
-  comment?: string;
-  quantity?: number;
-  unit?: string;
-  cost?: number;
-  responsible?: string;
-}
+type CropOperationFormValues = z.infer<typeof cropOperationSchema>;
+
+const DEFAULT_VALUES: CropOperationFormValues = {
+  campaign_id: undefined,
+  plot_id: undefined,
+  date: '',
+  type: '',
+  comment: '',
+  quantity: undefined,
+  unit: '',
+  cost: undefined,
+  responsible: '',
+};
+
+const TYPE_OPTIONS = [
+  { value: 'semis', label: 'Semis' },
+  { value: 'irrigation', label: 'Irrigation' },
+  { value: 'traitement', label: 'Traitement' },
+  { value: 'fertilisation', label: 'Fertilisation' },
+  { value: 'recolte', label: 'Récolte' },
+  { value: 'autre', label: 'Autre' },
+] as const;
+
+const UNIT_OPTIONS = [
+  { value: 'kg', label: 'kg' },
+  { value: 'tonne', label: 'tonne' },
+  { value: 'litre', label: 'litre' },
+  { value: 'm2', label: 'm²' },
+] as const;
 
 export function CropOperationManage() {
   const { cropOperations, campaigns, plots, refresh } = useData();
@@ -54,86 +73,58 @@ export function CropOperationManage() {
   const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editOperation, setEditOperation] = useState<any>(null);
-  const [detailOperation, setDetailOperation] = useState<any>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
+  const [editOperation, setEditOperation] = useState<CropOperation | null>(null);
+  const [detailOperation, setDetailOperation] = useState<CropOperation | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<CropOperation | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { values: form, setFieldValue: setForm, errors, handleSubmit } = useValidatedForm({
+  const { values: form, setFieldValue: setForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
     schema: cropOperationSchema,
-    defaultValues: {
-      campaign_id: '',
-      plot_id: '',
-      date: '',
-      type: '',
-      comment: '',
-      quantity: undefined,
-      unit: '',
-      cost: undefined,
-      responsible: '',
-    },
+    defaultValues: DEFAULT_VALUES,
     onSubmit: async (values) => {
-      if (!values.date) {
-        toast.show('La date est obligatoire', 'error');
-        return;
-      }
+      const payload = {
+        campaign_id: values.campaign_id || null,
+        plot_id: values.plot_id || null,
+        date: values.date,
+        type: values.type,
+        comment: values.comment || null,
+        quantity: values.quantity != null ? values.quantity : null,
+        unit: values.unit || null,
+        cost: values.cost != null ? values.cost : null,
+        responsible: values.responsible || null,
+      };
 
-      setSaving(true);
-      setSubmitError(null);
-      try {
-          const payload = {
-          campaign_id: values.campaign_id || null,
-          plot_id: values.plot_id || null,
-          date: values.date,
-          type: values.type,
-          comment: values.comment || null,
-          quantity: values.quantity != null ? values.quantity : null,
-          unit: values.unit || null,
-          cost: values.cost != null ? values.cost : null,
-          responsible: values.responsible || null,
-        };
-
-        if (editOperation) {
-          const { error } = await supabase
-            .from('crop_operations')
-            .update(payload)
-            .eq('id', editOperation.id);
-          if (error) throw error;
-          await logAudit(
-            appUser?.name || 'Système',
-            'UPDATE',
-            'crop_operation',
-            editOperation.id,
-            `Opération ${editOperation.id} modifiée`,
-          );
-          toast.show('Opération modifiée');
-        } else {
-          const { error } = await supabase.from('crop_operations').insert([payload]);
-          if (error) throw error;
-          await logAudit(appUser?.name || 'Système', 'CREATE', 'crop_operation', '', 'Création de l\'opération culturale');
-          toast.show('Opération créée avec succès');
-        }
-
-        setModalOpen(false);
-        setEditOperation(null);
-        refresh();
-      } catch {
-        setSubmitError(
-          'Impossible d’enregistrer l’opération. Un problème technique empêche sa sauvegarde. Vos saisies sont conservées.',
+      if (editOperation) {
+        const { error } = await supabase
+          .from('crop_operations')
+          .update(payload)
+          .eq('id', editOperation.id);
+        if (error) throw error;
+        await logAudit(
+          appUser?.name || 'Système',
+          'UPDATE',
+          'crop_operation',
+          editOperation.id,
+          `Opération ${editOperation.id} modifiée`,
         );
-        console.error('Erreur technique sauvegarde opération');
-      } finally {
-        setSaving(false);
+        toast.show('Opération modifiée');
+      } else {
+        const { error } = await supabase.from('crop_operations').insert([payload]);
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'CREATE', 'crop_operation', '', 'Création de l\'opération culturale');
+        toast.show('Opération créée avec succès');
       }
+      refresh();
     },
+    onSuccess: () => { setModalOpen(false); setEditOperation(null); },
+    onError: (err) => toast.show('Erreur: ' + err.message, 'error'),
+    isEdit: !!editOperation,
   });
 
   useEffect(() => {
     if (editOperation) {
-      setForm('campaign_id', editOperation.campaign_id || '');
-      setForm('plot_id', editOperation.plot_id || '');
+      setForm('campaign_id', editOperation.campaign_id || undefined);
+      setForm('plot_id', editOperation.plot_id || undefined);
       setForm('date', editOperation.date || '');
       setForm('type', editOperation.type || '');
       setForm('comment', editOperation.comment || '');
@@ -141,10 +132,9 @@ export function CropOperationManage() {
       setForm('unit', editOperation.unit || '');
       setForm('cost', editOperation.cost != null ? editOperation.cost : undefined);
       setForm('responsible', editOperation.responsible || '');
-      setSubmitError(null);
     } else {
-      setForm('campaign_id', '');
-      setForm('plot_id', '');
+      setForm('campaign_id', undefined);
+      setForm('plot_id', undefined);
       setForm('date', '');
       setForm('type', '');
       setForm('comment', '');
@@ -152,29 +142,8 @@ export function CropOperationManage() {
       setForm('unit', '');
       setForm('cost', undefined);
       setForm('responsible', '');
-      setSubmitError(null);
     }
-  }, [editOperation]);
-
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    try {
-      const { error } = await supabase.from('crop_operations').delete().eq('id', confirmDelete.id);
-      if (error) throw error;
-      await logAudit(
-        appUser?.name || 'Système',
-        'DELETE',
-        'crop_operation',
-        confirmDelete.id,
-        `Opération ${confirmDelete.id} supprimée`,
-      );
-      toast.show('Opération supprimée');
-      setConfirmDelete(null);
-      refresh();
-    } catch (error) {
-      toast.show(`Erreur : ${(error as Error).message}`, 'error');
-    }
-  };
+  }, [editOperation, setForm]);
 
   const filteredOperations = useMemo(() => {
     return cropOperations.filter((o: CropOperation) => {
@@ -209,14 +178,96 @@ export function CropOperationManage() {
     return p ? `${p.reference || ''} ${p.name || ''}`.trim() : '—';
   };
 
+  const openCreate = useCallback(() => {
+    setEditOperation(null);
+    setModalOpen(true);
+  }, []);
+
+  const openEdit = useCallback((operation: CropOperation) => {
+    setEditOperation(operation);
+    setModalOpen(true);
+  }, []);
+
+  const handleDelete = useCallback(async () => {
+    if (!confirmDelete) return;
+    try {
+      const { error } = await supabase.from('crop_operations').delete().eq('id', confirmDelete.id);
+      if (error) throw error;
+      await logAudit(
+        appUser?.name || 'Système',
+        'DELETE',
+        'crop_operation',
+        confirmDelete.id,
+        `Opération ${confirmDelete.id} supprimée`,
+      );
+      toast.show('Opération supprimée');
+      setConfirmDelete(null);
+      refresh();
+    } catch (error) {
+      toast.show(`Erreur : ${(error as Error).message}`, 'error');
+    }
+  }, [confirmDelete, appUser, refresh, toast]);
+
+  const getOperationName = (o: CropOperation) => o.type || `Opération ${o.id}`;
+
+  const renderDetailFields = (o: CropOperation) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs text-slate-500">Type</p>
+          <p className="text-lg font-semibold">{o.type}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Date</p>
+          <p className="text-lg font-semibold">{formatDate(o.date)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Description</p>
+          <p className="text-lg font-semibold">{o.comment || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Coût</p>
+          <p className="text-lg font-semibold">{formatCurrency(o.cost)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Quantité</p>
+          <p className="text-lg font-semibold">{o.quantity ?? '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Unité</p>
+          <p className="text-lg font-semibold">{o.unit || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Responsable</p>
+          <p className="text-lg font-semibold">{o.responsible || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Campagne</p>
+          <p className="text-lg font-semibold">{getCampaignName(o.campaign_id ?? null)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">Parcelle</p>
+          <p className="text-lg font-semibold">{getPlotName(o.plot_id ?? null)}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDetailFooter = (o: CropOperation) => (
+    <>
+      <button onClick={() => setConfirmDelete(o)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
+      <button onClick={() => { setEditOperation(o); setDetailOperation(null); }} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Modifier</button>
+    </>
+  );
+
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
       <PageHeader title="Opérations culturales" subtitle="Gestion des opérations culturales" />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <KpiCard label="Total opérations" value={String(totalOps)} icon={<List size={20} />} trend={0} />
-        <KpiCard label="Coût total" value={formatCurrency(totalCost)} icon={<Save size={20} />} trend={0} />
-        <KpiCard label="Ce mois" value={String(thisMonth)} icon={<Calendar size={20} />} trend={0} />
+        <KpiCard label="Total opérations" value={String(totalOps)} icon={<Wheat size={20} />} trend={0} />
+        <KpiCard label="Coût total" value={formatCurrency(totalCost)} icon={<Plus size={20} />} trend={0} />
+        <KpiCard label="Ce mois" value={String(thisMonth)} icon={<Wheat size={20} />} trend={0} />
       </div>
 
       <div className="flex justify-between items-center mb-4">
@@ -225,13 +276,10 @@ export function CropOperationManage() {
           placeholder="Rechercher (type, description, date, responsable…)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="form-input w-full md:w-80"
+          className="w-full md:w-80 px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
         />
         <button
-          onClick={() => {
-            setEditOperation(null);
-            setModalOpen(true);
-          }}
+          onClick={openCreate}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
         >
           <Plus size={18} /> Nouvelle opération
@@ -247,10 +295,7 @@ export function CropOperationManage() {
               message="Enregistrez vos premières opérations culturales pour suivre vos travaux."
               action={
                 <button
-                  onClick={() => {
-                    setEditOperation(null);
-                    setModalOpen(true);
-                  }}
+                  onClick={openCreate}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
                 >
                   <Plus size={18} /> Enregistrer ma première opération
@@ -274,7 +319,7 @@ export function CropOperationManage() {
                       <p className="text-sm text-slate-500">{o.comment || '—'}</p>
                     </div>
                     <div className="p-2 rounded-lg bg-green-50 text-green-700 ring-1 ring-green-100">
-                      <MapPin size={20} />
+                      <Wheat size={20} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -321,31 +366,22 @@ export function CropOperationManage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 mt-4">
                     <button
-                      onClick={() => {
-                        setDetailOperation(o);
-                        setModalOpen(true);
-                      }}
+                      onClick={() => { setDetailOperation(o); }}
                       className="px-3 py-2 text-sm text-green-600 border border-green-200 rounded-lg hover:bg-green-50"
                     >
-                      <Eye size={14} /> Voir
+                      Voir
                     </button>
                     <button
-                      onClick={() => {
-                        setEditOperation(o);
-                        setModalOpen(true);
-                      }}
+                      onClick={() => { openEdit(o); }}
                       className="px-3 py-2 text-sm text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50"
                     >
-                      <Pencil size={14} /> Modifier
+                      Modifier
                     </button>
                     <button
-                      onClick={() => {
-                        setConfirmDelete(o);
-                        setModalOpen(true);
-                      }}
+                      onClick={() => { setConfirmDelete(o); }}
                       className="px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
                     >
-                      <Trash2 size={14} /> Supprimer
+                      Supprimer
                     </button>
                   </div>
                 </div>
@@ -355,253 +391,130 @@ export function CropOperationManage() {
         )}
       </div>
 
-      {/* Modal formulaire création/édition */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editOperation ? 'Modifier l\'opération' : 'Nouvelle opération'} size="lg">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {submitError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-              {submitError}
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm('date', e.target.value)}
-              className="form-input w-full"
-            />
-            {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm('type', e.target.value)}
-              className="form-input w-full"
-            >
-              <option value="">—</option>
-              <option value="semis">Semis</option>
-              <option value="irrigation">Irrigation</option>
-              <option value="traitement">Traitement</option>
-              <option value="fertilisation">Fertilisation</option>
-              <option value="recolte">Récolte</option>
-              <option value="autre">Autre</option>
-            </select>
-            {errors.type && <p className="text-xs text-red-500 mt-1">{errors.type}</p>}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Campagne</label>
-              <select
-                value={form.campaign_id || ''}
-                onChange={(e) => setForm('campaign_id', e.target.value || undefined)}
-                className="form-input w-full"
+      <DetailModal
+        entity={detailOperation}
+        onClose={() => setDetailOperation(null)}
+        onEdit={openEdit}
+        onDelete={setConfirmDelete}
+        title="Détail de l'opération"
+        size="md"
+        renderFields={renderDetailFields}
+        footer={detailOperation ? renderDetailFooter(detailOperation) : undefined}
+      />
+
+      <Modal
+        open={modalOpen}
+        onClose={() => { setModalOpen(false); setEditOperation(null); }}
+        title={editOperation ? 'Modifier l\'opération' : 'Nouvelle opération'}
+        size="lg"
+      >
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          <FormSection title="Essentiel">
+            <FormField label="Date" required error={errors.date}>
+              <FormInput
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm('date', e.target.value)}
+              />
+            </FormField>
+            <FormField label="Type" required error={errors.type}>
+              <FormSelect
+                value={form.type}
+                onChange={(e) => setForm('type', e.target.value)}
               >
                 <option value="">—</option>
-                {campaigns.map((c: any) => (
-                  <option key={c.id} value={c.id}>
-                    Campagne {c.year} – {c.crop_name}
-                  </option>
-                ))}
-              </select>
+                {TYPE_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </FormSelect>
+            </FormField>
+          </FormSection>
+
+          <FormSection title="Liens" defaultOpen={true}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Campagne" error={errors.campaign_id}>
+                <FormSelect
+                  value={form.campaign_id || ''}
+                  onChange={(e) => setForm('campaign_id', e.target.value || undefined)}
+                >
+                  <option value="">—</option>
+                  {campaigns.map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      Campagne {c.year} – {c.crop_name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </FormField>
+              <FormField label="Parcelle" error={errors.plot_id}>
+                <FormSelect
+                  value={form.plot_id || ''}
+                  onChange={(e) => setForm('plot_id', e.target.value || undefined)}
+                >
+                  <option value="">—</option>
+                  {plots.map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.reference} — {p.name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </FormField>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Parcelle</label>
-              <select
-                value={form.plot_id || ''}
-                onChange={(e) => setForm('plot_id', e.target.value || undefined)}
-                className="form-input w-full"
-              >
-                <option value="">—</option>
-                {plots.map((p: any) => (
-                  <option key={p.id} value={p.id}>
-                    {p.reference} — {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
-            <textarea
-              value={form.comment || ''}
-              onChange={(e) => setForm('comment', e.target.value)}
-              className="form-input w-full"
-              rows={2}
-              placeholder="Détails de l'opération"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Quantité</label>
-              <input
-                type="number"
-                value={form.quantity ?? ''}
-                onChange={(e) => setForm('quantity', e.target.value ? Number(e.target.value) : undefined)}
-                className="form-input w-full"
+          </FormSection>
+
+          <FormSection title="Détails" defaultOpen={true}>
+            <FormField label="Description" error={errors.comment}>
+              <FormTextarea
+                value={form.comment || ''}
+                onChange={(e) => setForm('comment', e.target.value)}
+                rows={2}
+                placeholder="Détails de l'opération"
               />
+            </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Quantité" error={errors.quantity}>
+                <FormInput
+                  type="number"
+                  value={form.quantity ?? ''}
+                  onChange={(e) => setForm('quantity', e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormField>
+              <FormField label="Unité" error={errors.unit}>
+                <FormSelect
+                  value={form.unit || ''}
+                  onChange={(e) => setForm('unit', e.target.value)}
+                >
+                  <option value="">—</option>
+                  {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+                </FormSelect>
+              </FormField>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Unité</label>
-              <select
-                value={form.unit || ''}
-                onChange={(e) => setForm('unit', e.target.value)}
-                className="form-input w-full"
-              >
-                <option value="">—</option>
-                <option value="kg">kg</option>
-                <option value="tonne">tonne</option>
-                <option value="litre">litre</option>
-                <option value="m2">m²</option>
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Coût (FCFA)" error={errors.cost}>
+                <FormInput
+                  type="number"
+                  value={form.cost ?? ''}
+                  onChange={(e) => setForm('cost', e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormField>
+              <FormField label="Responsable" error={errors.responsible}>
+                <FormInput
+                  type="text"
+                  value={form.responsible || ''}
+                  onChange={(e) => setForm('responsible', e.target.value)}
+                  placeholder="ex: Jean Dupont"
+                />
+              </FormField>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Coût (FCFA)</label>
-              <input
-                type="number"
-                value={form.cost ?? ''}
-                onChange={(e) => setForm('cost', e.target.value ? Number(e.target.value) : undefined)}
-                className="form-input w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Responsable</label>
-              <input
-                type="text"
-                value={form.responsible || ''}
-                onChange={(e) => setForm('responsible', e.target.value)}
-                className="form-input w-full"
-                placeholder="ex: Jean Dupont"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 pt-2 sm:justify-end w-full">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="w-full sm:w-auto px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full sm:w-auto px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              {saving ? 'Enregistrement...' : editOperation ? 'Modifier' : 'Créer'}
-            </button>
-          </div>
+          </FormSection>
+
+          <FormActions onSubmit={handleFormSubmit} onCancel={() => { setModalOpen(false); setEditOperation(null); }} isSubmitting={isSubmitting} />
         </form>
       </Modal>
 
-      {/* Modal détail */}
-      <Modal
-        open={modalOpen && !!detailOperation}
-        onClose={() => setDetailOperation(null)}
-        title="Détail de l'opération"
-        size="md"
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-slate-500">Type</p>
-              <p className="text-lg font-semibold">{detailOperation?.type}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Date</p>
-              <p className="text-lg font-semibold">{formatDate(detailOperation?.date)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Description</p>
-              <p className="text-lg font-semibold">{detailOperation?.comment || '—'}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Coût</p>
-              <p className="text-lg font-semibold">{formatCurrency(detailOperation?.cost)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Quantité</p>
-              <p className="text-lg font-semibold">{detailOperation?.quantity ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Unité</p>
-              <p className="text-lg font-semibold">{detailOperation?.unit || '—'}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Responsable</p>
-              <p className="text-lg font-semibold">{detailOperation?.responsible || '—'}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Campagne</p>
-              <p className="text-lg font-semibold">{getCampaignName(detailOperation?.campaign_id ?? null)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Parcelle</p>
-              <p className="text-lg font-semibold">{getPlotName(detailOperation?.plot_id ?? null)}</p>
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setDetailOperation(null)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
-            >
-              Fermer
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEditOperation(detailOperation ?? null);
-                setDetailOperation(null);
-              }}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Modifier
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setConfirmDelete(detailOperation ?? null);
-                setDetailOperation(null);
-              }}
-              className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Supprimer
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Modal suppression */}
-      <Modal
-        open={modalOpen && !!confirmDelete}
+      <ConfirmDeleteModal
+        entity={confirmDelete}
+        onConfirm={handleDelete}
         onClose={() => setConfirmDelete(null)}
-        title="Supprimer une opération"
-        size="sm"
-      >
-        <p className="text-sm text-slate-600">
-          Voulez-vous vraiment supprimer l'opération du {formatDate(confirmDelete?.date)} ? Cette action est irréversible.
-        </p>
-        <div className="flex justify-end gap-2 pt-4">
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(null)}
-            className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Supprimer
-          </button>
-        </div>
-      </Modal>
+        getEntityName={getOperationName}
+      />
     </div>
   );
 }

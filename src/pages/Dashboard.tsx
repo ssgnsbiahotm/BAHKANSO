@@ -225,7 +225,7 @@ const SectionHeader = ({ title, description, action }: {
 
 export function Dashboard() {
   const { appUser } = useAuth();
-  const { media, siteContent } = useData();
+  const { media, siteContent, sourceStatus, sourceError } = useData();
   const {
     netTreasury,
     periodIncome,
@@ -281,8 +281,7 @@ export function Dashboard() {
     );
   }
 
-  // Vérifier la disponibilité des sources pour les priorités
-  const { sourceStatus, sourceError } = useData();
+  // Vérifier la disponibilité des sources pour les priorités (sourceStatus et sourceError déjà déclarés en haut)
   const prioritySourcesAvailable =
     sourceStatus.expenses === 'success' &&
     sourceStatus.inventoryItems === 'success' &&

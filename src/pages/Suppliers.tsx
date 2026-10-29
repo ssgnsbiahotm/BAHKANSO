@@ -10,10 +10,31 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useValidatedForm } from '@/components/ui/ValidatedForm';
+import { FormField, FormInput, FormSelect, FormTextarea, FormActions, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
+import * as z from 'zod';
 
-function emptyForm() {
-  return { name: '', category: '', phone: '', email: '', address: '', contact_person: '', rating: '3' };
-}
+const supplierSchema = z.object({
+  name: z.string().min(1, 'Le nom du fournisseur est obligatoire'),
+  category: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email('Email invalide').optional().or(z.literal('')),
+  address: z.string().optional(),
+  contact_person: z.string().optional(),
+  rating: z.coerce.number().min(0).max(5).default(3),
+});
+
+type SupplierFormValues = z.infer<typeof supplierSchema>;
+
+const DEFAULT_VALUES: SupplierFormValues = {
+  name: '',
+  category: '',
+  phone: '',
+  email: '',
+  address: '',
+  contact_person: '',
+  rating: 3,
+};
 
 export function Suppliers() {
   const { suppliers, expenses, refresh } = useData();
@@ -22,8 +43,7 @@ export function Suppliers() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Supplier | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState(emptyForm());
+  const [detailSupplier, setDetailSupplier] = useState<Supplier | null>(null);
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -42,73 +62,87 @@ export function Suppliers() {
     return { totalPurchases, count: suppliers.length, avgRating };
   }, [suppliers]);
 
+  const { values: form, setFieldValue: setForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
+    schema: supplierSchema,
+    defaultValues: DEFAULT_VALUES,
+    onSubmit: async (values) => {
+      const payload = {
+        name: values.name.trim(),
+        category: values.category || null,
+        phone: values.phone || null,
+        email: values.email || null,
+        address: values.address || null,
+        contact_person: values.contact_person || null,
+        rating: values.rating,
+      };
+
+      if (editSupplier) {
+        const { error } = await supabase.from('suppliers').update(payload).eq('id', editSupplier.id);
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'UPDATE', 'supplier', editSupplier.id, `Fournisseur "${values.name}" modifié`);
+        toast.show('Fournisseur modifié');
+      } else {
+        const { error } = await supabase.from('suppliers').insert({ ...payload, total_purchases: 0 });
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'CREATE', 'supplier', null, `Fournisseur "${values.name}" créé`);
+        toast.show('Fournisseur créé');
+      }
+      refresh();
+    },
+    onSuccess: () => setModalOpen(false),
+    onError: (err) => toast.show('Erreur: ' + err.message, 'error'),
+    isEdit: !!editSupplier,
+  });
+
   const openCreate = () => {
     setEditSupplier(null);
-    setForm(emptyForm());
     setModalOpen(true);
   };
 
   const openEdit = (s: Supplier) => {
     setEditSupplier(s);
-    setForm({
-      name: s.name,
-      category: s.category || '',
-      phone: s.phone || '',
-      email: s.email || '',
-      address: s.address || '',
-      contact_person: s.contact_person || '',
-      rating: String(s.rating),
-    });
+    setForm('name', s.name);
+    setForm('category', s.category || '');
+    setForm('phone', s.phone || '');
+    setForm('email', s.email || '');
+    setForm('address', s.address || '');
+    setForm('contact_person', s.contact_person || '');
+    setForm('rating', s.rating);
     setModalOpen(true);
-  };
-
-  const handleSubmit = async () => {
-    if (!form.name.trim()) {
-      toast.show('Le nom du fournisseur est obligatoire', 'error');
-      return;
-    }
-    setSaving(true);
-    const payload = {
-      name: form.name.trim(),
-      category: form.category || null,
-      phone: form.phone || null,
-      email: form.email || null,
-      address: form.address || null,
-      contact_person: form.contact_person || null,
-      rating: parseInt(form.rating) || 3,
-    };
-    if (editSupplier) {
-      const { error } = await supabase.from('suppliers').update(payload).eq('id', editSupplier.id);
-      if (error) { toast.show('Erreur: ' + error.message, 'error'); }
-      else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'supplier', editSupplier.id, `Fournisseur "${form.name}" modifié`);
-        toast.show('Fournisseur modifié');
-        setModalOpen(false);
-        refresh();
-      }
-    } else {
-      const { error } = await supabase.from('suppliers').insert({ ...payload, total_purchases: 0 });
-      if (error) { toast.show('Erreur: ' + error.message, 'error'); }
-      else {
-        await logAudit(appUser?.name || 'Système', 'CREATE', 'supplier', null, `Fournisseur "${form.name}" créé`);
-        toast.show('Fournisseur créé');
-        setModalOpen(false);
-        refresh();
-      }
-    }
-    setSaving(false);
   };
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
     const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
-    if (error) { toast.show('Erreur: ' + error.message, 'error'); }
-    else {
+    if (error) {
+      toast.show('Erreur: ' + error.message, 'error');
+    } else {
       await logAudit(appUser?.name || 'Système', 'DELETE', 'supplier', confirmDelete.id, `Fournisseur "${confirmDelete.name}" supprimé`);
       toast.show('Fournisseur supprimé');
       setConfirmDelete(null);
+      setDetailSupplier(null);
       refresh();
     }
+  };
+
+  const getSupplierName = (s: Supplier) => s.name;
+
+  const renderDetailFields = (s: Supplier) => {
+    const supplierExpenses = expenses.filter(e => e.supplier_id === s.id);
+    const totalSpent = supplierExpenses.reduce((sum, e) => sum + e.amount, 0);
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{s.name}</p></div>
+        <div><p className="text-xs text-slate-400">Catégorie</p><p className="text-sm font-medium">{s.category || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Contact</p><p className="text-sm font-medium">{s.contact_person || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Téléphone</p><p className="text-sm font-medium">{s.phone || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Email</p><p className="text-sm font-medium">{s.email || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Adresse</p><p className="text-sm font-medium">{s.address || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Note</p><p className="text-sm font-medium">{s.rating} / 5</p></div>
+        <div><p className="text-xs text-slate-400">Total achats</p><p className="text-sm font-medium text-green-600">{formatCurrency(totalSpent)}</p></div>
+        <div><p className="text-xs text-slate-400">Nb transactions</p><p className="text-sm font-medium">{supplierExpenses.length}</p></div>
+      </div>
+    );
   };
 
   return (
@@ -153,7 +187,7 @@ export function Suppliers() {
             const supplierExpenses = expenses.filter(e => e.supplier_id === s.id);
             const totalSpent = supplierExpenses.reduce((sum, e) => sum + e.amount, 0);
             return (
-              <div key={s.id} className="rotatable-card bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+              <div key={s.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600"><Truck size={20} /></div>
@@ -192,66 +226,54 @@ export function Suppliers() {
 
       <Modal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => { setModalOpen(false); setEditSupplier(null); }}
         title={editSupplier ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}
         size="md"
-        footer={
-          <>
-            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
-              {saving ? 'Enregistrement...' : editSupplier ? 'Modifier' : 'Créer'}
-            </button>
-          </>
-        }
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="col-span-1 sm:col-span-2">
-            <label className="block text-xs font-medium text-slate-600 mb-1">Nom *</label>
-            <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="form-input" placeholder="AgriSupplies SARL" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Catégorie</label>
-            <input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="form-input" placeholder="Matériel agricole" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Contact</label>
-            <input type="text" value={form.contact_person} onChange={e => setForm({...form, contact_person: e.target.value})} className="form-input" placeholder="Kouadio Mensah" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Téléphone</label>
-            <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="form-input" placeholder="+225 07 00 00 00 00" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Email</label>
-            <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="form-input" placeholder="contact@agrisupplies.ci" />
-          </div>
-          <div className="col-span-1 sm:col-span-2">
-            <label className="block text-xs font-medium text-slate-600 mb-1">Adresse</label>
-            <input type="text" value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="form-input" placeholder="Bouaké, Côte d'Ivoire" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Note (0-5)</label>
-            <select value={form.rating} onChange={e => setForm({...form, rating: e.target.value})} className="form-input">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          <FormField label="Nom" required error={errors.name}>
+            <FormInput value={form.name} onChange={e => setForm('name', e.target.value)} placeholder="AgriSupplies SARL" />
+          </FormField>
+          <FormField label="Catégorie" error={errors.category}>
+            <FormInput value={form.category} onChange={e => setForm('category', e.target.value)} placeholder="Matériel agricole" />
+          </FormField>
+          <FormField label="Contact" error={errors.contact_person}>
+            <FormInput value={form.contact_person} onChange={e => setForm('contact_person', e.target.value)} placeholder="Kouadio Mensah" />
+          </FormField>
+          <FormField label="Téléphone" error={errors.phone}>
+            <FormInput value={form.phone} onChange={e => setForm('phone', e.target.value)} placeholder="+225 07 00 00 00 00" />
+          </FormField>
+          <FormField label="Email" error={errors.email}>
+            <FormInput type="email" value={form.email} onChange={e => setForm('email', e.target.value)} placeholder="contact@agrisupplies.ci" />
+          </FormField>
+          <FormField label="Adresse" error={errors.address}>
+            <FormTextarea value={form.address} onChange={e => setForm('address', e.target.value)} placeholder="Bouaké, Côte d'Ivoire" rows={2} />
+          </FormField>
+          <FormField label="Note (0-5)" error={errors.rating}>
+            <FormSelect value={form.rating} onChange={e => setForm('rating', parseInt(e.target.value) || 3)}>
               {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-        </div>
+            </FormSelect>
+          </FormField>
+          <FormActions onSubmit={handleFormSubmit} onCancel={() => { setModalOpen(false); setEditSupplier(null); }} isSubmitting={isSubmitting} />
+        </form>
       </Modal>
 
-      <Modal
-        open={!!confirmDelete}
+      <DetailModal
+        entity={detailSupplier}
+        onClose={() => setDetailSupplier(null)}
+        onEdit={openEdit}
+        onDelete={setConfirmDelete}
+        title="Détails fournisseur"
+        size="md"
+        renderFields={renderDetailFields}
+      />
+
+      <ConfirmDeleteModal
+        entity={confirmDelete}
+        onConfirm={handleDelete}
         onClose={() => setConfirmDelete(null)}
-        title="Confirmer la suppression"
-        size="sm"
-        footer={
-          <>
-            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Supprimer</button>
-          </>
-        }
-      >
-        <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer le fournisseur « {confirmDelete?.name} » ? Cette action est irréversible.</p>
-      </Modal>
+        getEntityName={getSupplierName}
+      />
     </div>
   );
 }

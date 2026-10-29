@@ -42,11 +42,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
     { id: 'surveillance', label: 'Événements', module: 'surveillance' },
   ]},
   { id: 'media', label: 'Médias', icon: <Image size={20} />, module: 'media' },
-    { id: 'clients', label: 'Clients', icon: <UserCircle size={20} />, module: 'clients' },
   { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', children: [
+    { id: 'config-general', label: 'Général', module: 'configuration' },
     { id: 'users', label: 'Utilisateurs', module: 'users' },
-    { id: 'bailleurs', label: 'Bailleurs de fonds', module: 'bailleurs' },
-    { id: 'configuration', label: 'Paramètres', module: 'configuration' },
+    { id: 'bailleurs', label: 'Bailleurs', module: 'bailleurs' },
+    { id: 'clients', label: 'Clients', module: 'clients' },
+    { id: 'sites', label: 'Sites', module: 'configuration' },
   ]},
 ];
 

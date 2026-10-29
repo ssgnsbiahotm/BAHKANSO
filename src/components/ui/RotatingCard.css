@@ -257,3 +257,16 @@
     height: 360px;
   }
 }
+
+/* ============================================
+   FIX : z-index dynamique quand flipped
+   La carte retournée passe AU-DESSUS des autres
+   ============================================ */
+.rc {
+  position: relative;
+  z-index: 1;
+}
+
+.rc.is-flipped {
+  z-index: 100;
+}

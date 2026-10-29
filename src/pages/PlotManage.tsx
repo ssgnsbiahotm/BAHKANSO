@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sprout, MapPin, Plus, Trash2, Pencil, Eye, Loader2, Save, CheckCircle, XCircle } from 'lucide-react';
+import { Sprout, MapPin, Plus } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -14,9 +14,9 @@ import { Modal } from '@/components/ui/Modal';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
+import { FormField, FormInput, FormSelect, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import * as z from 'zod';
 
-// Schéma de validation pour les parcelles
 const plotSchema = z.object({
   reference: z.string().min(1, 'La référence est obligatoire'),
   name: z.string().min(1, 'Le nom est obligatoire'),
@@ -34,14 +34,35 @@ const plotSchema = z.object({
   current_crop: z.string().optional(),
 });
 
-interface PlotFormValues {
-  reference: string;
-  name: string;
-  area_hectares: number;
-  location?: string;
-  soil_type?: 'sandy' | 'loamy' | 'clay' | 'silty' | 'peaty' | 'chalky';
-  status: 'active' | 'inactive' | 'en préparation';
-  current_crop?: string;
+type PlotFormValues = z.infer<typeof plotSchema>;
+
+const DEFAULT_VALUES: PlotFormValues = {
+  reference: '',
+  name: '',
+  area_hectares: 0,
+  location: '',
+  soil_type: undefined,
+  status: 'active',
+  current_crop: '',
+};
+
+const SOIL_OPTIONS = [
+  { value: 'sandy', label: 'Sableux' },
+  { value: 'loamy', label: 'Argilo-sableux' },
+  { value: 'clay', label: 'Argileux' },
+  { value: 'silty', label: 'Limoneux' },
+  { value: 'peaty', label: 'Tourbeux' },
+  { value: 'chalky', label: 'Calcaire' },
+] as const;
+
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'en préparation', label: 'En préparation' },
+] as const;
+
+function getStatusColor(status: string): 'green' | 'red' | 'yellow' {
+  return status === 'active' ? 'green' : status === 'inactive' ? 'red' : 'yellow';
 }
 
 export function PlotManage() {
@@ -54,28 +75,39 @@ export function PlotManage() {
   const [editPlot, setEditPlot] = useState<any>(null);
   const [detailPlot, setDetailPlot] = useState<any>(null);
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
-    schema: plotSchema,
-    defaultValues: {
-      reference: '',
-      name: '',
-      area_hectares: 0,
-      location: '',
-      soil_type: undefined,
-      status: 'active',
-      current_crop: '',
-    },
-    onSubmit: async () => {
-      // Fonction factice pour satisfaire TypeScript
-      // La vraie logique de soumission est dans handleSubmit ci-dessous
-    }
-  });
 
-  // Charger les sites pour le sélecteur (à implémenter si nécessaire)
-  // Pour l'instant, on utilise un champ texte libre pour la localisation
+  const { values: form, setFieldValue: setForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
+    schema: plotSchema,
+    defaultValues: DEFAULT_VALUES,
+    onSubmit: async (values) => {
+      const payload = {
+        reference: values.reference,
+        name: values.name,
+        area_hectares: values.area_hectares,
+        location: values.location || null,
+        soil_type: values.soil_type || null,
+        status: values.status,
+        current_crop: values.current_crop || null,
+      };
+
+      if (editPlot) {
+        const { error } = await supabase.from('plots').update(payload).eq('id', editPlot.id);
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'UPDATE', 'plot', editPlot.reference, `Parcelle ${editPlot.reference} modifiée`);
+        toast.show('Parcelle modifiée');
+      } else {
+        const { error } = await supabase.from('plots').insert(payload);
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'CREATE', 'plot', payload.reference, `Création de la parcelle ${payload.reference}`);
+        toast.show('Parcelle créée avec succès');
+      }
+      refresh();
+    },
+    onSuccess: () => { setModalOpen(false); setEditPlot(null); },
+    onError: (err) => toast.show('Erreur: ' + err.message, 'error'),
+    isEdit: !!editPlot,
+  });
 
   const filteredPlots = useMemo(() => {
     if (!searchTerm) return plots;
@@ -95,7 +127,7 @@ export function PlotManage() {
     return { totalArea, activePlots };
   }, [plots]);
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditPlot(null);
     setForm('reference', '');
     setForm('name', '');
@@ -105,9 +137,9 @@ export function PlotManage() {
     setForm('status', 'active');
     setForm('current_crop', '');
     setModalOpen(true);
-  };
+  }, [setForm]);
 
-  const openEdit = (plot: any) => {
+  const openEdit = useCallback((plot: any) => {
     setEditPlot(plot);
     setForm('reference', plot.reference);
     setForm('name', plot.name);
@@ -118,59 +150,9 @@ export function PlotManage() {
     setForm('current_crop', plot.current_crop || '');
     setDetailPlot(null);
     setModalOpen(true);
-  };
+  }, [setForm]);
 
-  const handleSubmit = async () => {
-    // Validation avec Zod
-    const validationResult = plotSchema.safeParse(form);
-    if (!validationResult.success) {
-      // Afficher la première erreur pour simplicité
-      const firstError = validationResult.error.issues[0];
-      toast.show(`${String(firstError.path[0])}: ${firstError.message}`, 'error');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const payload = {
-        reference: form.reference,
-        name: form.name,
-        area_hectares: form.area_hectares,
-        location: form.location || null,
-        soil_type: form.soil_type || null,
-        status: form.status,
-        current_crop: form.current_crop || null,
-      };
-
-      if (editPlot) {
-        const { error } = await supabase.from('plots').update(payload).eq('id', editPlot.id);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
-        } else {
-          await logAudit(appUser?.name || 'Système', 'UPDATE', 'plot', editPlot.reference, `Parcelle ${editPlot.reference} modifiée`);
-          toast.show('Parcelle modifiée');
-          setModalOpen(false);
-          refresh();
-        }
-      } else {
-        const { error } = await supabase.from('plots').insert(payload);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
-        } else {
-          await logAudit(appUser?.name || 'Système', 'CREATE', 'plot', payload.reference, `Création de la parcelle ${payload.reference}`);
-          toast.show('Parcelle créée avec succès');
-          setModalOpen(false);
-          refresh();
-        }
-      }
-    } catch (error) {
-      toast.show('Erreur inattendue: ' + (error as Error).message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const updateStatus = async (plot: any, status: string) => {
+  const updateStatus = useCallback(async (plot: any, status: string) => {
     const { error } = await supabase.from('plots').update({ status }).eq('id', plot.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
@@ -179,9 +161,9 @@ export function PlotManage() {
       toast.show(`Parcelle marquée "${status}"`);
       refresh();
     }
-  };
+  }, [appUser, refresh, toast]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!confirmDelete) return;
     const { error } = await supabase.from('plots').delete().eq('id', confirmDelete.id);
     if (error) {
@@ -193,7 +175,49 @@ export function PlotManage() {
       setDetailPlot(null);
       refresh();
     }
-  };
+  }, [confirmDelete, appUser, refresh, toast]);
+
+  const getPlotName = (p: any) => p.reference || p.name;
+
+  const renderDetailFields = (plot: any) => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">{plot.reference}</h2>
+          <p className="text-sm text-slate-500">{plot.name}</p>
+        </div>
+        <SimpleBadge color={getStatusColor(plot.status)}>
+          {plot.status}
+        </SimpleBadge>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div><p className="text-xs text-slate-400">Référence</p><p className="text-sm font-medium">{plot.reference}</p></div>
+        <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{plot.name}</p></div>
+        <div><p className="text-xs text-slate-400">Superficie</p><p className="text-sm font-medium">{plot.area_hectares} ha</p></div>
+        <div><p className="text-xs text-slate-400">Localisation</p><p className="text-sm font-medium">{plot.location || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Type de sol</p><p className="text-sm font-medium">{plot.soil_type || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Culture actuelle</p><p className="text-sm font-medium">{plot.current_crop || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{plot.status}</p></div>
+      </div>
+    </div>
+  );
+
+  const renderDetailFooter = (plot: any) => (
+    <>
+      <button onClick={() => setConfirmDelete(plot)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
+      <button onClick={() => openEdit(plot)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+      {plot.status !== 'inactive' && (
+        <>
+          {plot.status === 'active' && (
+            <button onClick={() => { updateStatus(plot, 'inactive'); setDetailPlot(null); }} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Désactiver</button>
+          )}
+          {(plot.status === 'inactive' || plot.status === 'en préparation') && (
+            <button onClick={() => { updateStatus(plot, 'active'); setDetailPlot(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Activer</button>
+          )}
+        </>
+      )}
+    </>
+  );
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
@@ -252,7 +276,7 @@ export function PlotManage() {
                     <p className="text-xs text-slate-500">{plot.name}</p>
                   </div>
                 </div>
-                <SimpleBadge color={plot.status === 'active' ? 'green' : plot.status === 'inactive' ? 'red' : 'yellow'}>
+                <SimpleBadge color={getStatusColor(plot.status)}>
                   {plot.status}
                 </SimpleBadge>
               </div>
@@ -267,195 +291,94 @@ export function PlotManage() {
         </div>
       )}
 
-      {/* Detail modal */}
-      <Modal
-        open={!!detailPlot && !confirmDelete}
+      <DetailModal
+        entity={detailPlot}
         onClose={() => setDetailPlot(null)}
+        onEdit={openEdit}
+        onDelete={setConfirmDelete}
         title={`Parcelle ${detailPlot?.reference || ''}`}
         size="lg"
-        footer={
-          detailPlot ? (
-            <>
-              <button onClick={() => setConfirmDelete(detailPlot)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-              <button onClick={() => openEdit(detailPlot)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
-              {detailPlot.status !== 'inactive' && (
-                <>
-                  {detailPlot.status === 'active' && (
-                    <button onClick={() => { updateStatus(detailPlot, 'inactive'); setDetailPlot(null); }} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Désactiver</button>
-                  )}
-                  {(detailPlot.status === 'inactive' || detailPlot.status === 'en préparation') && (
-                    <button onClick={() => { updateStatus(detailPlot, 'active'); setDetailPlot(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Activer</button>
-                  )}
-                </>
-              )}
-            </>
-          ) : undefined
-        }
-      >
-        {detailPlot && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">{detailPlot.reference}</h2>
-                <p className="text-sm text-slate-500">{detailPlot.name}</p>
-              </div>
-              <SimpleBadge color={detailPlot.status === 'active' ? 'green' : detailPlot.status === 'inactive' ? 'red' : 'yellow'}>
-                {detailPlot.status}
-              </SimpleBadge>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><p className="text-xs text-slate-400">Référence</p><p className="text-sm font-medium">{detailPlot.reference}</p></div>
-              <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{detailPlot.name}</p></div>
-              <div><p className="text-xs text-slate-400">Superficie</p><p className="text-sm font-medium">{detailPlot.area_hectares} ha</p></div>
-              <div><p className="text-xs text-slate-400">Localisation</p><p className="text-sm font-medium">{detailPlot.location || '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Type de sol</p><p className="text-sm font-medium">{detailPlot.soil_type || '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Culture actuelle</p><p className="text-sm font-medium">{detailPlot.current_crop || '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{detailPlot.status}</p></div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        renderFields={renderDetailFields}
+        footer={detailPlot ? renderDetailFooter(detailPlot) : undefined}
+      />
 
-      {/* Create/Edit modal */}
       <Modal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => { setModalOpen(false); setEditPlot(null); }}
         title={editPlot ? 'Modifier la parcelle' : 'Nouvelle parcelle'}
         size="lg"
-        footer={
-          <>
-            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  {editPlot ? 'Modifier' : 'Créer'}
-                </>
-              )}
-            </button>
-          </>
-        }
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Référence *</label>
-            <input
-              type="text"
-              value={form.reference}
-              onChange={(e) => setForm('reference', e.target.value)}
-              className={`form-input ${errors.reference ? 'border-red-500' : ''}`}
-              placeholder="PARC-001"
-            />
-            {errors.reference && (
-              <p className="mt-1 text-xs text-red-500">{errors.reference}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Nom *</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm('name', e.target.value)}
-              className={`form-input ${errors.name ? 'border-red-500' : ''}`}
-              placeholder="Parcelle Nord"
-            />
-            {errors.name && (
-              <p className="mt-1 text-xs text-red-500">{errors.name}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Superficie (hectares) *</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.area_hectares}
-              onChange={(e) => setForm('area_hectares', parseFloat(e.target.value) || 0)}
-              className={`form-input ${errors.area_hectares ? 'border-red-500' : ''}`}
-              placeholder="5.5"
-            />
-            {errors.area_hectares && (
-              <p className="mt-1 text-xs text-red-500">{errors.area_hectares}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Localisation</label>
-            <input
-              type="text"
-              value={form.location}
-              onChange={(e) => setForm('location', e.target.value)}
-              className="form-input"
-              placeholder="Nord-ouest de l'exploitation"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Type de sol</label>
-            <select
-              value={form.soil_type}
-              onChange={(e) => setForm('soil_type', e.target.value as any)}
-              className="form-input"
-            >
-              <option value="">Non spécifié</option>
-              <option value="sandy">Sableux</option>
-              <option value="loamy">Argilo-sableux</option>
-              <option value="clay">Argileux</option>
-              <option value="silty">Limoneux</option>
-              <option value="peaty">Tourbeux</option>
-              <option value="chalky">Calcaire</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Statut</label>
-            <select
-              value={form.status}
-              onChange={(e) => setForm('status', e.target.value as any)}
-              className="form-input"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="en préparation">En préparation</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Culture actuelle</label>
-            <input
-              type="text"
-              value={form.current_crop}
-              onChange={(e) => setForm('current_crop', e.target.value)}
-              className="form-input"
-              placeholder="Mais, riz, coton..."
-            />
-          </div>
-        </div>
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          <FormSection title="Essentiel">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="Référence" required error={errors.reference}>
+                <FormInput
+                  value={form.reference}
+                  onChange={(e) => setForm('reference', e.target.value)}
+                  placeholder="PARC-001"
+                />
+              </FormField>
+              <FormField label="Nom" required error={errors.name}>
+                <FormInput
+                  value={form.name}
+                  onChange={(e) => setForm('name', e.target.value)}
+                  placeholder="Parcelle Nord"
+                />
+              </FormField>
+              <FormField label="Superficie (hectares)" required error={errors.area_hectares}>
+                <FormInput
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.area_hectares}
+                  onChange={(e) => setForm('area_hectares', parseFloat(e.target.value) || 0)}
+                  placeholder="5.5"
+                />
+              </FormField>
+              <FormField label="Localisation" error={errors.location}>
+                <FormInput
+                  value={form.location}
+                  onChange={(e) => setForm('location', e.target.value)}
+                  placeholder="Nord-ouest de l'exploitation"
+                />
+              </FormField>
+              <FormField label="Type de sol" error={errors.soil_type}>
+                <FormSelect
+                  value={form.soil_type ?? ''}
+                  onChange={(e) => setForm('soil_type', (e.target.value as PlotFormValues['soil_type']) || undefined)}
+                >
+                  <option value="">Non spécifié</option>
+                  {SOIL_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </FormSelect>
+              </FormField>
+              <FormField label="Statut" error={errors.status}>
+                <FormSelect
+                  value={form.status}
+                  onChange={(e) => setForm('status', e.target.value as PlotFormValues['status'])}
+                >
+                  {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </FormSelect>
+              </FormField>
+              <FormField label="Culture actuelle" error={errors.current_crop}>
+                <FormInput
+                  value={form.current_crop}
+                  onChange={(e) => setForm('current_crop', e.target.value)}
+                  placeholder="Maïs, riz, coton..."
+                />
+              </FormField>
+            </div>
+          </FormSection>
+
+          <FormActions onSubmit={handleFormSubmit} onCancel={() => { setModalOpen(false); setEditPlot(null); }} isSubmitting={isSubmitting} />
+        </form>
       </Modal>
 
-      {/* Delete confirmation */}
-      <Modal
-        open={!!confirmDelete}
+      <ConfirmDeleteModal
+        entity={confirmDelete}
+        onConfirm={handleDelete}
         onClose={() => setConfirmDelete(null)}
-        title="Confirmer la suppression"
-        size="sm"
-        footer={
-          <>
-            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Supprimer</button>
-          </>
-        }
-      >
-        <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer la parcelle « {confirmDelete?.reference} » ? Cette action est irréversible.</p>
-      </Modal>
+        getEntityName={getPlotName}
+      />
     </div>
   );
-}
-
-// Extrait les erreurs du hook useValidatedForm pour une utilisation plus simple dans ce composant
-function extractErrors<T>(result: any): Partial<Record<keyof T, string>> {
-  // Cette fonction serait normalement fournie par le hook useValidatedForm
-  // Pour cet exemple, on retourne un objet vide
-  return {};
 }

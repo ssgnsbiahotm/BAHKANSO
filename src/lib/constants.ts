@@ -232,3 +232,53 @@ export const MEDIA_CATEGORIES = [
   'bannière',
   'autre',
 ] as const;
+
+// ============================================
+// STATUTS HARMONISÉS (source unique de vérité)
+// ============================================
+
+export const SITE_STATUSES = ['actif', 'inactif'] as const;
+export const SITE_STATUS_COLORS: Record<string, string> = {
+  actif: 'bg-green-50 text-green-700 border-green-300',
+  inactif: 'bg-gray-100 text-gray-500 border-gray-300',
+};
+
+export const PLOT_STATUSES = ['actif', 'inactif', 'en jachère'] as const;
+export const PLOT_STATUS_COLORS: Record<string, string> = {
+  actif: 'bg-green-50 text-green-700 border-green-300',
+  inactif: 'bg-gray-100 text-gray-500 border-gray-300',
+  'en jachère': 'bg-amber-50 text-amber-700 border-amber-300',
+};
+
+export const CAMPAIGN_STATUSES = ['planifié', 'en cours', 'terminé', 'annulé'] as const;
+export const CAMPAIGN_STATUS_COLORS: Record<string, string> = {
+  planifié: 'bg-gray-100 text-gray-700 border-gray-300',
+  'en cours': 'bg-green-50 text-green-700 border-green-300',
+  terminé: 'bg-emerald-50 text-emerald-700 border-emerald-300',
+  annulé: 'bg-red-50 text-red-700 border-red-300',
+};
+
+export const ANIMAL_STATUSES = ['actif', 'vendu', 'décédé', 'transféré'] as const;
+export const ANIMAL_STATUS_COLORS: Record<string, string> = {
+  actif: 'bg-green-50 text-green-700 border-green-300',
+  vendu: 'bg-blue-50 text-blue-700 border-blue-300',
+  décédé: 'bg-red-50 text-red-700 border-red-300',
+  transféré: 'bg-amber-50 text-amber-700 border-amber-300',
+};
+
+export const ANIMAL_LOT_STATUSES = ['actif', 'clôturé', 'transféré'] as const;
+export const ANIMAL_LOT_STATUS_COLORS: Record<string, string> = {
+  actif: 'bg-green-50 text-green-700 border-green-300',
+  clôturé: 'bg-emerald-50 text-emerald-700 border-emerald-300',
+  transféré: 'bg-amber-50 text-amber-700 border-amber-300',
+};
+
+export const SALE_STATUSES = ['payée', 'partielle', 'en attente', 'annulée'] as const;
+export const SALE_STATUS_COLORS: Record<string, string> = {
+  payée: 'bg-green-50 text-green-700 border-green-300',
+  partielle: 'bg-amber-50 text-amber-700 border-amber-300',
+  'en attente': 'bg-blue-50 text-blue-700 border-blue-300',
+  annulée: 'bg-red-50 text-red-700 border-red-300',
+};
+
+export const CUSTOMER_TYPES = ['particulier', 'professionnel', 'grossiste', 'coopérative'] as const;

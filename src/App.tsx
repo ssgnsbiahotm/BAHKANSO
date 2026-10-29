@@ -1,5 +1,6 @@
 import { AuthProvider } from '@/lib/AuthContext';
 import { DataProvider } from '@/lib/DataContext';
+import { SiteProvider } from '@/lib/SiteContext';
 import { ToastProvider } from '@/lib/Toast';
 import { AppRoutes } from '@/routes/AppRoutes';
 import { SmoothScroll } from '@/components/ui/SmoothScroll';
@@ -22,9 +23,11 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <DataProvider>
-            <SmoothScroll>
-            <AppRoutes />
-          </SmoothScroll>
+            <SiteProvider>
+              <SmoothScroll>
+                <AppRoutes />
+              </SmoothScroll>
+            </SiteProvider>
           </DataProvider>
         </AuthProvider>
       </QueryClientProvider>

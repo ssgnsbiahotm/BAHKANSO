@@ -1,18 +1,72 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
+import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { useToast } from '@/lib/Toast';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RotatingCard } from '@/components/ui/RotatingCard';
-import { Plus } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2 } from 'lucide-react';
 
 export function Livestock() {
-  const { animals, animalLots, animalEvents } = useData();
+  const { animals, animalLots, animalEvents, refresh } = useData();
+  const toast = useToast();
   const [tab, setTab] = useState<'overview' | 'lots' | 'animals' | 'events'>('overview');
   const navigate = useNavigate();
+
+  const handleDeleteLot = async (id: string) => {
+    if (!window.confirm('Supprimer ce lot ? Cette action est irréversible.')) return;
+    try {
+      const { error } = await supabase.from('animal_lots').delete().eq('id', id);
+      if (error) throw error;
+      toast.show('Lot supprimé', 'success');
+      refresh?.();
+    } catch (err: any) {
+      console.error(err);
+      toast.show('Erreur: ' + err.message, 'error');
+    }
+  };
+
+  const handleEditLot = (lotId: string) => {
+    navigate('/app/livestock/lots?select=' + lotId + '&action=edit');
+  };
+
+  const handleDeleteAnimal = async (id: string) => {
+    if (!window.confirm('Supprimer cet animal ? Cette action est irréversible.')) return;
+    try {
+      const { error } = await supabase.from('animals').delete().eq('id', id);
+      if (error) throw error;
+      toast.show('Animal supprimé', 'success');
+      refresh?.();
+    } catch (err: any) {
+      console.error(err);
+      toast.show('Erreur: ' + err.message, 'error');
+    }
+  };
+
+  const handleEditAnimal = (animalId: string) => {
+    navigate('/app/livestock/animals?select=' + animalId + '&action=edit');
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    if (!window.confirm('Supprimer cet événement ? Cette action est irréversible.')) return;
+    try {
+      const { error } = await supabase.from('animal_events').delete().eq('id', id);
+      if (error) throw error;
+      toast.show('Événement supprimé', 'success');
+      refresh?.();
+    } catch (err: any) {
+      console.error(err);
+      toast.show('Erreur: ' + err.message, 'error');
+    }
+  };
+
+  const handleEditEvent = (eventId: string) => {
+    navigate('/app/livestock/events?select=' + eventId + '&action=edit');
+  };
 
   const kpis = useMemo(() => {
     const totalAnimals = animalLots.reduce((s, l) => s + l.count, 0);
@@ -98,38 +152,62 @@ export function Livestock() {
               {animalLots.map(lot => (
                 <RotatingCard key={lot.id} flipLabel="Détails" backLabel="Retour"
                   front={
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-slate-900">{lot.identifier}</h3>
-                        <SimpleBadge color={lot.status === 'actif' ? 'green' : lot.status === 'quarantaine' ? 'amber' : 'gray'}>{lot.status}</SimpleBadge>
-                      </div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Espèce</span><span className="font-medium">{lot.species}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Race</span><span className="font-medium">{lot.breed || '—'}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Effectif</span><span className="font-medium">{lot.count} têtes</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Localisation</span><span className="font-medium">{lot.location || '—'}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Valeur estimée</span><span className="font-medium">{formatCurrency(lot.estimated_value)}</span></div>
-                    </div>
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+                      <div>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <h3 className="font-semibold text-slate-900">{lot.identifier}</h3>
+            <p className="text-sm text-slate-500">{lot.species} — {lot.breed}</p>
+          </div>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${lot.status === 'actif' ? 'bg-green-100 text-green-700' : lot.status === 'quarantaine' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'}`}>
+            {lot.status}
+          </span>
+        </div>
+        <div className="space-y-1 text-sm">
+          <p><span className="text-slate-500">Effectif :</span> <span className="font-medium">{lot.count} têtes</span></p>
+          <p><span className="text-slate-500">Localisation :</span> <span className="font-medium">{lot.location || '—'}</span></p>
+        </div>
+      </div>
+      <div className="mt-4 pt-3 border-t border-slate-100">
+        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      </div>
+    </div>
                   }
                   back={
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => navigate(`/app/livestock/lots?select=${lot.id}&action=view`)}
-                        className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                      >
-                        Voir détails
-                      </button>
-                      <button
-                        onClick={() => navigate(`/app/livestock/lots?select=${lot.id}&action=edit`)}
-                        className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        onClick={() => navigate(`/app/livestock/lots?select=${lot.id}&action=delete`)}
-                        className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
-                      >
-                        Supprimer
-                      </button>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+                      <div className="space-y-2 text-sm">
+                        <h3 className="font-semibold text-slate-900 mb-3">{lot.identifier}</h3>
+                        <p><span className="text-slate-500">Espèce :</span> {lot.species}</p>
+                        <p><span className="text-slate-500">Race :</span> {lot.breed || '—'}</p>
+                        <p><span className="text-slate-500">Effectif :</span> {lot.count} têtes</p>
+                        <p><span className="text-slate-500">Localisation :</span> {lot.location || '—'}</p>
+                        <p><span className="text-slate-500">Valeur estimée :</span> {formatCurrency(lot.estimated_value)}</p>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/app/livestock/lots?select=${lot.id}&action=view`); }}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                        >
+                          <Eye size={16} /> Voir détails
+                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleEditLot(lot.id); }}
+                            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+                          >
+                            <Pencil size={14} /> Modifier
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteLot(lot.id); }}
+                            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+                          >
+                            <Trash2 size={14} /> Supprimer
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   }
                 />
@@ -167,39 +245,63 @@ export function Livestock() {
               {animals.map(a => (
                 <RotatingCard key={a.id} flipLabel="Détails" backLabel="Retour"
                   front={
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-slate-900">{a.identifier}</h3>
-                        <SimpleBadge color="blue">{a.status}</SimpleBadge>
-                      </div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Espèce</span><span className="font-medium">{a.species}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Race</span><span className="font-medium">{a.breed || '—'}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Sexe</span><span className="font-medium">{a.sex || '—'}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Naissance</span><span className="font-medium">{formatDate(a.birth_date)}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Poids (kg)</span><span className="font-medium">{a.weight_kg || '—'}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Valeur</span><span className="font-medium text-green-600">{formatCurrency(a.estimated_value)}</span></div>
-                    </div>
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+                      <div>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <h3 className="font-semibold text-slate-900">{a.identifier}</h3>
+            <p className="text-sm text-slate-500">{a.species} — {a.breed || '—'}</p>
+          </div>
+          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+            {a.status}
+          </span>
+        </div>
+        <div className="space-y-1 text-sm">
+          <p><span className="text-slate-500">Sexe :</span> <span className="font-medium">{a.sex || '—'}</span></p>
+          <p><span className="text-slate-500">Naissance :</span> <span className="font-medium">{formatDate(a.birth_date)}</span></p>
+        </div>
+      </div>
+      <div className="mt-4 pt-3 border-t border-slate-100">
+        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      </div>
+    </div>
                   }
                   back={
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => navigate(`/app/livestock/animals?select=${a.id}&action=view`)}
-                        className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                      >
-                        Voir détails
-                      </button>
-                      <button
-                        onClick={() => navigate(`/app/livestock/animals?select=${a.id}&action=edit`)}
-                        className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        onClick={() => navigate(`/app/livestock/animals?select=${a.id}&action=delete`)}
-                        className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
-                      >
-                        Supprimer
-                      </button>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+                      <div className="space-y-2 text-sm">
+                        <h3 className="font-semibold text-slate-900 mb-3">{a.identifier}</h3>
+                        <p><span className="text-slate-500">Espèce :</span> {a.species}</p>
+                        <p><span className="text-slate-500">Race :</span> {a.breed || '—'}</p>
+                        <p><span className="text-slate-500">Sexe :</span> {a.sex || '—'}</p>
+                        <p><span className="text-slate-500">Naissance :</span> {formatDate(a.birth_date)}</p>
+                        <p><span className="text-slate-500">Poids :</span> {a.weight_kg || '—'} kg</p>
+                        <p><span className="text-slate-500">Valeur :</span> {formatCurrency(a.estimated_value)}</p>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/app/livestock/animals?select=${a.id}&action=view`); }}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                        >
+                          <Eye size={16} /> Voir détails
+                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleEditAnimal(a.id); }}
+                            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+                          >
+                            <Pencil size={14} /> Modifier
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteAnimal(a.id); }}
+                            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+                          >
+                            <Trash2 size={14} /> Supprimer
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   }
                 />
@@ -253,36 +355,59 @@ export function Livestock() {
                 return (
                   <RotatingCard key={e.id} flipLabel="Détails" backLabel="Retour"
                     front={
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-slate-900">{formatDate(e.date)}</h3>
-                          <SimpleBadge color={color}>{TYPE_LABELS[e.type] || e.type}</SimpleBadge>
-                        </div>
-                        <div className="flex justify-between text-sm"><span className="text-slate-500">Description</span><span className="font-medium">{e.description || '—'}</span></div>
-                        <div className="flex justify-between text-sm"><span className="text-slate-500">Responsable</span><span className="font-medium">{e.responsible || '—'}</span></div>
-                        <div className="flex justify-between text-sm"><span className="text-slate-500">Coût</span><span className="font-medium">{e.cost ? formatCurrency(e.cost) : '—'}</span></div>
+                      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+                        <div>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <h3 className="font-semibold text-slate-900">{formatDate(e.date)}</h3>
+                  <p className="text-sm text-slate-500">{e.description || '—'}</p>
+                </div>
+                <SimpleBadge color={color}>{TYPE_LABELS[e.type] || e.type}</SimpleBadge>
+              </div>
+              <div className="space-y-1 text-sm">
+                <p><span className="text-slate-500">Responsable :</span> <span className="font-medium">{e.responsible || '—'}</span></p>
+                <p><span className="text-slate-500">Coût :</span> <span className="font-medium">{e.cost ? formatCurrency(e.cost) : '—'}</span></p>
+              </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-slate-100">
+              <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+            </div>
                       </div>
                     }
                     back={
-                      <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => navigate(`/app/livestock/events?select=${e.id}&action=view`)}
-                          className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                          Voir détails
-                        </button>
-                        <button
-                          onClick={() => navigate(`/app/livestock/events?select=${e.id}&action=edit`)}
-                          className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-                        >
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => navigate(`/app/livestock/events?select=${e.id}&action=delete`)}
-                          className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
-                        >
-                          Supprimer
-                        </button>
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+                        <div className="space-y-2 text-sm">
+                          <h3 className="font-semibold text-slate-900 mb-3">{formatDate(e.date)}</h3>
+                          <p><span className="text-slate-500">Type :</span> {TYPE_LABELS[e.type] || e.type}</p>
+                          <p><span className="text-slate-500">Description :</span> {e.description || '—'}</p>
+                          <p><span className="text-slate-500">Responsable :</span> {e.responsible || '—'}</p>
+                          <p><span className="text-slate-500">Coût :</span> {e.cost ? formatCurrency(e.cost) : '—'}</p>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+                          <button
+                            type="button"
+                            onClick={(e2) => { e2.stopPropagation(); navigate(`/app/livestock/events?select=${e.id}&action=view`); }}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                          >
+                            <Eye size={16} /> Voir détails
+                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={(e2) => { e2.stopPropagation(); handleEditEvent(e.id); }}
+                              className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+                            >
+                              <Pencil size={14} /> Modifier
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e2) => { e2.stopPropagation(); handleDeleteEvent(e.id); }}
+                              className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+                            >
+                              <Trash2 size={14} /> Supprimer
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     }
                   />

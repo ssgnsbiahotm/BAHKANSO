@@ -1,17 +1,37 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
+import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
-import { Eye } from 'lucide-react';
+import { useToast } from '@/lib/Toast';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 
 export function Agriculture() {
-  const { plots, campaigns, cropOperations, harvests } = useData();
+  const { plots, campaigns, cropOperations, harvests, refresh } = useData();
+  const toast = useToast();
   const [tab, setTab] = useState<'plots' | 'campaigns' | 'operations' | 'harvests'>('plots');
   const navigate = useNavigate();
+
+  const handleDeletePlot = async (id: string) => {
+    if (!window.confirm('Supprimer cette parcelle ? Cette action est irréversible.')) return;
+    try {
+      const { error } = await supabase.from('plots').delete().eq('id', id);
+      if (error) throw error;
+      toast.show('Parcelle supprimée', 'success');
+      refresh?.();
+    } catch (err: any) {
+      console.error(err);
+      toast.show('Erreur: ' + err.message, 'error');
+    }
+  };
+
+  const handleEditPlot = (plotId: string) => {
+    navigate('/app/exploitation/parcelles?edit=' + plotId);
+  };
 
   const kpis = useMemo(() => {
     const totalArea = plots.reduce((s, p) => s + p.area_hectares, 0);
@@ -117,7 +137,8 @@ export function Agriculture() {
         <p><span className="text-slate-500">Type de sol :</span> {p.soil_type || '—'}</p>
         <p><span className="text-slate-500">Localisation :</span> {p.location || '—'}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200">
+      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+        {/* Bouton principal : Ouvrir le journal */}
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate('/app/exploitation/journal/' + p.id); }}
@@ -125,6 +146,24 @@ export function Agriculture() {
         >
           <Eye size={16} /> Ouvrir le journal
         </button>
+
+        {/* Boutons secondaires : Modifier / Supprimer */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); handleEditPlot(p.id); }}
+            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+          >
+            <Pencil size={14} /> Modifier
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); handleDeletePlot(p.id); }}
+            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+          >
+            <Trash2 size={14} /> Supprimer
+          </button>
+        </div>
       </div>
     </div>
   }

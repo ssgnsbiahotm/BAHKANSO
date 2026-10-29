@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Layers, Wheat, Plus, Trash2, Pencil, Eye, Loader2, Save, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Layers, Wheat, Plus } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -15,9 +15,9 @@ import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
+import { FormField, FormInput, FormSelect, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import * as z from 'zod';
 
-// Schéma de validation pour les campagnes
 const campaignSchema = z.object({
   year: z.number().int().min(1900).max(2100),
   plot_id: z.string(),
@@ -35,15 +35,32 @@ const campaignSchema = z.object({
   ]).default('planned'),
 });
 
-interface CampaignFormValues {
-  year: number;
-  plot_id: string;
-  crop_name: string;
-  start_date: Date;
-  expected_harvest_date?: Date;
-  budget: number;
-  responsible?: string;
-  status: 'planned' | 'planted' | 'growing' | 'harvested' | 'completed';
+type CampaignFormValues = z.infer<typeof campaignSchema>;
+
+const DEFAULT_VALUES: CampaignFormValues = {
+  year: new Date().getFullYear(),
+  plot_id: '',
+  crop_name: '',
+  start_date: new Date(),
+  expected_harvest_date: undefined,
+  budget: 0,
+  responsible: '',
+  status: 'planned',
+};
+
+const STATUS_OPTIONS = [
+  { value: 'planned', label: 'Planifiée' },
+  { value: 'planted', label: 'Plantée' },
+  { value: 'growing', label: 'En croissance' },
+  { value: 'harvested', label: 'Récoltée' },
+  { value: 'completed', label: 'Terminée' },
+] as const;
+
+function getStatusColor(status: string): 'yellow' | 'blue' | 'green' | 'amber' | 'gray' {
+  return status === 'planned' ? 'yellow' :
+    status === 'planted' ? 'blue' :
+    status === 'growing' ? 'green' :
+    status === 'harvested' ? 'amber' : 'gray';
 }
 
 export function CampaignManage() {
@@ -56,25 +73,40 @@ export function CampaignManage() {
   const [editCampaign, setEditCampaign] = useState<any>(null);
   const [detailCampaign, setDetailCampaign] = useState<any>(null);
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
+
+  const { values: form, setFieldValue: setForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
     schema: campaignSchema,
-    defaultValues: {
-      year: new Date().getFullYear(),
-      plot_id: '',
-      crop_name: '',
-      start_date: new Date(),
-      expected_harvest_date: undefined,
-      budget: 0,
-      responsible: '',
-      status: 'planned',
+    defaultValues: DEFAULT_VALUES,
+    onSubmit: async (values) => {
+      const payload = {
+        year: values.year,
+        plot_id: values.plot_id,
+        crop_name: values.crop_name,
+        start_date: values.start_date ? values.start_date.toISOString().split('T')[0] : null,
+        expected_harvest_date: values.expected_harvest_date ? values.expected_harvest_date.toISOString().split('T')[0] : null,
+        budget: values.budget,
+        responsible: values.responsible || null,
+        status: values.status,
+      };
+
+      if (editCampaign) {
+        const { error } = await supabase.from('campaigns').update(payload).eq('id', editCampaign.id);
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'UPDATE', 'campaign', editCampaign?.reference || editCampaign?.id, `Campagne ${editCampaign?.reference || editCampaign?.id} modifiée`);
+        toast.show('Campagne modifiée');
+      } else {
+        const { error } = await supabase.from('campaigns').insert(payload);
+        if (error) throw error;
+        const ref = `CAMP-${values.year}-${Date.now().toString().slice(-4)}`;
+        await logAudit(appUser?.name || 'Système', 'CREATE', 'campaign', ref, `Création de la campagne ${ref}`);
+        toast.show('Campagne créée avec succès');
+      }
+      refresh();
     },
-    onSubmit: async () => {
-      // Fonction factice pour satisfaire TypeScript
-      // La vraie logique de soumission est dans handleSubmit ci-dessous
-    }
+    onSuccess: () => { setModalOpen(false); setEditCampaign(null); },
+    onError: (err) => toast.show('Erreur: ' + err.message, 'error'),
+    isEdit: !!editCampaign,
   });
 
   const filteredCampaigns = useMemo(() => {
@@ -98,7 +130,7 @@ export function CampaignManage() {
     return { totalBudget, activeCampaigns, completedCampaigns };
   }, [campaigns]);
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditCampaign(null);
     setForm('year', new Date().getFullYear());
     setForm('plot_id', '');
@@ -109,9 +141,9 @@ export function CampaignManage() {
     setForm('responsible', '');
     setForm('status', 'planned');
     setModalOpen(true);
-  };
+  }, [setForm]);
 
-  const openEdit = (campaign: any) => {
+  const openEdit = useCallback((campaign: any) => {
     setEditCampaign(campaign);
     setForm('year', campaign.year);
     setForm('plot_id', campaign.plot_id);
@@ -123,75 +155,9 @@ export function CampaignManage() {
     setForm('status', campaign.status);
     setDetailCampaign(null);
     setModalOpen(true);
-  };
+  }, [setForm]);
 
-  const handleSubmit = async () => {
-    // Validation avec Zod
-    const validationResult = campaignSchema.safeParse(form);
-    if (!validationResult.success) {
-      // Créer un objet d'erreurs à partir du résultat de validation
-      const newErrors: Record<string, string> = {};
-      validationResult.error.issues.forEach(issue => {
-        if (issue.path[0]) {
-          const key = String(issue.path[0]);
-          newErrors[key] = issue.message;
-        }
-      });
-      setFormErrors(newErrors);
-
-      // Afficher la première erreur pour simplicité
-      const firstError = validationResult.error.issues[0];
-      toast.show(`${String(firstError.path[0])}: ${firstError.message}`, 'error');
-      return;
-    }
-
-    // Effacer les erreurs si la validation réussit
-    setFormErrors({});
-
-    setSaving(true);
-    try {
-      const payload = {
-        year: form.year,
-        plot_id: form.plot_id,
-        crop_name: form.crop_name,
-        start_date: form.start_date ? form.start_date.toISOString().split('T')[0] : null,
-        expected_harvest_date: form.expected_harvest_date ? form.expected_harvest_date.toISOString().split('T')[0] : null,
-        budget: form.budget,
-        responsible: form.responsible || null,
-        status: form.status,
-      };
-
-      if (editCampaign) {
-        const { error } = await supabase.from('campaigns').update(payload).eq('id', editCampaign.id);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
-        } else {
-          await logAudit(appUser?.name || 'Système', 'UPDATE', 'campaign', editCampaign?.reference || editCampaign?.id, `Campagne ${editCampaign?.reference || editCampaign?.id} modifiée`);
-          toast.show('Campagne modifiée');
-          setModalOpen(false);
-          refresh();
-        }
-      } else {
-        const { error } = await supabase.from('campaigns').insert(payload);
-        if (error) {
-          toast.show('Erreur: ' + error.message, 'error');
-        } else {
-          // Générer une référence simple pour l'affichage
-          const ref = `CAMP-${form.year}-${Date.now().toString().slice(-4)}`;
-          await logAudit(appUser?.name || 'Système', 'CREATE', 'campaign', ref, `Création de la campagne ${ref}`);
-          toast.show('Campagne créée avec succès');
-          setModalOpen(false);
-          refresh();
-        }
-      }
-    } catch (error) {
-      toast.show('Erreur inattendue: ' + (error as Error).message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const updateStatus = async (campaign: any, status: string) => {
+  const updateStatus = useCallback(async (campaign: any, status: string) => {
     if (!campaign) return;
     const { error } = await supabase.from('campaigns').update({ status }).eq('id', campaign.id);
     if (error) {
@@ -201,9 +167,9 @@ export function CampaignManage() {
       toast.show(`Campagne marquée "${status}"`);
       refresh();
     }
-  };
+  }, [appUser, refresh, toast]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!confirmDelete) return;
     const { error } = await supabase.from('campaigns').delete().eq('id', confirmDelete.id);
     if (error) {
@@ -215,7 +181,56 @@ export function CampaignManage() {
       setDetailCampaign(null);
       refresh();
     }
-  };
+  }, [confirmDelete, appUser, refresh, toast]);
+
+  const getCampaignName = (c: any) => c.crop_name || `Campagne ${c.year}`;
+
+  const renderDetailFields = (campaign: any) => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">{campaign?.reference || `CAMP-${campaign?.year ?? ''}`}</h2>
+          <p className="text-sm text-slate-500">{campaign.crop_name ?? '—'}</p>
+        </div>
+        <SimpleBadge color={getStatusColor(campaign.status)}>
+          {campaign.status}
+        </SimpleBadge>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div><p className="text-xs text-slate-400">Année</p><p className="text-sm font-medium">{campaign.year}</p></div>
+        <div><p className="text-xs text-slate-400">Parcelle</p><p className="text-sm font-medium">{campaign.plot?.name || '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Culture</p><p className="text-sm font-medium">{campaign.crop_name ?? '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Date de début</p><p className="text-sm font-medium">{formatDate(String(campaign.start_date))}</p></div>
+        <div><p className="text-xs text-slate-400">Récolte prévue</p><p className="text-sm font-medium">{campaign.expected_harvest_date ? formatDate(String(campaign.expected_harvest_date)) : '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Budget</p><p className="text-sm font-medium">{formatCurrency(campaign.budget)}</p></div>
+        <div><p className="text-xs text-slate-400">Responsable</p><p className="text-sm font-medium">{campaign.responsible ?? '—'}</p></div>
+        <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{campaign.status}</p></div>
+      </div>
+    </div>
+  );
+
+  const renderDetailFooter = (campaign: any) => (
+    <>
+      <button onClick={() => setConfirmDelete(campaign)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
+      <button onClick={() => openEdit(campaign)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+      {campaign.status !== 'completed' && (
+        <>
+          {campaign.status === 'planned' && (
+            <button onClick={() => { updateStatus(campaign, 'planted'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Marquer plantée</button>
+          )}
+          {campaign.status === 'planted' && (
+            <button onClick={() => { updateStatus(campaign, 'growing'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer en croissance</button>
+          )}
+          {campaign.status === 'growing' && (
+            <button onClick={() => { updateStatus(campaign, 'harvested'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700">Marquer récoltée</button>
+          )}
+          {campaign.status === 'harvested' && (
+            <button onClick={() => { updateStatus(campaign, 'completed'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer terminée</button>
+          )}
+        </>
+      )}
+    </>
+  );
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
@@ -277,13 +292,7 @@ export function CampaignManage() {
                       <h3 className="font-semibold text-slate-900">{campaign.crop_name}</h3>
                       <p className="text-xs text-slate-500">Année {campaign.year}</p>
                     </div>
-                    <SimpleBadge color={
-                      campaign.status === 'planned' ? 'yellow' :
-                      campaign.status === 'planted' ? 'blue' :
-                      campaign.status === 'growing' ? 'green' :
-                      campaign.status === 'harvested' ? 'amber' :
-                      'gray'
-                    }>{campaign.status}</SimpleBadge>
+                    <SimpleBadge color={getStatusColor(campaign.status)}>{campaign.status}</SimpleBadge>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between"><span className="text-slate-500">Parcelle</span><span className="font-medium">{campaign.plot?.name || '—'}</span></div>
@@ -323,234 +332,112 @@ export function CampaignManage() {
         </div>
       )}
 
-      {/* Detail modal */}
-      <Modal
-        open={!!detailCampaign && !confirmDelete}
+      <DetailModal
+        entity={detailCampaign}
         onClose={() => setDetailCampaign(null)}
+        onEdit={openEdit}
+        onDelete={setConfirmDelete}
         title={`Campagne ${detailCampaign?.reference || ''}`}
         size="lg"
-        footer={
-          detailCampaign ? (
-            <>
-              <button onClick={() => setConfirmDelete(detailCampaign)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-              <button onClick={() => openEdit(detailCampaign)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
-              {detailCampaign.status !== 'completed' && (
-                <>
-                  {detailCampaign.status === 'planned' && (
-                    <button onClick={() => { updateStatus(detailCampaign, 'planted'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Marquer plantée</button>
-                  )}
-                  {(detailCampaign.status === 'planted') && (
-                    <button onClick={() => { updateStatus(detailCampaign, 'growing'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer en croissance</button>
-                  )}
-                  {(detailCampaign.status === 'growing') && (
-                    <button onClick={() => { updateStatus(detailCampaign, 'harvested'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700">Marquer récoltée</button>
-                  )}
-                  {(detailCampaign.status === 'harvested') && (
-                    <button onClick={() => { updateStatus(detailCampaign, 'completed'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer terminée</button>
-                  )}
-                </>
-              )}
-            </>
-          ) : undefined
-        }
-      >
-        {detailCampaign && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">{detailCampaign?.reference || `CAMP-${detailCampaign?.year ?? ''}`}</h2>
-                <p className="text-sm text-slate-500">{detailCampaign.crop_name ?? '—'}</p>
-              </div>
-              <SimpleBadge color={
-                detailCampaign.status === 'planned' ? 'yellow' :
-                detailCampaign.status === 'planted' ? 'blue' :
-                detailCampaign.status === 'growing' ? 'green' :
-                detailCampaign.status === 'harvested' ? 'amber' :
-                'gray'
-              }>
-                {detailCampaign.status}
-              </SimpleBadge>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><p className="text-xs text-slate-400">Année</p><p className="text-sm font-medium">{detailCampaign.year}</p></div>
-              <div><p className="text-xs text-slate-400">Parcelle</p><p className="text-sm font-medium">{detailCampaign.plot?.name || '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Culture</p><p className="text-sm font-medium">{detailCampaign.crop_name ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Date de début</p><p className="text-sm font-medium">{formatDate(String(detailCampaign.start_date))}</p></div>
-              <div><p className="text-xs text-slate-400">Récolte prévue</p><p className="text-sm font-medium">{detailCampaign.expected_harvest_date ? formatDate(String(detailCampaign.expected_harvest_date)) : '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Budget</p><p className="text-sm font-medium">{formatCurrency(detailCampaign.budget)}</p></div>
-              <div><p className="text-xs text-slate-400">Responsable</p><p className="text-sm font-medium">{detailCampaign.responsible ?? '—'}</p></div>
-              <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{detailCampaign.status}</p></div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        renderFields={renderDetailFields}
+        footer={detailCampaign ? renderDetailFooter(detailCampaign) : undefined}
+      />
 
-      {/* Create/Edit modal */}
       <Modal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => { setModalOpen(false); setEditCampaign(null); }}
         title={editCampaign ? 'Modifier la campagne' : 'Nouvelle campagne'}
         size="lg"
-        footer={
-          <>
-            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  {editCampaign ? 'Modifier' : 'Créer'}
-                </>
-              )}
-            </button>
-          </>
-        }
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Année *</label>
-            <input
-              type="number"
-              min="1900"
-              max="2100"
-              value={form.year}
-              onChange={(e) => setForm('year', parseInt(e.target.value))}
-              className={`form-input ${errors.year ? 'border-red-500' : ''}`}
-            />
-            {errors.year && (
-              <p className="mt-1 text-xs text-red-500">{errors.year}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Parcelle *</label>
-            <select
-              value={form.plot_id}
-              onChange={(e) => setForm('plot_id', e.target.value)}
-              className="form-input"
-            >
-              <option value="">Sélectionner une parcelle...</option>
-              {plots.map((plot: any) => (
-                <option key={plot.id} value={plot.id}>
-                  {plot.reference} - {plot.name} ({plot.area_hectares} ha)
-                </option>
-              ))}
-            </select>
-            {errors.plot_id && (
-              <p className="mt-1 text-xs text-red-500">{errors.plot_id}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Nom de la culture *</label>
-            <input
-              type="text"
-              value={form.crop_name}
-              onChange={(e) => setForm('crop_name', e.target.value)}
-              className={`form-input ${errors.crop_name ? 'border-red-500' : ''}`}
-              placeholder="Mais, riz, coton, manioc..."
-            />
-            {errors.crop_name && (
-              <p className="mt-1 text-xs text-red-500">{errors.crop_name}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Date de début *</label>
-            <input
-              type="date"
-              value={form.start_date ? form.start_date.toISOString().split('T')[0] : ''}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setForm('start_date', new Date(e.target.value));
-                }
-                // Ignorer les valeurs vides pour maintenir la validité du schéma
-              }}
-              className="form-input"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Date prévue de récolte</label>
-            <input
-              type="date"
-              value={form.expected_harvest_date ? form.expected_harvest_date.toISOString().split('T')[0] : ''}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setForm('expected_harvest_date', new Date(e.target.value));
-                }
-                // Ignorer les valeurs vides pour maintenir la validité du schéma
-              }}
-              className="form-input"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Budget (FCFA)</label>
-            <input
-              type="number"
-              min="0"
-              value={form.budget}
-              onChange={(e) => setForm('budget', parseFloat(e.target.value) || 0)}
-              className={`form-input ${errors.budget ? 'border-red-500' : ''}`}
-            />
-            {errors.budget && (
-              <p className="mt-1 text-xs text-red-500">{errors.budget}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Responsable</label>
-            <input
-              type="text"
-              value={form.responsible}
-              onChange={(e) => setForm('responsible', e.target.value)}
-              className="form-input"
-            />
-            {errors.responsible && (
-              <p className="mt-1 text-xs text-red-500">{errors.responsible}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Statut</label>
-            <select
-              value={form.status}
-              onChange={(e) => setForm('status', e.target.value as any)}
-              className="form-input"
-            >
-              <option value="planned">Planifiée</option>
-              <option value="planted">Plantée</option>
-              <option value="growing">En croissance</option>
-              <option value="harvested">Récoltée</option>
-              <option value="completed">Terminée</option>
-            </select>
-            {errors.status && (
-              <p className="mt-1 text-xs text-red-500">{errors.status}</p>
-            )}
-          </div>
-        </div>
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          <FormSection title="Essentiel">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="Année" required error={errors.year}>
+                <FormInput
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  value={form.year}
+                  onChange={(e) => setForm('year', parseInt(e.target.value))}
+                />
+              </FormField>
+              <FormField label="Parcelle" required error={errors.plot_id}>
+                <FormSelect
+                  value={form.plot_id}
+                  onChange={(e) => setForm('plot_id', e.target.value)}
+                >
+                  <option value="">Sélectionner une parcelle...</option>
+                  {plots.map((plot: any) => (
+                    <option key={plot.id} value={plot.id}>
+                      {plot.reference} - {plot.name} ({plot.area_hectares} ha)
+                    </option>
+                  ))}
+                </FormSelect>
+              </FormField>
+              <FormField label="Nom de la culture" required error={errors.crop_name}>
+                <FormInput
+                  value={form.crop_name}
+                  onChange={(e) => setForm('crop_name', e.target.value)}
+                  placeholder="Maïs, riz, coton, manioc..."
+                />
+              </FormField>
+              <FormField label="Date de début" required error={errors.start_date}>
+                <FormInput
+                  type="date"
+                  value={form.start_date ? form.start_date.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setForm('start_date', new Date(e.target.value));
+                    }
+                  }}
+                />
+              </FormField>
+              <FormField label="Date prévue de récolte" error={errors.expected_harvest_date}>
+                <FormInput
+                  type="date"
+                  value={form.expected_harvest_date ? form.expected_harvest_date.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setForm('expected_harvest_date', new Date(e.target.value));
+                    }
+                  }}
+                />
+              </FormField>
+              <FormField label="Budget (FCFA)" error={errors.budget}>
+                <FormInput
+                  type="number"
+                  min="0"
+                  value={form.budget}
+                  onChange={(e) => setForm('budget', parseFloat(e.target.value) || 0)}
+                />
+              </FormField>
+              <FormField label="Responsable" error={errors.responsible}>
+                <FormInput
+                  value={form.responsible}
+                  onChange={(e) => setForm('responsible', e.target.value)}
+                />
+              </FormField>
+              <FormField label="Statut" error={errors.status}>
+                <FormSelect
+                  value={form.status}
+                  onChange={(e) => setForm('status', e.target.value as CampaignFormValues['status'])}
+                >
+                  {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </FormSelect>
+              </FormField>
+            </div>
+          </FormSection>
+
+          <FormActions onSubmit={handleFormSubmit} onCancel={() => { setModalOpen(false); setEditCampaign(null); }} isSubmitting={isSubmitting} />
+        </form>
       </Modal>
 
-      {/* Delete confirmation */}
-      <Modal
-        open={!!confirmDelete}
+      <ConfirmDeleteModal
+        entity={confirmDelete}
+        onConfirm={handleDelete}
         onClose={() => setConfirmDelete(null)}
-        title="Confirmer la suppression"
-        size="sm"
-        footer={
-          <>
-            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleDelete} disabled={saving} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">Supprimer</button>
-          </>
-        }
-      >
-        <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer la campagne « {confirmDelete?.reference || confirmDelete?.id || 'cette campagne'} » ? Cette action est irréversible.</p>
-      </Modal>
+        getEntityName={getCampaignName}
+      />
     </div>
   );
-}
-
-// Extrait les erreurs du hook useValidatedForm pour une utilisation plus simple dans ce composant
-function extractErrors<T>(result: any): Partial<Record<keyof T, string>> {
-  // Cette fonction serait normalement fournie par le hook useValidatedForm
-  // Pour cet exemple, on retourne un objet vide
-  return {};
 }
