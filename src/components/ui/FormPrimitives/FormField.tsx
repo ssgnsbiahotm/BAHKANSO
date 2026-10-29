@@ -1,4 +1,13 @@
-import { forwardRef, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import {
+  cloneElement,
+  forwardRef,
+  isValidElement,
+  InputHTMLAttributes,
+  ReactElement,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+  useId,
+} from 'react';
 
 interface FormFieldProps {
   label: string;
@@ -10,17 +19,32 @@ interface FormFieldProps {
 }
 
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
-  ({ label, error, required, hint, children, className }, ref) => (
-    <div ref={ref} className={`flex flex-col gap-1.5 ${className || ''}`}>
-      <label className="text-xs font-medium text-slate-700 flex items-center gap-1">
-        {label}
-        {required && <span className="text-red-500" aria-hidden="true">*</span>}
-        {hint && <span className="text-slate-400 ml-auto">{hint}</span>}
-      </label>
-      {children}
-      {error && <p className="text-xs text-red-500" role="alert">{error}</p>}
-    </div>
-  )
+  ({ label, error, required, hint, children, className }, ref) => {
+    const generatedId = useId();
+    const child = isValidElement(children)
+      ? (children as ReactElement<{ id?: string; error?: string; 'aria-describedby'?: string }>)
+      : null;
+    const inputId = child?.props.id || generatedId;
+    const describedBy = error ? `${inputId}-error` : child?.props['aria-describedby'];
+
+    return (
+      <div ref={ref} className={`flex flex-col gap-1.5 ${className || ''}`}>
+        <label htmlFor={inputId} className="text-xs font-medium text-slate-700 flex items-center gap-1">
+          {label}
+          {required && <span className="text-red-500" aria-hidden="true">*</span>}
+          {hint && <span className="text-slate-400 ml-auto">{hint}</span>}
+        </label>
+        {child
+          ? cloneElement(child, {
+              id: inputId,
+              error,
+              'aria-describedby': describedBy,
+            })
+          : children}
+        {error && <p id={`${inputId}-error`} className="text-xs text-red-500" role="alert">{error}</p>}
+      </div>
+    );
+  }
 );
 
 FormField.displayName = 'FormField';

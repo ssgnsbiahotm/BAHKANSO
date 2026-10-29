@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, User, Menu, Wifi, LogOut, Settings, ExternalLink, Globe } from 'lucide-react';
+import { Bell, ChevronDown, User, Menu, Wifi, LogOut, Settings, ExternalLink } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { useSite } from '@/lib/SiteContext';
@@ -15,7 +15,7 @@ interface HeaderProps {
 export function Header({ onOpenMobile }: HeaderProps) {
   const { farm, notifications, alerts, siteContent } = useData();
   const { appUser, signOut } = useAuth();
-  const { isGlobalView, currentSite } = useSite();
+  const { isGlobalView } = useSite();
   const navigate = useNavigate();
   const [showNotif, setShowNotif] = useState(false);
   const [showUser, setShowUser] = useState(false);
@@ -30,7 +30,7 @@ export function Header({ onOpenMobile }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 bg-slate border-b border-ivory/10 px-4 lg:px-6 py-3">
       <div className="flex items-center gap-3">
-        <button onClick={onOpenMobile} className="lg:hidden p-2 hover:bg-slate-hover">
+        <button onClick={onOpenMobile} className="lg:hidden p-2 hover:bg-slate-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-signal" aria-label="Ouvrir le menu">
           <Menu size={20} className="text-ivory/70" />
         </button>
         <div className="flex-1 min-w-0">
@@ -51,6 +51,7 @@ export function Header({ onOpenMobile }: HeaderProps) {
           <button
             onClick={() => { setShowNotif(!showNotif); setShowUser(false); }}
             className="relative p-2 hover:bg-slate-hover text-ivory/70 hover:text-ivory"
+            aria-label="Afficher les notifications"
             aria-expanded={showNotif}
             aria-haspopup="true"
           >
@@ -67,7 +68,7 @@ export function Header({ onOpenMobile }: HeaderProps) {
               <div className="absolute right-0 top-full mt-2 w-80 bg-slate-deep border border-ivory/10 z-20 max-h-96 overflow-y-auto">
                 <div className="px-4 py-3 border-b border-ivory/10 flex items-center justify-between">
                   <h3 className="font-semibold text-ivory">Notifications</h3>
-                  <button onClick={() => { navigate('/app/monitoring?alertes'); setShowNotif(false); }} className="text-xs text-signal hover:underline">
+                  <button onClick={() => { navigate('/app/monitoring?alertes'); setShowNotif(false); }} className="text-xs text-signal hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
                     Voir les {openAlerts.length} alertes
                   </button>
                 </div>
@@ -100,6 +101,7 @@ export function Header({ onOpenMobile }: HeaderProps) {
           <button
             onClick={() => { setShowUser(!showUser); setShowNotif(false); }}
             className="flex items-center gap-2 p-1.5 hover:bg-slate-hover"
+            aria-label="Ouvrir le menu utilisateur"
             aria-expanded={showUser}
             aria-haspopup="true"
           >
@@ -128,26 +130,26 @@ export function Header({ onOpenMobile }: HeaderProps) {
                 <div className="py-1">
                   <button
                     onClick={() => { navigate('/app/profile'); setShowUser(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ivory hover:bg-slate-hover"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ivory hover:bg-slate-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
                   >
                     <User size={16} /> Mon profil
                   </button>
                   <button
                     onClick={() => { navigate('/app/configuration'); setShowUser(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ivory hover:bg-slate-hover"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ivory hover:bg-slate-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
                   >
                     <Settings size={16} /> Paramètres
                   </button>
                   <button
                     onClick={() => { navigate('/'); setShowUser(false); }}
-                    className="w-full text-left px-4 py-2 text-sm text-ivory hover:bg-slate-hover flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-sm text-ivory hover:bg-slate-hover flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
                   >
                     <ExternalLink size={16} />
                     Voir le site vitrine
                   </button>
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-terra hover:bg-terra/20"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-terra hover:bg-terra/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
                   >
                     <LogOut size={16} /> Déconnexion
                   </button>

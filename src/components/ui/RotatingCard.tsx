@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, KeyboardEvent, ReactNode } from 'react';
+import { useState, useCallback, useEffect, useId, useRef, KeyboardEvent, ReactNode } from 'react';
 import { RotateCw, RotateCcw } from 'lucide-react';
 
 import './RotatingCard.css';
@@ -9,6 +9,7 @@ interface RotatingCardProps {
   className?: string;
   flipLabel?: string;
   backLabel?: string;
+  label?: string;
   disabled?: boolean;
   onFlip?: (flipped: boolean) => void;
 }
@@ -19,11 +20,15 @@ export function RotatingCard({
   className,
   flipLabel = 'Détails',
   backLabel = 'Retour',
+  label = 'Carte',
   disabled = false,
   onFlip,
 }: RotatingCardProps) {
   const [flipped, setFlipped] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const frontButtonRef = useRef<HTMLButtonElement>(null);
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+  const cardId = useId();
 
   const toggle = useCallback(() => {
     if (disabled) return;
@@ -32,22 +37,27 @@ export function RotatingCard({
     onFlip?.(next);
   }, [disabled, flipped, onFlip]);
 
+  useEffect(() => {
+    const button = flipped ? backButtonRef.current : frontButtonRef.current;
+    button?.focus();
+  }, [flipped]);
+
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
       if (disabled) return;
+      if ((e.target as HTMLElement)?.closest('button')) return;
       if (e.key === 'Escape' && flipped) {
         e.preventDefault();
         setFlipped(false);
-        containerRef.current?.focus();
+        onFlip?.(false);
+        return;
       }
-      if ((e.key === 'Enter' || e.key === ' ') && !flipped) {
-        const target = e.target as HTMLElement;
-        if (target?.closest('[data-rc-flip]')) {
-          toggle();
-        }
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
       }
     },
-    [disabled, flipped, toggle]
+    [disabled, flipped, onFlip, toggle]
   );
 
   const handleFlipBtnClick = useCallback(
@@ -64,13 +74,13 @@ export function RotatingCard({
       ref={containerRef}
       tabIndex={0}
       role="region"
-      aria-label={flipped ? 'Verso de la carte' : 'Recto de la carte'}
+      aria-label={`${label} — ${flipped ? 'verso' : 'recto'}`}
       aria-expanded={flipped}
       className={`rc ${flipped ? 'is-flipped' : ''} ${className ?? ''}`}
       onKeyDown={handleKey}
       onClick={toggle}
     >
-      <div className="rc-inner">
+      <div id={cardId} className="rc-inner">
         {/* Front */}
         <div
           className="rc-face rc-face--front"
@@ -79,10 +89,12 @@ export function RotatingCard({
         >
           {front}
           <button
+            ref={frontButtonRef}
             type="button"
             data-rc-flip
             aria-label={flipLabel}
-            aria-controls="rc-card"
+            aria-controls={cardId}
+            tabIndex={flipped ? -1 : 0}
             onClick={handleFlipBtnClick}
             className="rc-flip-btn rc-flip-btn--front"
           >
@@ -97,10 +109,12 @@ export function RotatingCard({
         >
           {back}
           <button
+            ref={backButtonRef}
             type="button"
             data-rc-flip
             aria-label={backLabel}
-            aria-controls="rc-card"
+            aria-controls={cardId}
+            tabIndex={flipped ? 0 : -1}
             onClick={handleFlipBtnClick}
             className="rc-flip-btn rc-flip-btn--back"
           >

@@ -72,6 +72,8 @@ export function useDashboardStats() {
 
     const periodIncome = entrees;
     const periodExpenses = sorties;
+    const periodNetResult = periodIncome - periodExpenses;
+    const grossMargin = periodIncome > 0 ? (periodNetResult / periodIncome) * 100 : 0;
     const previousPeriodExpenses = sumByDirection(previousPeriodTransactions, 'sortie');
     const previousPeriodIncome = sumByDirection(previousPeriodTransactions, 'entree');
 
@@ -88,6 +90,10 @@ export function useDashboardStats() {
     const treasuryTrend =
       previousPeriodNetTreasury !== 0
         ? Number(((currentPeriodNetTreasury - previousPeriodNetTreasury) / Math.abs(previousPeriodNetTreasury)) * 100)
+        : null;
+    const periodResultTrend =
+      previousPeriodNetTreasury !== 0
+        ? Number(((periodNetResult - previousPeriodNetTreasury) / Math.abs(previousPeriodNetTreasury)) * 100)
         : null;
 
     // 6 derniers mois pour le graphique de tendance
@@ -125,7 +131,7 @@ export function useDashboardStats() {
     ).length;
     const openAlerts = alerts.filter((a) => a.status === 'ouvert').length;
     const openCriticalAlerts = alerts.filter(
-      (a) => (a.severity === 'CRITIQUE' || a.severity === 'AVERTISSEMENT') && a.status === 'ouvert'
+      (a) => a.severity === 'CRITIQUE' && a.status === 'ouvert'
     ).length;
 
     const latestTransactions = [...transactions]
@@ -151,6 +157,12 @@ export function useDashboardStats() {
     const animalsAvailable = sourceStatus?.animals === 'success';
     const animalLotsAvailable = sourceStatus?.animalLots === 'success';
     const campaignsAvailable = sourceStatus?.campaigns === 'success';
+    const prioritySourcesPending = [
+      sourceStatus?.expenses,
+      sourceStatus?.inventoryItems,
+      sourceStatus?.projects,
+      sourceStatus?.alerts,
+    ].some((status) => status === 'loading' || status === 'idle');
 
     const allSourcesResolved =
       transactionsAvailable &&
@@ -166,12 +178,15 @@ export function useDashboardStats() {
       netTreasury,
       periodIncome,
       periodExpenses,
+      periodNetResult,
+      grossMargin,
       previousPeriodExpenses,
       incomeTrend,
       expenseTrend,
       currentPeriodTransactions,
       previousPeriodTransactions,
       periodBounds: current,
+      periodLabel: current.label,
       previousPeriodBounds: previous,
       totalAnimals: animals.length,
       totalAnimalLots: animalLots.length,
@@ -189,6 +204,7 @@ export function useDashboardStats() {
       loading,
       error,
       treasuryTrend,
+      periodResultTrend,
       sourceStatus,
       sourceError,
       transactionsAvailable,
@@ -199,6 +215,7 @@ export function useDashboardStats() {
       animalsAvailable,
       animalLotsAvailable,
       campaignsAvailable,
+      prioritySourcesPending,
       allSourcesResolved,
     };
   }, [
@@ -212,6 +229,8 @@ export function useDashboardStats() {
     alerts,
     loading,
     error,
+    sourceStatus,
+    sourceError,
   ]);
 
   return stats;

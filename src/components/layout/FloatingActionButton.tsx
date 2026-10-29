@@ -20,10 +20,12 @@ export function FloatingActionButton({ onAction }: FabProps) {
   return (
     <div className="fixed bottom-6 right-6 z-30 lg:hidden">
       {open && (
-        <div className="absolute bottom-16 right-0 space-y-2">
+        <div className="absolute bottom-16 right-0 space-y-2" role="menu">
           {ACTIONS.map(a => (
             <button
               key={a.id}
+              type="button"
+              role="menuitem"
               onClick={() => { onAction(a.id); setOpen(false); }}
               className="flex items-center gap-3 pl-3 pr-4 py-2.5 bg-white rounded-full shadow-lg border border-slate-200 hover:shadow-xl transition-shadow"
             >
@@ -36,7 +38,11 @@ export function FloatingActionButton({ onAction }: FabProps) {
         </div>
       )}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
+        aria-label={open ? 'Fermer les actions rapides' : 'Ouvrir les actions rapides'}
+        aria-expanded={open}
+        aria-haspopup="menu"
         className={`w-14 h-14 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center transition-transform ${open ? 'rotate-45' : ''}`}
       >
         {open ? <X size={24} /> : <Plus size={24} />}

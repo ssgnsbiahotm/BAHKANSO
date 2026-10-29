@@ -33,6 +33,7 @@ const HarvestManage = lazy(() => import('@/pages/HarvestManage').then(m => ({ de
 const CropOperationManage = lazy(() => import('@/pages/CropOperationManage').then(m => ({ default: m.CropOperationManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
 const SitesPage = lazy(() => import('@/pages/configuration/SitesPage').then(m => ({ default: m.SitesPage })));
+const SitesPageSuspense = createSuspenseWrapper(SitesPage);
 const RecoltesPage = lazy(() => import('@/pages/exploitation/RecoltesPage').then(m => ({ default: m.RecoltesPage })));
 const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
 
@@ -153,15 +154,7 @@ export const appRouter = createBrowserRouter([
         path: 'configuration/sites',
         element: (
           <RequireModule module="configuration" action="read">
-            <SitesPage />
-          </RequireModule>
-        ),
-      },
-      {
-        path: 'bailleurs',
-        element: (
-          <RequireModule module="configuration" action="read">
-            <BailleursPageSuspense />
+            <SitesPageSuspense />
           </RequireModule>
         ),
       },
@@ -225,14 +218,6 @@ export const appRouter = createBrowserRouter([
         ),
       },
       {
-       path: 'agriculture/campaigns',
-       element: (
-         <RequireModule module="agriculture" action="read">
-           <CampaignManageSuspense />
-         </RequireModule>
-       ),
-     },
-      {
         path: 'exploitation/recoltes',
         element: (
           <RequireModule module="agriculture" action="read">
@@ -262,23 +247,11 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'agriculture/operations',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <CropOperationManageSuspense />
-          </RequireModule>
-        ),
-      },
-      {
-        path: 'agriculture/operations',
         element: <Navigate to="/app/exploitation/operations" replace />,
       },
       {
         path: 'agriculture/harvests',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <HarvestManageSuspense />
-          </RequireModule>
-        ),
+        element: <Navigate to="/app/exploitation/recoltes" replace />,
       },
       {
         path: 'exploitation/lots',

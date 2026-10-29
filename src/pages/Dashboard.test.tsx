@@ -109,4 +109,28 @@ describe('Dashboard', () => {
     expect(screen.getByText(/La source des transactions est indisponible/)).toBeInTheDocument();
     expect(screen.queryByText(/Aucune op\u00e9ration/)).not.toBeInTheDocument();
   });
+
+  it('annonce la période et utilise des libellés de section accessibles', () => {
+    renderDash({
+      arrays: {
+        transactions: [
+          { id: '1', reference: null, type: 'v', amount: 1000, currency: 'XOF', direction: 'entree', description: null, funding_id: null, transaction_date: '2026-10-10', bank_account_id: null, cash_account_id: null },
+          { id: '2', reference: null, type: 'v', amount: 400, currency: 'XOF', direction: 'sortie', description: null, funding_id: null, transaction_date: '2026-10-11', bank_account_id: null, cash_account_id: null },
+        ],
+      },
+    });
+
+    expect(screen.getByText(/Période : octobre 2026/i)).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Synthèse financière' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'À traiter en priorité' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'La ferme en bref' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Dernières opérations' })).toBeInTheDocument();
+  });
+
+  it('ne présente pas une absence de priorité pendant le chargement d une source', () => {
+    renderDash({ sourceStatus: { expenses: 'loading' as const } });
+    expect(screen.getByText(/Évaluation des priorités/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Aucune priorité détectée/)).not.toBeInTheDocument();
+  });
+
 });

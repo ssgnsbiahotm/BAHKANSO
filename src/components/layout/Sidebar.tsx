@@ -7,7 +7,8 @@ import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Users, UserCircle, MapPin,
+  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, MapPin,
+  ChevronDown, ChevronRight,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -64,6 +65,19 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
   const [alertCount, setAlertCount] = useState(0);
 
+  // État d'expansion des items avec enfants
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
+    // Auto-expand l'item qui contient la route courante
+    const current = location.pathname;
+    const expanded = new Set<string>();
+    ALL_NAV_ITEMS.forEach(item => {
+      if (item.children?.some(child => handleChildPath(child.id) === current)) {
+        expanded.add(item.id);
+      }
+    });
+    return expanded;
+  });
+
   // Filtrer les éléments de navigation selon les permissions du rôle
   const userRole = appUser?.role as UserRole;
   const accessibleModules = getAccessibleModules(userRole);
@@ -99,12 +113,38 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       configuration: '/app/configuration',
       bailleurs: '/app/configuration/bailleurs',
       clients: '/app/configuration/clients',
+      sites: '/app/configuration/sites',
     };
 
     target = routeMap[page] || `/app/${page}`;
     navigate(target);
     onCloseMobile();
   };
+
+  // Fonction utilitaire pour mapper un id de child vers son path
+  function handleChildPath(id: string): string {
+    const routeMap: Record<string, string> = {
+      'config-general': '/app/configuration',
+      'users': '/app/users',
+      'bailleurs': '/app/configuration/bailleurs',
+      'clients': '/app/configuration/clients',
+      'sites': '/app/configuration/sites',
+      'monitoring': '/app/monitoring',
+      'surveillance': '/app/surveillance',
+      'agriculture?plots': '/app/exploitation/parcelles',
+      'agriculture?campaigns': '/app/exploitation/campagnes',
+      'agriculture?operations': '/app/exploitation/operations',
+      'agriculture?harvests': '/app/exploitation/recoltes',
+      'livestock/lots': '/app/exploitation/lots',
+      'livestock/animals': '/app/exploitation/animaux',
+      'livestock/events': '/app/exploitation/events',
+      'finance?tab=fundings': '/app/finance?tab=fundings',
+      'finance?tab=expenses': '/app/finance?tab=expenses',
+      'finance?tab=treasury': '/app/finance?tab=treasury',
+      'finance?tab=ventes': '/app/finance?tab=ventes',
+    };
+    return routeMap[id] || '/app/' + id;
+  }
 
   useEffect(() => {
     async function fetchAlertCount() {
@@ -122,7 +162,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       }
     }
     fetchAlertCount();
-  }, [supabase]);
+  }, []);
 
   return (
     <>
@@ -143,10 +183,10 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             imageUrl={farm?.logo_url}
           />
           <div>
-            <h1 className="text-ivory font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</h1>
+            <div className="text-ivory font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</div>
             <p className="text-ivory/70 text-xs">{branding.appTagline || ''}</p>
           </div>
-          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-ivory/70">
+          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-ivory/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal" aria-label="Fermer le menu">
             <X size={20} />
           </button>
         </div>
@@ -154,23 +194,41 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
           {NAV_ITEMS.map(item => {
             const isActive = isNavActive(item.id);
             const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = expandedItems.has(item.id);
+            const containsActiveChild = hasChildren && item.children?.some(
+              child => handleChildPath(child.id) === location.pathname
+            );
+
             return (
               <div key={item.id}>
+                {/* Bouton parent */}
                 <button
                   onClick={() => {
                     if (hasChildren) {
+                      // Toggle l'expansion + naviguer vers la page parent
+                      setExpandedItems(prev => {
+                        const next = new Set(prev);
+                        if (next.has(item.id)) {
+                          next.delete(item.id);
+                        } else {
+                          next.add(item.id);
+                        }
+                        return next;
+                      });
                       handleNav(item.id);
                     } else {
                       handleNav(item.id);
                     }
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-inset ${
+                    isActive || containsActiveChild
                       ? 'bg-slate-hover text-ivory border-l-3 border-signal pl-2'
                       : 'text-ivory/70 hover:bg-slate-hover hover:text-ivory'
                   }`}
                 >
-                  <span className={isActive ? 'text-ivory' : 'text-ivory/70'}>{item.icon}</span>
+                  <span className={isActive || containsActiveChild ? 'text-ivory' : 'text-ivory/70'}>
+                    {item.icon}
+                  </span>
                   <span className="flex-1 text-left">
                     {item.label}
                     {item.id === 'surveillance' && alertCount > 0 && (
@@ -179,26 +237,38 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                       </span>
                     )}
                   </span>
+                  {/* Chevron pour les items avec children */}
+                  {hasChildren && (
+                    <span className="text-ivory/40">
+                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </span>
+                  )}
                 </button>
+
+                {/* Sous-items (si expanded) */}
+                {hasChildren && isExpanded && (
+                  <div className="ml-6 mt-1 space-y-0.5 border-l border-ivory/10 pl-3">
+                    {item.children!.map(child => {
+                      const childActive = location.pathname === handleChildPath(child.id);
+                      return (
+                        <button
+                          key={child.id}
+                          onClick={() => handleNav(child.id)}
+                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-inset ${
+                            childActive
+                              ? 'text-signal'
+                              : 'text-ivory/60 hover:text-ivory'
+                          }`}
+                        >
+                          {child.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
-          {/* Site navigation item hardcodé EN DUR entre Utilisateurs et Bailleurs de fonds */}
-          <div key="sites">
-            <button
-              onClick={() => handleNav('configuration/sites')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
-                isNavActive('configuration/sites')
-                  ? 'bg-slate-hover text-ivory border-l-3 border-signal pl-2'
-                  : 'text-ivory/70 hover:bg-slate-hover hover:text-ivory'
-              }`}
-            >
-              <span className={isNavActive('configuration/sites') ? 'text-ivory' : 'text-ivory/70'}>
-                <MapPin size={20} />
-              </span>
-              <span className="flex-1 text-left">Sites</span>
-            </button>
-          </div>
         </nav>
         <div className="px-4 py-3 border-t border-ivory/10">
           <p className="text-xs text-ivory/50 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>

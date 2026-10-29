@@ -1,33 +1,28 @@
-import React, { ReactNode, useState, useEffect, useCallback } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboardStats, formatFCFA } from '@/hooks/useDashboardStats';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useAuth } from '@/lib/AuthContext';
-import type { Transaction } from '@/lib/types';
 import { useData } from '@/lib/DataContext';
 import {
-  Wallet, TrendingUp, TrendingDown, AlertTriangle, Package,
+  TrendingUp, AlertTriangle, Package,
   Beef, Sprout, HardHat, ArrowRight, Clock, CheckCircle2,
-  AlertCircle, Info, DollarSign, Lock, FileText, RotateCw, RotateCcw
+  AlertCircle, Info, DollarSign, Lock, FileText
 } from 'lucide-react';
-
-import { RotatingCard } from '@/components/ui/RotatingCard';
 
 import './Dashboard.css';
 
 const COLORS = {
-  grass: '#2E7D32',
-  earth: '#5C4033',
-  sky: '#0277BD',
-  harvest: '#F57F17',
-  alert: '#C62828',
-  slate: '#64748B',
+  grass: '#B9D86B',
+  earth: '#D4906A',
+  sky: '#8FD3F4',
+  harvest: '#F6B95C',
+  alert: '#F28B82',
+  slate: '#B8B0A4',
 };
 
 const isFinanceSensitive = (role: string | null | undefined) =>
   role !== 'administrateur' && role !== 'proprietaire' && role !== 'propriétaire' && role !== 'responsable' && role !== 'responsable agricole' && role !== 'responsable élevage' && role !== 'gestionnaire';
-
-const periodLabel = (bounds: { start: Date; end: Date; label: string }) => bounds.label;
 
 // Composant horloge en direct
 const LiveClock = () => {
@@ -117,7 +112,7 @@ const PriorityCard = ({
     <div className="priority-content">
       <p className="priority-reason" style={{ color: severe ? '#D4906A' : '#E8E4DC' }}>{reason}</p>
       <div className="priority-meta">
-        <span className="priority-count" style={{ color: severe ? '#D4906A' : '#2E7D32' }}>{count}</span>
+        <span className="priority-count" style={{ color: severe ? '#F0B08C' : '#B9D86B' }}>{count}</span>
         <span className="priority-label">{label}</span>
       </div>
     </div>
@@ -174,25 +169,6 @@ const ActivityCard = ({
   </Link>
 );
 
-const OpCard = ({ transaction }: { transaction: Transaction }) => {
-  const opLabel = transaction.description || transaction.reference || 'Opération';
-  const isIncome = transaction.direction === 'entree';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%' }}>
-      <div className="flex items-center justify-between">
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${isIncome ? 'text-green-700 bg-green-50' : 'text-amber-700 bg-amber-50'}`}>
-          {isIncome ? 'Entrée' : 'Sortie'}
-        </span>
-        <span className="text-xs font-medium">{formatDate(transaction.transaction_date)}</span>
-      </div>
-      <p className="text-sm font-medium">{opLabel}</p>
-      <div className="mt-auto text-right font-bold" style={{ color: isIncome ? '#166534' : '#92400E' }}>
-        {formatCurrency(transaction.amount)}
-      </div>
-    </div>
-  );
-};
-
 const EmptyState = ({ icon, title, message, action }: {
   icon: ReactNode;
   title: string;
@@ -209,14 +185,15 @@ const EmptyState = ({ icon, title, message, action }: {
   </div>
 );
 
-const SectionHeader = ({ title, description, action }: {
+const SectionHeader = ({ id, title, description, action }: {
+  id: string;
   title: string;
   description?: string;
   action?: React.ReactNode;
 }) => (
   <div className="section-header">
     <div>
-      <h2 className="section-title">{title}</h2>
+      <h2 id={id} className="section-title">{title}</h2>
       {description && <p className="section-description">{description}</p>}
     </div>
     {action}
@@ -225,12 +202,12 @@ const SectionHeader = ({ title, description, action }: {
 
 export function Dashboard() {
   const { appUser } = useAuth();
-  const { media, siteContent, sourceStatus, sourceError } = useData();
+  const { media, siteContent, sourceStatus } = useData();
   const {
     netTreasury,
-    periodIncome,
-    periodExpenses,
-    periodBounds,
+    periodNetResult,
+    grossMargin,
+    periodLabel,
     totalAnimals,
     totalAnimalLots,
     activeCampaigns,
@@ -239,14 +216,11 @@ export function Dashboard() {
     lowStockItems,
     overdueProjects,
     openCriticalAlerts,
-    movementData,
     latestTransactions,
-    hasData,
+    prioritySourcesPending,
     loading,
     error,
-    expenseTrend,
-    incomeTrend,
-    treasuryTrend,
+    periodResultTrend,
   } = useDashboardStats();
 
   const showFinance = !isFinanceSensitive(appUser?.role);
@@ -282,12 +256,6 @@ export function Dashboard() {
   }
 
   // Vérifier la disponibilité des sources pour les priorités (sourceStatus et sourceError déjà déclarés en haut)
-  const prioritySourcesAvailable =
-    sourceStatus.expenses === 'success' &&
-    sourceStatus.inventoryItems === 'success' &&
-    sourceStatus.projects === 'success' &&
-    sourceStatus.alerts === 'success';
-
   const prioritySourcesError =
     sourceStatus.expenses === 'error' ||
     sourceStatus.inventoryItems === 'error' ||
@@ -386,7 +354,7 @@ export function Dashboard() {
       {/* ========== HERO PANORAMIQUE ========== */}
       {heroImageUrl ? (
         <div className="hero-panorama" role="img" aria-label="Vue panoramique de l'exploitation agricole">
-          <img src={heroImageUrl} alt="" />
+          <img src={heroImageUrl} alt="" loading="eager" decoding="async" />
           <div className="hero-overlay" />
           <div className="hero-content">
             <h2 className="hero-title">{typeof siteContent['farm-name']?.value === 'string' ? siteContent['farm-name']!.value : 'Exploitation BAHKANSO'}</h2>
@@ -407,9 +375,8 @@ export function Dashboard() {
             </svg>
             <h2 className="hero-fallback-title">Exploitation BAHKANSO</h2>
             <p className="hero-fallback-message">
-              Aucune photographie de couverture n'est configurée.
-              Ajoutez une image via la bibliothèque Médias (catégorie « cover » ou « hero »),
-              ou définissez la clé « hero-cover » dans le contenu du site.
+              Aucune couverture configurée.
+              <Link to="/app/media">Configurer dans Médias</Link>
             </p>
           </div>
         </div>
@@ -428,8 +395,9 @@ export function Dashboard() {
         {/* ========== A. SYNTHÈSE FINANCIÈRE ========== */}
         <section className="section finance-section" aria-labelledby="finance-title">
           <SectionHeader
+            id="finance-title"
             title="Synthèse financière"
-            description="Un solde est un état à un instant ; un flux se mesure sur une période."
+            description={`Période : ${periodLabel}. Un solde est un état à un instant ; un flux se mesure sur une période.`}
             action={showFinance ? (
               <button
                 className="help-btn"
@@ -447,26 +415,26 @@ export function Dashboard() {
             {showFinance ? (
               <>
                 <KpiCard
-                  label="💰 Trésorerie disponible"
+                  label="Flux net enregistré"
                   value={formatFCFA(netTreasury)}
-                  sub="Comptes bancaires + caisses"
+                  sub="Entrées − sorties connues"
                   icon={<DollarSign size={20} />}
                   color="#B9D86B"
                 />
                 <KpiCard
-                  label="📈 Résultat net"
-                  value={formatFCFA(netTreasury)}
-                  trend={{ value: `${treasuryTrend?.toFixed(1) || '0'}%`, positive: (treasuryTrend ?? 0) >= 0 }}
-                  sub="Ventes − Dépenses"
+                  label="Résultat net"
+                  value={formatFCFA(periodNetResult)}
+                  trend={{ value: `${periodResultTrend?.toFixed(1) || '0'}%`, positive: (periodResultTrend ?? 0) >= 0 }}
+                  sub="Entrées − sorties de la période"
                   icon={<TrendingUp size={20} />}
-                  color="#2E7D32"
+                  color="#B9D86B"
                 />
                 <KpiCard
-                  label="⚖️ Marge brute"
-                  value={`${(periodIncome > 0 ? (netTreasury / periodIncome * 100).toFixed(1) : '0')}%`}
-                  sub="(CA − Coût opérationnel) / CA"
+                  label="Marge brute"
+                  value={`${grossMargin.toFixed(1)}%`}
+                  sub="(Entrées − sorties) / entrées"
                   icon={<DollarSign size={20} />}
-                  color="#0277BD"
+                  color="#8FD3F4"
                 />
               </>
             ) : (
@@ -490,7 +458,7 @@ export function Dashboard() {
               <Info size={16} />
               <div>
                 <p>Ces indicateurs présentent les entrées et sorties enregistrées, sans distinction entre financements, recettes commerciales et transferts internes.</p>
-                <p>Le solde affiché n'intègre pas de solde initial et ne constitue pas un rapprochement bancaire.</p>
+                <p>Le flux net présenté ne tient pas compte d'un solde initial et ne constitue pas un rapprochement bancaire.</p>
               </div>
             </div>
           )}
@@ -499,11 +467,17 @@ export function Dashboard() {
         {/* ========== B. PRIORITÉS ET ACTIONS ========== */}
         <section className="section priorities-section" aria-labelledby="priorities-title">
           <SectionHeader
+            id="priorities-title"
             title="À traiter en priorité"
             description="Chaque alerte est déduite des données. L'absence de donnée ne signifie pas « tout va bien »."
           />
 
-          {prioritySourcesError ? (
+          {prioritySourcesPending ? (
+            <div className="source-pending-state" role="status" aria-live="polite">
+              <div className="spinner" aria-hidden="true" />
+              <p className="empty-message">Évaluation des priorités…</p>
+            </div>
+          ) : prioritySourcesError ? (
             <div className="source-unavailable-state">
               <AlertCircle className="empty-icon" size={32} />
               <h4 className="empty-title">Certaines sources de priorité sont indisponibles</h4>
@@ -530,6 +504,7 @@ export function Dashboard() {
         {/* ========== C. LA FERME EN BREF ========== */}
         <section className="section activities-section" aria-labelledby="activities-title">
           <SectionHeader
+            id="activities-title"
             title="La ferme en bref"
             description="Synthèse compacte de l'agriculture, de l'élevage et des projets."
           />
@@ -544,6 +519,7 @@ export function Dashboard() {
         {/* ========== D. DERNIÈRES OPÉRATIONS ========== */}
         <section className="section operations-section" aria-labelledby="operations-title">
           <SectionHeader
+            id="operations-title"
             title="Dernières opérations"
             description="Les trois dernières transactions. Détails dans Finances."
             action={

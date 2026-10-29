@@ -270,3 +270,9 @@
 .rc.is-flipped {
   z-index: 100;
 }
+
+/* Ancrage z-index : le conteneur grille doit être positionné
+   pour que .rc.is-flipped z-index:100 fonctionne correctement */
+.module-cards-grid {
+  position: relative;
+}

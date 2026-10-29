@@ -105,4 +105,45 @@ describe('useDashboardStats', () => {
     expect(result.hasData).toBe(false);
     expect(result.transactionsAvailable).toBe(true);
   });
+
+  it('calcule le résultat net et la marge brute sur la période courante', () => {
+    const result = current(setup({
+      arrays: {
+        transactions: [
+          { id: 'current-income', reference: null, type: 'v', amount: 1000, currency: 'XOF', direction: 'entree', description: null, funding_id: null, transaction_date: '2026-10-10', bank_account_id: null, cash_account_id: null },
+          { id: 'current-expense', reference: null, type: 'v', amount: 400, currency: 'XOF', direction: 'sortie', description: null, funding_id: null, transaction_date: '2026-10-11', bank_account_id: null, cash_account_id: null },
+          { id: 'historical-income', reference: null, type: 'v', amount: 9000, currency: 'XOF', direction: 'entree', description: null, funding_id: null, transaction_date: '2026-09-10', bank_account_id: null, cash_account_id: null },
+        ],
+      },
+    }));
+
+    expect(result.periodIncome).toBe(1000);
+    expect(result.periodExpenses).toBe(400);
+    expect(result.periodNetResult).toBe(600);
+    expect(result.grossMargin).toBe(60);
+    expect(result.netTreasury).toBe(9600);
+  });
+
+  it('expose le libellé de la période courante', () => {
+    const result = current(setup({}));
+    expect(result.periodLabel).toMatch(/2026/);
+  });
+
+  it('distingue les sources encore en attente des sources définitivement vides', () => {
+    const result = current(setup({ sourceStatus: { expenses: 'loading' as SourceStatus } }));
+    expect(result.expensesAvailable).toBe(false);
+    expect(result.prioritySourcesPending).toBe(true);
+  });
+
+  it('ne compte pas les avertissements dans les alertes critiques', () => {
+    const result = current(setup({
+      arrays: {
+        alerts: [
+          { id: 'critical', severity: 'CRITIQUE', status: 'ouvert' },
+          { id: 'warning', severity: 'AVERTISSEMENT', status: 'ouvert' },
+        ],
+      },
+    }));
+    expect(result.openCriticalAlerts).toBe(1);
+  });
 });
