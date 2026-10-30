@@ -1,539 +1,856 @@
-import { useState, useMemo, useCallback } from 'react';
-import { ShoppingBag, Wheat, MapPin, CreditCard, Edit, Filter, ChevronDown, Plus, TrendingUp, Users, RefreshCw, Trash2 } from 'lucide-react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingBag, Users, CreditCard, TrendingUp, Plus, Eye, Pencil, Trash2, Filter, ChevronDown, MapPin, Calendar, DollarSign, Package } from 'lucide-react';
 import { RotatingCard } from '@/components/ui/RotatingCard';
-import { KpiCard } from '@/components/ui/KpiCard';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useSalesData } from './hooks/useSalesData';
 import { useToast } from '@/lib/Toast';
 import type { SaleWithRelations } from './hooks/useSalesData';
 import { SaleFormModal } from './components/SaleFormModal';
 import { SaleDetailsModal } from './components/SaleDetailsModal';
+import { useSite } from '@/lib/SiteContext';
+import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { logAudit } from '@/lib/types';
+import * as z from 'zod';
+import { useValidatedForm } from '@/components/ui/ValidatedForm';
+import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
+import { Accordion } from '@/components/ui/Accordion';
+import { Modal } from '@/components/ui/Modal';
 
-interface StatusBadgeProps {
-  status: string;
+import '@/styles/module-theme.css';
+
+const saleSchema = z.object({
+  site_id: z.string().min(1, 'Le site est obligatoire'),
+  customer_id: z.string().min(1, 'Le client est obligatoire'),
+  date: z.string().min(1, 'La date est obligatoire'),
+  payment_method: z.enum(['espèces', 'virement', 'chèque', 'mobile money', 'carte']).default('espèces'),
+  items: z.array(z.object({
+    description: z.string().min(1, 'La description est obligatoire'),
+    quantity: z.number().positive('La quantité doit être positive'),
+    unit: z.string().min(1, 'L\'unité est obligatoire'),
+    unit_price: z.number().min(0, 'Le prix unitaire ne peut pas être négatif'),
+    total: z.number().min(0),
+  })).min(1, 'Au moins un article est obligatoire'),
+});
+
+type SaleFormValues = z.infer<typeof saleSchema>;
+type PaymentMethod = SaleFormValues['payment_method'];
+type SaleItem = SaleFormValues['items'][0];
+
+const DEFAULT_VALUES: SaleFormValues = {
+  site_id: '',
+  customer_id: '',
+  date: new Date().toISOString().split('T')[0],
+  payment_method: 'espèces',
+  items: [{ description: '', quantity: 1, unit: 'kg', unit_price: 0, total: 0 }],
+};
+
+function statusLabel(status: string) {
+  return status === 'payée' ? 'Payée' : status === 'en_attente' ? 'En attente' : status === 'annulée' ? 'Annulée' : status;
 }
 
-function StatusBadge({ status }: StatusBadgeProps) {
-  const config = useMemo(() => {
-    switch (status?.toLowerCase()) {
-      case 'payée':
-      case 'paye':
-      case 'paid':
-        return { bg: 'bg-green-100', text: 'text-green-700', label: 'Payée' };
-      case 'en attente':
-      case 'en_attente':
-      case 'pending':
-        return { bg: 'bg-amber-100', text: 'text-amber-700', label: 'En attente' };
-      case 'annulée':
-      case 'annulee':
-      case 'cancelled':
-        return { bg: 'bg-red-100', text: 'text-red-700', label: 'Annulée' };
-      default:
-        return { bg: 'bg-slate-100', text: 'text-slate-700', label: status };
-    }
-  }, [status]);
+const paymentMethodLabels: Record<string, string> = {
+  'espèces': 'Espèces',
+  'virement': 'Virement',
+  'chèque': 'Chèque',
+  'mobile money': 'Mobile Money',
+  'carte': 'Carte',
+};
 
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-      {config.label}
-    </span>
+const periodLabels: Record<string, string> = {
+  month: 'Ce mois',
+  quarter: 'Ce trimestre',
+  year: 'Cette année',
+  all: 'Tout',
+};
+
+const statusOptions = ['', 'payée', 'en_attente', 'annulée'];
+
+export function SalesModule() {
+  const navigate = useNavigate();
+  const { sales, customers, stats, loading, error, refresh, deleteSale } = useSalesData();
+  const { currentSiteId, availableSites, isGlobalView } = useSite();
+  const { appUser } = useAuth();
+  const toast = useToast();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editSale, setEditSale] = useState<SaleWithRelations | null>(null);
+  const [detailSale, setDetailSale] = useState<SaleWithRelations | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<SaleWithRelations | null>(null);
+  const [activeTab, setActiveTab] = useState<'ventes' | 'clients' | 'par_mois'>('ventes');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Use currentSiteId from useSite for filtering
+  const effectiveSiteId = useMemo(() => currentSiteId, [currentSiteId]);
+
+  const filteredSales = useMemo(() => {
+    return sales.filter(sale => {
+      // Site filtering via useSite context
+      if (effectiveSiteId && sale.site_id !== effectiveSiteId) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const matchRef = (sale.reference || '').toLowerCase().includes(term);
+        const matchClient = (sale.customer?.name || '').toLowerCase().includes(term);
+        const matchSite = (sale.site?.name || '').toLowerCase().includes(term);
+        const matchItems = sale.items?.some(item =>
+          (item.description || '').toLowerCase().includes(term)
+        ) ?? false;
+        if (!matchRef && !matchClient && !matchSite && !matchItems) return false;
+      }
+      return true;
+    });
+  }, [sales, effectiveSiteId, searchTerm]);
+
+  const kpis = useMemo(() => {
+    const baseSales = effectiveSiteId
+      ? sales.filter(s => s.site_id === effectiveSiteId)
+      : sales;
+    const totalRevenue = baseSales.reduce((s, sale) => s + (sale.total_amount || 0), 0);
+    const salesCount = baseSales.length;
+    const avgSale = salesCount > 0 ? totalRevenue / salesCount : 0;
+    const activeClients = customers.filter(c =>
+      baseSales.some(s => s.customer_id === c.id)
+    ).length;
+    return [
+      { label: 'Chiffre d\'affaires', value: formatCurrency(totalRevenue), iconColor: '#2E7D32' },
+      { label: 'Nombre de ventes', value: String(salesCount), iconColor: '#0277BD' },
+      { label: 'Panier moyen', value: formatCurrency(avgSale), iconColor: '#F57F17' },
+      { label: 'Clients actifs', value: String(activeClients), iconColor: '#C62828' },
+    ];
+  }, [sales, customers, effectiveSiteId]);
+
+  const { values: form, setFieldValue: setForm, resetForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm<SaleFormValues>({
+    schema: saleSchema,
+    defaultValues: DEFAULT_VALUES,
+    onSubmit: async (values) => {
+      // Calculate totals for items
+      const itemsWithTotals = values.items.map(item => ({
+        ...item,
+        total: item.quantity * item.unit_price,
+      }));
+      const totalAmount = itemsWithTotals.reduce((s, item) => s + item.total, 0);
+
+      const payload = {
+        site_id: values.site_id,
+        customer_id: values.customer_id,
+        date: values.date,
+        payment_method: values.payment_method,
+        total_amount: totalAmount,
+        items: itemsWithTotals,
+      };
+
+      if (editSale) {
+        const { error } = await supabase.from('sales').update({
+          site_id: payload.site_id,
+          customer_id: payload.customer_id,
+          date: payload.date,
+          payment_method: payload.payment_method,
+          total_amount: payload.total_amount,
+        }).eq('id', editSale.id);
+        if (error) throw error;
+
+        // Delete old items and insert new ones
+        await supabase.from('sale_items').delete().eq('sale_id', editSale.id);
+        if (itemsWithTotals.length > 0) {
+          const { error: itemsError } = await supabase.from('sale_items').insert(
+            itemsWithTotals.map(item => ({ ...item, sale_id: editSale.id }))
+          );
+          if (itemsError) throw itemsError;
+        }
+
+        await logAudit(
+          appUser?.name || 'Système',
+          'UPDATE',
+          'sale',
+          editSale.reference || '',
+          `Vente ${editSale.reference} modifiée`,
+        );
+        toast.show('Vente modifiée');
+      } else {
+        const { data: saleData, error } = await supabase
+          .from('sales')
+          .insert({
+            site_id: payload.site_id,
+            customer_id: payload.customer_id,
+            date: payload.date,
+            payment_method: payload.payment_method,
+            total_amount: payload.total_amount,
+          })
+          .select()
+          .single();
+        if (error) throw error;
+
+        if (itemsWithTotals.length > 0) {
+          const { error: itemsError } = await supabase.from('sale_items').insert(
+            itemsWithTotals.map(item => ({ ...item, sale_id: saleData.id }))
+          );
+          if (itemsError) throw itemsError;
+        }
+
+        await logAudit(
+          appUser?.name || 'Système',
+          'CREATE',
+          'sale',
+          saleData.reference || '',
+          `Création de la vente ${saleData.reference}`,
+        );
+        toast.show('Vente créée avec succès');
+      }
+      refresh();
+    },
+    onSuccess: () => { setModalOpen(false); setEditSale(null); },
+    onError: (err) => toast.show('Erreur: ' + err.message, 'error'),
+    isEdit: !!editSale,
+  });
+
+  // Memoize typed form items for the Articles FormSection
+  const formItems = useMemo(() => form.items as SaleItem[], [form.items]);
+
+  const openCreate = useCallback(() => {
+    resetForm();
+    setEditSale(null);
+    setModalOpen(true);
+  }, [resetForm]);
+
+  const openEdit = useCallback((sale: SaleWithRelations) => {
+    setEditSale(sale);
+    setForm('site_id', sale.site_id || '');
+    setForm('customer_id', sale.customer_id || '');
+    setForm('date', sale.date);
+    setForm('payment_method', (sale.payment_method || 'espèces') as PaymentMethod);
+    const items = (sale.items || []).map(item => ({
+      description: item.description || '',
+      quantity: item.quantity,
+      unit: item.unit || 'kg',
+      unit_price: item.unit_price,
+      total: item.total,
+    }));
+    setForm('items', items.length > 0 ? items : DEFAULT_VALUES.items);
+    setModalOpen(true);
+  }, [setForm]);
+
+  const openDetail = useCallback((sale: SaleWithRelations) => {
+    setDetailSale(sale);
+  }, []);
+
+  const handleDelete = useCallback(
+    (sale: SaleWithRelations) => {
+      setConfirmDelete(sale);
+    },
+    [],
   );
-}
 
-function SaleCardFront({ sale, index, onDetails, onEdit, onDelete }: { sale: SaleWithRelations; index: number; onDetails: () => void; onEdit: () => void; onDelete: () => void }) {
-  const isCrop = sale.items?.some(item => item.description?.toLowerCase().includes('maïs') || item.description?.toLowerCase().includes('mais') || item.description?.toLowerCase().includes('blé') || item.description?.toLowerCase().includes('ble') || item.description?.toLowerCase().includes('riz')) ?? false;
+  const handleDeleteConfirmed = useCallback(async (sale: SaleWithRelations) => {
+    const { error } = await supabase.from('sales').delete().eq('id', sale.id);
+    if (error) {
+      toast.show('Erreur: ' + error.message, 'error');
+    } else {
+      await logAudit(
+        appUser?.name || 'Système',
+        'DELETE',
+        'sale',
+        sale.reference || '',
+        `Vente ${sale.reference} supprimée`,
+      );
+      toast.show('Vente supprimée');
+      setDetailSale(null);
+      refresh();
+    }
+  }, [appUser, refresh, toast]);
 
-  return (
-    <div className="h-full flex flex-col p-5 bg-white">
-      {/* Header: badge statut + référence */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <StatusBadge status={sale.status || 'en_attente'} />
-        <div className="text-right">
-          <p className="text-xs text-slate-500 font-mono">#{index + 1}</p>
-          <p className="text-xs text-slate-400 font-mono">{sale.reference || '—'}</p>
+  const getSaleName = (s: SaleWithRelations) => s.reference || `Vente ${s.id.slice(0, 8)}`;
+
+  const getBadgeColor = (status: string) => {
+    if (status === 'payée') return 'green';
+    if (status === 'en_attente') return 'amber';
+    if (status === 'annulée') return 'red';
+    return 'gray';
+  };
+
+  const renderSaleFront = (sale: SaleWithRelations) => (
+    <div className="h-full flex flex-col justify-between">
+      <div>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <p className="text-xs text-slate-500 font-medium mb-1">{sale.reference || `VTE-${new Date(sale.date).getFullYear()}-${sale.id.slice(-5)}`}</p>
+            <p className="text-2xl font-bold text-slate-900 mb-2">{formatCurrency(sale.total_amount || 0)}</p>
+            <p className="text-sm text-slate-600">{sale.customer?.name || 'Client inconnu'} {sale.customer?.type ? `(${sale.customer.type})` : ''}</p>
+          </div>
+          <span className={`module-badge module-badge-${getBadgeColor(sale.status || 'en_attente')}`}>
+            {statusLabel(sale.status || 'en_attente')}
+          </span>
+        </div>
+        <div className="space-y-1 text-sm">
+          <p className="flex items-center gap-1"><MapPin size={12} className="text-slate-400" /> <span className="text-slate-500">Date :</span> <span className="font-medium">{formatDate(sale.date)}</span></p>
+          <p className="flex items-center gap-1"><MapPin size={12} className="text-slate-400" /> <span className="text-slate-500">Site :</span> <span className="font-medium">{sale.site?.name || '—'}</span></p>
         </div>
       </div>
-
-      {/* Centre: montant + client */}
-      <div className="flex-1 flex flex-col justify-center mb-4">
-        <p className="text-2xl font-bold text-slate-900">{formatCurrency(sale.total_amount)}</p>
-        <p className="text-sm text-slate-600 mt-1 truncate">{sale.customer?.name || 'Client inconnu'}</p>
-        {sale.customer?.type && (
-          <p className="text-xs text-slate-500 capitalize">{sale.customer.type}</p>
-        )}
-      </div>
-
-      {/* Bas: date + site + icône type */}
-      <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-        <div className="flex items-center gap-1.5">
-          <MapPin size={12} />
-          <span>{sale.site?.name || '—'}</span>
-          {sale.site?.code && (
-            <>
-              <span className="text-slate-300">·</span>
-              <span className="font-mono text-slate-400">{sale.site.code}</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 text-slate-400">
-          <span>{formatDate(sale.date)}</span>
-          {isCrop ? <Wheat size={14} /> : <ShoppingBag size={14} />}
-        </div>
-      </div>
-
-      {/* Boutons CRUD en bas du recto */}
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={onDetails}
-          className="flex-1 bg-slate-100 text-slate-700 px-3 py-2 rounded text-sm hover:bg-slate-200"
-        >
-          Détails
-        </button>
-        <button
-          onClick={onEdit}
-          className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded text-sm hover:bg-blue-200"
-        >
-          Modifier
-        </button>
-        <button
-          onClick={onDelete}
-          className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200"
-        >
-          Supprimer
-        </button>
+      <div className="mt-4 pt-3 border-t border-emerald-200">
+        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
       </div>
     </div>
   );
-}
 
-interface SaleCardBackProps {
-  sale: SaleWithRelations;
-  onDetails: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}
-
-function SaleCardBack({ sale, onDetails, onEdit, onDelete }: SaleCardBackProps) {
-  return (
-    <div className="h-full flex flex-col justify-between p-5 bg-slate-50">
-      <div>
-        <h4 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          <ShoppingBag size={18} className="text-green-600" />
-          Détails de la vente
-        </h4>
-
-        {/* Référence + client + date */}
-        <div className="space-y-2 mb-4 p-3 bg-white rounded-lg border border-slate-100">
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <p className="text-slate-500">Référence</p>
-              <p className="font-mono text-slate-900">{sale.reference || '—'}</p>
-            </div>
-            <div>
-              <p className="text-slate-500">Date</p>
-              <p className="font-medium text-slate-900">{formatDate(sale.date)}</p>
-            </div>
-            <div>
-              <p className="text-slate-500">Client</p>
-              <p className="font-medium text-slate-900">{sale.customer?.name || '—'}</p>
-            </div>
-            <div>
-              <p className="text-slate-500">Site</p>
-              <p className="font-medium text-slate-900">{sale.site?.name || '—'}</p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-slate-500">Paiement</p>
-              <p className="font-medium text-slate-900 capitalize">{sale.payment_method || 'espèces'}</p>
-            </div>
+  const renderSaleBack = (sale: SaleWithRelations) => (
+    <div className="h-full flex flex-col justify-between">
+      <div className="space-y-2 text-sm">
+        <h3 className="font-semibold text-slate-900 mb-3">Détails de la vente</h3>
+        <p><span className="text-slate-500">Référence :</span> {sale.reference || '—'}</p>
+        <p><span className="text-slate-500">Date :</span> {formatDate(sale.date)}</p>
+        <p><span className="text-slate-500">Client :</span> {sale.customer?.name || '—'}</p>
+        <p><span className="text-slate-500">Site :</span> {sale.site?.name || '—'}</p>
+        <p><span className="text-slate-500">Paiement :</span> {paymentMethodLabels[sale.payment_method || 'espèces']}</p>
+        <p><span className="text-slate-500">Statut :</span> {statusLabel(sale.status || 'en_attente')}</p>
+        <p><span className="text-slate-500">Montant :</span> {formatCurrency(sale.total_amount || 0)}</p>
+        {(sale.items && sale.items.length > 0) && (
+          <div className="mt-2 pt-2 border-t border-slate-200 space-y-1">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Articles</p>
+            {sale.items.map((item, idx) => (
+              <p key={idx} className="text-xs text-slate-600">
+                {item.description} — {item.quantity} {item.unit} × {formatCurrency(item.unit_price)} = {formatCurrency(item.total)}
+              </p>
+            ))}
           </div>
+        )}
+      </div>
+      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); openDetail(sale); }}
+          className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+        >
+          <Eye size={16} /> Détails
+        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); openEdit(sale); }}
+            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+          >
+            <Pencil size={14} /> Modifier
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); handleDelete(sale); }}
+            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+          >
+            <Trash2 size={14} /> Supprimer
+          </button>
         </div>
+      </div>
+    </div>
+  );
 
-        {/* Lignes de vente - avec scroll uniquement sur cette liste */}
-        <div className="mb-4 overflow-y-auto max-h-[40vh] pr-2">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Articles</p>
-          <div className="space-y-2">
-            {sale.items && sale.items.length > 0 ? (
-              sale.items.map((item, i) => (
-                <div key={item.id || i} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100">
+  const renderDetailFields = (sale: SaleWithRelations) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Référence</p>
+          <p className="font-mono text-slate-900">{sale.reference || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Date</p>
+          <p className="text-slate-900">{formatDate(sale.date)}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Client</p>
+          <p className="text-slate-900">{sale.customer?.name || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Type client</p>
+          <p className="text-slate-900 capitalize">{sale.customer?.type || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Site</p>
+          <p className="text-slate-900">{sale.site?.name || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Paiement</p>
+          <p className="text-slate-900 capitalize">{paymentMethodLabels[sale.payment_method || 'espèces']}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Statut</p>
+          <p className={`text-slate-900 font-medium ${sale.status === 'payée' ? 'text-green-600' : sale.status === 'annulée' ? 'text-red-600' : 'text-amber-600'}`}>
+            {statusLabel(sale.status || 'en_attente')}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-slate-500">Montant total</p>
+          <p className="text-slate-900 font-bold">{formatCurrency(sale.total_amount)}</p>
+        </div>
+      </div>
+      <div>
+        <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">Articles</p>
+        <div className="space-y-2">
+          {sale.items && sale.items.length > 0 ? (
+            sale.items.map((item, i) => (
+              <div key={item.id || i} className="p-3 bg-white rounded-lg border border-slate-100">
+                <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900 truncate">{item.description || 'Article'}</p>
                     <p className="text-xs text-slate-500">{item.quantity} {item.unit} × {formatCurrency(item.unit_price)}</p>
                   </div>
                   <p className="font-semibold text-slate-900 ml-4 whitespace-nowrap">{formatCurrency(item.total)}</p>
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-slate-500 text-center py-4">Aucun article</p>
-            )}
-          </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-slate-500 text-center py-4">Aucun article</p>
+          )}
         </div>
-
-        {/* Total */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-          <span className="font-semibold text-slate-700">Total</span>
-          <span className="text-xl font-bold text-slate-900">{formatCurrency(sale.total_amount)}</span>
-        </div>
-      </div>
-
-      {/* Actions - deux boutons côte à côte en bas */}
-      <div className="flex gap-2 pt-4 border-t border-slate-200">
-        <button onClick={onDetails} className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
-          Détails
-        </button>
-        <button onClick={onEdit} className="flex-1 py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
-          <Edit size={14} /> Modifier
-        </button>
-        <button onClick={onDelete} className="flex-1 py-2 px-4 bg-red-50 text-red-600 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-red-100 transition-colors">
-          <Trash2 size={14} /> Supprimer
-        </button>
       </div>
     </div>
   );
-}
 
-function SalesFilters({
-  selectedSite,
-  selectedStatus,
-  selectedPeriod,
-  sites,
-  onSiteChange,
-  onStatusChange,
-  onPeriodChange,
-}: {
-  selectedSite: string;
-  selectedStatus: string;
-  selectedPeriod: string;
-  sites: Array<{ id: string; name: string; code: string | null }>;
-  onSiteChange: (v: string) => void;
-  onStatusChange: (v: string) => void;
-  onPeriodChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-3 bg-white p-4 rounded-xl border border-slate-200">
-      {/* Filtre site */}
-      <div className="relative">
-        <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <select
-          value={selectedSite}
-          onChange={e => onSiteChange(e.target.value)}
-          className="pl-10 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        >
-          <option value="">Tous les sites</option>
-          {sites.map(s => (
-            <option key={s.id} value={s.id}>
-              {s.name} {s.code ? `(${s.code})` : ''}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-      </div>
-
-      {/* Filtre statut */}
-      <div className="relative">
-        <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <select
-          value={selectedStatus}
-          onChange={e => onStatusChange(e.target.value)}
-          className="pl-10 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        >
-          <option value="">Tous les statuts</option>
-          <option value="payée">Payée</option>
-          <option value="en_attente">En attente</option>
-          <option value="annulée">Annulée</option>
-        </select>
-        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-      </div>
-
-      {/* Filtre période */}
-      <div className="relative">
-        <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <select
-          value={selectedPeriod}
-          onChange={e => onPeriodChange(e.target.value)}
-          className="pl-10 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        >
-          <option value="month">Ce mois</option>
-          <option value="quarter">Ce trimestre</option>
-          <option value="year">Cette année</option>
-          <option value="all">Tout</option>
-        </select>
-        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-      </div>
-    </div>
-  );
-}
-
-export const SalesModule = () => {
-  const { sales, customers, stats, loading, error, refresh, deleteSale } = useSalesData();
-  const [selectedSite, setSelectedSite] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const toast = useToast();
-
-  // Sites uniques pour le filtre
-  const sites = useMemo(() => {
-    const siteMap = new Map<string, { id: string; name: string; code: string | null }>();
-    sales.forEach(s => {
-      if (s.site?.id && !siteMap.has(s.site.id)) {
-        siteMap.set(s.site.id, { id: s.site.id, name: s.site.name, code: s.site.code });
-      }
-    });
-    return Array.from(siteMap.values());
-  }, [sales]);
-
-  // Filtrer les ventes
-  const filteredSales = useMemo(() => {
-    return sales.filter(sale => {
-      if (selectedSite && sale.site_id !== selectedSite) return false;
-      if (selectedStatus && sale.status !== selectedStatus) return false;
-      if (selectedPeriod !== 'all') {
-        const saleDate = new Date(sale.date);
-        const now = new Date();
-        if (selectedPeriod === 'month') {
-          if (saleDate.getMonth() !== now.getMonth() || saleDate.getFullYear() !== now.getFullYear()) return false;
-        } else if (selectedPeriod === 'quarter') {
-          const saleQuarter = Math.floor(saleDate.getMonth() / 3);
-          const currentQuarter = Math.floor(now.getMonth() / 3);
-          if (saleQuarter !== currentQuarter || saleDate.getFullYear() !== now.getFullYear()) return false;
-        } else if (selectedPeriod === 'year') {
-          if (saleDate.getFullYear() !== now.getFullYear()) return false;
-        }
-      }
-      return true;
-    });
-  }, [sales, selectedSite, selectedStatus, selectedPeriod]);
-
-  // État pour la modale de formulaire
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  // État pour la modale de détails (lecture seule)
-  const [saleToView, setSaleToView] = useState<{
-    id: string;
-    reference: string | null;
-    date: string;
-    status: string | null;
-    payment_method: string | null;
-    total_amount: number;
-    customer: { name: string | null; type: string | null } | null;
-    site: { name: string | null; code: string | null } | null;
-    items: Array<{
-      id: string;
-      description: string | null;
-      quantity: number;
-      unit: string | null;
-      unit_price: number;
-      total: number;
-    }>;
-  } | null>(null);
-  const [saleToEdit, setSaleToEdit] = useState<{
-    id: string;
-    site_id: string;
-    customer_id: string;
-    date: string;
-    payment_method: string;
-    items: Array<{
-      id: string;
-      description: string | null;
-      quantity: number;
-      unit: string;
-      unit_price: number;
-      total: number;
-    }>;
-  } | null>(null);
-
-  // Ouvrir la modale en mode création
-  const openCreateModal = useCallback(() => {
-    setSaleToEdit(null);
-    setIsFormOpen(true);
-  }, []);
-
-  // Ouvrir la modale en mode édition
-  const openEditModal = useCallback((sale: SaleWithRelations) => {
-    setSaleToEdit({
-      id: sale.id,
-      site_id: sale.site_id || '',
-      customer_id: sale.customer_id || '',
-      date: sale.date,
-      payment_method: sale.payment_method,
-      items: (sale.items || []).map(item => ({
-        id: item.id,
-        description: item.description,
-        quantity: item.quantity,
-        unit: item.unit,
-        unit_price: item.unit_price,
-        total: item.total,
-      })),
-    });
-    setIsFormOpen(true);
-  }, []);
-
-  // Supprimer une vente
-  const handleDelete = useCallback(async (saleId: string) => {
-    const sale = sales.find(s => s.id === saleId);
-    const confirmed = window.confirm(`Supprimer la vente "${sale?.reference}" ? Cette action est irréversible.`);
-    if (!confirmed) return;
-
-    try {
-      await deleteSale(saleId);
-      toast.show('Vente supprimée', 'success');
-    } catch (err) {
-      console.error('Erreur suppression:', err);
-      toast.show('Erreur lors de la suppression', 'error');
+  const renderClientsTab = () => {
+    const clientsWithSales = customers.filter(c => sales.some(s => s.customer_id === c.id));
+    if (clientsWithSales.length === 0) {
+      return (
+        <div className="module-empty-state">
+          <Users size={48} className="module-empty-icon" />
+          <h3 className="module-empty-title">Aucun client avec ventes</h3>
+          <p className="module-empty-message">Les clients apparaîtront ici après leur première vente.</p>
+        </div>
+      );
     }
-  }, [deleteSale, toast, sales]);
-
-  if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Ventes</h1>
-            <p className="text-slate-500">Gestion des ventes et clients</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <KpiCard key={i} label="..." value="—" icon={<TrendingUp size={20} />} />
-          ))}
-        </div>
-        <div className="h-96 bg-slate-50 rounded-xl animate-pulse" />
+      <div className="module-cards-grid">
+        {clientsWithSales.map((client) => {
+          const clientSales = sales.filter(s => s.customer_id === client.id);
+          const clientRevenue = clientSales.reduce((s, sale) => s + (sale.total_amount || 0), 0);
+          const clientSalesCount = clientSales.length;
+          const lastSale = clientSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+          return (
+            <RotatingCard
+              key={client.id}
+              flipLabel="Détails"
+              backLabel="Retour"
+              front={
+                <div className="h-full flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <h3 className="font-semibold text-slate-900">{client.name}</h3>
+                        <p className="text-sm text-slate-500 capitalize">{client.type || 'particulier'}</p>
+                      </div>
+                      <span className="module-badge module-badge-blue">Client</span>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-slate-500">Achats :</span> <span className="font-medium">{clientSalesCount}</span></p>
+                      <p><span className="text-slate-500">CA total :</span> <span className="font-medium">{formatCurrency(clientRevenue)}</span></p>
+                      <p><span className="text-slate-500">Dernier achat :</span> <span className="font-medium">{lastSale ? formatDate(lastSale.date) : '—'}</span></p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-emerald-200">
+                    <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+                  </div>
+                </div>
+              }
+              back={
+                <div className="h-full flex flex-col justify-between">
+                  <div className="space-y-2 text-sm">
+                    <h3 className="font-semibold text-slate-900 mb-3">{client.name}</h3>
+                    <p><span className="text-slate-500">Type :</span> <span className="capitalize">{client.type || 'particulier'}</span></p>
+                    <p><span className="text-slate-500">Téléphone :</span> {client.phone || '—'}</p>
+                    <p><span className="text-slate-500">Email :</span> {client.email || '—'}</p>
+                    <p><span className="text-slate-500">Nombre d'achats :</span> {clientSalesCount}</p>
+                    <p><span className="text-slate-500">CA total :</span> {formatCurrency(clientRevenue)}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/app/finance?client=${client.id}`); }}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                    >
+                      <Eye size={16} /> Voir historique
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); openCreate(); }}
+                      className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+                    >
+                      <Plus size={14} /> Nouvelle vente
+                    </button>
+                  </div>
+                </div>
+              }
+            />
+          );
+        })}
       </div>
     );
-  }
+  };
 
-  if (error) {
+  const renderParMoisTab = () => {
+    const salesByMonth = useMemo(() => {
+      const map = new Map<string, { month: string; revenue: number; count: number }>();
+      filteredSales.forEach(sale => {
+        const date = new Date(sale.date);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const existing = map.get(key) || { month: key, revenue: 0, count: 0 };
+        existing.revenue += sale.total_amount || 0;
+        existing.count += 1;
+        map.set(key, existing);
+      });
+      return Array.from(map.values()).sort((a, b) => b.month.localeCompare(a.month));
+    }, [filteredSales]);
+
+    if (salesByMonth.length === 0) {
+      return (
+        <div className="module-empty-state">
+          <Calendar size={48} className="module-empty-icon" />
+          <h3 className="module-empty-title">Aucune vente sur la période</h3>
+          <p className="module-empty-message">Les ventes mensuelles apparaîtront ici.</p>
+        </div>
+      );
+    }
     return (
-      <div className="text-center py-12">
-        <ShoppingBag size={48} className="mx-auto mb-4 text-slate-300" />
-        <p className="text-lg font-medium text-slate-900">Erreur de chargement</p>
-        <p className="text-sm text-slate-500 mt-1">{error.message}</p>
-        <button onClick={refresh} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90">
-          Réessayer
-        </button>
+      <div className="module-cards-grid">
+        {salesByMonth.map((monthData) => (
+          <RotatingCard
+            key={monthData.month}
+            flipLabel="Détails"
+            backLabel="Retour"
+            front={
+              <div className="h-full flex flex-col justify-between">
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{monthData.month}</h3>
+                      <p className="text-sm text-slate-500">Mois complet</p>
+                    </div>
+                    <span className="module-badge module-badge-green">Mensuel</span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="text-slate-500">CA :</span> <span className="font-medium">{formatCurrency(monthData.revenue)}</span></p>
+                    <p><span className="text-slate-500">Nb ventes :</span> <span className="font-medium">{monthData.count}</span></p>
+                    <p><span className="text-slate-500">Panier moyen :</span> <span className="font-medium">{formatCurrency(monthData.count > 0 ? monthData.revenue / monthData.count : 0)}</span></p>
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-emerald-200">
+                  <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+                </div>
+              </div>
+            }
+            back={
+              <div className="h-full flex flex-col justify-between">
+                <div className="space-y-2 text-sm">
+                  <h3 className="font-semibold text-slate-900 mb-3">{monthData.month}</h3>
+                  <p><span className="text-slate-500">Chiffre d'affaires :</span> {formatCurrency(monthData.revenue)}</p>
+                  <p><span className="text-slate-500">Nombre de ventes :</span> {monthData.count}</p>
+                  <p><span className="text-slate-500">Panier moyen :</span> {formatCurrency(monthData.count > 0 ? monthData.revenue / monthData.count : 0)}</p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-emerald-200">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/app/finance?period=${monthData.month}`); }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                  >
+                    <Eye size={16} /> Voir les ventes du mois
+                  </button>
+                </div>
+              </div>
+            }
+          />
+        ))}
       </div>
     );
-  }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Ventes</h1>
-          <p className="text-slate-500 mt-1">Gestion des ventes et clients</p>
+    <div className="module-page">
+      {/* ========== HEADER ========== */}
+      <header className="module-header">
+        <div className="module-header-left">
+          <h1>Ventes</h1>
+          <p className="module-subtitle">Gestion des ventes, clients et suivi mensuel</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="module-header-right">
+          {!isGlobalView && effectiveSiteId && (
+            <span className="module-badge module-badge-blue mr-2">
+              {availableSites.find(s => s.id === effectiveSiteId)?.name || 'Site'}
+            </span>
+          )}
           <button
-            onClick={() => setIsFormOpen(true)}
-            data-testid="btn-new-sale"
-            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-3 rounded-lg shadow-md transition"
+            onClick={openCreate}
+            className="module-btn module-btn-primary"
           >
-            <Plus size={20} /> Nouvelle vente
-          </button>
-          <button onClick={() => { refresh(); toast.show('Données actualisées', 'success'); }} className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-sm text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
-            <RefreshCw size={16} /> Actualiser
+            <Plus size={16} /> Nouvelle vente
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <KpiCard
-          label="Chiffre d'affaires"
-          value={formatCurrency(stats?.totalRevenue || 0)}
-          icon={<TrendingUp size={20} className="text-green-600" />}
-          trend={{ value: '+', positive: true }}
-        />
-        <KpiCard
-          label="Nombre de ventes"
-          value={String(stats?.salesCount || 0)}
-          icon={<ShoppingBag size={20} className="text-blue-600" />}
-        />
-        <KpiCard
-          label="Panier moyen"
-          value={formatCurrency(stats?.avgSale || 0)}
-          icon={<CreditCard size={20} className="text-purple-600" />}
-        />
-        <KpiCard
-          label="Clients actifs"
-          value={String(customers.length)}
-          icon={<Users size={20} className="text-orange-600" />}
-        />
-        <KpiCard
-          label="Sites actifs"
-          value={String(sites.length)}
-          icon={<MapPin size={20} className="text-teal-600" />}
-        />
-      </div>
-
-      {/* Filtres */}
-      <SalesFilters
-        selectedSite={selectedSite}
-        selectedStatus={selectedStatus}
-        selectedPeriod={selectedPeriod}
-        sites={sites}
-        onSiteChange={setSelectedSite}
-        onStatusChange={setSelectedStatus}
-        onPeriodChange={setSelectedPeriod}
-      />
-
-      {/* Grille de cartes rotatives */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        {filteredSales.length === 0 ? (
-          <div className="p-12 text-center">
-            <ShoppingBag size={48} className="mx-auto mb-4 text-slate-300" />
-            <p className="text-lg font-medium text-slate-900">Aucune vente</p>
-            <p className="text-sm text-slate-500 mt-1">
-              {selectedSite || selectedStatus || selectedPeriod !== 'all'
-                ? 'Aucune vente ne correspond aux filtres sélectionnés.'
-                : 'Créez votre première vente pour commencer.'}
-            </p>
-          </div>
-        ) : (
-          <div className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredSales.map((sale, index) => (
-                <RotatingCard
-                  key={sale.id}
-                  flipLabel="Détails"
-                  backLabel="Retour"
-                  className="h-72"
-                  front={<SaleCardFront
-                    sale={sale}
-                    index={index}
-                    onDetails={() => setSaleToView(sale)}
-                    onEdit={() => { openEditModal(sale); setIsFormOpen(true); }}
-                    onDelete={() => handleDelete(sale.id)}
-                  />}
-                  back={<SaleCardBack
-                    sale={sale}
-                    onDetails={() => setSaleToView(sale)}
-                    onEdit={() => { openEditModal(sale); setIsFormOpen(true); }}
-                    onDelete={() => handleDelete(sale.id)}
-                  />}
-                />
-              ))}
+      {/* ========== KPI GRID ========== */}
+      <div className="module-kpi-grid">
+        {kpis.map((kpi, index) => (
+          <div key={index} className="module-kpi-card" style={{ borderLeftColor: kpi.iconColor }}>
+            <div className="module-kpi-header">
+              <div className="module-kpi-icon" style={{ backgroundColor: `${kpi.iconColor}15`, color: kpi.iconColor }}>
+                {index === 0 && <TrendingUp size={20} />}
+                {index === 1 && <ShoppingBag size={20} />}
+                {index === 2 && <CreditCard size={20} />}
+                {index === 3 && <Users size={20} />}
+              </div>
             </div>
-            {filteredSales.length < sales.length && (
-              <p className="text-sm text-slate-500 text-center mt-4">
-                Affichage de {filteredSales.length} sur {sales.length} ventes
-              </p>
+            <div className="module-kpi-body">
+              <p className="module-kpi-label">{kpi.label}</p>
+              <div className="module-kpi-value" style={{ color: kpi.iconColor }}>
+                {kpi.value}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ========== TABS ========== */}
+      <div className="module-tabs" role="tablist" aria-label="Sections Ventes">
+        <button
+          role="tab"
+          aria-selected={activeTab === 'ventes'}
+          onClick={() => setActiveTab('ventes')}
+          className={`module-tab ${activeTab === 'ventes' ? 'active' : ''}`}
+        >
+          <ShoppingBag size={14} className="mr-1" /> Ventes
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'clients'}
+          onClick={() => setActiveTab('clients')}
+          className={`module-tab ${activeTab === 'clients' ? 'active' : ''}`}
+        >
+          <Users size={14} className="mr-1" /> Clients
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'par_mois'}
+          onClick={() => setActiveTab('par_mois')}
+          className={`module-tab ${activeTab === 'par_mois' ? 'active' : ''}`}
+        >
+          <Calendar size={14} className="mr-1" /> Par mois
+        </button>
+      </div>
+
+      {/* ========== SECTION ========== */}
+      <section className="module-section" aria-labelledby="ventes-title">
+        <div className="module-section-header">
+          <h2 className="module-section-title" id="ventes-title">
+            {activeTab === 'ventes' && 'Ventes enregistrées'}
+            {activeTab === 'clients' && 'Clients avec achats'}
+            {activeTab === 'par_mois' && 'Ventes par mois'}
+          </h2>
+        </div>
+
+        {activeTab === 'ventes' && (
+          <div className="module-search-wrapper mb-4">
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Rechercher par référence, client, site, article…"
+              className="module-search-input"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="module-btn module-btn-ghost ml-2"
+              >
+                Réinitialiser
+              </button>
             )}
           </div>
         )}
-      </div>
 
-      {/* Modale formulaire vente */}
-      <SaleFormModal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        saleToEdit={saleToEdit}
-        onSuccess={refresh}
+        {activeTab === 'ventes' && filteredSales.length === 0 && (
+          <div className="module-empty-state">
+            <ShoppingBag size={48} className="module-empty-icon" />
+            <h3 className="module-empty-title">Aucune vente</h3>
+            <p className="module-empty-message">
+              {searchTerm ? 'Aucune vente ne correspond à la recherche.' : 'Créez votre première vente pour commencer.'}
+            </p>
+            <button
+              onClick={openCreate}
+              className="module-btn module-btn-primary"
+            >
+              <Plus size={14} /> Créer une vente
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'ventes' && filteredSales.length > 0 && (
+          <div className="module-cards-grid">
+            {filteredSales.map((sale, index) => (
+              <RotatingCard
+                key={sale.id}
+                flipLabel="Détails"
+                backLabel="Retour"
+                front={renderSaleFront(sale)}
+                back={renderSaleBack(sale)}
+              />
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'clients' && renderClientsTab()}
+
+        {activeTab === 'par_mois' && renderParMoisTab()}
+      </section>
+
+      {/* ========== MODALS ========== */}
+      <DetailModal
+        entity={detailSale}
+        onClose={() => setDetailSale(null)}
+        onEdit={openEdit}
+        onDelete={setConfirmDelete}
+        title="Fiche de la vente"
+        size="lg"
+        renderFields={renderDetailFields}
       />
-      <SaleDetailsModal
-        isOpen={!!saleToView}
-        onClose={() => setSaleToView(null)}
-        sale={saleToView}
+
+      <Modal
+        open={modalOpen}
+        onClose={() => { resetForm(); setModalOpen(false); setEditSale(null); }}
+        title={editSale ? 'Éditer la vente' : 'Nouvelle vente'}
+        size="xl"
+      >
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          <FormSection title="Essentiel">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField label="Site" required error={errors.site_id}>
+                <FormSelect
+                  value={form.site_id}
+                  onChange={e => setForm('site_id', e.target.value)}
+                >
+                  <option value="">Sélectionner un site</option>
+                  {availableSites.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} {s.code ? `(${s.code})` : ''}</option>
+                  ))}
+                </FormSelect>
+              </FormField>
+              <FormField label="Client" required error={errors.customer_id}>
+                <FormSelect
+                  value={form.customer_id}
+                  onChange={e => setForm('customer_id', e.target.value)}
+                >
+                  <option value="">Sélectionner un client</option>
+                  {customers.map(c => (
+                    <option key={c.id} value={c.id}>{c.name} {c.type ? `(${c.type})` : ''}</option>
+                  ))}
+                </FormSelect>
+              </FormField>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField label="Date" required error={errors.date}>
+                <FormInput
+                  type="date"
+                  value={form.date}
+                  onChange={e => setForm('date', e.target.value)}
+                />
+              </FormField>
+              <FormField label="Mode de paiement" required error={errors.payment_method}>
+                <FormSelect
+                  value={form.payment_method}
+                  onChange={e => setForm('payment_method', e.target.value as 'espèces' | 'virement' | 'chèque' | 'mobile money' | 'carte')}
+                >
+                  <option value="espèces">Espèces</option>
+                  <option value="virement">Virement</option>
+                  <option value="chèque">Chèque</option>
+                  <option value="mobile money">Mobile Money</option>
+                  <option value="carte">Carte</option>
+                </FormSelect>
+              </FormField>
+            </div>
+          </FormSection>
+
+          <FormSection title="Articles">
+            <div className="space-y-4">
+              {(() => {
+                const items: SaleItem[] = form.items;
+                return (
+                  <>
+                    {items.map((item, idx) => (
+                      <div key={idx} className="grid grid-cols-12 gap-3 items-end">
+                        <div className="col-span-12 md:col-span-4">
+                          <FormField label="Description" error={errors.items?.[idx]?.description}>
+                            <FormInput
+                              value={item.description}
+                              onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))}
+                            />
+                          </FormField>
+                        </div>
+                        <div className="col-span-12 md:col-span-2">
+                          <FormField label="Quantité" error={errors.items?.[idx]?.quantity}>
+                            <FormInput
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              value={item.quantity}
+                              onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, quantity: Number(e.target.value) || 0 } : it))}
+                            />
+                          </FormField>
+                        </div>
+                        <div className="col-span-12 md:col-span-2">
+                          <FormField label="Unité" error={errors.items?.[idx]?.unit}>
+                            <FormSelect
+                              value={item.unit}
+                              onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, unit: e.target.value } : it))}
+                            >
+                              <option value="kg">kg</option>
+                              <option value="tonne">tonne</option>
+                              <option value="unité">unité</option>
+                              <option value="litre">litre</option>
+                              <option value="sac">sac</option>
+                            </FormSelect>
+                          </FormField>
+                        </div>
+                        <div className="col-span-12 md:col-span-3">
+                          <FormField label="Prix unitaire" error={errors.items?.[idx]?.unit_price}>
+                            <FormInput
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={item.unit_price}
+                              onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, unit_price: Number(e.target.value) || 0 } : it))}
+                            />
+                          </FormField>
+                        </div>
+                        <div className="col-span-12 md:col-span-1">
+                          <button
+                            type="button"
+                            onClick={() => setForm('items', items.filter((_, i) => i !== idx))}
+                            className="w-full h-10 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 flex items-center justify-center"
+                            disabled={items.length <= 1}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setForm('items', [...items, { description: '', quantity: 1, unit: 'kg', unit_price: 0, total: 0 }])}
+                      className="module-btn module-btn-secondary"
+                    >
+                      <Plus size={14} /> Ajouter un article
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          </FormSection>
+
+          <FormActions onSubmit={handleFormSubmit} onCancel={() => { resetForm(); setModalOpen(false); setEditSale(null); }} isSubmitting={isSubmitting} />
+        </form>
+      </Modal>
+
+      <ConfirmDeleteModal
+        entity={confirmDelete}
+        onConfirm={() => confirmDelete && handleDeleteConfirmed(confirmDelete)}
+        onClose={() => setConfirmDelete(null)}
+        getEntityName={getSaleName}
       />
     </div>
   );
-};
+}
+
+export default SalesModule;
