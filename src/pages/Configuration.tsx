@@ -21,18 +21,18 @@ import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/lib/Toast';
 import { logAudit } from '@/lib/types';
-import { validatePasswordStrength } from '@/lib/password';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Logo, getIcon } from '@/components/ui/Logo';
 import {
   Settings, Globe, Layout, Monitor, Eye, EyeOff, Save, Upload,
   Trash2, RotateCcw, RefreshCw, AlertCircle, CheckCircle,
   Loader2, Plus, X, ChevronRight, Search, Filter,
-  Edit3, Copy, Lock, Shield, Bell, Palette,
+  Edit3, Copy, Shield, Bell, Palette,
   Building2, DollarSign, Mail, Phone, MapPin,
   Home, BarChart3, Users as UsersIcon, Image as ImageIcon,
   Zap, Wand2, Target, Layers, Clock, History,
   FileText, ArrowUp, ArrowDown, Trash, ArrowLeft,
+  Lock, // Added missing Lock icon import
 } from 'lucide-react';
 
 /* ============================================================================
@@ -375,37 +375,6 @@ export function Configuration() {
 
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // --- État changement de mot de passe ---
-  const [passwordForm, setPasswordForm] = useState({ new: '', confirm: '' });
-  const [passwordLoading, setPasswordLoading] = useState(false);
-const [passwordError, setPasswordError] = useState<string | null>(null);
-
-const handlePasswordChange = useCallback(async () => {
-    setPasswordError(null);
-    const validation = validatePasswordStrength(passwordForm.new);
-    if (!validation.isValid) {
-      setPasswordError(validation.errors.join(' \u2022 '));
-      return;
-    }
-    if (passwordForm.new !== passwordForm.confirm) {
-      setPasswordError('Les mots de passe ne correspondent pas.');
-      return;
-    }
-    setPasswordLoading(true);
-    try {
-      const { error } = await updatePassword(passwordForm.new);
-      if (error) {
-        setPasswordError(error);
-      } else {
-        toast.show('Mot de passe modifié avec succès');
-        setPasswordForm({ new: '', confirm: '' });
-      }
-    } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : 'Erreur inconnue');
-    } finally {
-      setPasswordLoading(false);
-    }
-  }, [passwordForm.new, passwordForm.confirm, updatePassword, toast]);
 
   // --- Vérification des droits ---
   const isAuthorized = useMemo(() => {
@@ -1141,50 +1110,6 @@ const handlePasswordChange = useCallback(async () => {
                   </button>
                 </div>
               )}
-
-              {/* Section : Changer mon mot de passe */}
-              <div className="mt-6 pt-6 border-t border-ivory-deep">
-                <h3 className="font-semibold text-ink mb-3 flex items-center gap-2">
-                  <Lock size={16} /> Changer mon mot de passe
-                </h3>
-                <div className="space-y-3 max-w-md">
-                  <div>
-                    <label className="block text-sm font-medium text-ink mb-1">
-                      Nouveau mot de passe
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordForm.new}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })}
-                      className="w-full px-3 py-2 border border-ivory-deep rounded-sm"
-                      placeholder="Au moins 8 caractères"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-ink mb-1">
-                      Confirmer le nouveau mot de passe
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordForm.confirm}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
-                      className="w-full px-3 py-2 border border-ivory-deep rounded-sm"
-                      placeholder="Répéter le mot de passe"
-                    />
-                  </div>
-                  {passwordError && (
-                    <p className="text-sm text-terra">{passwordError}</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handlePasswordChange}
-                    disabled={passwordLoading || !passwordForm.new}
-                    className="px-4 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {passwordLoading ? 'Modification…' : 'Modifier le mot de passe'}
-                  </button>
-                </div>
-              </div>
             </div>
           )}
         </main>

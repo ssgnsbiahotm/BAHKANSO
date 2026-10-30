@@ -7,7 +7,7 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useToast } from '@/lib/Toast';
 import { Eye, Pencil, Trash2, Plus, Wheat, Tractor, Scale } from 'lucide-react';
 
-import '@/styles/module-theme.css';
+import '@/styles/components.css';
 
 type AgricultureTab = 'plots' | 'campaigns' | 'operations' | 'harvests';
 
@@ -155,16 +155,16 @@ export function Agriculture() {
     return labels[quality] || quality;
   };
 
-  const getBadgeColor = (status: string) => {
-    if (status === 'actif' || status === 'active') return 'green';
-    if (status === 'inactive') return 'gray';
-    if (status === 'en préparation') return 'amber';
-    if (status === 'planned') return 'gray';
-    if (status === 'planted') return 'blue';
-    if (status === 'growing') return 'green';
-    if (status === 'harvested') return 'amber';
-    if (status === 'completed') return 'green';
-    return 'gray';
+  const getBadgeClass = (status: string) => {
+    if (status === 'actif' || status === 'active') return 'module-badge-green';
+    if (status === 'inactive') return 'module-badge-gray';
+    if (status === 'en préparation') return 'module-badge-amber';
+    if (status === 'planned') return 'module-badge-gray';
+    if (status === 'planted') return 'module-badge-blue';
+    if (status === 'growing') return 'module-badge-green';
+    if (status === 'harvested') return 'module-badge-amber';
+    if (status === 'completed') return 'module-badge-green';
+    return 'module-badge-gray';
   };
 
   const renderPlotFront = (p: any) => (
@@ -172,20 +172,20 @@ export function Agriculture() {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold text-slate-900">{p.name}</h3>
-            <p className="text-sm text-slate-500">{p.location || '—'}</p>
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{p.name}</h3>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{p.location || '—'}</p>
           </div>
-          <span className={`module-badge module-badge-${getBadgeColor(p.status)}`}>
+          <span className={getBadgeClass(p.status)}>
             {statusLabel(p.status)}
           </span>
         </div>
         <div className="space-y-1 text-sm">
-          <p><span className="text-slate-500">Culture :</span> <span className="font-medium">{p.current_crop || '—'}</span></p>
-          <p><span className="text-slate-500">Superficie :</span> <span className="font-medium">{p.area_hectares} ha</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Culture :</span> <span className="font-medium">{p.current_crop || '—'}</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Superficie :</span> <span className="font-medium">{p.area_hectares} ha</span></p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-slate-100">
-        <p className="text-sm text-emerald-700 font-medium">Retourner pour les actions →</p>
+      <div className="mt-4 pt-3" style={{ borderTopColor: 'var(--border-subtle)' }}>
+        <p className="text-sm font-medium" style={{ color: 'var(--success)' }}>Retourner pour les actions →</p>
       </div>
     </div>
   );
@@ -193,18 +193,18 @@ export function Agriculture() {
   const renderPlotBack = (p: any) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">{p.name}</h3>
-        <p><span className="text-slate-500">Culture :</span> {p.current_crop || '—'}</p>
-        <p><span className="text-slate-500">Superficie :</span> {p.area_hectares} ha</p>
-        <p><span className="text-slate-500">Type de sol :</span> {p.soil_type || '—'}</p>
-        <p><span className="text-slate-500">Localisation :</span> {p.location || '—'}</p>
-        <p><span className="text-slate-500">Référence :</span> {p.reference || '—'}</p>
+        <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>{p.name}</h3>
+        <p><span style={{ color: 'var(--text-muted)' }}>Culture :</span> {p.current_crop || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Superficie :</span> {p.area_hectares} ha</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Type de sol :</span> {p.soil_type || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Localisation :</span> {p.location || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Référence :</span> {p.reference || '—'}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 space-y-2" style={{ borderTopColor: 'var(--accent-soft)' }}>
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate('/app/exploitation/journal/' + p.id); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="module-btn module-btn-primary w-full"
         >
           <Eye size={16} /> Ouvrir le journal
         </button>
@@ -212,14 +212,14 @@ export function Agriculture() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleEditPlot(p.id); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="module-btn module-btn-secondary flex-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleDeletePlot(p.id); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="module-btn module-btn-danger flex-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -233,21 +233,21 @@ export function Agriculture() {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold text-slate-900">{c.crop_name}</h3>
-            <p className="text-sm text-slate-500">{c.plot?.name || '—'} • {c.year}</p>
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{c.crop_name}</h3>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{c.plot?.name || '—'} • {c.year}</p>
           </div>
-          <span className={`module-badge module-badge-${getBadgeColor(c.status)}`}>
+          <span className={getBadgeClass(c.status)}>
             {campaignStatusLabel(c.status)}
           </span>
         </div>
         <div className="space-y-1 text-sm">
-          <p><span className="text-slate-500">Début :</span> <span className="font-medium">{formatDate(c.start_date)}</span></p>
-          <p><span className="text-slate-500">Récolte prévue :</span> <span className="font-medium">{formatDate(c.expected_harvest_date)}</span></p>
-          <p><span className="text-slate-500">Budget :</span> <span className="font-medium text-green-600">{formatCurrency(c.budget)}</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Début :</span> <span className="font-medium">{formatDate(c.start_date)}</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Récolte prévue :</span> <span className="font-medium">{formatDate(c.expected_harvest_date)}</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Budget :</span> <span className="font-medium" style={{ color: 'var(--success)' }}>{formatCurrency(c.budget)}</span></p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-slate-100">
-        <p className="text-sm text-emerald-700 font-medium">Retourner pour les actions →</p>
+      <div className="mt-4 pt-3" style={{ borderTopColor: 'var(--border-subtle)' }}>
+        <p className="text-sm font-medium" style={{ color: 'var(--success)' }}>Retourner pour les actions →</p>
       </div>
     </div>
   );
@@ -255,20 +255,20 @@ export function Agriculture() {
   const renderCampaignBack = (c: any) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">{c.crop_name}</h3>
-        <p><span className="text-slate-500">Année :</span> {c.year}</p>
-        <p><span className="text-slate-500">Parcelle :</span> {c.plot?.name || '—'}</p>
-        <p><span className="text-slate-500">Statut :</span> {campaignStatusLabel(c.status)}</p>
-        <p><span className="text-slate-500">Début :</span> {formatDate(c.start_date)}</p>
-        <p><span className="text-slate-500">Récolte prévue :</span> {formatDate(c.expected_harvest_date)}</p>
-        <p><span className="text-slate-500">Budget :</span> {formatCurrency(c.budget)}</p>
-        <p><span className="text-slate-500">Responsable :</span> {c.responsible || '—'}</p>
+        <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>{c.crop_name}</h3>
+        <p><span style={{ color: 'var(--text-muted)' }}>Année :</span> {c.year}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Parcelle :</span> {c.plot?.name || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Statut :</span> {campaignStatusLabel(c.status)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Début :</span> {formatDate(c.start_date)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Récolte prévue :</span> {formatDate(c.expected_harvest_date)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Budget :</span> {formatCurrency(c.budget)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Responsable :</span> {c.responsible || '—'}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 space-y-2" style={{ borderTopColor: 'var(--accent-soft)' }}>
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate('/app/exploitation/campagnes?select=' + c.id + '&action=view'); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="module-btn module-btn-primary w-full"
         >
           <Eye size={16} /> Voir détails
         </button>
@@ -276,14 +276,14 @@ export function Agriculture() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleEditCampaign(c.id); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="module-btn module-btn-secondary flex-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleDeleteCampaign(c.id); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="module-btn module-btn-danger flex-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -297,19 +297,19 @@ export function Agriculture() {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold text-slate-900">{operationTypeLabel(o.type)}</h3>
-            <p className="text-sm text-slate-500">{o.plot?.name || '—'} • {formatDate(o.date)}</p>
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{operationTypeLabel(o.type)}</h3>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{o.plot?.name || '—'} • {formatDate(o.date)}</p>
           </div>
           <span className="module-badge module-badge-green">{operationTypeLabel(o.type)}</span>
         </div>
         <div className="space-y-1 text-sm">
-          <p><span className="text-slate-500">Responsable :</span> <span className="font-medium">{o.responsible || '—'}</span></p>
-          <p><span className="text-slate-500">Intrants :</span> <span className="font-medium">{o.inputs || '—'}</span></p>
-          <p><span className="text-slate-500">Coût :</span> <span className="font-medium text-amber-600">{formatCurrency(o.cost)}</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Responsable :</span> <span className="font-medium">{o.responsible || '—'}</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Intrants :</span> <span className="font-medium">{o.inputs || '—'}</span></p>
+          <p><span style={{ color: 'var(--text-muted)' }}>Coût :</span> <span className="font-medium" style={{ color: 'var(--warning)' }}>{formatCurrency(o.cost)}</span></p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-slate-100">
-        <p className="text-sm text-emerald-700 font-medium">Retourner pour les actions →</p>
+      <div className="mt-4 pt-3" style={{ borderTopColor: 'var(--border-subtle)' }}>
+        <p className="text-sm font-medium" style={{ color: 'var(--success)' }}>Retourner pour les actions →</p>
       </div>
     </div>
   );
@@ -317,19 +317,19 @@ export function Agriculture() {
   const renderOperationBack = (o: any) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">{operationTypeLabel(o.type)}</h3>
-        <p><span className="text-slate-500">Date :</span> {formatDate(o.date)}</p>
-        <p><span className="text-slate-500">Parcelle :</span> {o.plot?.name || '—'}</p>
-        <p><span className="text-slate-500">Responsable :</span> {o.responsible || '—'}</p>
-        <p><span className="text-slate-500">Intrants :</span> {o.inputs || '—'}</p>
-        <p><span className="text-slate-500">Coût :</span> {formatCurrency(o.cost)}</p>
-        <p><span className="text-slate-500">Main-d'œuvre :</span> {formatCurrency(o.labor_cost)}</p>
+        <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>{operationTypeLabel(o.type)}</h3>
+        <p><span style={{ color: 'var(--text-muted)' }}>Date :</span> {formatDate(o.date)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Parcelle :</span> {o.plot?.name || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Responsable :</span> {o.responsible || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Intrants :</span> {o.inputs || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Coût :</span> {formatCurrency(o.cost)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Main-d'œuvre :</span> {formatCurrency(o.labor_cost)}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 space-y-2" style={{ borderTopColor: 'var(--accent-soft)' }}>
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate('/app/exploitation/operations?select=' + o.id + '&action=view'); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="module-btn module-btn-primary w-full"
         >
           <Eye size={16} /> Voir détails
         </button>
@@ -337,14 +337,14 @@ export function Agriculture() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleEditOperation(o.id); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="module-btn module-btn-secondary flex-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleDeleteOperation(o.id); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="module-btn module-btn-danger flex-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -357,20 +357,20 @@ export function Agriculture() {
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-slate-900">Récolte du {formatDate(h.date)}</h3>
-          <span className={`module-badge module-badge-${getBadgeColor(h.quality)}`}>
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Récolte du {formatDate(h.date)}</h3>
+          <span className={getBadgeClass(h.quality)}>
             {harvestQualityLabel(h.quality)}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div><span className="text-slate-500">Quantité</span><p className="font-medium">{h.quantity} {h.unit}</p></div>
-          <div><span className="text-slate-500">Prix estimé</span><p className="font-medium">{formatCurrency(h.estimated_price)}</p></div>
-          <div><span className="text-slate-500">Chiffre d'affaires</span><p className="font-medium text-green-600">{formatCurrency(h.revenue)}</p></div>
-          <div><span className="text-slate-500">Destination</span><p className="font-medium">{h.destination || '—'}</p></div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Quantité</span><p className="font-medium">{h.quantity} {h.unit}</p></div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Prix estimé</span><p className="font-medium">{formatCurrency(h.estimated_price)}</p></div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Chiffre d'affaires</span><p className="font-medium" style={{ color: 'var(--success)' }}>{formatCurrency(h.revenue)}</p></div>
+          <div><span style={{ color: 'var(--text-muted)' }}>Destination</span><p className="font-medium">{h.destination || '—'}</p></div>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-slate-100">
-        <p className="text-sm text-emerald-700 font-medium">Retourner pour les actions →</p>
+      <div className="mt-4 pt-3" style={{ borderTopColor: 'var(--border-subtle)' }}>
+        <p className="text-sm font-medium" style={{ color: 'var(--success)' }}>Retourner pour les actions →</p>
       </div>
     </div>
   );
@@ -378,19 +378,19 @@ export function Agriculture() {
   const renderHarvestBack = (h: any) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">Récolte du {formatDate(h.date)}</h3>
-        <p><span className="text-slate-500">Quantité :</span> {h.quantity} {h.unit}</p>
-        <p><span className="text-slate-500">Qualité :</span> {harvestQualityLabel(h.quality)}</p>
-        <p><span className="text-slate-500">Prix estimé :</span> {formatCurrency(h.estimated_price)}</p>
-        <p><span className="text-slate-500">Chiffre d'affaires :</span> {formatCurrency(h.revenue)}</p>
-        <p><span className="text-slate-500">Destination :</span> {h.destination || '—'}</p>
-        <p><span className="text-slate-500">Notes :</span> {h.notes || '—'}</p>
+        <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Récolte du {formatDate(h.date)}</h3>
+        <p><span style={{ color: 'var(--text-muted)' }}>Quantité :</span> {h.quantity} {h.unit}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Qualité :</span> {harvestQualityLabel(h.quality)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Prix estimé :</span> {formatCurrency(h.estimated_price)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Chiffre d'affaires :</span> {formatCurrency(h.revenue)}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Destination :</span> {h.destination || '—'}</p>
+        <p><span style={{ color: 'var(--text-muted)' }}>Notes :</span> {h.notes || '—'}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 space-y-2" style={{ borderTopColor: 'var(--accent-soft)' }}>
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate('/app/exploitation/recoltes?select=' + h.id + '&action=view'); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="module-btn module-btn-primary w-full"
         >
           <Eye size={16} /> Voir détails
         </button>
@@ -398,14 +398,14 @@ export function Agriculture() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleEditHarvest(h.id); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="module-btn module-btn-secondary flex-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleDeleteHarvest(h.id); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="module-btn module-btn-danger flex-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -419,7 +419,7 @@ export function Agriculture() {
       {/* ========== HEADER ========== */}
       <header className="module-header">
         <div className="module-header-left">
-          <h1>Agriculture</h1>
+          <h1 style={{ color: 'var(--color-ivory)' }}>Agriculture</h1>
           <p className="module-subtitle">Gestion des parcelles, campagnes, opérations et récoltes</p>
         </div>
         <div className="module-header-right">
@@ -434,54 +434,54 @@ export function Agriculture() {
 
       {/* ========== KPI GRID ========== */}
       <div className="module-kpi-grid">
-        <div className="module-kpi-card" style={{ borderLeftColor: '#B9D86B' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--accent-primary)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(185, 216, 107, 0.15)', color: '#B9D86B' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-primary)' }}>
               <Wheat size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Surface totale</p>
-            <div className="module-kpi-value" style={{ color: '#B9D86B' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--accent-primary)' }}>
               {kpis.totalArea.toFixed(1)} ha
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: '#8FD3F4' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--info)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(143, 211, 244, 0.15)', color: '#8FD3F4' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--info-soft)', color: 'var(--info)' }}>
               <Wheat size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Parcelles actives</p>
-            <div className="module-kpi-value" style={{ color: '#8FD3F4' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--info)' }}>
               {kpis.activeParcels.active} / {kpis.activeParcels.total}
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: '#F6B95C' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--warning)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(246, 185, 92, 0.15)', color: '#F6B95C' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}>
               <Tractor size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Opérations</p>
-            <div className="module-kpi-value" style={{ color: '#F6B95C' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--warning)' }}>
               {kpis.totalOps}
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: '#D4906A' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--warning)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(212, 144, 106, 0.15)', color: '#D4906A' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}>
               <Scale size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Récoltes</p>
-            <div className="module-kpi-value" style={{ color: '#D4906A' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--warning)' }}>
               {kpis.totalHarvest.toLocaleString('fr-FR')} kg
             </div>
           </div>
@@ -544,7 +544,7 @@ export function Agriculture() {
       {tab === 'plots' && (
         <section id="agriculture-panel-plots" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="agriculture-tab-plots">
           <div className="module-section-header">
-            <h2 className="module-section-title" id="plots-title">Parcelles agricoles</h2>
+            <h2 className="module-section-title" id="plots-title" style={{ color: 'var(--color-ivory)' }}>Parcelles agricoles</h2>
             <a
               href="/app/exploitation/parcelles"
               onClick={(e) => { e.preventDefault(); navigate('/app/exploitation/parcelles'); }}
@@ -589,7 +589,7 @@ export function Agriculture() {
       {tab === 'campaigns' && (
         <section id="agriculture-panel-campaigns" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="agriculture-tab-campaigns">
           <div className="module-section-header">
-            <h2 className="module-section-title" id="campaigns-title">Campagnes culturales</h2>
+            <h2 className="module-section-title" id="campaigns-title" style={{ color: 'var(--color-ivory)' }}>Campagnes culturales</h2>
             <a
               href="/app/exploitation/campagnes"
               onClick={(e) => { e.preventDefault(); navigate('/app/exploitation/campagnes'); }}
@@ -634,7 +634,7 @@ export function Agriculture() {
       {tab === 'operations' && (
         <section id="agriculture-panel-operations" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="agriculture-tab-operations">
           <div className="module-section-header">
-            <h2 className="module-section-title" id="operations-title">Opérations culturales</h2>
+            <h2 className="module-section-title" id="operations-title" style={{ color: 'var(--color-ivory)' }}>Opérations culturales</h2>
             <a
               href="/app/exploitation/operations"
               onClick={(e) => { e.preventDefault(); navigate('/app/exploitation/operations'); }}
@@ -679,7 +679,7 @@ export function Agriculture() {
       {tab === 'harvests' && (
         <section id="agriculture-panel-harvests" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="agriculture-tab-harvests">
           <div className="module-section-header">
-            <h2 className="module-section-title" id="harvests-title">Récoltes agricoles</h2>
+            <h2 className="module-section-title" id="harvests-title" style={{ color: 'var(--color-ivory)' }}>Récoltes agricoles</h2>
             <a
               href="/app/exploitation/recoltes"
               onClick={(e) => { e.preventDefault(); navigate('/app/exploitation/recoltes'); }}

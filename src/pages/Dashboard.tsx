@@ -9,16 +9,17 @@ import {
   Beef, Sprout, HardHat, ArrowRight, Clock, CheckCircle2,
   AlertCircle, Info, DollarSign, Lock, FileText
 } from 'lucide-react';
+import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
-import './Dashboard.css';
+import '@/styles/components.css';
 
 const COLORS = {
-  grass: '#B9D86B',
-  earth: '#D4906A',
-  sky: '#8FD3F4',
-  harvest: '#F6B95C',
-  alert: '#F28B82',
-  slate: '#B8B0A4',
+  grass: 'var(--accent-primary)',
+  earth: 'var(--warning)',
+  sky: 'var(--info)',
+  harvest: 'var(--warning)',
+  alert: 'var(--danger)',
+  slate: 'var(--text-muted)',
 };
 
 const isFinanceSensitive = (role: string | null | undefined) =>
@@ -69,22 +70,22 @@ const KpiCard = ({
   icon: ReactNode;
   trend?: { value: string; positive: boolean };
 }) => (
-  <div className="kpi-card" style={{ borderLeftColor: color }}>
-    <div className="kpi-header">
-      <div className="kpi-icon" style={{ backgroundColor: `${color}15`, color }}>
+  <div className="dashboard-kpi-card" style={{ borderLeftColor: color }}>
+    <div className="dashboard-kpi-header">
+      <div className="dashboard-kpi-icon" style={{ backgroundColor: `${color}15`, color }}>
         {icon}
       </div>
       {trend && (
-        <span className={`kpi-trend ${trend.positive ? 'positive' : 'negative'}`}>
+        <span className={`dashboard-kpi-trend ${trend.positive ? 'positive' : 'negative'}`}>
           {trend.value}
         </span>
       )}
     </div>
-    <div className="kpi-body">
-      <p className="kpi-label">{label}</p>
-      <div className="kpi-value" style={{ color }}>
+    <div className="dashboard-kpi-body">
+      <p className="dashboard-kpi-label">{label}</p>
+      <div className="dashboard-kpi-value" style={{ color }}>
         {value}
-        {sub && <span className="kpi-sub">{sub}</span>}
+        {sub && <span className="dashboard-kpi-sub">{sub}</span>}
       </div>
     </div>
   </div>
@@ -105,18 +106,16 @@ const PriorityCard = ({
   severe: boolean;
   icon: ReactNode;
 }) => (
-  <Link to={to} className={`priority-card ${severe ? 'severe' : ''}`}>
-    <div className="priority-icon" style={{ backgroundColor: severe ? 'rgba(200, 117, 81, 0.18)' : 'rgba(185, 216, 107, 0.15)', color: severe ? '#D4906A' : '#B9D86B' }}>
-      {icon}
-    </div>
-    <div className="priority-content">
-      <p className="priority-reason" style={{ color: severe ? '#D4906A' : '#E8E4DC' }}>{reason}</p>
-      <div className="priority-meta">
-        <span className="priority-count" style={{ color: severe ? '#F0B08C' : '#B9D86B' }}>{count}</span>
-        <span className="priority-label">{label}</span>
+  <Link to={to} className={`dashboard-priority-card ${severe ? 'severe' : ''}`}>
+    <div className="dashboard-priority-icon">{icon}</div>
+    <div className="dashboard-priority-content">
+      <p className="dashboard-priority-reason">{reason}</p>
+      <div className="dashboard-priority-meta">
+        <span className="dashboard-priority-count">{count}</span>
+        <span className="dashboard-priority-label">{label}</span>
       </div>
     </div>
-    <ArrowRight size={18} className="priority-arrow" style={{ color: severe ? '#D4906A' : '#B9D86B' }} />
+    <ArrowRight size={18} className="dashboard-priority-arrow" />
   </Link>
 );
 
@@ -139,30 +138,30 @@ const ActivityCard = ({
   toLabel: string;
   subValues?: { label: string; count: number }[];
 }) => (
-  <Link to={to} className="activity-card">
-    <div className="activity-icon" style={{ backgroundColor: `${color}15`, color }}>
+  <Link to={to} className="dashboard-activity-card">
+    <div className="dashboard-activity-icon" style={{ backgroundColor: `${color}15`, color }}>
       {icon}
     </div>
-    <div className="activity-body">
-      <h3 className="activity-title">{title}</h3>
-      <p className="activity-detail">{detail}</p>
-      <div className="activity-stats">
+    <div className="dashboard-activity-body">
+      <h3 className="dashboard-activity-title">{title}</h3>
+      <p className="dashboard-activity-detail">{detail}</p>
+      <div className="dashboard-activity-stats">
         {subValues ? (
           subValues.map((sv) => (
-            <span key={sv.label} className="stat-item">
-              <span className="stat-count">{sv.count}</span>
-              <span className="stat-label">{sv.label}</span>
+            <span key={sv.label} className="dashboard-stat-item">
+              <span className="dashboard-stat-count">{sv.count}</span>
+              <span className="dashboard-stat-label">{sv.label}</span>
             </span>
           ))
         ) : value !== null && (
-          <span className="stat-item single">
-            <span className="stat-count">{value}</span>
-            <span className="stat-label">{detail}</span>
+          <span className="dashboard-stat-item single">
+            <span className="dashboard-stat-count">{value}</span>
+            <span className="dashboard-stat-label">{detail}</span>
           </span>
         )}
       </div>
     </div>
-    <div className="activity-cta">
+    <div className="dashboard-activity-cta">
       <span>{toLabel}</span>
       <ArrowRight size={16} />
     </div>
@@ -175,12 +174,12 @@ const EmptyState = ({ icon, title, message, action }: {
   message: string;
   action?: React.ReactNode;
 }) => (
-  <div className="empty-state">
-    <div className="empty-icon" style={{ color: '#8A948E' }}>
+  <div className="dashboard-empty-state">
+    <div className="dashboard-empty-icon">
       {icon}
     </div>
-    <h4 className="empty-title">{title}</h4>
-    <p className="empty-message">{message}</p>
+    <h4 className="dashboard-empty-title">{title}</h4>
+    <p className="dashboard-empty-message">{message}</p>
     {action}
   </div>
 );
@@ -191,10 +190,10 @@ const SectionHeader = ({ id, title, description, action }: {
   description?: string;
   action?: React.ReactNode;
 }) => (
-  <div className="section-header">
+  <div className="dashboard-section-header">
     <div>
-      <h2 id={id} className="section-title">{title}</h2>
-      {description && <p className="section-description">{description}</p>}
+      <h2 id={id} className="dashboard-section-title">{title}</h2>
+      {description && <p className="dashboard-section-description">{description}</p>}
     </div>
     {action}
   </div>
@@ -248,8 +247,8 @@ export function Dashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard-loading">
-        <div className="spinner" />
+      <div className="dashboard-loading dashboard-error">
+        <div className="dashboard-spinner" />
         <p>Chargement du tableau de bord…</p>
       </div>
     );
@@ -320,7 +319,7 @@ export function Dashboard() {
       detail: 'Registre du cheptel',
       icon: <Beef size={24} />,
       color: COLORS.earth,
-      to: '/app/livestock/animals',
+      to: LIVESTOCK_PATHS.animalsLegacy,
       toLabel: 'Voir l\'élevage',
       subValues: [
         { label: 'Lots', count: totalAnimalLots },
@@ -339,14 +338,14 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="dashboard">
+    <div className="dashboard-page">
       {/* ========== HEADER ========== */}
       <header className="dashboard-header">
-        <div className="header-left">
+        <div className="dashboard-header-left">
           <h1>Tableau de bord</h1>
-          <p className="header-subtitle">Pilotage de l'exploitation : synthèse, priorités et activités.</p>
+          <p className="dashboard-subtitle">Pilotage de l'exploitation : synthèse, priorités et activités.</p>
         </div>
-        <div className="header-right">
+        <div className="dashboard-header-right">
           <LiveClock />
         </div>
       </header>
@@ -393,7 +392,7 @@ export function Dashboard() {
       <div className="dashboard-grid">
 
         {/* ========== A. SYNTHÈSE FINANCIÈRE ========== */}
-        <section className="section finance-section" aria-labelledby="finance-title">
+        <section className="dashboard-section finance-dashboard-section" aria-labelledby="finance-title">
           <SectionHeader
             id="finance-title"
             title="Synthèse financière"
@@ -411,7 +410,7 @@ export function Dashboard() {
             ) : null}
           />
 
-          <div className="kpi-grid">
+          <div className="dashboard-kpi-grid">
             {showFinance ? (
               <>
                 <KpiCard
@@ -438,16 +437,16 @@ export function Dashboard() {
                 />
               </>
             ) : (
-              <div className="kpi-card restricted" style={{ gridColumn: '1 / -1' }}>
-                <div className="kpi-header">
-                  <div className="kpi-icon" style={{ backgroundColor: 'rgba(100, 116, 139, 0.15)', color: '#64748B' }}>
+              <div className="dashboard-kpi-card restricted" style={{ gridColumn: '1 / -1' }}>
+                <div className="dashboard-kpi-header">
+                  <div className="dashboard-kpi-icon" style={{ backgroundColor: 'rgba(100, 116, 139, 0.15)', color: '#64748B' }}>
                     <Lock size={20} />
                   </div>
                 </div>
-                <div className="kpi-body">
-                  <p className="kpi-label">Données financières</p>
-                  <div className="kpi-value" style={{ color: '#64748B' }}>Accès réservé</div>
-                  <p className="kpi-sub">Réservé aux rôles admin, responsable et gestionnaire</p>
+                <div className="dashboard-kpi-body">
+                  <p className="dashboard-kpi-label">Données financières</p>
+                  <div className="dashboard-kpi-value" style={{ color: '#64748B' }}>Accès réservé</div>
+                  <p className="dashboard-kpi-sub">Réservé aux rôles admin, responsable et gestionnaire</p>
                 </div>
               </div>
             )}
@@ -465,7 +464,7 @@ export function Dashboard() {
         </section>
 
         {/* ========== B. PRIORITÉS ET ACTIONS ========== */}
-        <section className="section priorities-section" aria-labelledby="priorities-title">
+        <section className="dashboard-section priorities-dashboard-section" aria-labelledby="priorities-title">
           <SectionHeader
             id="priorities-title"
             title="À traiter en priorité"
@@ -474,20 +473,20 @@ export function Dashboard() {
 
           {prioritySourcesPending ? (
             <div className="source-pending-state" role="status" aria-live="polite">
-              <div className="spinner" aria-hidden="true" />
-              <p className="empty-message">Évaluation des priorités…</p>
+              <div className="dashboard-spinner" aria-hidden="true" />
+              <p className="dashboard-empty-message">Évaluation des priorités…</p>
             </div>
           ) : prioritySourcesError ? (
             <div className="source-unavailable-state">
-              <AlertCircle className="empty-icon" size={32} />
-              <h4 className="empty-title">Certaines sources de priorité sont indisponibles</h4>
-              <p className="empty-message">
+              <AlertCircle className="dashboard-empty-icon" size={32} />
+              <h4 className="dashboard-empty-title">Certaines sources de priorité sont indisponibles</h4>
+              <p className="dashboard-empty-message">
                 Les alertes ne peuvent pas être évaluées fiablement tant que les sources
                 dépenses, stocks, projets ou alertes ne sont pas accessibles.
               </p>
             </div>
           ) : hasAnyPriority ? (
-            <div className="priorities-grid">
+            <div className="dashboard-priorities-grid">
               {visiblePriorities.map((p) => (
                 <PriorityCard key={p.to} {...p} />
               ))}
@@ -502,7 +501,7 @@ export function Dashboard() {
         </section>
 
         {/* ========== C. LA FERME EN BREF ========== */}
-        <section className="section activities-section" aria-labelledby="activities-title">
+        <section className="dashboard-section activities-dashboard-section" aria-labelledby="activities-title">
           <SectionHeader
             id="activities-title"
             title="La ferme en bref"
@@ -517,24 +516,24 @@ export function Dashboard() {
         </section>
 
         {/* ========== D. DERNIÈRES OPÉRATIONS ========== */}
-        <section className="section operations-section" aria-labelledby="operations-title">
+        <section className="dashboard-section operations-dashboard-section" aria-labelledby="operations-title">
           <SectionHeader
             id="operations-title"
             title="Dernières opérations"
             description="Les trois dernières transactions. Détails dans Finances."
             action={
-              <Link to="/app/finance" className="view-all-link">
+              <Link to="/app/finance" className="dashboard-view-all-link">
                 Voir les mouvements <ArrowRight size={14} />
               </Link>
             }
           />
 
-          <div className="operations-grid">
+          <div className="dashboard-operations-grid">
             {transactionsSourceError ? (
               <div className="source-unavailable-state" style={{ flex: '0 0 280px' }}>
-                <AlertCircle className="empty-icon" size={32} />
-                <h4 className="empty-title">La source des transactions est indisponible</h4>
-                <p className="empty-message">
+                <AlertCircle className="dashboard-empty-icon" size={32} />
+                <h4 className="dashboard-empty-title">La source des transactions est indisponible</h4>
+                <p className="dashboard-empty-message">
                   Impossible de charger les dernières opérations. Vérifiez la connectivité
                   ou réessayez plus tard.
                 </p>
@@ -548,16 +547,16 @@ export function Dashboard() {
             ) : (
               latestTransactions.slice(0, 3).map((t) => (
                 <div key={t.id} className="operation-card">
-                  <Link to={`/app/finance/transactions/${t.id}`} className="op-card-inner">
-                    <div className="op-header">
-                      <span className={`op-type ${t.direction === 'entree' ? 'op-type-income' : 'op-type-outcome'}`}>
+                  <Link to={`/app/finance/transactions/${t.id}`} className="dashboard-op-card-inner">
+                    <div className="dashboard-op-header">
+                      <span className={`dashboard-op-type ${t.direction === 'entree' ? 'dashboard-op-type-income' : 'dashboard-op-type-outcome'}`}>
                         {t.direction === 'entree' ? 'Entrée' : 'Sortie'}
                       </span>
-                      <span className="op-date">{formatDate(t.transaction_date)}</span>
+                      <span className="dashboard-op-date">{formatDate(t.transaction_date)}</span>
                     </div>
-                    <p className="op-label">{t.description || t.reference || 'Opération'}</p>
-                    <div className="op-footer">
-                      <span className={`op-amount ${t.direction === 'entree' ? 'op-amount-income' : 'op-amount-outcome'}`}>
+                    <p className="dashboard-op-label">{t.description || t.reference || 'Opération'}</p>
+                    <div className="dashboard-op-footer">
+                      <span className={`dashboard-op-amount ${t.direction === 'entree' ? 'dashboard-op-amount-income' : 'dashboard-op-amount-outcome'}`}>
                         {formatCurrency(t.amount)}
                       </span>
                       <ArrowRight size={14} style={{ color: 'var(--dn-accent)', opacity: 0.5 }} />

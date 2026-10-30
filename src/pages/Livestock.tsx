@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { useToast } from '@/lib/Toast';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { Plus, Eye, Pencil, Trash2, Beef, AlertTriangle, Syringe } from 'lucide-react';
+import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
 import '@/styles/module-theme.css';
 
@@ -29,7 +30,7 @@ export function Livestock() {
   };
 
   const handleEditLot = (lotId: string) => {
-    navigate('/app/livestock/lots?select=' + lotId + '&action=edit');
+    navigate(LIVESTOCK_PATHS.lotsLegacy + '?select=' + lotId + '&action=edit');
   };
 
   const handleDeleteAnimal = async (id: string) => {
@@ -46,7 +47,7 @@ export function Livestock() {
   };
 
   const handleEditAnimal = (animalId: string) => {
-    navigate('/app/livestock/animals?select=' + animalId + '&action=edit');
+    navigate(LIVESTOCK_PATHS.animalsLegacy + '?select=' + animalId + '&action=edit');
   };
 
   const handleDeleteEvent = async (id: string) => {
@@ -63,7 +64,7 @@ export function Livestock() {
   };
 
   const handleEditEvent = (eventId: string) => {
-    navigate('/app/livestock/events?select=' + eventId + '&action=edit');
+    navigate(LIVESTOCK_PATHS.events + '?select=' + eventId + '&action=edit');
   };
 
   const kpis = useMemo(() => {
@@ -146,7 +147,7 @@ export function Livestock() {
       <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); navigate(`/app/livestock/lots?select=${lot.id}&action=view`); }}
+          onClick={(e) => { e.stopPropagation(); navigate(LIVESTOCK_PATHS.lotsLegacy + `?select=${lot.id}&action=view`); }}
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Voir détails
@@ -206,7 +207,7 @@ export function Livestock() {
       <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); navigate(`/app/livestock/animals?select=${a.id}&action=view`); }}
+          onClick={(e) => { e.stopPropagation(); navigate(LIVESTOCK_PATHS.animalsLegacy + `?select=${a.id}&action=view`); }}
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Voir détails
@@ -266,7 +267,7 @@ export function Livestock() {
       <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
         <button
           type="button"
-          onClick={(e2) => { e2.stopPropagation(); navigate(`/app/livestock/events?select=${e.id}&action=view`); }}
+          onClick={(e2) => { e2.stopPropagation(); navigate(LIVESTOCK_PATHS.events + `?select=${e.id}&action=view`); }}
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Voir détails
@@ -301,7 +302,7 @@ export function Livestock() {
         </div>
         <div className="module-header-right">
           <button
-            onClick={() => navigate('/app/livestock/lots')}
+            onClick={() => navigate(LIVESTOCK_PATHS.lotsLegacy)}
             className="module-btn module-btn-primary"
           >
             <Plus size={16} /> Nouveau lot
@@ -414,7 +415,7 @@ export function Livestock() {
               <h3 className="module-empty-title">Aucun lot</h3>
               <p className="module-empty-message">Créez votre premier lot pour commencer le suivi de votre cheptel.</p>
               <button
-                onClick={() => navigate('/app/livestock/lots')}
+                onClick={() => navigate(LIVESTOCK_PATHS.lotsLegacy)}
                 className="module-btn module-btn-primary"
               >
                 <Plus size={14} /> Créer un lot
@@ -442,7 +443,7 @@ export function Livestock() {
           <div className="module-section-header">
             <h2 className="module-section-title" id="lots-title">Lots d'animaux</h2>
             <button
-              onClick={() => navigate('/app/livestock/lots')}
+              onClick={() => navigate(LIVESTOCK_PATHS.lotsLegacy)}
               className="module-view-all-link"
             >
               Gestion détaillée <Eye size={14} />
@@ -455,7 +456,7 @@ export function Livestock() {
               <h3 className="module-empty-title">Aucun lot</h3>
               <p className="module-empty-message">Créez votre premier lot d'animaux pour organiser votre cheptel.</p>
               <button
-                onClick={() => navigate('/app/livestock/lots')}
+                onClick={() => navigate(LIVESTOCK_PATHS.lotsLegacy)}
                 className="module-btn module-btn-primary"
               >
                 <Plus size={14} /> Créer un lot
@@ -483,7 +484,7 @@ export function Livestock() {
           <div className="module-section-header">
             <h2 className="module-section-title" id="animals-title">Animaux suivis individuellement</h2>
             <button
-              onClick={() => navigate('/app/livestock/animals')}
+              onClick={() => navigate(LIVESTOCK_PATHS.animalsLegacy)}
               className="module-view-all-link"
             >
               Gestion détaillée <Eye size={14} />
@@ -496,7 +497,7 @@ export function Livestock() {
               <h3 className="module-empty-title">Aucun animal suivi</h3>
               <p className="module-empty-message">Ajoutez des animaux au suivi individuel pour un traçage précis.</p>
               <button
-                onClick={() => navigate('/app/livestock/animals')}
+                onClick={() => navigate(LIVESTOCK_PATHS.animalsLegacy)}
                 className="module-btn module-btn-primary"
               >
                 <Plus size={14} /> Ajouter un animal
@@ -524,7 +525,7 @@ export function Livestock() {
           <div className="module-section-header">
             <h2 className="module-section-title" id="events-title">Événements du cheptel</h2>
             <button
-              onClick={() => navigate('/app/livestock/events')}
+              onClick={() => navigate(LIVESTOCK_PATHS.events)}
               className="module-view-all-link"
             >
               Gestion détaillée <Eye size={14} />
@@ -537,7 +538,7 @@ export function Livestock() {
               <h3 className="module-empty-title">Aucun événement</h3>
               <p className="module-empty-message">Enregistrez les événements sanitaires et zootechniques de votre cheptel.</p>
               <button
-                onClick={() => navigate('/app/livestock/events')}
+                onClick={() => navigate(LIVESTOCK_PATHS.events)}
                 className="module-btn module-btn-primary"
               >
                 <Plus size={14} /> Nouvel événement

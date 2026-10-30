@@ -18,6 +18,7 @@ import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import type { Animal } from '@/lib/types';
 import * as z from 'zod';
+import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
 // Schéma de validation pour les animaux
 const animalSchema = z.object({
@@ -343,7 +344,7 @@ export function AnimalManage() {
               <Plus size={18} /> Nouvel animal
             </button>
             <button
-              onClick={() => navigate('/app/livestock/animals')}
+              onClick={() => navigate(LIVESTOCK_PATHS.animalsLegacy)}
               className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 ml-2"
             >
               Tous les animaux

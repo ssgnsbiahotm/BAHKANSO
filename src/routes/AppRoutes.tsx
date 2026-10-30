@@ -1,13 +1,24 @@
-import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
-import { lazy } from 'react';
+import { RouterProvider, createBrowserRouter, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { lazy, useEffect } from 'react';
 import { RequireAuth, RequireModule } from './authGuard';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { Suspense, type ComponentType, type PropsWithChildren } from 'react';
 import type { ModuleKey, PermissionAction } from '@/lib/rbac';
 
+// Redirect component preserving search params and hash
+function PreservingRedirect({ to }: { to: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate(to + location.search + location.hash, { replace: true });
+  }, [navigate, to, location.search, location.hash]);
+  return null;
+}
+
 // Lazy load all pages
 const LandingPage = lazy(() => import('@/pages/LandingPage').then(m => ({ default: m.LandingPage })));
+const LandingPagePrototype = lazy(() => import('@/pages/LandingPagePrototype').then(m => ({ default: m.LandingPagePrototype })));
 const LoginPage = lazy(() => import('@/pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const MentionsLegales = lazy(() => import('@/pages/MentionsLegales').then(m => ({ default: m.MentionsLegales })));
 const Confidentialite = lazy(() => import('@/pages/Confidentialite').then(m => ({ default: m.Confidentialite })));
@@ -63,6 +74,7 @@ function createSuspenseWrapper(Component: ComponentType<Record<string, unknown>>
 }
 
 const LandingPageSuspense = createSuspenseWrapper(LandingPage);
+const LandingPagePrototypeSuspense = createSuspenseWrapper(LandingPagePrototype);
 const LoginPageSuspense = createSuspenseWrapper(LoginPage);
 const MentionsLegalesSuspense = createSuspenseWrapper(MentionsLegales);
 const ConfidentialiteSuspense = createSuspenseWrapper(Confidentialite);
@@ -100,6 +112,10 @@ export const appRouter = createBrowserRouter([
   {
     path: '/',
     element: <LandingPageSuspense />,
+  },
+  {
+    path: '/prototype',
+    element: <LandingPagePrototypeSuspense />,
   },
   {
     path: '/login',
@@ -256,14 +272,18 @@ export const appRouter = createBrowserRouter([
       {
         path: 'exploitation/lots',
         element: (
-          <RequireModule module="agriculture" action="read">
+          <RequireModule module="livestock" action="read">
             <LotsPageSuspense />
           </RequireModule>
         ),
       },
       {
         path: 'exploitation/animaux',
-        element: <AnimauxPageSuspense />,
+        element: (
+          <RequireModule module="livestock" action="read">
+            <AnimauxPageSuspense />
+          </RequireModule>
+        ),
       },
       {
         path: 'livestock',
@@ -275,11 +295,11 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'livestock/lots',
-        element: <Navigate to="/app/exploitation/lots" replace />,
+        element: <PreservingRedirect to="/app/exploitation/lots" />,
       },
       {
         path: 'livestock/animals',
-        element: <Navigate to="/app/exploitation/animaux" replace />,
+        element: <PreservingRedirect to="/app/exploitation/animaux" />,
       },
       {
         path: 'livestock/events',
