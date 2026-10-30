@@ -36,7 +36,14 @@ const saleSchema = z.object({
 
 type SaleFormValues = z.infer<typeof saleSchema>;
 type PaymentMethod = SaleFormValues['payment_method'];
-type SaleItem = SaleFormValues['items'][0];
+// Interface explicite pour contourner le bug d'inférence de useFormValidation
+interface SaleItem {
+  description: string;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  total: number;
+}
 
 const DEFAULT_VALUES: SaleFormValues = {
   site_id: '',
@@ -120,11 +127,10 @@ export function SalesModule() {
     ];
   }, [sales, customers, effectiveSiteId]);
 
-  const { values: form, setFieldValue: setForm, resetForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm<SaleFormValues>({
+  const { values: form, setFieldValue: setForm, resetForm, errors: rawErrors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm<SaleFormValues>({
     schema: saleSchema,
     defaultValues: DEFAULT_VALUES,
     onSubmit: async (values) => {
-  const items: SaleItem[] = form.items as SaleItem[];
       // Calculate totals for items
       const itemsWithTotals = values.items.map(item => ({
         ...item,
@@ -206,7 +212,14 @@ export function SalesModule() {
   });
 
   // Memoize typed form items for the Articles FormSection
-  const formItems = useMemo(() => form.items as SaleItem[], [form.items]);
+  // Cast de errors pour contourner le bug d'inférence du hook
+  const errors = rawErrors as any;
+
+  const formItems: SaleItem[] = useMemo(() => {
+    const items = form.items as unknown;
+    if (!Array.isArray(items)) return [];
+    return items as SaleItem[];
+  }, [form.items]);
 
   const openCreate = useCallback(() => {
     resetForm();
@@ -765,70 +778,67 @@ export function SalesModule() {
 
           <FormSection title="Articles">
             <div className="space-y-4">
-              {(() => {
-                const items: SaleItem[] = form.items as SaleItem[];
-                return items.map((item, idx) => (
-                  <div key={idx} className="grid grid-cols-12 gap-3 items-end">
-                    <div className="col-span-12 md:col-span-4">
-                      <FormField label="Description" error={errors.items?.[idx]?.description}>
-                        <FormInput
-                          value={item.description}
-                          onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))}
-                        />
-                      </FormField>
-                    </div>
-                    <div className="col-span-12 md:col-span-2">
-                      <FormField label="Quantité" error={errors.items?.[idx]?.quantity}>
-                        <FormInput
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={item.quantity}
-                          onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, quantity: Number(e.target.value) || 0 } : it))}
-                        />
-                      </FormField>
-                    </div>
-                    <div className="col-span-12 md:col-span-2">
-                      <FormField label="Unité" error={errors.items?.[idx]?.unit}>
-                        <FormSelect
-                          value={item.unit}
-                          onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, unit: e.target.value } : it))}
-                        >
-                          <option value="kg">kg</option>
-                          <option value="tonne">tonne</option>
-                          <option value="unité">unité</option>
-                          <option value="litre">litre</option>
-                          <option value="sac">sac</option>
-                        </FormSelect>
-                      </FormField>
-                    </div>
-                    <div className="col-span-12 md:col-span-3">
-                      <FormField label="Prix unitaire" error={errors.items?.[idx]?.unit_price}>
-                        <FormInput
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={item.unit_price}
-                          onChange={e => setForm('items', items.map((it, i) => i === idx ? { ...it, unit_price: Number(e.target.value) || 0 } : it))}
-                        />
-                      </FormField>
-                    </div>
-                    <div className="col-span-12 md:col-span-1">
-                      <button
-                        type="button"
-                        onClick={() => setForm('items', items.filter((_, i) => i !== idx))}
-                        className="w-full h-10 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 flex items-center justify-center"
-                        disabled={items.length <= 1}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+              {(formItems as SaleItem[]).map((item, idx) => (
+                <div key={idx} className="grid grid-cols-12 gap-3 items-end">
+                  <div className="col-span-12 md:col-span-4">
+                    <FormField label="Description" error={errors.items?.[idx]?.description}>
+                      <FormInput
+                        value={item.description}
+                        onChange={e => setForm('items', formItems.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))}
+                      />
+                    </FormField>
                   </div>
-                ));
-              })()}
+                  <div className="col-span-12 md:col-span-2">
+                    <FormField label="Quantité" error={errors.items?.[idx]?.quantity}>
+                      <FormInput
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={item.quantity}
+                        onChange={e => setForm('items', formItems.map((it, i) => i === idx ? { ...it, quantity: Number(e.target.value) || 0 } : it))}
+                      />
+                    </FormField>
+                  </div>
+                  <div className="col-span-12 md:col-span-2">
+                    <FormField label="Unité" error={errors.items?.[idx]?.unit}>
+                      <FormSelect
+                        value={item.unit}
+                        onChange={e => setForm('items', formItems.map((it, i) => i === idx ? { ...it, unit: e.target.value } : it))}
+                      >
+                        <option value="kg">kg</option>
+                        <option value="tonne">tonne</option>
+                        <option value="unité">unité</option>
+                        <option value="litre">litre</option>
+                        <option value="sac">sac</option>
+                      </FormSelect>
+                    </FormField>
+                  </div>
+                  <div className="col-span-12 md:col-span-3">
+                    <FormField label="Prix unitaire" error={errors.items?.[idx]?.unit_price}>
+                      <FormInput
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={item.unit_price}
+                        onChange={e => setForm('items', formItems.map((it, i) => i === idx ? { ...it, unit_price: Number(e.target.value) || 0 } : it))}
+                      />
+                    </FormField>
+                  </div>
+                  <div className="col-span-12 md:col-span-1">
+                    <button
+                      type="button"
+                      onClick={() => setForm('items', formItems.filter((_, i) => i !== idx))}
+                      className="w-full h-10 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 flex items-center justify-center"
+                      disabled={formItems.length <= 1}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
               <button
                 type="button"
-                onClick={() => setForm('items', [...(form.items as SaleItem[]), { description: '', quantity: 1, unit: 'kg', unit_price: 0, total: 0 }])}
+                onClick={() => setForm('items', [...formItems, { description: '', quantity: 1, unit: 'kg', unit_price: 0, total: 0 }])}
                 className="module-btn module-btn-secondary"
               >
                 <Plus size={14} /> Ajouter un article
