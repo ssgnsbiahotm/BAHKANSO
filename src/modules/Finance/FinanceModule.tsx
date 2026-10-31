@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import '@/styles/module-theme.css';
 import { RequireModule } from '@/routes/authGuard';
 import { useFundings } from '@/modules/Finance/hooks/useFinanceData';
 import { useExpenses } from '@/modules/Finance/hooks/useFinanceData';
@@ -31,16 +32,26 @@ export const FinanceModule = () => {
 
   return (
     <RequireModule module="finance" action="read">
-      <div className="space-y-6">
-        <div className="flex flex-wrap gap-1 bg-gray-50 p-2 rounded-lg shadow-sm">
+      <div className="module-page">
+        <header className="module-header">
+          <div className="module-header-left">
+            <h1 style={{ color: 'var(--color-ivory)' }}>Finance</h1>
+            <p className="module-subtitle">
+              Gestion des financements, dépenses, documents et trésorerie
+            </p>
+          </div>
+        </header>
+
+        <div className="module-tabs" role="tablist" aria-label="Sections Finance">
           {tabs.map(t => (
             <button
               key={t.key}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                tab === t.key
-                  ? 'bg-primary text-slate-800 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-gray-100'
-              }`}
+              id={`finance-tab-${t.key}`}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.key}
+              tabIndex={tab === t.key ? 0 : -1}
+              className={`module-tab ${tab === t.key ? 'active' : ''}`}
               onClick={() => setSearchParams({ tab: t.key })}
             >
               {t.label}

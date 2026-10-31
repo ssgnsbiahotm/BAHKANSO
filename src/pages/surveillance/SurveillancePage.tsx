@@ -39,14 +39,14 @@ export function SurveillancePage() {
           <div className="flex gap-2">
             <button
               onClick={() => navigate('/app/surveillance?tab=evenements', { replace: true })}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2"
+              className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium flex items-center gap-2"
               title="Voir les événements"
             >
               <Plus size={16} /> Événements
             </button>
             <button
               onClick={() => navigate('/app/surveillance?tab=alertes', { replace: true })}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2"
+              className="px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover text-sm font-medium flex items-center gap-2"
               title="Voir les alertes"
             >
               <AlertCircle size={16} /> Alertes

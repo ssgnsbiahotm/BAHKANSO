@@ -24,15 +24,15 @@ export const EXPENSE_STATUSES = [
 ] as const;
 
 export const EXPENSE_STATUS_COLORS: Record<string, string> = {
-  brouillon: 'bg-gray-100 text-gray-700 border-gray-300',
-  soumise: 'bg-blue-50 text-blue-700 border-blue-300',
-  'en attente': 'bg-blue-50 text-blue-700 border-blue-300',
-  validée: 'bg-green-50 text-green-700 border-green-300',
-  payée: 'bg-green-50 text-green-700 border-green-300',
-  justifiée: 'bg-green-50 text-green-700 border-green-300',
-  clôturée: 'bg-emerald-50 text-emerald-700 border-emerald-300',
-  rejetée: 'bg-red-50 text-red-700 border-red-300',
-  annulée: 'bg-gray-100 text-gray-500 border-gray-300',
+  brouillon: 'bg-surface-hover text-secondary border-gray-300',
+  soumise: 'bg-info-soft text-info border-default',
+  'en attente': 'bg-info-soft text-info border-default',
+  validée: 'bg-success-soft text-success border-default',
+  payée: 'bg-success-soft text-success border-default',
+  justifiée: 'bg-success-soft text-success border-default',
+  clôturée: 'bg-success-soft text-success border-default',
+  rejetée: 'bg-danger-soft text-danger border-default',
+  annulée: 'bg-surface-hover text-muted border-default',
 };
 
 export const FUNDING_STATUSES = [
@@ -45,12 +45,12 @@ export const FUNDING_STATUSES = [
 ] as const;
 
 export const FUNDING_STATUS_COLORS: Record<string, string> = {
-  prévu: 'bg-gray-100 text-gray-700 border-gray-300',
-  envoyé: 'bg-blue-50 text-blue-700 border-blue-300',
-  'en transit': 'bg-amber-50 text-amber-700 border-amber-300',
-  reçu: 'bg-green-50 text-green-700 border-green-300',
-  'partiellement reçu': 'bg-amber-50 text-amber-700 border-amber-300',
-  annulé: 'bg-red-50 text-red-700 border-red-300',
+  prévu: 'bg-surface-hover text-secondary border-gray-300',
+  envoyé: 'bg-info-soft text-info border-default',
+  'en transit': 'bg-warning-soft text-warning border-default',
+  reçu: 'bg-success-soft text-success border-default',
+  'partiellement reçu': 'bg-warning-soft text-warning border-default',
+  annulé: 'bg-danger-soft text-danger border-default',
 };
 
 export const PROJECT_STATUSES = [
@@ -63,12 +63,12 @@ export const PROJECT_STATUSES = [
 ] as const;
 
 export const PROJECT_STATUS_COLORS: Record<string, string> = {
-  planifié: 'bg-gray-100 text-gray-700 border-gray-300',
-  'en préparation': 'bg-blue-50 text-blue-700 border-blue-300',
-  'en cours': 'bg-green-50 text-green-700 border-green-300',
-  'en retard': 'bg-red-50 text-red-700 border-red-300',
-  terminé: 'bg-emerald-50 text-emerald-700 border-emerald-300',
-  suspendu: 'bg-amber-50 text-amber-700 border-amber-300',
+  planifié: 'bg-surface-hover text-secondary border-gray-300',
+  'en préparation': 'bg-info-soft text-info border-default',
+  'en cours': 'bg-success-soft text-success border-default',
+  'en retard': 'bg-danger-soft text-danger border-default',
+  terminé: 'bg-success-soft text-success border-default',
+  suspendu: 'bg-warning-soft text-warning border-default',
 };
 
 export const DOCUMENT_STATUSES = [
@@ -80,17 +80,17 @@ export const DOCUMENT_STATUSES = [
 ] as const;
 
 export const DOCUMENT_STATUS_COLORS: Record<string, string> = {
-  manquant: 'bg-red-50 text-red-700 border-red-300',
-  ajouté: 'bg-gray-100 text-gray-700 border-gray-300',
-  'à vérifier': 'bg-amber-50 text-amber-700 border-amber-300',
-  vérifié: 'bg-green-50 text-green-700 border-green-300',
-  rejeté: 'bg-red-50 text-red-700 border-red-300',
+  manquant: 'bg-danger-soft text-danger border-default',
+  ajouté: 'bg-surface-hover text-secondary border-gray-300',
+  'à vérifier': 'bg-warning-soft text-warning border-default',
+  vérifié: 'bg-success-soft text-success border-default',
+  rejeté: 'bg-danger-soft text-danger border-default',
 };
 
 export const ALERT_SEVERITY_COLORS: Record<string, string> = {
-  high: 'bg-red-50 text-red-700 border-red-300',
-  medium: 'bg-amber-50 text-amber-700 border-amber-300',
-  low: 'bg-blue-50 text-blue-700 border-blue-300',
+  high: 'bg-danger-soft text-danger border-default',
+  medium: 'bg-warning-soft text-warning border-default',
+  low: 'bg-info-soft text-info border-default',
 };
 
 export const ROLES = [
@@ -213,9 +213,9 @@ export const RECIPE_STATUSES = [
 ];
 
 export const RECIPE_STATUS_COLORS: Record<string, string> = {
-  brouillon: 'bg-gray-100 text-gray-700 border-gray-300',
-  publiée: 'bg-green-50 text-green-700 border-green-300',
-  archivée: 'bg-amber-50 text-amber-700 border-amber-300',
+  brouillon: 'bg-surface-hover text-secondary border-gray-300',
+  publiée: 'bg-success-soft text-success border-default',
+  archivée: 'bg-warning-soft text-warning border-default',
 };
 
 export const MEDIA_TYPES = [
@@ -239,46 +239,46 @@ export const MEDIA_CATEGORIES = [
 
 export const SITE_STATUSES = ['actif', 'inactif'] as const;
 export const SITE_STATUS_COLORS: Record<string, string> = {
-  actif: 'bg-green-50 text-green-700 border-green-300',
-  inactif: 'bg-gray-100 text-gray-500 border-gray-300',
+  actif: 'bg-success-soft text-success border-default',
+  inactif: 'bg-surface-hover text-muted border-default',
 };
 
 export const PLOT_STATUSES = ['actif', 'inactif', 'en jachère'] as const;
 export const PLOT_STATUS_COLORS: Record<string, string> = {
-  actif: 'bg-green-50 text-green-700 border-green-300',
-  inactif: 'bg-gray-100 text-gray-500 border-gray-300',
-  'en jachère': 'bg-amber-50 text-amber-700 border-amber-300',
+  actif: 'bg-success-soft text-success border-default',
+  inactif: 'bg-surface-hover text-muted border-default',
+  'en jachère': 'bg-warning-soft text-warning border-default',
 };
 
 export const CAMPAIGN_STATUSES = ['planifié', 'en cours', 'terminé', 'annulé'] as const;
 export const CAMPAIGN_STATUS_COLORS: Record<string, string> = {
-  planifié: 'bg-gray-100 text-gray-700 border-gray-300',
-  'en cours': 'bg-green-50 text-green-700 border-green-300',
-  terminé: 'bg-emerald-50 text-emerald-700 border-emerald-300',
-  annulé: 'bg-red-50 text-red-700 border-red-300',
+  planifié: 'bg-surface-hover text-secondary border-gray-300',
+  'en cours': 'bg-success-soft text-success border-default',
+  terminé: 'bg-success-soft text-success border-default',
+  annulé: 'bg-danger-soft text-danger border-default',
 };
 
 export const ANIMAL_STATUSES = ['actif', 'vendu', 'décédé', 'transféré'] as const;
 export const ANIMAL_STATUS_COLORS: Record<string, string> = {
-  actif: 'bg-green-50 text-green-700 border-green-300',
-  vendu: 'bg-blue-50 text-blue-700 border-blue-300',
-  décédé: 'bg-red-50 text-red-700 border-red-300',
-  transféré: 'bg-amber-50 text-amber-700 border-amber-300',
+  actif: 'bg-success-soft text-success border-default',
+  vendu: 'bg-info-soft text-info border-default',
+  décédé: 'bg-danger-soft text-danger border-default',
+  transféré: 'bg-warning-soft text-warning border-default',
 };
 
 export const ANIMAL_LOT_STATUSES = ['actif', 'clôturé', 'transféré'] as const;
 export const ANIMAL_LOT_STATUS_COLORS: Record<string, string> = {
-  actif: 'bg-green-50 text-green-700 border-green-300',
-  clôturé: 'bg-emerald-50 text-emerald-700 border-emerald-300',
-  transféré: 'bg-amber-50 text-amber-700 border-amber-300',
+  actif: 'bg-success-soft text-success border-default',
+  clôturé: 'bg-success-soft text-success border-default',
+  transféré: 'bg-warning-soft text-warning border-default',
 };
 
 export const SALE_STATUSES = ['payée', 'partielle', 'en attente', 'annulée'] as const;
 export const SALE_STATUS_COLORS: Record<string, string> = {
-  payée: 'bg-green-50 text-green-700 border-green-300',
-  partielle: 'bg-amber-50 text-amber-700 border-amber-300',
-  'en attente': 'bg-blue-50 text-blue-700 border-blue-300',
-  annulée: 'bg-red-50 text-red-700 border-red-300',
+  payée: 'bg-success-soft text-success border-default',
+  partielle: 'bg-warning-soft text-warning border-default',
+  'en attente': 'bg-info-soft text-info border-default',
+  annulée: 'bg-danger-soft text-danger border-default',
 };
 
 export const CUSTOMER_TYPES = ['particulier', 'professionnel', 'grossiste', 'coopérative'] as const;

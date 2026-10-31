@@ -45,9 +45,9 @@ const TABS: { id: MonitoringTab; label: string; icon: React.ReactNode }[] = [
 ];
 
 const tabColor = (id: MonitoringTab) =>
-  id === 'audit' ? 'text-slate-700 bg-slate-50 border-slate-200'
-  : id === 'alertes' ? 'text-amber-700 bg-amber-50 border-amber-200'
-  : 'text-blue-700 bg-blue-50 border-blue-200';
+  id === 'audit' ? 'text-secondary bg-surface-hover border-default'
+  : id === 'alertes' ? 'text-warning bg-warning-soft border-default'
+  : 'text-info bg-info-soft border-default';
 
 /* ============================================================================
    AUDIT — COLORS ET HELPERS
@@ -180,10 +180,10 @@ export function Monitoring() {
   const [selectedReport, setSelectedReport] = useState('financial');
 
   const reportList = [
-    { id: 'financial', label: 'Rapport financier', icon: <FileBarChart size={20} />, color: 'bg-blue-50 text-blue-600' },
-    { id: 'agricultural', label: 'Rapport agricole', icon: <FileText size={20} />, color: 'bg-green-50 text-green-600' },
-    { id: 'livestock', label: 'Rapport élevage', icon: <FileText size={20} />, color: 'bg-amber-50 text-amber-600' },
-    { id: 'investment', label: 'Rapport investissements', icon: <FileText size={20} />, color: 'bg-purple-50 text-purple-600' },
+    { id: 'financial', label: 'Rapport financier', icon: <FileBarChart size={20} />, color: 'bg-info-soft text-info' },
+    { id: 'agricultural', label: 'Rapport agricole', icon: <FileText size={20} />, color: 'bg-success-soft text-success' },
+    { id: 'livestock', label: 'Rapport élevage', icon: <FileText size={20} />, color: 'bg-warning-soft text-warning' },
+    { id: 'investment', label: 'Rapport investissements', icon: <FileText size={20} />, color: 'bg-accent-soft text-accent-primary' },
     { id: 'funder', label: 'Rapport financeur', icon: <FileText size={20} />, color: 'bg-cyan-50 text-cyan-600' },
   ];
 
@@ -265,17 +265,17 @@ export function Monitoring() {
   // =========================================================================
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-surface-hover">
       {/* ==================================================================== */}
       {/* NAVIGATION INTERNE (sidebar du module) */}
       {/* ==================================================================== */}
-      <aside className="hidden lg:flex lg:w-64 flex-col border-r border-slate-200 bg-white">
-        <div className="p-5 border-b border-slate-200">
+      <aside className="hidden lg:flex lg:w-64 flex-col border-r border-default bg-surface">
+        <div className="p-5 border-b border-default">
           <div className="flex items-center gap-2">
-            <Layout size={24} className="text-indigo-600" />
-            <h2 className="font-bold text-lg text-slate-800">Surveillance</h2>
+            <Layout size={24} className="text-accent-primary" />
+            <h2 className="font-bold text-lg text-primary">Surveillance</h2>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Audit · Alertes · Rapports</p>
+          <p className="text-xs text-muted mt-1">Audit · Alertes · Rapports</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
@@ -288,7 +288,7 @@ export function Monitoring() {
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
                     ? tabColor(tab.id)
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    : 'text-secondary hover:bg-surface-hover hover:text-primary'
                 }`}
               >
                 {tab.icon}
@@ -298,8 +298,8 @@ export function Monitoring() {
           })}
         </div>
 
-        <div className="p-3 border-t border-slate-200">
-          <p className="text-xs text-slate-500 text-center">Bahkanso · v1.0</p>
+        <div className="p-3 border-t border-default">
+          <p className="text-xs text-muted text-center">Bahkanso · v1.0</p>
         </div>
       </aside>
 
@@ -308,12 +308,12 @@ export function Monitoring() {
       {/* ==================================================================== */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* En-tête avec KPI agrégés */}
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <header className="bg-surface border-b border-default px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">
+            <h1 className="text-xl font-bold text-primary">
               {TABS.find(t => t.id === activeTab)?.label}
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted">
               {activeTab === 'audit' ? 'Journal d’activité immuable de l’exploitation'
               : activeTab === 'alertes' ? 'Centre de gestion des alertes et anomalies'
               : 'Génération de rapports et exports'}
@@ -321,10 +321,10 @@ export function Monitoring() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <KpiCard label="Alertes ouvertes" value={String(kpis.openAlerts)} icon={<Bell size={16} />} color="amber" />
-            <KpiCard label="Priorité haute" value={String(kpis.highAlerts)} icon={<AlertTriangle size={16} />} color="red" />
-            <KpiCard label="Événements audit" value={String(kpis.totalEvents)} icon={<ScrollText size={16} />} color="dark" />
-            <KpiCard label="Événements aujourd’hui" value={String(kpis.todayEvents)} icon={<List size={16} />} color="blue" />
+            <KpiCard label="Alertes ouvertes" value={String(kpis.openAlerts)} icon={<Bell size={16} />} color="warning" />
+            <KpiCard label="Priorité haute" value={String(kpis.highAlerts)} icon={<AlertTriangle size={16} />} color="danger" />
+            <KpiCard label="Événements audit" value={String(kpis.totalEvents)} icon={<ScrollText size={16} />} color="slate" />
+            <KpiCard label="Événements aujourd’hui" value={String(kpis.todayEvents)} icon={<List size={16} />} color="info" />
           </div>
         </header>
 
@@ -335,60 +335,60 @@ export function Monitoring() {
           {activeTab === 'audit' && (
             <div className="max-w-7xl mx-auto space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <KpiCard label="Total événements" value={String(auditKpis.total)} icon={<ScrollText size={16} />} color="dark" />
-                <KpiCard label="Créations" value={String(auditKpis.creates)} icon={<ScrollText size={16} />} color="green" />
-                <KpiCard label="Validations" value={String(auditKpis.validates)} icon={<ScrollText size={16} />} color="blue" />
-                <KpiCard label="Rejets/Annulations" value={String(auditKpis.rejects)} icon={<ScrollText size={16} />} color="red" />
+                <KpiCard label="Total événements" value={String(auditKpis.total)} icon={<ScrollText size={16} />} color="slate" />
+                <KpiCard label="Créations" value={String(auditKpis.creates)} icon={<ScrollText size={16} />} color="success" />
+                <KpiCard label="Validations" value={String(auditKpis.validates)} icon={<ScrollText size={16} />} color="info" />
+                <KpiCard label="Rejets/Annulations" value={String(auditKpis.rejects)} icon={<ScrollText size={16} />} color="danger" />
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <div className="relative flex-1">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                   <input
                     type="text"
                     value={searchAudit}
                     onChange={e => setSearchAudit(e.target.value)}
                     placeholder="Rechercher dans l’audit…"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500/20"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
                   />
                 </div>
-                <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white">
+                <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="px-3 py-2 text-sm border border-default rounded-lg bg-surface">
                   <option value="all">Tous les utilisateurs</option>
                   {auditUsers.map(u => <option key={u || ''} value={u || ''}>{u || 'Inconnu'}</option>)}
                 </select>
-                <select value={filterAction} onChange={e => setFilterAction(e.target.value)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white">
+                <select value={filterAction} onChange={e => setFilterAction(e.target.value)} className="px-3 py-2 text-sm border border-default rounded-lg bg-surface">
                   <option value="all">Toutes les actions</option>
                   {auditActions.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
               </div>
 
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-surface rounded-xl border border-default overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50/50">
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Utilisateur</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Action</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Objet</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Description</th>
+                      <tr className="border-b border-default bg-surface-hover/50">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Utilisateur</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Action</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Objet</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Description</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-border-default">
                       {filteredAudit.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                          <td colSpan={5} className="px-4 py-8 text-center text-muted">
                             Aucun événement trouvé.
                           </td>
                         </tr>
                       ) : (
                         filteredAudit.map(log => (
-                          <tr key={log.id} className="hover:bg-slate-50/50">
-                            <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{formatDateTime(log.created_at)}</td>
-                            <td className="px-4 py-3 text-sm font-medium text-slate-900">{log.user_name || '—'}</td>
+                          <tr key={log.id} className="hover:bg-surface-hover/50">
+                            <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formatDateTime(log.created_at)}</td>
+                            <td className="px-4 py-3 text-sm font-medium text-primary">{log.user_name || '—'}</td>
                             <td className="px-4 py-3"><SimpleBadge color={ACTION_COLORS[log.action] || 'gray'}>{log.action}</SimpleBadge></td>
-                            <td className="px-4 py-3 text-sm text-slate-600">{log.object_type || '—'} {log.object_id ? `· ${log.object_id}` : ''}</td>
-                            <td className="px-4 py-3 text-sm text-slate-600">{log.description || '—'}</td>
+                            <td className="px-4 py-3 text-sm text-secondary">{log.object_type || '—'} {log.object_id ? `· ${log.object_id}` : ''}</td>
+                            <td className="px-4 py-3 text-sm text-secondary">{log.description || '—'}</td>
                           </tr>
                         ))
                       )}
@@ -405,42 +405,42 @@ export function Monitoring() {
           {activeTab === 'alertes' && (
             <div className="max-w-7xl mx-auto space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <KpiCard label="Alertes ouvertes" value={String(alertKpis.open)} icon={<Bell size={16} />} color="amber" />
-                <KpiCard label="Haute priorité" value={String(alertKpis.high)} icon={<AlertTriangle size={16} />} color="red" />
-                <KpiCard label="Priorité moyenne" value={String(alertKpis.medium)} icon={<Bell size={16} />} color="amber" />
-                <KpiCard label="Résolues" value={String(alertKpis.resolved)} icon={<CheckCircle size={16} />} color="green" />
+                <KpiCard label="Alertes ouvertes" value={String(alertKpis.open)} icon={<Bell size={16} />} color="warning" />
+                <KpiCard label="Haute priorité" value={String(alertKpis.high)} icon={<AlertTriangle size={16} />} color="danger" />
+                <KpiCard label="Priorité moyenne" value={String(alertKpis.medium)} icon={<Bell size={16} />} color="warning" />
+                <KpiCard label="Résolues" value={String(alertKpis.resolved)} icon={<CheckCircle size={16} />} color="success" />
               </div>
 
               <div className="space-y-3">
                 {alerts.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-                    <p className="text-slate-400">Aucune alerte enregistrée.</p>
+                  <div className="bg-surface rounded-xl border border-default p-8 text-center">
+                    <p className="text-muted">Aucune alerte enregistrée.</p>
                   </div>
                 ) : (
                   alerts.map(a => (
-                    <div key={a.id} className={`bg-white rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-slate-200' : 'border-slate-100 opacity-60'}`}>
+                    <div key={a.id} className={`bg-surface rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-default' : 'border-default opacity-60'}`}>
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          a.severity === 'high' ? 'bg-red-100 text-red-600' : a.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                          a.severity === 'high' ? 'bg-danger-soft text-danger' : a.severity === 'medium' ? 'bg-warning-soft text-warning' : 'bg-info-soft text-info'
                         }`}>
                           {categoryIcons[a.category] || <Bell size={18} />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-slate-900">{a.title}</h3>
+                            <h3 className="font-semibold text-primary">{a.title}</h3>
                             <SimpleBadge color={a.severity === 'high' ? 'red' : a.severity === 'medium' ? 'amber' : 'blue'}>{a.severity}</SimpleBadge>
                             <SimpleBadge color="gray">{a.category}</SimpleBadge>
                             {a.status === 'résolue' && <SimpleBadge color="green">Résolue</SimpleBadge>}
                           </div>
-                          <p className="text-sm text-slate-500">{a.description}</p>
-                          <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                          <p className="text-sm text-muted">{a.description}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted">
                             <span>{timeAgo(a.created_at)}</span>
                             {a.assigned_to && <span>· Assignée à {a.assigned_to}</span>}
                             {a.resolved_at && <span>· Résolue le {formatDate(a.resolved_at)}</span>}
                           </div>
                         </div>
                         {a.status === 'ouverte' && (
-                          <button onClick={() => resolveAlert(a)} className="flex items-center gap-1 px-3 py-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200">
+                          <button onClick={() => resolveAlert(a)} className="flex items-center gap-1 px-3 py-1.5 text-xs text-success bg-success-soft hover:bg-success-soft rounded-lg border border-default">
                             <CheckCircle size={14} /> Résoudre
                           </button>
                         )}
@@ -466,11 +466,11 @@ export function Monitoring() {
                         key={r.id}
                         onClick={() => setSelectedReport(r.id)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
-                          selectedReport === r.id ? 'bg-green-50 border-green-300' : 'bg-white border-slate-200 hover:bg-slate-50'
+                          selectedReport === r.id ? 'bg-success-soft border-success' : 'bg-surface border-default hover:bg-surface-hover'
                         }`}
                       >
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${r.color}`}>{r.icon}</div>
-                        <span className={`text-sm font-medium ${selectedReport === r.id ? 'text-green-700' : 'text-slate-700'}`}>{r.label}</span>
+                        <span className={`text-sm font-medium ${selectedReport === r.id ? 'text-success' : 'text-secondary'}`}>{r.label}</span>
                       </button>
                     ))}
                   </div>
@@ -478,17 +478,17 @@ export function Monitoring() {
 
                 {/* Contenu du rapport sélectionné */}
                 <div className="lg:col-span-2">
-                  <div className="bg-white rounded-xl border border-slate-200 p-6">
+                  <div className="bg-surface rounded-xl border border-default p-6">
                     <div className="flex items-center justify-between mb-6">
                       <div>
-                        <h3 className="font-semibold text-slate-900 text-lg">{reportList.find(r => r.id === selectedReport)?.label}</h3>
-                        <p className="text-sm text-slate-500">Rapport généré le {formatDate(new Date().toISOString())}</p>
+                        <h3 className="font-semibold text-primary text-lg">{reportList.find(r => r.id === selectedReport)?.label}</h3>
+                        <p className="text-sm text-muted">Rapport généré le {formatDate(new Date().toISOString())}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleExport('csv')} className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700">
+                        <button onClick={() => handleExport('csv')} className="flex items-center gap-2 px-4 py-2 text-sm border border-default rounded-lg hover:bg-surface-hover text-secondary">
                           <Download size={16} /> CSV
                         </button>
-                        <button onClick={() => handleExport('pdf')} className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700">
+                        <button onClick={() => handleExport('pdf')} className="flex items-center gap-2 px-4 py-2 text-sm border border-default rounded-lg hover:bg-surface-hover text-secondary">
                           <Download size={16} /> PDF
                         </button>
                       </div>
@@ -497,18 +497,18 @@ export function Monitoring() {
                     {selectedReport === 'financial' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-blue-50 rounded-lg"><p className="text-xs text-slate-500">Total financé</p><p className="text-xl font-bold text-slate-900">{formatCurrency(fin.totalFunded)}</p></div>
-                          <div className="p-4 bg-amber-50 rounded-lg"><p className="text-xs text-slate-500">Total dépensé</p><p className="text-xl font-bold text-slate-900">{formatCurrency(fin.totalSpent)}</p></div>
-                          <div className="p-4 bg-green-50 rounded-lg"><p className="text-xs text-slate-500">Solde</p><p className="text-xl font-bold text-green-600">{formatCurrency(fin.totalFunded - fin.totalSpent)}</p></div>
-                          <div className="p-4 bg-slate-50 rounded-lg"><p className="text-xs text-slate-500">Nb dépenses</p><p className="text-xl font-bold text-slate-900">{expenses.length}</p></div>
+                          <div className="p-4 bg-info-soft rounded-lg"><p className="text-xs text-muted">Total financé</p><p className="text-xl font-bold text-primary">{formatCurrency(fin.totalFunded)}</p></div>
+                          <div className="p-4 bg-warning-soft rounded-lg"><p className="text-xs text-muted">Total dépensé</p><p className="text-xl font-bold text-primary">{formatCurrency(fin.totalSpent)}</p></div>
+                          <div className="p-4 bg-success-soft rounded-lg"><p className="text-xs text-muted">Solde</p><p className="text-xl font-bold text-success">{formatCurrency(fin.totalFunded - fin.totalSpent)}</p></div>
+                          <div className="p-4 bg-surface-hover rounded-lg"><p className="text-xs text-muted">Nb dépenses</p><p className="text-xl font-bold text-primary">{expenses.length}</p></div>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-slate-700 mb-2">Dépenses par catégorie</h4>
+                          <h4 className="text-sm font-medium text-secondary mb-2">Dépenses par catégorie</h4>
                           <div className="space-y-2">
                             {Object.entries(fin.byCategory).sort((a, b) => b[1] - a[1]).map(([cat, amt]) => (
-                              <div key={cat} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                                <span className="text-sm text-slate-600">{cat}</span>
-                                <span className="text-sm font-medium text-slate-900">{formatCurrency(amt)}</span>
+                              <div key={cat} className="flex items-center justify-between p-2 bg-surface-hover rounded-lg">
+                                <span className="text-sm text-secondary">{cat}</span>
+                                <span className="text-sm font-medium text-primary">{formatCurrency(amt)}</span>
                               </div>
                             ))}
                           </div>
@@ -519,18 +519,18 @@ export function Monitoring() {
                     {selectedReport === 'agricultural' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-green-50 rounded-lg"><p className="text-xs text-slate-500">Récoltes totales</p><p className="text-xl font-bold text-slate-900">{harvests.reduce((s, h) => s + h.quantity, 0)} kg</p></div>
-                          <div className="p-4 bg-amber-50 rounded-lg"><p className="text-xs text-slate-500">Chiffre d’affaires</p><p className="text-xl font-bold text-slate-900">{formatCurrency(harvests.reduce((s, h) => s + (h.revenue || 0), 0))}</p></div>
+                          <div className="p-4 bg-success-soft rounded-lg"><p className="text-xs text-muted">Récoltes totales</p><p className="text-xl font-bold text-primary">{harvests.reduce((s, h) => s + h.quantity, 0)} kg</p></div>
+                          <div className="p-4 bg-warning-soft rounded-lg"><p className="text-xs text-muted">Chiffre d’affaires</p><p className="text-xl font-bold text-primary">{formatCurrency(harvests.reduce((s, h) => s + (h.revenue || 0), 0))}</p></div>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-slate-700 mb-2">Détail des récoltes</h4>
+                          <h4 className="text-sm font-medium text-secondary mb-2">Détail des récoltes</h4>
                           <div className="space-y-2">
                             {harvests.length === 0 ? (
-                              <p className="text-sm text-slate-400 py-4 text-center">Aucune récolte enregistrée</p>
+                              <p className="text-sm text-muted py-4 text-center">Aucune récolte enregistrée</p>
                             ) : harvests.map(h => (
-                              <div key={h.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                                <span className="text-sm text-slate-600">{h.quality || 'Récolte'} — {h.quantity} {h.unit}</span>
-                                <span className="text-sm font-medium text-slate-900">{formatCurrency(h.revenue || 0)}</span>
+                              <div key={h.id} className="flex items-center justify-between p-2 bg-surface-hover rounded-lg">
+                                <span className="text-sm text-secondary">{h.quality || 'Récolte'} — {h.quantity} {h.unit}</span>
+                                <span className="text-sm font-medium text-primary">{formatCurrency(h.revenue || 0)}</span>
                               </div>
                             ))}
                           </div>
@@ -541,18 +541,18 @@ export function Monitoring() {
                     {selectedReport === 'livestock' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-amber-50 rounded-lg"><p className="text-xs text-slate-500">Total animaux</p><p className="text-xl font-bold text-slate-900">{animalLots.reduce((s, l) => s + l.count, 0)}</p></div>
-                          <div className="p-4 bg-green-50 rounded-lg"><p className="text-xs text-slate-500">Valeur cheptel</p><p className="text-xl font-bold text-slate-900">{formatCurrency(animalLots.reduce((s, l) => s + l.estimated_value, 0))}</p></div>
+                          <div className="p-4 bg-warning-soft rounded-lg"><p className="text-xs text-muted">Total animaux</p><p className="text-xl font-bold text-primary">{animalLots.reduce((s, l) => s + l.count, 0)}</p></div>
+                          <div className="p-4 bg-success-soft rounded-lg"><p className="text-xs text-muted">Valeur cheptel</p><p className="text-xl font-bold text-primary">{formatCurrency(animalLots.reduce((s, l) => s + l.estimated_value, 0))}</p></div>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-slate-700 mb-2">Détail des lots</h4>
+                          <h4 className="text-sm font-medium text-secondary mb-2">Détail des lots</h4>
                           <div className="space-y-2">
                             {animalLots.length === 0 ? (
-                              <p className="text-sm text-slate-400 py-4 text-center">Aucun lot enregistré</p>
+                              <p className="text-sm text-muted py-4 text-center">Aucun lot enregistré</p>
                             ) : animalLots.map(l => (
-                              <div key={l.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                                <span className="text-sm text-slate-600">{l.species} — {l.count} têtes</span>
-                                <span className="text-sm font-medium text-slate-900">{formatCurrency(l.estimated_value)}</span>
+                              <div key={l.id} className="flex items-center justify-between p-2 bg-surface-hover rounded-lg">
+                                <span className="text-sm text-secondary">{l.species} — {l.count} têtes</span>
+                                <span className="text-sm font-medium text-primary">{formatCurrency(l.estimated_value)}</span>
                               </div>
                             ))}
                           </div>
@@ -564,12 +564,12 @@ export function Monitoring() {
                       <div className="space-y-4">
                         <div className="space-y-2">
                           {projects.length === 0 ? (
-                            <p className="text-sm text-slate-400 py-4 text-center">Aucun projet enregistré</p>
+                            <p className="text-sm text-muted py-4 text-center">Aucun projet enregistré</p>
                           ) : projects.map(p => (
-                            <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div key={p.id} className="flex items-center justify-between p-3 bg-surface-hover rounded-lg">
                               <div>
-                                <p className="text-sm font-medium text-slate-900">{p.name}</p>
-                                <p className="text-xs text-slate-500">{p.status} · {p.progress}%</p>
+                                <p className="text-sm font-medium text-primary">{p.name}</p>
+                                <p className="text-xs text-muted">{p.status} · {p.progress}%</p>
                               </div>
                               <span className="text-sm font-medium">{formatCurrency(p.revised_budget || p.initial_budget)}</span>
                             </div>
@@ -580,17 +580,17 @@ export function Monitoring() {
 
                     {selectedReport === 'funder' && (
                       <div className="space-y-4">
-                        <p className="text-sm text-slate-500">Rapport consolidé destiné aux financeurs : financements, dépenses liées, justificatifs et résultats.</p>
+                        <p className="text-sm text-muted">Rapport consolidé destiné aux financeurs : financements, dépenses liées, justificatifs et résultats.</p>
                         <div className="space-y-2">
                           {fundings.filter(f => f.status === 'reçu').length === 0 ? (
-                            <p className="text-sm text-slate-400 py-4 text-center">Aucun financement reçu</p>
+                            <p className="text-sm text-muted py-4 text-center">Aucun financement reçu</p>
                           ) : fundings.filter(f => f.status === 'reçu').map(f => (
-                            <div key={f.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div key={f.id} className="flex items-center justify-between p-3 bg-surface-hover rounded-lg">
                               <div>
-                                <p className="text-sm font-medium text-slate-900">{f.reference}</p>
-                                <p className="text-xs text-slate-500">{f.funder?.name}</p>
+                                <p className="text-sm font-medium text-primary">{f.reference}</p>
+                                <p className="text-xs text-muted">{f.funder?.name}</p>
                               </div>
-                              <span className="text-sm font-medium text-green-600">{formatCurrency(f.amount_received || 0)}</span>
+                              <span className="text-sm font-medium text-success">{formatCurrency(f.amount_received || 0)}</span>
                             </div>
                           ))}
                         </div>

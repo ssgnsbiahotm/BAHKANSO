@@ -3,7 +3,8 @@
    Import this in module pages for consistent dark theming */
 
 :root {
-  /* Core Palette - Dark Theme */
+  /* Core Palette - Dark Theme (matches Dashboard) */
+  --mdn-bg-page: #111A18;
   --mdn-bg-night: #111A18;
   --mdn-bg-surface: #1C2925;
   --mdn-bg-surface-hover: #243430;
@@ -16,12 +17,12 @@
   --mdn-terre: #C87551;
   --mdn-terre-soft: rgba(200, 117, 81, 0.14);
   --mdn-terre-text: #D4906A;
-  --mdn-grass: #B9D86B;
-  --mdn-earth: #D4906A;
-  --mdn-sky: #8FD3F4;
-  --mdn-harvest: #F6B95C;
-  --mdn-alert: #F28B82;
-  --mdn-slate: #B8B0A4;
+  --mdn-grass: #2E7D32;
+  --mdn-earth: #5C4033;
+  --mdn-sky: #0277BD;
+  --mdn-harvest: #F57F17;
+  --mdn-alert: #C62828;
+  --mdn-slate: #64748B;
   --mdn-border: rgba(185, 216, 107, 0.22);
   --mdn-border-muted: rgba(185, 216, 107, 0.09);
   --mdn-text: #E8E4DC;
@@ -354,7 +355,6 @@
 
 .module-page .rc-face--front {
   background: var(--mdn-bg-surface-raised);
-  z-index: 2;
 }
 
 .module-page .rc-face--back {
@@ -362,6 +362,11 @@
   border-color: var(--mdn-accent);
   transform: rotateY(180deg);
 }
+
+.module-page .rc:not(.is-flipped) .rc-face--front { z-index: 2; }
+.module-page .rc:not(.is-flipped) .rc-face--back { z-index: 1; }
+.module-page .rc.is-flipped .rc-face--front { z-index: 1; }
+.module-page .rc.is-flipped .rc-face--back { z-index: 2; }
 
 .module-page .rc-flip-btn {
   position: absolute;

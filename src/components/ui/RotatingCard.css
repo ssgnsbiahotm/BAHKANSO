@@ -1,129 +1,75 @@
 /* ==========================================================================
-   RotatingCard — carte retournable professionnelle (style max pro)
+   RotatingCard — carte retournable professionnelle (structure 3D robuste)
    Retour manuel uniquement : clic, clavier (Entrée/Espace) et tactile.
    Aucune animation automatique. Respect de prefers-reduced-motion.
-   Thème par défaut : fond ivoire (ivory-alt) + texte ink (cartes sur fond clair).
-   Variante sombre : classe rc--dark (fond slate, texte ivory).
+   Thème clair uniquement — aucun thème sombre.
    ========================================================================== */
 
-:root {
-  --rc-radius: 14px;
-  --rc-perspective: 1200px;
-  --rc-transition: 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
-  --rc-shadow-front: 0 10px 30px -10px rgba(0, 0, 0, 0.12),
-    0 4px 6px -2px rgba(0, 0, 0, 0.08);
-  --rc-shadow-back: 0 10px 30px -10px rgba(0, 0, 0, 0.15),
-    0 4px 6px -2px rgba(0, 0, 0, 0.1);
-  --rc-border: rgba(221, 213, 196, 0.2);
-}
-
-/* --- Thème par défaut : ivoire dominant (cartes sur fond clair) --- */
-.rc-face--front {
-  background: #EBE6DA; /* ivory-alt */
-  border: 1px solid var(--rc-border);
-  box-shadow: var(--rc-shadow-front);
-  z-index: 2;
-  color: #202824; /* ink */
-}
-
-.rc-face--back {
-  background: #F4F1E8; /* ivory */
-  border: 1px solid var(--rc-border);
-  box-shadow: var(--rc-shadow-back);
-  transform: rotateY(180deg);
-  z-index: 1;
-  color: #202824; /* ink */
-}
-
-/* --- Variante sombre : rc--dark --- */
-.rc--dark .rc-face--front {
-  background: #1C2925; /* slate */
-  border: 1px solid rgba(221, 213, 196, 0.15);
-  box-shadow: var(--rc-shadow-front);
-  color: #F4F1E8; /* ivory */
-}
-
-.rc--dark .rc-face--back {
-  background: #243430; /* slate-hover */
-  border: 1px solid rgba(221, 213, 196, 0.15);
-  box-shadow: var(--rc-shadow-back);
-  color: #F4F1E8; /* ivory */
-}
-
-/* Conteneur de la carte */
-.rc {
-  position: relative;
-  perspective: var(--rc-perspective);
-  min-height: 220px;
+.rc-container {
+  perspective: 1000px;
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 380px; /* Hauteur fixe pour que les deux faces se superposent parfaitement */
+  position: relative;
 }
 
-/* Intérieur en 3D */
 .rc-inner {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 220px;
+  transition: transform 0.6s;
   transform-style: preserve-3d;
-  transition: transform var(--rc-transition);
 }
 
-.rc.is-flipped .rc-inner {
+.rc-container.is-flipped .rc-inner {
   transform: rotateY(180deg);
 }
 
-/* Faces */
 .rc-face {
-  height: 380px;
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: var(--rc-radius);
-  overflow: hidden;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 24px 24px 80px; /* espace pour le bouton de retournement */
-  box-sizing: border-box;
-  transition: opacity 0.2s ease, visibility 0s var(--rc-transition);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-md);
 }
 
 .rc-face--front {
-  z-index: 2;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .rc-face--back {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
   transform: rotateY(180deg);
-  z-index: 1;
 }
 
-/* Visibilité des faces */
-.rc:not(.is-flipped) .rc-face--back,
-.rc.is-flipped .rc-face--front {
-  visibility: hidden;
-  pointer-events: none;
+.rc-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  color: var(--text-primary);
 }
 
-/* Focus visible pour accessibilité clavier */
-.rc:focus-visible {
-  outline: 3px solid #6B8E3A; /* signal */
-  outline-offset: 2px;
-  border-radius: var(--rc-radius);
-}
-
-.rc:focus-visible .rc-face {
-  outline: none;
+.rc-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-primary);
+  flex-shrink: 0;
 }
 
 /* Boutons de retournement */
 .rc-flip-btn {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -132,147 +78,28 @@
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease,
-    background-color 0.2s ease, border-color 0.2s ease;
   border: none;
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  transition: transform 0.15s ease, background-color 0.2s ease;
 }
 
-.rc-flip-btn:focus-visible {
-  outline: 2px solid #6B8E3A; /* signal */
-  outline-offset: 2px;
+.rc-flip-btn:hover {
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
 }
 
 .rc-flip-btn:active {
   transform: scale(0.97);
 }
 
-.rc-flip-btn--front {
-  background: #E8F0D8; /* signal-soft */
-  color: #6B8E3A; /* signal */
-  box-shadow: 0 4px 6px -1px rgba(107, 142, 58, 0.15);
+.rc-flip-btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
-.rc-flip-btn--front:hover {
-  background: #D9E8C7;
-  box-shadow: 0 6px 8px -1px rgba(107, 142, 58, 0.25);
-}
-
-.rc-flip-btn--back {
-  background: #F4F1E8; /* ivory */
-  color: #5A6560; /* ink-mut */
-  border: 1px solid #DDD5C4; /* ivory-deep */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
-}
-
-.rc-flip-btn--back:hover {
-  background: #EBE6DA; /* ivory-alt */
-  border-color: #C9A961; /* gold */
-  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Variante sombre : boutons adaptés */
-.rc--dark .rc-flip-btn--front {
-  background: #6B8E3A; /* signal */
-  color: #111A18; /* night */
-  box-shadow: 0 4px 6px -1px rgba(107, 142, 58, 0.25);
-}
-
-.rc--dark .rc-flip-btn--back {
-  background: #1C2925; /* slate */
-  color: #F4F1E8; /* ivory */
-  border: 1px solid #DDD5C4; /* ivory-deep */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
-}
-
-.rc--dark .rc-flip-btn--back:hover {
-  background: #243430; /* slate-hover */
-  border-color: #C9A961; /* gold */
-}
-
-/* États désactivé */
-.rc[disabled],
-.rc.is-disabled {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* Respect des préférences de mouvement réduit */
 @media (prefers-reduced-motion: reduce) {
   .rc-inner {
     transition: none;
   }
-  .rc-face {
-    transition: none;
-  }
-  .rc:not(.is-flipped) .rc-face--back,
-  .rc.is-flipped .rc-face--front {
-    transition: none;
-  }
-  .rc-flip-btn {
-    transition: none;
-  }
-}
-
-/* Hauteur adaptative : pas de texte coupé, la carte grandit avec le contenu */
-@media (min-width: 768px) {
-  .rc {
-    min-height: 260px;
-  }
-  .rc-inner {
-    min-height: 260px;
-  }
-}
-
-@media (max-width: 767px) {
-  .rc {
-    min-height: 240px;
-  }
-  .rc-inner {
-    min-height: 240px;
-  }
-  .rc-face {
-    padding: 20px 20px 72px;
-  }
-  .rc-flip-btn {
-    bottom: 12px;
-    right: 12px;
-    font-size: 0.8rem;
-    padding: 0.4rem 0.75rem;
-  }
-}
-
-/* Hauteurs fixes pour rotation 3D propre */
-@media (min-width: 768px) {
-  .rc-face {
-    height: 340px;
-  }
-}
-@media (min-width: 1024px) {
-  .rc-face {
-    height: 380px;
-  }
-}
-@media (max-width: 767px) {
-  .rc-face {
-    height: 360px;
-  }
-}
-
-/* ============================================
-   FIX : z-index dynamique quand flipped
-   La carte retournée passe AU-DESSUS des autres
-   ============================================ */
-.rc {
-  position: relative;
-  z-index: 1;
-}
-
-.rc.is-flipped {
-  z-index: 100;
-}
-
-/* Ancrage z-index : le conteneur grille doit être positionné
-   pour que .rc.is-flipped z-index:100 fonctionne correctement */
-.module-cards-grid {
-  position: relative;
 }

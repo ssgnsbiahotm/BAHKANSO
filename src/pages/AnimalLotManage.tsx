@@ -179,31 +179,31 @@ export function AnimalLotManage() {
 
   const renderDetailFields = (lot: AnimalLot) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{lot.identifier}</h2>
-          <p className="text-sm text-slate-500">{lot.species}</p>
+          <h2 className="text-2xl font-bold text-primary">{lot.identifier}</h2>
+          <p className="text-sm text-muted">{lot.species}</p>
         </div>
         <SimpleBadge color={getStatusColor(lot.status)}>
           {lot.status}
         </SimpleBadge>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div><p className="text-xs text-slate-400">Identifiant</p><p className="text-sm font-medium">{lot.identifier}</p></div>
-        <div><p className="text-xs text-slate-400">Espèce</p><p className="text-sm font-medium">{lot.species}</p></div>
-        <div><p className="text-xs text-slate-400">Race</p><p className="text-sm font-medium">{lot.breed ?? '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Effectif</p><p className="text-sm font-medium">{lot.count} têtes</p></div>
-        <div><p className="text-xs text-slate-400">Localisation</p><p className="text-sm font-medium">{lot.location ?? '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{lot.status}</p></div>
-        <div><p className="text-xs text-slate-400">Valeur estimée</p><p className="text-sm font-medium">{lot.estimated_value !== null ? formatCurrency(lot.estimated_value) : '—'}</p></div>
+        <div><p className="text-xs text-muted">Identifiant</p><p className="text-sm font-medium">{lot.identifier}</p></div>
+        <div><p className="text-xs text-muted">Espèce</p><p className="text-sm font-medium">{lot.species}</p></div>
+        <div><p className="text-xs text-muted">Race</p><p className="text-sm font-medium">{lot.breed ?? '—'}</p></div>
+        <div><p className="text-xs text-muted">Effectif</p><p className="text-sm font-medium">{lot.count} têtes</p></div>
+        <div><p className="text-xs text-muted">Localisation</p><p className="text-sm font-medium">{lot.location ?? '—'}</p></div>
+        <div><p className="text-xs text-muted">Statut</p><p className="text-sm font-medium">{lot.status}</p></div>
+        <div><p className="text-xs text-muted">Valeur estimée</p><p className="text-sm font-medium">{lot.estimated_value !== null ? formatCurrency(lot.estimated_value) : '—'}</p></div>
       </div>
     </div>
   );
 
   const renderDetailFooter = (lot: AnimalLot) => (
     <>
-      <button onClick={() => setConfirmDelete(lot)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-      <button onClick={() => openEdit(lot)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+      <button onClick={() => setConfirmDelete(lot)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+      <button onClick={() => openEdit(lot)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
     </>
   );
 
@@ -214,7 +214,7 @@ export function AnimalLotManage() {
         subtitle="Suivi des lots d'animaux d'élevage"
         actions={
           <>
-            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
               <Plus size={18} /> Nouveau lot
             </button>
           </>
@@ -222,25 +222,25 @@ export function AnimalLotManage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total lots" value={String(kpis.totalLots)} icon={null} color="green" />
-        <KpiCard label="Total têtes" value={String(kpis.totalHeads)} icon={null} color="blue" />
-        <KpiCard label="Valeur totale" value={formatCurrency(kpis.totalValue)} icon={null} color="amber" />
+        <KpiCard label="Total lots" value={String(kpis.totalLots)} icon={null} color="success" />
+        <KpiCard label="Total têtes" value={String(kpis.totalHeads)} icon={null} color="info" />
+        <KpiCard label="Valeur totale" value={formatCurrency(kpis.totalValue)} icon={null} color="warning" />
       </div>
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
         <div className="flex-1 min-w-0">
-          <label className="block text-xs font-medium text-slate-600 mb-1">Rechercher des lots</label>
+          <label className="block text-xs font-medium text-secondary mb-1">Rechercher des lots</label>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
+            className="w-full px-3 py-2 border border-default rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
             placeholder="Rechercher par identificateur, espèce, race, localisation ou statut..."
           />
         </div>
         <button
           onClick={() => setSearchTerm('')}
-          className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          className="px-3 py-2 text-sm text-secondary hover:bg-surface-hover"
         >
           Réinitialiser
         </button>
@@ -251,7 +251,7 @@ export function AnimalLotManage() {
           icon={null}
           title={searchTerm ? "Aucun résultat" : "Aucun lot"}
           message={searchTerm ? "Aucun lot ne correspond à votre recherche" : "Aucun lot d'animaux enregistré"}
-          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Créer un lot</button>}
+          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">Créer un lot</button>}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -261,33 +261,33 @@ export function AnimalLotManage() {
               front={
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-900">{lot.identifier}</h3>
+                    <h3 className="font-semibold text-primary">{lot.identifier}</h3>
                     <SimpleBadge color={getStatusColor(lot.status)}>{lot.status}</SimpleBadge>
                   </div>
-                  <div className="flex justify-between text-sm"><span className="text-slate-500">Espèce</span><span className="font-medium">{lot.species}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-slate-500">Race</span><span className="font-medium">{lot.breed || '—'}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-slate-500">Effectif</span><span className="font-medium">{lot.count} têtes</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-slate-500">Localisation</span><span className="font-medium">{lot.location || '—'}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-slate-500">Valeur estimée</span><span className="font-medium">{formatCurrency(lot.estimated_value)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-muted">Espèce</span><span className="font-medium">{lot.species}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-muted">Race</span><span className="font-medium">{lot.breed || '—'}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-muted">Effectif</span><span className="font-medium">{lot.count} têtes</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-muted">Localisation</span><span className="font-medium">{lot.location || '—'}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-muted">Valeur estimée</span><span className="font-medium">{formatCurrency(lot.estimated_value)}</span></div>
                 </div>
               }
               back={
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => { setDetailLot(lot); }}
-                    className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="w-full px-3 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover"
                   >
                     Voir détails
                   </button>
                   <button
                     onClick={() => { openEdit(lot); }}
-                    className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+                    className="w-full px-3 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning"
                   >
                     Modifier
                   </button>
                   <button
                     onClick={() => { setConfirmDelete(lot); }}
-                    className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                    className="w-full px-3 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
                   >
                     Supprimer
                   </button>

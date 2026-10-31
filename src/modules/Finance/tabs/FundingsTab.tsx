@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Plus, DollarSign, FileText, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
-import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
@@ -183,32 +182,6 @@ const FundingCardBack = ({ funding, onClose, onEdit, onDelete }: { funding: Fund
     </div>
   );
 };
-
-const CreateFundingCard = ({ onCreate }: { onCreate: () => void }) => (
-  <div className="rc" style={{ minHeight: '180px' }}>
-    <div className="rc-inner" style={{ transform: 'none' }}>
-      <div className="rc-face rc-face--front" style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: '1rem', padding: '2rem', border: '2px dashed #CBD5E1', background: '#FAFAFA',
-        transform: 'rotateY(0deg)', backfaceVisibility: 'hidden'
-      }}>
-        <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center">
-          <Plus size={28} className="text-green-600" />
-        </div>
-        <div className="text-center">
-          <h4 className="font-semibold text-slate-900">Nouveau financement</h4>
-          <p className="text-sm text-slate-500">Ajouter un financement au projet</p>
-        </div>
-        <button
-          onClick={onCreate}
-          className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-        >
-          Créer un financement
-        </button>
-      </div>
-    </div>
-  </div>
-);
 
 export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
   const { data, loading, error, refetch } = fundingsData;
@@ -411,11 +384,62 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Total financements" value={formatCurrency(totalAmount)} icon={<DollarSign size={20} />} />
-        <KpiCard label="Reçus" value={formatCurrency(receivedAmount)} icon={<FileText size={20} />} trend={{ value: '+', positive: true }} />
-        <KpiCard label="En attente" value={formatCurrency(pendingAmount)} icon={<FileText size={20} />} />
-        <KpiCard label="Nombre" value={String(rows.length)} icon={<FileText size={20} />} />
+      <div className="module-kpi-grid">
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--accent-primary)' }}>
+          <div className="module-kpi-header">
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-primary)' }}>
+              <DollarSign size={20} />
+            </div>
+          </div>
+          <div className="module-kpi-body">
+            <p className="module-kpi-label">Total financements</p>
+            <div className="module-kpi-value" style={{ color: 'var(--accent-primary)' }}>
+              {formatCurrency(totalAmount)}
+            </div>
+          </div>
+        </div>
+
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--mdn-grass)' }}>
+          <div className="module-kpi-header">
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-primary)' }}>
+              <FileText size={20} />
+            </div>
+          </div>
+          <div className="module-kpi-body">
+            <p className="module-kpi-label">Reçus</p>
+            <div className="module-kpi-value" style={{ color: 'var(--accent-primary)' }}>
+              {formatCurrency(receivedAmount)}
+            </div>
+          </div>
+        </div>
+
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--mdn-harvest)' }}>
+          <div className="module-kpi-header">
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--mdn-terre-soft)', color: 'var(--mdn-terre)' }}>
+              <FileText size={20} />
+            </div>
+          </div>
+          <div className="module-kpi-body">
+            <p className="module-kpi-label">En attente</p>
+            <div className="module-kpi-value" style={{ color: 'var(--mdn-terre)' }}>
+              {formatCurrency(pendingAmount)}
+            </div>
+          </div>
+        </div>
+
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--mdn-slate)' }}>
+          <div className="module-kpi-header">
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--mdn-bg-surface-hover)', color: 'var(--mdn-slate)' }}>
+              <FileText size={20} />
+            </div>
+          </div>
+          <div className="module-kpi-body">
+            <p className="module-kpi-label">Nombre</p>
+            <div className="module-kpi-value" style={{ color: 'var(--mdn-encre)' }}>
+              {rows.length}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-end">
@@ -438,8 +462,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
             back={<FundingCardBack funding={funding} onClose={() => {}} onEdit={() => handleEdit(funding)} onDelete={() => handleDelete(funding)} />}
           />
         ))}
-        <CreateFundingCard onCreate={handleNewFunding} />
-      </div>
+        </div>
 
       {rows.length === 0 && (
         <div className="text-center py-12 text-slate-500">

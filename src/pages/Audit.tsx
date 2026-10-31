@@ -7,12 +7,12 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 
 const ACTION_COLORS: Record<string, string> = {
-  CREATE: 'green',
-  UPDATE: 'blue',
-  VALIDATE: 'green',
-  REJECT: 'red',
-  CANCEL: 'amber',
-  DELETE_ATTEMPT: 'red',
+  CREATE: 'success',
+  UPDATE: 'info',
+  VALIDATE: 'success',
+  REJECT: 'danger',
+  CANCEL: 'warning',
+  DELETE_ATTEMPT: 'danger',
   ATTACH_DOCUMENT: 'blue',
   LOGIN: 'gray',
   LOGOUT: 'gray',
@@ -55,47 +55,47 @@ export function Audit() {
       <PageHeader title="Audit" subtitle="Journal d'activité immuable de l'exploitation" />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total événements" value={String(kpis.total)} icon={<ScrollText size={20} />} color="dark" />
-        <KpiCard label="Créations" value={String(kpis.creates)} icon={<ScrollText size={20} />} color="green" />
-        <KpiCard label="Validations" value={String(kpis.validates)} icon={<ScrollText size={20} />} color="blue" />
-        <KpiCard label="Rejets/Annulations" value={String(kpis.rejects)} icon={<ScrollText size={20} />} color="red" />
+        <KpiCard label="Total événements" value={String(kpis.total)} icon={<ScrollText size={20} />} color="slate" />
+        <KpiCard label="Créations" value={String(kpis.creates)} icon={<ScrollText size={20} />} color="success" />
+        <KpiCard label="Validations" value={String(kpis.validates)} icon={<ScrollText size={20} />} color="info" />
+        <KpiCard label="Rejets/Annulations" value={String(kpis.rejects)} icon={<ScrollText size={20} />} color="danger" />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..." className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..." className="w-full pl-9 pr-3 py-2 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20" />
         </div>
-        <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white">
+        <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="px-3 py-2 text-sm border border-default rounded-lg bg-surface">
           <option value="all">Tous les utilisateurs</option>
           {users.map(u => <option key={u || ''} value={u || ''}>{u}</option>)}
         </select>
-        <select value={filterAction} onChange={e => setFilterAction(e.target.value)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white">
+        <select value={filterAction} onChange={e => setFilterAction(e.target.value)} className="px-3 py-2 text-sm border border-default rounded-lg bg-surface">
           <option value="all">Toutes les actions</option>
           {actions.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-default overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Utilisateur</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Action</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Objet</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Description</th>
+              <tr className="border-b border-default bg-surface-hover/50">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Utilisateur</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Objet</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase">Description</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-border-default">
               {filtered.map(log => (
-                <tr key={log.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{formatDateTime(log.created_at)}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900">{log.user_name || '—'}</td>
+                <tr key={log.id} className="hover:bg-surface-hover/50">
+                  <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formatDateTime(log.created_at)}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-primary">{log.user_name || '—'}</td>
                   <td className="px-4 py-3"><SimpleBadge color={ACTION_COLORS[log.action] || 'gray'}>{log.action}</SimpleBadge></td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{log.object_type || '—'} {log.object_id ? `· ${log.object_id}` : ''}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{log.description || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-secondary">{log.object_type || '—'} {log.object_id ? `· ${log.object_id}` : ''}</td>
+                  <td className="px-4 py-3 text-sm text-secondary">{log.description || '—'}</td>
                 </tr>
               ))}
             </tbody>

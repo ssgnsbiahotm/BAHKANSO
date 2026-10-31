@@ -110,12 +110,12 @@ export function Livestock() {
       <div>
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
+            <div className="w-10 h-10 bg-success-soft rounded-lg flex items-center justify-center text-success">
               <Beef size={20} />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">{lot.identifier}</h3>
-              <p className="text-xs text-slate-500">{lot.species} — {lot.breed || '—'}</p>
+              <h3 className="font-semibold text-primary">{lot.identifier}</h3>
+              <p className="text-xs text-muted">{lot.species} — {lot.breed || '—'}</p>
             </div>
           </div>
           <span className={`module-badge module-badge-${getBadgeColor(lot.status)}`}>
@@ -123,13 +123,13 @@ export function Livestock() {
           </span>
         </div>
         <div className="space-y-1 text-sm">
-          <div className="flex justify-between"><span className="text-slate-500">Effectif</span><span className="font-medium">{lot.count} têtes</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Localisation</span><span className="font-medium">{lot.location || '—'}</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Valeur estimée</span><span className="font-medium text-emerald-600">{formatCurrency(lot.estimated_value)}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Effectif</span><span className="font-medium">{lot.count} têtes</span></div>
+          <div className="flex justify-between"><span className="text-muted">Localisation</span><span className="font-medium">{lot.location || '—'}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Valeur estimée</span><span className="font-medium text-success">{formatCurrency(lot.estimated_value)}</span></div>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200">
-        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      <div className="mt-4 pt-3 border-t border-default">
+        <p className="text-sm text-success font-medium">Voir les détails →</p>
       </div>
     </div>
   );
@@ -137,18 +137,18 @@ export function Livestock() {
   const renderLotBack = (lot: any) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">{lot.identifier}</h3>
-        <p><span className="text-slate-500">Espèce :</span> {lot.species}</p>
-        <p><span className="text-slate-500">Race :</span> {lot.breed || '—'}</p>
-        <p><span className="text-slate-500">Effectif :</span> {lot.count} têtes</p>
-        <p><span className="text-slate-500">Localisation :</span> {lot.location || '—'}</p>
-        <p><span className="text-slate-500">Valeur estimée :</span> {formatCurrency(lot.estimated_value)}</p>
+        <h3 className="font-semibold text-primary mb-3">{lot.identifier}</h3>
+        <p><span className="text-muted">Espèce :</span> {lot.species}</p>
+        <p><span className="text-muted">Race :</span> {lot.breed || '—'}</p>
+        <p><span className="text-muted">Effectif :</span> {lot.count} têtes</p>
+        <p><span className="text-muted">Localisation :</span> {lot.location || '—'}</p>
+        <p><span className="text-muted">Valeur estimée :</span> {formatCurrency(lot.estimated_value)}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 border-t border-default space-y-2">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(LIVESTOCK_PATHS.lotsLegacy + `?select=${lot.id}&action=view`); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full bg-success hover:bg-success text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Voir détails
         </button>
@@ -156,14 +156,14 @@ export function Livestock() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleEditLot(lot.id); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleDeleteLot(lot.id); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -177,18 +177,18 @@ export function Livestock() {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold text-slate-900">{a.identifier}</h3>
-            <p className="text-sm text-slate-500">{a.species} — {a.breed || '—'}</p>
+            <h3 className="font-semibold text-primary">{a.identifier}</h3>
+            <p className="text-sm text-muted">{a.species} — {a.breed || '—'}</p>
           </div>
           <span className="module-badge module-badge-blue">{a.status}</span>
         </div>
         <div className="space-y-1 text-sm">
-          <p><span className="text-slate-500">Sexe :</span> <span className="font-medium">{a.sex || '—'}</span></p>
-          <p><span className="text-slate-500">Naissance :</span> <span className="font-medium">{formatDate(a.birth_date)}</span></p>
+          <p><span className="text-muted">Sexe :</span> <span className="font-medium">{a.sex || '—'}</span></p>
+          <p><span className="text-muted">Naissance :</span> <span className="font-medium">{formatDate(a.birth_date)}</span></p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200">
-        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      <div className="mt-4 pt-3 border-t border-default">
+        <p className="text-sm text-success font-medium">Voir les détails →</p>
       </div>
     </div>
   );
@@ -196,19 +196,19 @@ export function Livestock() {
   const renderAnimalBack = (a: any) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">{a.identifier}</h3>
-        <p><span className="text-slate-500">Espèce :</span> {a.species}</p>
-        <p><span className="text-slate-500">Race :</span> {a.breed || '—'}</p>
-        <p><span className="text-slate-500">Sexe :</span> {a.sex || '—'}</p>
-        <p><span className="text-slate-500">Naissance :</span> {formatDate(a.birth_date)}</p>
-        <p><span className="text-slate-500">Poids :</span> {a.weight_kg || '—'} kg</p>
-        <p><span className="text-slate-500">Valeur :</span> {formatCurrency(a.estimated_value)}</p>
+        <h3 className="font-semibold text-primary mb-3">{a.identifier}</h3>
+        <p><span className="text-muted">Espèce :</span> {a.species}</p>
+        <p><span className="text-muted">Race :</span> {a.breed || '—'}</p>
+        <p><span className="text-muted">Sexe :</span> {a.sex || '—'}</p>
+        <p><span className="text-muted">Naissance :</span> {formatDate(a.birth_date)}</p>
+        <p><span className="text-muted">Poids :</span> {a.weight_kg || '—'} kg</p>
+        <p><span className="text-muted">Valeur :</span> {formatCurrency(a.estimated_value)}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 border-t border-default space-y-2">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(LIVESTOCK_PATHS.animalsLegacy + `?select=${a.id}&action=view`); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full bg-success hover:bg-success text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Voir détails
         </button>
@@ -216,14 +216,14 @@ export function Livestock() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleEditAnimal(a.id); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleDeleteAnimal(a.id); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -237,20 +237,20 @@ export function Livestock() {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold text-slate-900">{formatDate(e.date)}</h3>
-            <p className="text-sm text-slate-500">{e.description || '—'}</p>
+            <h3 className="font-semibold text-primary">{formatDate(e.date)}</h3>
+            <p className="text-sm text-muted">{e.description || '—'}</p>
           </div>
           <span className={`module-badge module-badge-${getBadgeColor(e.type)}`}>
             {eventTypeLabel(e.type)}
           </span>
         </div>
         <div className="space-y-1 text-sm">
-          <p><span className="text-slate-500">Responsable :</span> <span className="font-medium">{e.responsible || '—'}</span></p>
-          <p><span className="text-slate-500">Coût :</span> <span className="font-medium">{e.cost ? formatCurrency(e.cost) : '—'}</span></p>
+          <p><span className="text-muted">Responsable :</span> <span className="font-medium">{e.responsible || '—'}</span></p>
+          <p><span className="text-muted">Coût :</span> <span className="font-medium">{e.cost ? formatCurrency(e.cost) : '—'}</span></p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200">
-        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      <div className="mt-4 pt-3 border-t border-default">
+        <p className="text-sm text-success font-medium">Voir les détails →</p>
       </div>
     </div>
   );
@@ -258,17 +258,17 @@ export function Livestock() {
   const renderEventBack = (e: any) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">{formatDate(e.date)}</h3>
-        <p><span className="text-slate-500">Type :</span> {eventTypeLabel(e.type)}</p>
-        <p><span className="text-slate-500">Description :</span> {e.description || '—'}</p>
-        <p><span className="text-slate-500">Responsable :</span> {e.responsible || '—'}</p>
-        <p><span className="text-slate-500">Coût :</span> {e.cost ? formatCurrency(e.cost) : '—'}</p>
+        <h3 className="font-semibold text-primary mb-3">{formatDate(e.date)}</h3>
+        <p><span className="text-muted">Type :</span> {eventTypeLabel(e.type)}</p>
+        <p><span className="text-muted">Description :</span> {e.description || '—'}</p>
+        <p><span className="text-muted">Responsable :</span> {e.responsible || '—'}</p>
+        <p><span className="text-muted">Coût :</span> {e.cost ? formatCurrency(e.cost) : '—'}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 border-t border-default space-y-2">
         <button
           type="button"
           onClick={(e2) => { e2.stopPropagation(); navigate(LIVESTOCK_PATHS.events + `?select=${e.id}&action=view`); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full bg-success hover:bg-success text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Voir détails
         </button>
@@ -276,14 +276,14 @@ export function Livestock() {
           <button
             type="button"
             onClick={(e2) => { e2.stopPropagation(); handleEditEvent(e.id); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e2) => { e2.stopPropagation(); handleDeleteEvent(e.id); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -312,54 +312,54 @@ export function Livestock() {
 
       {/* ========== KPI GRID ========== */}
       <div className="module-kpi-grid">
-        <div className="module-kpi-card" style={{ borderLeftColor: '#2E7D32' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--accent-primary)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(46, 125, 50, 0.15)', color: '#2E7D32' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-primary)' }}>
               <Beef size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Total animaux</p>
-            <div className="module-kpi-value" style={{ color: '#2E7D32' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--accent-primary)' }}>
               {kpis.totalAnimals}
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: '#0277BD' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--info)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(2, 119, 189, 0.15)', color: '#0277BD' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--info-soft)', color: 'var(--info)' }}>
               <Beef size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Valeur estimée</p>
-            <div className="module-kpi-value" style={{ color: '#0277BD' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--info)' }}>
               {formatCurrency(kpis.totalValue).replace(' FCFA', '')}
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: '#F57F17' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--warning)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(245, 127, 23, 0.15)', color: '#F57F17' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}>
               <AlertTriangle size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Événements</p>
-            <div className="module-kpi-value" style={{ color: '#F57F17' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--warning)' }}>
               {kpis.events}
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: '#C62828' }}>
+        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--danger)' }}>
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'rgba(198, 40, 40, 0.15)', color: '#C62828' }}>
+            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger)' }}>
               <Syringe size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Vaccinations</p>
-            <div className="module-kpi-value" style={{ color: '#C62828' }}>
+            <div className="module-kpi-value" style={{ color: 'var(--danger)' }}>
               {kpis.vaccinations}
             </div>
           </div>

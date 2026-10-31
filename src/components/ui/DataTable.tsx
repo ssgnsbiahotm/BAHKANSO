@@ -214,11 +214,11 @@ export function DataTable<T = any>({
 
   if (isError) {
     return (
-      <div className="p-4 text-red-500 text-center">
+      <div className="p-4 text-danger text-center">
         Erreur de chargement: Quelque chose s'est mal passé
         <button
           onClick={() => window.location.reload()}
-          className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="mt-2 px-3 py-1 bg-accent-primary text-white rounded hover:bg-accent-primary-hover"
         >
           Réessayer
         </button>
@@ -246,21 +246,21 @@ export function DataTable<T = any>({
         {/* Champs de recherche */}
         {searchable && (
           <div className="flex-1 mb-2 sm:mb-0">
-            <label className="block text-sm font-medium text-slate-600 mb-1">
+            <label className="block text-sm font-medium text-secondary mb-1">
               Rechercher
             </label>
             <input
               type="text"
               value={state.searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-default rounded-md focus:ring-2 focus:ring-accent-primary focus:border-accent-primary"
               placeholder="Rechercher dans les colonnes..."
             />
           </div>
         )}
 
         {/* Informations sur le nombre de résultats */}
-        <div className="text-sm text-slate-600">
+        <div className="text-sm text-secondary">
           {sortedData.length} résultat{sortedData.length !== 1 ? 's' : ''} affiché{sortedData.length !== 1 ? 's' : ''} sur {data.length} total{data.length !== 1 ? 's' : ''}
         </div>
       </div>
@@ -269,12 +269,12 @@ export function DataTable<T = any>({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-slate-50">
+            <tr className="bg-surface-hover">
               {columns.map((col, index) => (
                 <th
                   key={index}
                   className={`
-                    px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider
+                    px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider
                     ${!col.sortable ? '' : 'cursor-pointer'}
                     ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'}
                     ${typeof col.width === 'number' ? `w-[${col.width}px]` : col.width ? `w-[${col.width}]` : ''}
@@ -299,14 +299,14 @@ export function DataTable<T = any>({
             {paginatedData.map((row, rowIndex) => (
               <tr
                 key={rowKey(row)}
-                className={`${rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100`}
+                className={`${rowIndex % 2 === 0 ? 'bg-surface' : 'bg-surface-hover'} hover:bg-surface-hover`}
                 onClick={() => onRowClick(row)}
               >
                 {columns.map((col, colIndex) => (
                   <td
                     key={colIndex}
                     className={[
-                      'px-4 py-2 text-sm text-slate-700',
+                      'px-4 py-2 text-sm text-primary',
                       col.align === 'center' && 'text-center',
                       col.align === 'right' && 'text-right',
                       !col.align || col.align === 'left' ? 'text-left' : '',
@@ -324,11 +324,11 @@ export function DataTable<T = any>({
 
       {/* Contrôles de pagination */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4">
-        <div className="flex items-center space-x-3 text-sm text-slate-600">
+        <div className="flex items-center space-x-3 text-sm text-secondary">
           <button
             onClick={() => handlePageChange(Math.max(1, state.currentPage - 1))}
             disabled={state.currentPage <= 1}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-50"
+            className="px-3 py-1.5 bg-surface-hover hover:bg-surface-hover rounded disabled:opacity-50"
           >
             Précédent
           </button>
@@ -338,18 +338,18 @@ export function DataTable<T = any>({
           <button
             onClick={() => handlePageChange(Math.min(totalPages, state.currentPage + 1))}
             disabled={state.currentPage >= totalPages}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-50"
+            className="px-3 py-1.5 bg-surface-hover hover:bg-surface-hover rounded disabled:opacity-50"
           >
             Suivant
           </button>
         </div>
 
         <div className="mt-2 sm:mt-0 flex items-center space-x-3">
-          <label className="text-sm text-slate-600">Lignes par page:</label>
+          <label className="text-sm text-secondary">Lignes par page:</label>
           <select
             value={state.pageSize}
             onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
-            className="px-3 py-1 border border-slate-300 rounded bg-white text-sm"
+            className="px-3 py-1 border border-default rounded bg-surface text-sm"
           >
             {[10, 20, 50, 100].map(size => (
               <option key={size} value={size}>

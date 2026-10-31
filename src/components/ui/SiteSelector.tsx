@@ -16,7 +16,7 @@ export function SiteSelector() {
         id="site-select"
         value={currentSiteId || ''}
         onChange={(e) => setCurrentSiteId(e.target.value || null)}
-        className="h-8 px-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+        className="h-8 px-2 text-sm bg-surface border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent   "
         aria-label="Filtrer par site"
       >
         <option value="">Tous les sites</option>
@@ -29,7 +29,7 @@ export function SiteSelector() {
       {isGlobalView && currentSiteId && (
         <button
           onClick={() => setCurrentSiteId(null)}
-          className="h-8 px-2 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          className="h-8 px-2 text-xs text-muted hover:text-secondary  "
           aria-label="Voir tous les sites"
         >
           ×

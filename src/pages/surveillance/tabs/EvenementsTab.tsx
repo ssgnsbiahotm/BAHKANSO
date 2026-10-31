@@ -239,10 +239,10 @@ export function EvenementsTab() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total" value={String(kpis.total)} icon={<Calendar size={16} />} color="dark" />
-        <KpiCard label="Planifiés" value={String(kpis.planifies)} icon={<Calendar size={16} />} color="blue" />
-        <KpiCard label="En cours" value={String(kpis.enCours)} icon={<Wrench size={16} />} color="amber" />
-        <KpiCard label="En retard" value={String(kpis.enRetard)} icon={<AlertTriangle size={16} />} color="red" />
+        <KpiCard label="Total" value={String(kpis.total)} icon={<Calendar size={16} />} color="slate" />
+        <KpiCard label="Planifiés" value={String(kpis.planifies)} icon={<Calendar size={16} />} color="info" />
+        <KpiCard label="En cours" value={String(kpis.enCours)} icon={<Wrench size={16} />} color="warning" />
+        <KpiCard label="En retard" value={String(kpis.enRetard)} icon={<AlertTriangle size={16} />} color="danger" />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">

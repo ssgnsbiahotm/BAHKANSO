@@ -218,29 +218,29 @@ export function AnimalEventManage() {
 
   const renderDetailFields = (event: AnimalEvent) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{TYPE_LABELS[event.type] || event.type}</h2>
-          <p className="text-sm text-slate-500">{formatDate(event.date)}</p>
+          <h2 className="text-2xl font-bold text-primary">{TYPE_LABELS[event.type] || event.type}</h2>
+          <p className="text-sm text-muted">{formatDate(event.date)}</p>
         </div>
         <SimpleBadge color="blue">{event.type}</SimpleBadge>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div><p className="text-xs text-slate-400">Type</p><p className="text-sm font-medium">{event.type}</p></div>
-        <div><p className="text-xs text-slate-400">Date</p><p className="text-sm font-medium">{formatDate(event.date)}</p></div>
-        <div><p className="text-xs text-slate-400">Animal</p><p className="text-sm font-medium">{animalName(event.animal_id)}</p></div>
-        <div><p className="text-xs text-slate-400">Lot</p><p className="text-sm font-medium">{lotName(event.lot_id)}</p></div>
-        <div><p className="text-xs text-slate-400">Coût</p><p className="text-sm font-medium">{formatCurrency(event.cost)}</p></div>
-        <div><p className="text-xs text-slate-400">Responsable</p><p className="text-sm font-medium">{event.responsible || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Description</p><p className="text-sm font-medium">{event.description || '—'}</p></div>
+        <div><p className="text-xs text-muted">Type</p><p className="text-sm font-medium">{event.type}</p></div>
+        <div><p className="text-xs text-muted">Date</p><p className="text-sm font-medium">{formatDate(event.date)}</p></div>
+        <div><p className="text-xs text-muted">Animal</p><p className="text-sm font-medium">{animalName(event.animal_id)}</p></div>
+        <div><p className="text-xs text-muted">Lot</p><p className="text-sm font-medium">{lotName(event.lot_id)}</p></div>
+        <div><p className="text-xs text-muted">Coût</p><p className="text-sm font-medium">{formatCurrency(event.cost)}</p></div>
+        <div><p className="text-xs text-muted">Responsable</p><p className="text-sm font-medium">{event.responsible || '—'}</p></div>
+        <div><p className="text-xs text-muted">Description</p><p className="text-sm font-medium">{event.description || '—'}</p></div>
       </div>
     </div>
   );
 
   const renderDetailFooter = (event: AnimalEvent) => (
     <>
-      <button onClick={() => setConfirmDelete(event)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-      <button onClick={() => openEdit(event)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+      <button onClick={() => setConfirmDelete(event)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+      <button onClick={() => openEdit(event)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
     </>
   );
 
@@ -251,7 +251,7 @@ export function AnimalEventManage() {
         subtitle="Suivi des événements de santé et de production"
         actions={
           <>
-            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
               <Plus size={18} /> Nouvel événement
             </button>
           </>
@@ -259,25 +259,25 @@ export function AnimalEventManage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total événements" value={String(kpis.totalEvents)} icon={null} color="blue" />
-        <KpiCard label="Coût total" value={formatCurrency(kpis.totalCost)} icon={null} color="amber" />
-        <KpiCard label="Événements ce mois" value={String(kpis.eventsThisMonth)} icon={null} color="green" />
+        <KpiCard label="Total événements" value={String(kpis.totalEvents)} icon={null} color="info" />
+        <KpiCard label="Coût total" value={formatCurrency(kpis.totalCost)} icon={null} color="warning" />
+        <KpiCard label="Événements ce mois" value={String(kpis.eventsThisMonth)} icon={null} color="success" />
       </div>
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
         <div className="flex-1 min-w-0">
-          <label className="block text-xs font-medium text-slate-600 mb-1">Rechercher des événements</label>
+          <label className="block text-xs font-medium text-secondary mb-1">Rechercher des événements</label>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
+            className="w-full px-3 py-2 border border-default rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
             placeholder="Rechercher par type, description, responsable..."
           />
         </div>
         <button
           onClick={() => setSearchTerm('')}
-          className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          className="px-3 py-2 text-sm text-secondary hover:bg-surface-hover"
         >
           Réinitialiser
         </button>
@@ -290,8 +290,8 @@ export function AnimalEventManage() {
             onClick={() => setFilterType(f.id)}
             className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
               filterType === f.id
-                ? 'bg-green-600 text-white border-green-600'
-                : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'
+                ? 'bg-success text-white border-success'
+                : 'bg-surface text-secondary border-default hover:bg-surface-hover'
             }`}
           >
             {f.label}
@@ -306,7 +306,7 @@ export function AnimalEventManage() {
           message={searchTerm || filterType !== 'all'
             ? "Aucun événement ne correspond à vos filtres"
             : "Aucun événement animal enregistré"}
-          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Créer un événement</button>}
+          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">Créer un événement</button>}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -319,31 +319,31 @@ export function AnimalEventManage() {
                 front={
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-slate-900">{formatDate(event.date)}</h3>
+                      <h3 className="font-semibold text-primary">{formatDate(event.date)}</h3>
                       <SimpleBadge color="blue">{TYPE_LABELS[event.type] || event.type}</SimpleBadge>
                     </div>
-                    <div className="flex justify-between text-sm"><span className="text-slate-500">Animal / Lot</span><span className="font-medium">{animal} {lot !== '—' ? '/' + lot : ''}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-slate-500">Coût</span><span className="font-medium">{formatCurrency(event.cost)}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-slate-500">Responsable</span><span className="font-medium">{event.responsible || '—'}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-muted">Animal / Lot</span><span className="font-medium">{animal} {lot !== '—' ? '/' + lot : ''}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-muted">Coût</span><span className="font-medium">{formatCurrency(event.cost)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-muted">Responsable</span><span className="font-medium">{event.responsible || '—'}</span></div>
                   </div>
                 }
                 back={
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={() => { setDetailEvent(event); }}
-                      className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      className="w-full px-3 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover"
                     >
                       Voir détails
                     </button>
                     <button
                       onClick={() => { openEdit(event); }}
-                      className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+                      className="w-full px-3 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning"
                     >
                       Modifier
                     </button>
                     <button
                       onClick={() => { setConfirmDelete(event); }}
-                      className="w-full px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                      className="w-full px-3 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
                     >
                       Supprimer
                     </button>

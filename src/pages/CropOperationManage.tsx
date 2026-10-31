@@ -214,39 +214,39 @@ export function CropOperationManage() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs text-slate-500">Type</p>
+          <p className="text-xs text-muted">Type</p>
           <p className="text-lg font-semibold">{o.type}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Date</p>
+          <p className="text-xs text-muted">Date</p>
           <p className="text-lg font-semibold">{formatDate(o.date)}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Description</p>
+          <p className="text-xs text-muted">Description</p>
           <p className="text-lg font-semibold">{o.comment || '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Coût</p>
+          <p className="text-xs text-muted">Coût</p>
           <p className="text-lg font-semibold">{formatCurrency(o.cost)}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Quantité</p>
+          <p className="text-xs text-muted">Quantité</p>
           <p className="text-lg font-semibold">{o.quantity ?? '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Unité</p>
+          <p className="text-xs text-muted">Unité</p>
           <p className="text-lg font-semibold">{o.unit || '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Responsable</p>
+          <p className="text-xs text-muted">Responsable</p>
           <p className="text-lg font-semibold">{o.responsible || '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Campagne</p>
+          <p className="text-xs text-muted">Campagne</p>
           <p className="text-lg font-semibold">{getCampaignName(o.campaign_id ?? null)}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Parcelle</p>
+          <p className="text-xs text-muted">Parcelle</p>
           <p className="text-lg font-semibold">{getPlotName(o.plot_id ?? null)}</p>
         </div>
       </div>
@@ -255,8 +255,8 @@ export function CropOperationManage() {
 
   const renderDetailFooter = (o: CropOperation) => (
     <>
-      <button onClick={() => setConfirmDelete(o)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-      <button onClick={() => { setEditOperation(o); setDetailOperation(null); }} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Modifier</button>
+      <button onClick={() => setConfirmDelete(o)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+      <button onClick={() => { setEditOperation(o); setDetailOperation(null); }} className="px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover">Modifier</button>
     </>
   );
 
@@ -276,11 +276,11 @@ export function CropOperationManage() {
           placeholder="Rechercher (type, description, date, responsable…)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-80 px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
+          className="w-full md:w-80 px-3 py-2 border border-default rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
         />
         <button
           onClick={openCreate}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+          className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success flex items-center gap-2"
         >
           <Plus size={18} /> Nouvelle opération
         </button>
@@ -296,7 +296,7 @@ export function CropOperationManage() {
               action={
                 <button
                   onClick={openCreate}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                  className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success flex items-center gap-2"
                 >
                   <Plus size={18} /> Enregistrer ma première opération
                 </button>
@@ -311,75 +311,75 @@ export function CropOperationManage() {
               backLabel="Retour"
               className="h-full min-h-[220px]"
               front={
-                <div className="bg-white rounded-xl border border-slate-200 p-5 h-full flex flex-col justify-center">
+                <div className="bg-surface rounded-xl border border-default p-5 h-full flex flex-col justify-center">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="text-xs text-slate-500 uppercase">{formatDate(o.date)}</p>
-                      <h3 className="font-semibold text-slate-900">{o.type}</h3>
-                      <p className="text-sm text-slate-500">{o.comment || '—'}</p>
+                      <p className="text-xs text-muted uppercase">{formatDate(o.date)}</p>
+                      <h3 className="font-semibold text-primary">{o.type}</h3>
+                      <p className="text-sm text-muted">{o.comment || '—'}</p>
                     </div>
-                    <div className="p-2 rounded-lg bg-green-50 text-green-700 ring-1 ring-green-100">
+                    <div className="p-2 rounded-lg bg-success-soft text-success ring-1 ring-accent-soft">
                       <Wheat size={20} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <div className="text-xs text-slate-500 mb-1">Coût</div>
+                    <div className="bg-surface-hover p-2 rounded-lg">
+                      <div className="text-xs text-muted mb-1">Coût</div>
                       <div className="font-medium">{formatCurrency(o.cost)}</div>
                     </div>
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <div className="text-xs text-slate-500 mb-1">Parcelle</div>
+                    <div className="bg-surface-hover p-2 rounded-lg">
+                      <div className="text-xs text-muted mb-1">Parcelle</div>
                       <div className="font-medium">{getPlotName(o.plot_id)}</div>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400 mt-auto">Cliquez pour voir les actions</p>
+                  <p className="text-xs text-muted mt-auto">Cliquez pour voir les actions</p>
                 </div>
               }
               back={
-                <div className="bg-white rounded-xl border border-slate-200 p-5 h-full flex flex-col justify-center">
-                  <h3 className="font-semibold text-slate-900 mb-4 text-center">Opération culturale</h3>
+                <div className="bg-surface rounded-xl border border-default p-5 h-full flex flex-col justify-center">
+                  <h3 className="font-semibold text-primary mb-4 text-center">Opération culturale</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Type</span>
+                      <span className="text-muted">Type</span>
                       <span className="font-medium">{o.type}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Date</span>
+                      <span className="text-muted">Date</span>
                       <span className="font-medium">{formatDate(o.date)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Coût</span>
+                      <span className="text-muted">Coût</span>
                       <span className="font-medium">{formatCurrency(o.cost)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Responsable</span>
+                      <span className="text-muted">Responsable</span>
                       <span className="font-medium">{o.responsible || '—'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Campagne</span>
+                      <span className="text-muted">Campagne</span>
                       <span className="font-medium">{getCampaignName(o.campaign_id)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Parcelle</span>
+                      <span className="text-muted">Parcelle</span>
                       <span className="font-medium">{getPlotName(o.plot_id)}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mt-4">
                     <button
                       onClick={() => { setDetailOperation(o); }}
-                      className="px-3 py-2 text-sm text-green-600 border border-green-200 rounded-lg hover:bg-green-50"
+                      className="px-3 py-2 text-sm text-success border border-default rounded-lg hover:bg-success-soft"
                     >
                       Voir
                     </button>
                     <button
                       onClick={() => { openEdit(o); }}
-                      className="px-3 py-2 text-sm text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50"
+                      className="px-3 py-2 text-sm text-info border border-default rounded-lg hover:bg-info-soft"
                     >
                       Modifier
                     </button>
                     <button
                       onClick={() => { setConfirmDelete(o); }}
-                      className="px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                      className="px-3 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
                     >
                       Supprimer
                     </button>

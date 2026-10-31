@@ -11,7 +11,7 @@ interface BarChartProps {
   horizontal?: boolean;
 }
 
-const DEFAULT_COLORS = ['#166534', '#22C55E', '#2563EB', '#F59E0B', '#DC2626', '#8B5CF6', '#0891B2', '#EA580C'];
+const DEFAULT_COLORS = ['var(--accent-primary)', 'var(--color-signal)', 'var(--color-terra)', 'var(--color-night)', 'var(--color-ink)', 'var(--color-grass)', 'var(--color-sky)', 'var(--color-harvest)'];
 
 export function BarChart({ data, height = 200, formatValue, horizontal }: BarChartProps) {
   const maxVal = Math.max(...data.map(d => d.value), 1);
@@ -21,8 +21,8 @@ export function BarChart({ data, height = 200, formatValue, horizontal }: BarCha
       <div className="space-y-2">
         {data.map((d, i) => (
           <div key={i} className="flex items-center gap-3">
-            <span className="text-xs text-slate-600 w-28 truncate">{d.label}</span>
-            <div className="flex-1 bg-slate-100 rounded-full h-6 relative overflow-hidden">
+            <span className="text-xs text-secondary w-28 truncate">{d.label}</span>
+            <div className="flex-1 bg-surface-100 rounded-full h-6 relative overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2"
                 style={{
@@ -45,7 +45,7 @@ export function BarChart({ data, height = 200, formatValue, horizontal }: BarCha
     <div className="flex items-end gap-2" style={{ height }}>
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-          <span className="text-xs text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
             {formatValue ? formatValue(d.value) : d.value}
           </span>
           <div className="w-full flex-1 flex items-end">
@@ -58,7 +58,7 @@ export function BarChart({ data, height = 200, formatValue, horizontal }: BarCha
               }}
             />
           </div>
-          <span className="text-xs text-slate-500 truncate w-full text-center">{d.label}</span>
+          <span className="text-xs text-muted truncate w-full text-center">{d.label}</span>
         </div>
       ))}
     </div>
@@ -72,7 +72,7 @@ interface LineChartProps {
   formatValue?: (v: number) => string;
 }
 
-export function LineChart({ data, height = 200, color = '#166534' }: LineChartProps) {
+export function LineChart({ data, height = 200, color = 'var(--accent-primary)' }: LineChartProps) {
   if (data.length === 0) return null;
   const width = 600;
   const padding = 40;
@@ -105,7 +105,7 @@ export function LineChart({ data, height = 200, color = '#166534' }: LineChartPr
           key={t}
           x1={padding} y1={padding + chartH * t}
           x2={width - padding} y2={padding + chartH * t}
-          stroke="#f1f5f9" strokeWidth="1"
+          stroke="var(--border-default)" strokeWidth="1"
         />
       ))}
       <path d={areaD} fill="url(#lineGrad)" />
@@ -113,7 +113,7 @@ export function LineChart({ data, height = 200, color = '#166534' }: LineChartPr
       {points.map((p, i) => (
         <g key={i}>
           <circle cx={p.x} cy={p.y} r="3" fill="white" stroke={color} strokeWidth="2" />
-          <text x={p.x} y={height - 10} textAnchor="middle" className="text-[10px] fill-slate-400">
+          <text x={p.x} y={height - 10} textAnchor="middle" className="text-[10px] fill-muted">
             {p.label}
           </text>
         </g>
@@ -162,7 +162,7 @@ export function DonutChart({ data, size = 180, formatValue }: DonutChartProps) {
           y={size / 2}
           textAnchor="middle"
           dominantBaseline="central"
-          className="rotate-90 fill-slate-900 text-lg font-bold"
+          className="rotate-90 fill-primary text-lg font-bold"
           style={{ transformOrigin: 'center' }}
         >
           {data.length}
@@ -175,8 +175,8 @@ export function DonutChart({ data, size = 180, formatValue }: DonutChartProps) {
               className="w-3 h-3 rounded-sm"
               style={{ backgroundColor: d.color || DEFAULT_COLORS[i % DEFAULT_COLORS.length] }}
             />
-            <span className="text-slate-600 flex-1">{d.label}</span>
-            <span className="font-medium text-slate-900">
+            <span className="text-secondary flex-1">{d.label}</span>
+            <span className="font-medium text-primary">
               {formatValue ? formatValue(d.value) : d.value}
             </span>
           </div>

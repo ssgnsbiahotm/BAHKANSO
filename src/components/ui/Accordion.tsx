@@ -13,16 +13,16 @@ export function Accordion({ title, defaultOpen = false, children }: AccordionPro
   const toggle = useCallback(() => setOpen((prev) => !prev), []);
 
   return (
-    <div className="border border-ivory-deep bg-ivory-alt rounded-sm overflow-hidden">
+    <div className="border border-default bg-surface-hover rounded-sm overflow-hidden">
       <button
         onClick={toggle}
         aria-expanded={open}
-        className="flex w-full items-center justify-between px-4 py-3 text-left text-ink text-lg font-editorial transition-colors hover:bg-ivory-deep/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-1"
+        className="flex w-full items-center justify-between px-4 py-3 text-left text-primary text-lg font-editorial transition-colors hover:bg-surface-hover/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1"
       >
         <span>{title}</span>
         <ChevronDown
           size={16}
-          className={`text-ink-mut transition-transform duration-200 ease-out ${open ? 'rotate-180' : ''}`}
+          className={`text-primary-mut transition-transform duration-200 ease-out ${open ? 'rotate-180' : ''}`}
         />
       </button>
       <div

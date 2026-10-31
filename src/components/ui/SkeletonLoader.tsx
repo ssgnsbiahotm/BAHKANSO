@@ -31,7 +31,7 @@ export function SkeletonLoader({
   // Styles de base pour le squelette
   const skeletonStyle = {
     background:
-      'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+      'linear-gradient(90deg, var(--bg-surface-hover) 25%, var(--border-default) 50%, var(--bg-surface-hover) 75%)',
     backgroundSize: '200% 100%',
     backgroundRepeat: 'no-repeat',
   };

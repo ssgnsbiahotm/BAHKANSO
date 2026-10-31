@@ -75,7 +75,7 @@ const handleChangePassword = async () => {
     return (
       <div className="p-4 lg:p-6 max-w-4xl mx-auto">
         <PageHeader title="Mon profil" />
-        <p className="text-sm text-slate-500">Chargement du profil...</p>
+        <p className="text-sm text-muted">Chargement du profil...</p>
       </div>
     );
   }
@@ -88,15 +88,15 @@ const handleChangePassword = async () => {
       />
 
       {/* Profile card */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+      <div className="bg-surface rounded-xl border border-default p-6 mb-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+          <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center text-white text-2xl font-bold">
             {appUser.name?.charAt(0) || 'U'}
           </div>
           <div>
-            <h3 className="font-semibold text-lg text-slate-900">{appUser.name}</h3>
-            <p className="text-sm text-slate-500">{appUser.email}</p>
-            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
+            <h3 className="font-semibold text-lg text-primary">{appUser.name}</h3>
+            <p className="text-sm text-muted">{appUser.email}</p>
+            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-success-soft text-success text-xs font-medium rounded-full border border-default">
               <Shield size={12} /> {ROLE_LABELS[appUser.role] || appUser.role}
             </span>
           </div>
@@ -104,42 +104,42 @@ const handleChangePassword = async () => {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Nom complet</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Nom complet</label>
             <div className="relative">
-              <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                className="w-full pl-10 pr-3 py-2.5 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Adresse email</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Adresse email</label>
             <div className="relative">
-              <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 type="email"
                 value={appUser.email || ''}
                 disabled
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-400 cursor-not-allowed"
+                className="w-full pl-10 pr-3 py-2.5 text-sm border border-default rounded-lg bg-surface-hover text-muted cursor-not-allowed"
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1">L'email ne peut pas être modifié</p>
+            <p className="text-xs text-muted mt-1">L'email ne peut pas être modifié</p>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Téléphone</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Téléphone</label>
             <div className="relative">
-              <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="+225 07 00 00 00"
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                className="w-full pl-10 pr-3 py-2.5 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ const handleChangePassword = async () => {
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-success text-white rounded-lg hover:bg-success text-sm font-medium transition-colors disabled:opacity-50"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -159,37 +159,37 @@ const handleChangePassword = async () => {
       </div>
 
       {/* Change password card */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
-        <h3 className="font-semibold text-slate-900 mb-1 flex items-center gap-2">
+      <div className="bg-surface rounded-xl border border-default p-6 mb-6">
+        <h3 className="font-semibold text-primary mb-1 flex items-center gap-2">
           <Lock size={18} /> Changer le mot de passe
         </h3>
-        <p className="text-sm text-slate-500 mb-4">Utilisez un mot de passe d'au moins 8 caractères avec majuscules, minuscules et chiffres.</p>
+        <p className="text-sm text-muted mb-4">Utilisez un mot de passe d'au moins 8 caractères avec majuscules, minuscules et chiffres.</p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Nouveau mot de passe</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Nouveau mot de passe</label>
             <input
               type="password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+              className="w-full px-3 py-2.5 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Confirmer le nouveau mot de passe</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">Confirmer le nouveau mot de passe</label>
             <input
               type="password"
               value={confirmNewPassword}
               onChange={e => setConfirmNewPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+              className="w-full px-3 py-2.5 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary"
             />
           </div>
           <button
             onClick={handleChangePassword}
             disabled={changingPwd || !newPassword}
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900 text-sm font-medium transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-surface-raised text-white rounded-lg hover:bg-surface text-sm font-medium transition-colors disabled:opacity-50"
           >
             {changingPwd ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -201,12 +201,12 @@ const handleChangePassword = async () => {
       </div>
 
       {/* Sign out */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 className="font-semibold text-slate-900 mb-1">Déconnexion</h3>
-        <p className="text-sm text-slate-500 mb-4">Vous serez déconnecté et redirigé vers la page d'accueil.</p>
+      <div className="bg-surface rounded-xl border border-default p-6">
+        <h3 className="font-semibold text-primary mb-1">Déconnexion</h3>
+        <p className="text-sm text-muted mb-4">Vous serez déconnecté et redirigé vers la page d'accueil.</p>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-danger-soft text-danger border border-default rounded-lg hover:bg-danger-soft text-sm font-medium transition-colors"
         >
           <LogOut size={16} /> Se déconnecter
         </button>

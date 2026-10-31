@@ -13,10 +13,10 @@ import { SimpleBadge, StatusBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 
-const TYPE_COLORS: Record<string, 'blue' | 'green' | 'purple'> = {
-  image: 'blue',
-  icon: 'green',
-  logo: 'purple',
+const TYPE_COLORS: Record<string, 'info' | 'success' | 'warning'> = {
+  image: 'info',
+  icon: 'success',
+  logo: 'warning',
 };
 
 function emptyForm() {
@@ -175,40 +175,40 @@ export function Media() {
         title="Médias"
         subtitle="Gestion des images, icônes et logos pour le site vitrine et l'application"
         actions={
-          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
             <Plus size={18} /> Nouveau média
           </button>
         }
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total médias" value={String(kpis.total)} icon={<ImageIcon size={20} />} color="blue" />
+        <KpiCard label="Total médias" value={String(kpis.total)} icon={<ImageIcon size={20} />} color="info" />
         {MEDIA_TYPES.map((t) => (
           <KpiCard
             key={t}
             label={t.charAt(0).toUpperCase() + t.slice(1)}
             value={String(kpis.byType[t] || 0)}
             icon={<ImageIcon size={20} />}
-            color={TYPE_COLORS[t] || 'blue'}
+            color={TYPE_COLORS[t] || 'info'}
           />
         ))}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher par titre, description, type ou catégorie..."
-            className="w-full pl-10 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+            className="w-full pl-10 pr-3 py-2 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary"
           />
         </div>
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value as any)}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20"
+          className="px-3 py-2 text-sm border border-default rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
         >
           <option value="all">Tous types</option>
           {MEDIA_TYPES.map((t) => (
@@ -220,7 +220,7 @@ export function Media() {
         <select
           value={categoryFilter}
           onChange={e => setCategoryFilter(e.target.value)}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20"
+          className="px-3 py-2 text-sm border border-default rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
         >
           <option value="">Toutes catégories</option>
           {MEDIA_CATEGORIES.map((c) => (
@@ -234,17 +234,17 @@ export function Media() {
           icon={<ImageIcon size={48} />}
           title={media.length === 0 ? "Aucun média" : "Aucun résultat"}
           message={media.length === 0 ? "Commencez par ajouter votre premier média" : "Essayez de modifier vos filtres de recherche"}
-          action={media.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Ajouter un média</button> : undefined}
+          action={media.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium"><Plus size={16} /> Ajouter un média</button> : undefined}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((m) => (
-            <div key={m.id} className="relative w-full h-[200px] bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer" onClick={() => setDetailMedia(m)}>
+            <div key={m.id} className="relative w-full h-[200px] bg-surface rounded-xl border border-default overflow-hidden hover:shadow-md transition-shadow group cursor-pointer" onClick={() => setDetailMedia(m)}>
               <div className="absolute inset-0">
                 {m.url ? (
                   <img src={m.url} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  <div className="w-full h-full flex items-center justify-center text-muted">
                     <ImageIcon size={40} />
                   </div>
                 )}
@@ -253,8 +253,8 @@ export function Media() {
                     {m.type}
                   </span>
                 </div>
-                <div className="absolute bottom-2 left-2 right-2 p-2 text-slate-700 text-center">
-                  <h3 className="font-semibold text-slate-900 line-clamp-1">{m.title}</h3>
+                <div className="absolute bottom-2 left-2 right-2 p-2 text-secondary text-center">
+                  <h3 className="font-semibold text-primary line-clamp-1">{m.title}</h3>
                   <p className="text-xs line-clamp-2">{m.description ?? '—'}</p>
                 </div>
               </div>
@@ -272,8 +272,8 @@ export function Media() {
         footer={
           detailMedia ? (
             <>
-              <button onClick={() => setEditMedia(detailMedia)} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Modifier</button>
-              <button onClick={handleDelete} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
+              <button onClick={() => setEditMedia(detailMedia)} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success">Modifier</button>
+              <button onClick={handleDelete} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
             </>
           ) : undefined
         }
@@ -286,19 +286,19 @@ export function Media() {
               </div>
             )}
             {detailMedia.description && (
-              <p className="text-sm text-slate-600">{detailMedia.description}</p>
+              <p className="text-sm text-secondary">{detailMedia.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg text-slate-600"><ImageIcon size={14} /> Type: {detailMedia.type}</span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-hover rounded-lg text-secondary"><ImageIcon size={14} /> Type: {detailMedia.type}</span>
               {detailMedia.category && (
-                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg text-slate-600">Catégorie: {detailMedia.category}</span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-hover rounded-lg text-secondary">Catégorie: {detailMedia.category}</span>
               )}
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg text-slate-600"><Calendar size={14} /> Ajouté: {formatDate(detailMedia.created_at)}</span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-hover rounded-lg text-secondary"><Calendar size={14} /> Ajouté: {formatDate(detailMedia.created_at)}</span>
               {detailMedia.updated_at && (
-                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg text-slate-600"><Calendar size={14} /> Modifié: {formatDate(detailMedia.updated_at)}</span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-hover rounded-lg text-secondary"><Calendar size={14} /> Modifié: {formatDate(detailMedia.updated_at)}</span>
               )}
             </div>
-            <p className="text-xs text-slate-400 pt-2 border-t border-slate-100">Créée le {formatDate(detailMedia.created_at)} · Modifiée le {formatDate(detailMedia.updated_at)}</p>
+            <p className="text-xs text-muted pt-2 border-t border-default">Créée le {formatDate(detailMedia.created_at)} · Modifiée le {formatDate(detailMedia.updated_at)}</p>
           </div>
         )}
       </Modal>
@@ -311,8 +311,8 @@ export function Media() {
         size="lg"
         footer={
           <>
-            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving || uploading} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">Annuler</button>
+            <button onClick={handleSubmit} disabled={saving || uploading} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success disabled:opacity-50">
               {saving ? 'Enregistrement...' : editMedia ? 'Modifier' : 'Créer'}
             </button>
           </>
@@ -321,13 +321,13 @@ export function Media() {
         <div className="space-y-5">
           {/* Image upload */}
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-2">Image du média</label>
+            <label className="block text-xs font-medium text-secondary mb-2">Image du média</label>
             <div className="flex items-center gap-4">
-              <div className="w-28 h-28 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center bg-slate-50 flex-shrink-0">
+              <div className="w-28 h-28 rounded-xl border-2 border-dashed border-default overflow-hidden flex items-center justify-center bg-surface-hover flex-shrink-0">
                 {imageUrl ? (
                   <img src={imageUrl} alt="Aperçu" className="w-full h-full object-cover" />
                 ) : (
-                  <ImageIcon size={28} className="text-slate-300" />
+                  <ImageIcon size={28} className="text-muted" />
                 )}
               </div>
               <div className="flex-1">
@@ -342,30 +342,30 @@ export function Media() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-default rounded-lg hover:bg-surface-hover text-secondary disabled:opacity-50"
                 >
-                  {uploading ? <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" /> : <Upload size={16} />}
+                  {uploading ? <div className="w-4 h-4 border-2 border-default border-t-text-muted rounded-full animate-spin" /> : <Upload size={16} />}
                   {uploading ? 'Upload...' : 'Choisir une image'}
                 </button>
                 {imageUrl && (
-                  <button type="button" onClick={() => setImageUrl(null)} className="ml-2 text-xs text-red-500 hover:underline">Retirer l'image</button>
+                  <button type="button" onClick={() => setImageUrl(null)} className="ml-2 text-xs text-danger hover:underline">Retirer l'image</button>
                 )}
-                <p className="text-xs text-slate-400 mt-1">JPG, PNG — max 5 Mo</p>
+                <p className="text-xs text-muted mt-1">JPG, PNG — max 5 Mo</p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-1 sm:col-span-2">
-              <label className="block text-xs font-medium text-slate-600 mb-1">Titre *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Titre *</label>
               <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="form-input" placeholder="Logo de l'entreprise" />
             </div>
             <div className="col-span-1 sm:col-span-2">
-              <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Description</label>
               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="form-input" rows={2} placeholder="Description du média..." />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Type</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Type</label>
               <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="form-input">
                 {MEDIA_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -375,7 +375,7 @@ export function Media() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Catégorie</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Catégorie</label>
               <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="form-input">
                 {MEDIA_CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>

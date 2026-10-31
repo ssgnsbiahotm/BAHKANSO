@@ -16,6 +16,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -174,7 +175,8 @@ const EXPLOITATION_SECTIONS: ConfigSection[] = [
     icon: <ImageIcon size={20} />,
     domain: 'exploitation',
     fields: [
-      { id: 'logo_url', label: 'Logo de l’application', type: 'image', description: 'Le logo apparaît dans la barre latérale, l’en-tête et la page de connexion.' },
+      { id: 'logo_url', label: 'Logo de l\'application', type: 'image', description: 'Le logo apparaît dans la barre latérale, l\'en-tête et la page de connexion.' },
+      { id: 'favicon_url', label: 'Favicon', type: 'image', description: 'Icône du navigateur (16x16, 32x32, 180x180, 192x192, 512x512) — max 512 Ko' },
     ],
   },
 ];
@@ -369,8 +371,10 @@ export function Configuration() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
+  const faviconFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
 
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -400,6 +404,7 @@ export function Configuration() {
       values[getDraftPath('exploitation', 'notifications', 'smsNotifications')] = (siteContent['notifications']?.value as any)?.smsNotifications ?? false;
       values[getDraftPath('exploitation', 'notifications', 'alertThreshold')] = (siteContent['notifications']?.value as any)?.alertThreshold ?? 10;
       values[getDraftPath('exploitation', 'appearance', 'logo_url')] = farm.logo_url;
+      values[getDraftPath('exploitation', 'appearance', 'favicon_url')] = farm.favicon_url;
     }
 
     // Site content fields
@@ -497,7 +502,8 @@ export function Configuration() {
 
         if (isFarmSection(subsection) && subsection !== 'securite' && subsection !== 'notifications') {
           if (subsection === 'appearance') {
-            if (change.value) farmUpdates.logo_url = change.value;
+            if (fieldId === 'logo_url' && change.value) farmUpdates.logo_url = change.value;
+            else if (fieldId === 'favicon_url' && change.value) farmUpdates.favicon_url = change.value;
           } else {
             farmUpdates[fieldId] = change.value;
           }
@@ -631,6 +637,89 @@ export function Configuration() {
     }
   };
 
+  /**
+   * Uploads a favicon to Supabase Storage and updates the farm record.
+   * Consumer contract: expects single public URL stored in `farm.favicon_url`;
+   * injected at runtime into `<link rel="icon">`.
+   * Validation: PNG, ICO, SVG ≤ 512KB.
+   */
+  const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !farm) return;
+    if (file.size > 512 * 1024) {
+      toast.show('Le favicon ne doit pas dépasser 512 Ko', 'error');
+      return;
+    }
+    const validTypes = ['image/png', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/svg+xml'];
+    const isIco = file.name.toLowerCase().endsWith('.ico');
+    if (!validTypes.includes(file.type) && !isIco) {
+      toast.show('Format non supporté : PNG, ICO ou SVG uniquement.', 'error');
+      return;
+    }
+
+    setUploadingFavicon(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `favicon/favicon-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('app-assets').upload(fileName, file);
+      if (upErr) throw upErr;
+
+      const { data: pub } = supabase.storage.from('app-assets').getPublicUrl(fileName);
+      const faviconUrl = pub.publicUrl;
+
+      const { error: updErr } = await supabase
+        .from('farms')
+        .update({ favicon_url: faviconUrl, updated_at: new Date().toISOString() })
+        .eq('id', farm.id);
+      if (updErr) throw updErr;
+
+      await logAudit(
+        appUser?.name || authUser?.email || 'Système',
+        'UPDATE',
+        'farm',
+        farm.id,
+        "Favicon de l'application modifié",
+        null,
+        { favicon_url: faviconUrl },
+      );
+
+      toast.show('Favicon mis à jour avec succès');
+      await refresh();
+    } catch (err) {
+      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+    } finally {
+      setUploadingFavicon(false);
+    }
+  };
+
+  const handleRemoveFavicon = async () => {
+    if (!farm || !isAuthorized) return;
+    const previousFaviconUrl = farm.favicon_url;
+    try {
+      updateDraft('exploitation', 'appearance', 'favicon_url', null);
+      const { error } = await supabase
+        .from('farms')
+        .update({ favicon_url: null, updated_at: new Date().toISOString() })
+        .eq('id', farm.id);
+      if (error) throw error;
+
+      await logAudit(
+        appUser?.name || authUser?.email || 'Système',
+        'UPDATE',
+        'farm',
+        farm.id,
+        'Favicon supprimé',
+        { favicon_url: previousFaviconUrl },
+        { favicon_url: null },
+      );
+      toast.show('Favicon supprimé');
+      await refresh();
+    } catch (err) {
+      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+    }
+  };
+
   // --- Upload image hero ---
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -686,6 +775,7 @@ export function Configuration() {
     const colorPath = getDraftPath('contenu', 'branding', 'logoColor');
     const bgColorPath = getDraftPath('contenu', 'branding', 'logoBgColor');
     const logoPath = getDraftPath('exploitation', 'appearance', 'logo_url');
+    const faviconPath = getDraftPath('exploitation', 'appearance', 'favicon_url');
 
     return {
       appName: getEffectiveValue(brandingPath) || 'Bahkanso',
@@ -694,6 +784,7 @@ export function Configuration() {
       logoColor: getEffectiveValue(colorPath) || '#6B8E3A',
       logoBgColor: getEffectiveValue(bgColorPath) || '#F4F1E8',
       logoUrl: getEffectiveValue(logoPath) || undefined,
+      faviconUrl: getEffectiveValue(faviconPath) || undefined,
     };
   }, [getEffectiveValue]);
 
@@ -918,48 +1009,94 @@ export function Configuration() {
 
               {/* Logo upload pour la section appearance */}
               {activeSubsection === 'appearance' && farm && (
-                <div className="bg-white p-5 rounded-sm border border-ivory-deep">
-                  <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Logo de l’application</h3>
-                  <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
-                    <div className="w-20 h-20 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
-                      {farm.logo_url ? (
-                        <img src={farm.logo_url} alt="Logo actuel" className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon size={28} className="text-ink-dim" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <input
-                        ref={logoFileRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleLogoUpload}
-                      />
-                      <button
-                        onClick={() => logoFileRef.current?.click()}
-                        disabled={uploadingLogo || !farm}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
-                      >
-                        {uploadingLogo ? (
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <>
+                  <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                    <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Logo de l'application</h3>
+                    <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
+                      <div className="w-20 h-20 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                        {getEffectiveValue(getDraftPath('exploitation', 'appearance', 'logo_url')) ? (
+                          <OptimizedImage src={String(getEffectiveValue(getDraftPath('exploitation', 'appearance', 'logo_url')))} alt="Logo actuel" className="w-full h-full object-cover" />
                         ) : (
-                          <Upload size={16} />
+                          <ImageIcon size={28} className="text-ink-dim" />
                         )}
-                        {uploadingLogo ? 'Upload…' : 'Changer le logo'}
-                      </button>
-                      {farm.logo_url && (
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          ref={logoFileRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleLogoUpload}
+                        />
                         <button
-                          onClick={handleRemoveLogo}
-                          className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-terra border border-red-200 rounded-sm hover:bg-red-50"
+                          onClick={() => logoFileRef.current?.click()}
+                          disabled={uploadingLogo || !farm}
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
                         >
-                          <Trash2 size={14} /> Retirer
+                          {uploadingLogo ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <Upload size={16} />
+                          )}
+                          {uploadingLogo ? 'Upload...' : 'Changer le logo'}
                         </button>
-                      )}
-                      <p className="text-xs text-ink-dim mt-2">PNG, JPG — max 2 Mo. L’image est recadrée en carré.</p>
+                        {Boolean(getEffectiveValue(getDraftPath('exploitation', 'appearance', 'logo_url'))) && (
+                          <button
+                            onClick={handleRemoveLogo}
+                            className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-terra border border-red-200 rounded-sm hover:bg-red-50"
+                          >
+                            <Trash2 size={14} /> Retirer
+                          </button>
+                        )}
+                        <p className="text-xs text-ink-dim mt-2">PNG, JPG — max 2 Mo. L'image est recadrée en carré.</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {/* Favicon upload */}
+                  <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                    <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Favicon (icône du navigateur)</h3>
+                    <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
+                      <div className="w-16 h-16 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                        {getEffectiveValue(getDraftPath('exploitation', 'appearance', 'favicon_url')) ? (
+                          <OptimizedImage src={String(getEffectiveValue(getDraftPath('exploitation', 'appearance', 'favicon_url')))} alt="Favicon actuel" className="w-full h-full object-cover" />
+                        ) : (
+                          <ImageIcon size={24} className="text-ink-dim" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          ref={faviconFileRef}
+                          type="file"
+                          accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/svg+xml,.ico"
+                          className="hidden"
+                          onChange={handleFaviconUpload}
+                        />
+                        <button
+                          onClick={() => faviconFileRef.current?.click()}
+                          disabled={uploadingFavicon || !farm}
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {uploadingFavicon ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <Upload size={16} />
+                          )}
+                          {uploadingFavicon ? 'Upload...' : 'Changer le favicon'}
+                        </button>
+                        {Boolean(getEffectiveValue(getDraftPath('exploitation', 'appearance', 'favicon_url'))) && (
+                          <button
+                            onClick={handleRemoveFavicon}
+                            className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-terra border border-red-200 rounded-sm hover:bg-red-50"
+                          >
+                            <Trash2 size={14} /> Retirer
+                          </button>
+                        )}
+                        <p className="text-xs text-ink-dim mt-2">PNG, ICO, SVG — max 512 Ko. Recommandé : fournir un SVG ou un PNG 512×512 pour une qualité optimale.</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
               {/* Upload image hero pour la section hero */}
@@ -1140,6 +1277,39 @@ export function Configuration() {
                       <h1 className="text-2xl font-bold text-ink">{previewBranding.appName}</h1>
                       <p className="text-ink-mut text-sm">{previewBranding.appTagline}</p>
                     </div>
+                    {previewBranding.faviconUrl && (
+                      <div className="flex items-center justify-center gap-4">
+                        <div className="w-12 h-12 rounded-sm flex items-center justify-center border-2 border-ivory-deep overflow-hidden flex-shrink-0">
+                          <img src={previewBranding.faviconUrl} alt="Favicon" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex items-center gap-4 text-center">
+                          <div>
+                            <div className="w-4 h-4 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
+                              <img src={previewBranding.faviconUrl} alt="16x16" className="w-full h-full object-cover" />
+                            </div>
+                            <p className="text-xs text-ink-dim">16×16 (tab)</p>
+                          </div>
+                          <div>
+                            <div className="w-6 h-6 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
+                              <img src={previewBranding.faviconUrl} alt="32x32" className="w-full h-full object-cover" />
+                            </div>
+                            <p className="text-xs text-ink-dim">32×32 (tab HD)</p>
+                          </div>
+                          <div>
+                            <div className="w-8 h-8 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
+                              <img src={previewBranding.faviconUrl} alt="48x48" className="w-full h-full object-cover" />
+                            </div>
+                            <p className="text-xs text-ink-dim">48×48 (touch icon)</p>
+                          </div>
+                          <div>
+                            <div className="w-10 h-10 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
+                              <img src={previewBranding.faviconUrl} alt="180x180" className="w-full h-full object-cover" />
+                            </div>
+                            <p className="text-xs text-ink-dim">180×180 (apple-touch-icon)</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

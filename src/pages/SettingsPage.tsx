@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Building2, Coins, Tags, Bell, Shield, Image as ImageIcon, Upload, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
@@ -78,7 +79,7 @@ export function SettingsPage() {
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  tab === t.id ? 'bg-green-50 text-green-700' : 'text-slate-600 hover:bg-slate-50'
+                  tab === t.id ? 'bg-success-soft text-success' : 'text-secondary hover:bg-surface-hover'
                 }`}
               >
                 {t.icon}
@@ -89,29 +90,29 @@ export function SettingsPage() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-surface rounded-xl border border-default p-6">
             {tab === 'farm' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><Building2 size={18} /> Informations de l'exploitation</h3>
+                <h3 className="font-semibold text-primary flex items-center gap-2"><Building2 size={18} /> Informations de l'exploitation</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Nom de l'exploitation</label>
+                    <label className="block text-xs font-medium text-secondary mb-1">Nom de l'exploitation</label>
                     <input type="text" value={farmForm.name} onChange={e => setFarmForm({...farmForm, name: e.target.value})} className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Localisation</label>
+                    <label className="block text-xs font-medium text-secondary mb-1">Localisation</label>
                     <input type="text" value={farmForm.location} onChange={e => setFarmForm({...farmForm, location: e.target.value})} className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Téléphone</label>
+                    <label className="block text-xs font-medium text-secondary mb-1">Téléphone</label>
                     <input type="text" value={farmForm.phone} onChange={e => setFarmForm({...farmForm, phone: e.target.value})} className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Email</label>
+                    <label className="block text-xs font-medium text-secondary mb-1">Email</label>
                     <input type="email" value={farmForm.email} onChange={e => setFarmForm({...farmForm, email: e.target.value})} className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Devise principale</label>
+                    <label className="block text-xs font-medium text-secondary mb-1">Devise principale</label>
                     <select value={farmForm.currency} onChange={e => setFarmForm({...farmForm, currency: e.target.value})} className="form-input">
                       <option value="FCFA">FCFA (Franc CFA)</option>
                       <option value="EUR">EUR (Euro)</option>
@@ -119,7 +120,7 @@ export function SettingsPage() {
                     </select>
                   </div>
                 </div>
-                <button onClick={handleSaveFarm} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+                <button onClick={handleSaveFarm} disabled={saving} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success disabled:opacity-50">
                   {saving ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
@@ -127,15 +128,15 @@ export function SettingsPage() {
 
             {tab === 'currencies' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><Coins size={18} /> Devises et taux de change</h3>
+                <h3 className="font-semibold text-primary flex items-center gap-2"><Coins size={18} /> Devises et taux de change</h3>
                 <div className="space-y-2">
                   {[
                     { from: 'EUR', to: 'FCFA', rate: '655.95' },
                     { from: 'USD', to: 'FCFA', rate: '597.00' },
                   ].map(c => (
-                    <div key={c.from} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <span className="text-sm text-slate-700">1 {c.from} = {c.rate} {c.to}</span>
-                      <span className="text-xs text-slate-400">Taux de référence</span>
+                    <div key={c.from} className="flex items-center justify-between p-3 bg-surface-hover rounded-lg">
+                      <span className="text-sm text-secondary">1 {c.from} = {c.rate} {c.to}</span>
+                      <span className="text-xs text-muted">Taux de référence</span>
                     </div>
                   ))}
                 </div>
@@ -144,11 +145,11 @@ export function SettingsPage() {
 
             {tab === 'categories' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><Tags size={18} /> Catégories de dépenses</h3>
+                <h3 className="font-semibold text-primary flex items-center gap-2"><Tags size={18} /> Catégories de dépenses</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {['Alimentation animale', 'Semences', 'Engrais', 'Produits vétérinaires', 'Main-d\'œuvre', 'Matériaux', 'Carburant', 'Transport', 'Équipement', 'Maintenance', 'Construction', 'Administration', 'Autre'].map(c => (
-                    <div key={c} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg text-sm text-slate-700">
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                    <div key={c} className="flex items-center gap-2 p-2 bg-surface-hover rounded-lg text-sm text-secondary">
+                      <span className="w-2 h-2 rounded-full bg-success-soft" />
                       {c}
                     </div>
                   ))}
@@ -158,7 +159,7 @@ export function SettingsPage() {
 
             {tab === 'notifications' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><Bell size={18} /> Seuils d'alerte</h3>
+                <h3 className="font-semibold text-primary flex items-center gap-2"><Bell size={18} /> Seuils d'alerte</h3>
                 <div className="space-y-3">
                   {[
                     { label: 'Stock minimum atteint', desc: 'Alerte quand stock < minimum' },
@@ -166,14 +167,14 @@ export function SettingsPage() {
                     { label: 'Dépassement budget', desc: 'Alerte quand > 90% du budget consommé' },
                     { label: 'Projet en retard', desc: 'Alerte quand étape en retard > 15 jours' },
                   ].map(n => (
-                    <div key={n.label} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div key={n.label} className="flex items-center justify-between p-3 bg-surface-hover rounded-lg">
                       <div>
-                        <p className="text-sm font-medium text-slate-700">{n.label}</p>
-                        <p className="text-xs text-slate-400">{n.desc}</p>
+                        <p className="text-sm font-medium text-secondary">{n.label}</p>
+                        <p className="text-xs text-muted">{n.desc}</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" defaultChecked className="sr-only peer" />
-                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-green-500/20 rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                        <div className="w-9 h-5 bg-surface-hover peer-focus:ring-2 peer-focus:ring-accent-primary/20 rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-surface after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success"></div>
                       </label>
                     </div>
                   ))}
@@ -183,19 +184,19 @@ export function SettingsPage() {
 
             {tab === 'security' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><Shield size={18} /> Sécurité</h3>
+                <h3 className="font-semibold text-primary flex items-center gap-2"><Shield size={18} /> Sécurité</h3>
                 <div className="space-y-3">
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <p className="text-sm font-medium text-slate-700">Authentification</p>
-                    <p className="text-xs text-slate-400 mt-1">Authentification par email/mot de passe via Supabase Auth</p>
+                  <div className="p-3 bg-surface-hover rounded-lg">
+                    <p className="text-sm font-medium text-secondary">Authentification</p>
+                    <p className="text-xs text-muted mt-1">Authentification par email/mot de passe via Supabase Auth</p>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <p className="text-sm font-medium text-slate-700">Row Level Security (RLS)</p>
-                    <p className="text-xs text-slate-400 mt-1">Toutes les tables sont protégées par des politiques RLS</p>
+                  <div className="p-3 bg-surface-hover rounded-lg">
+                    <p className="text-sm font-medium text-secondary">Row Level Security (RLS)</p>
+                    <p className="text-xs text-muted mt-1">Toutes les tables sont protégées par des politiques RLS</p>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <p className="text-sm font-medium text-slate-700">Piste d'audit</p>
-                    <p className="text-xs text-slate-400 mt-1">Toutes les actions importantes sont enregistrées dans le journal d'audit</p>
+                  <div className="p-3 bg-surface-hover rounded-lg">
+                    <p className="text-sm font-medium text-secondary">Piste d'audit</p>
+                    <p className="text-xs text-muted mt-1">Toutes les actions importantes sont enregistrées dans le journal d'audit</p>
                   </div>
                 </div>
               </div>
@@ -203,12 +204,12 @@ export function SettingsPage() {
 
             {tab === 'appearance' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><ImageIcon size={18} /> Logo de l'application</h3>
-                <p className="text-sm text-slate-500">Le logo apparaît dans la barre latérale, l'en-tête et la page de connexion.</p>
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-                  <div className="w-20 h-20 rounded-xl border-2 border-slate-200 overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                <h3 className="font-semibold text-primary flex items-center gap-2"><ImageIcon size={18} /> Logo de l'application</h3>
+                <p className="text-sm text-muted">Le logo apparaît dans la barre latérale, l'en-tête et la page de connexion.</p>
+                <div className="flex items-center gap-4 p-4 bg-surface-hover rounded-xl">
+                  <div className="w-20 h-20 rounded-xl border-2 border-default overflow-hidden flex items-center justify-center bg-surface flex-shrink-0">
                     {farm?.logo_url ? (
-                      <img src={farm.logo_url} alt="Logo actuel" className="w-full h-full object-cover" />
+                      <OptimizedImage src={farm.logo_url} alt="Logo actuel" className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon size={28} className="text-slate-300" />
                     )}
@@ -255,7 +256,7 @@ export function SettingsPage() {
                     <button
                       onClick={() => logoFileRef.current?.click()}
                       disabled={uploadingLogo || !farm}
-                      className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success disabled:opacity-50"
                     >
                       {uploadingLogo ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Upload size={16} />}
                       {uploadingLogo ? 'Upload...' : 'Changer le logo'}
@@ -273,12 +274,12 @@ export function SettingsPage() {
                             refresh();
                           }
                         }}
-                        className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                        className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
                       >
                         <Trash2 size={14} /> Retirer
                       </button>
                     )}
-                    <p className="text-xs text-slate-400 mt-2">PNG, JPG — max 2 Mo. L'image est recadrée en carré.</p>
+                    <p className="text-xs text-muted mt-2">PNG, JPG — max 2 Mo. L'image est recadrée en carré.</p>
                   </div>
                 </div>
               </div>

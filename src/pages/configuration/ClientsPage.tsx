@@ -221,7 +221,7 @@ export function ClientsPage() {
           <button
             onClick={openCreate}
             disabled={!canManageClients}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             title={!canManageClients ? 'Réservé aux administrateurs et propriétaires' : undefined}
           >
             <Plus size={18} /> Nouveau client
@@ -230,15 +230,15 @@ export function ClientsPage() {
       />
 
       {!canManageClients && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+        <div className="mb-6 p-4 bg-warning-soft border border-default rounded-lg text-sm text-warning">
           <AlertCircle size={16} className="mr-2 mt-0.5" />
           Vous n'avez pas le rôle nécessaire pour créer, modifier ou supprimer des clients.
         </div>
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <KpiCard label="Total clients" value={String(kpis.total)} icon={<Users size={20} />} color="dark" />
-        <KpiCard label="Actifs" value={String(kpis.active)} icon={<Users size={20} />} color="green" />
+        <KpiCard label="Total clients" value={String(kpis.total)} icon={<Users size={20} />} color="slate" />
+        <KpiCard label="Actifs" value={String(kpis.active)} icon={<Users size={20} />} color="success" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -248,53 +248,53 @@ export function ClientsPage() {
             flipLabel="Détails"
             backLabel="Retour"
             front={
-              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+              <div className="bg-surface border border-default rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-success-soft flex items-center justify-center text-success font-bold text-lg">
                     {c.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900">{c.name}</h3>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">
+                    <h3 className="font-semibold text-primary">{c.name}</h3>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-surface-hover text-secondary">
                       {c.type}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-4 space-y-1 text-sm text-slate-600">
+                <div className="mt-4 space-y-1 text-sm text-secondary">
                   {c.email && <p>📧 {c.email}</p>}
                   {c.phone && <p>📞 {c.phone}</p>}
                   {c.site_id && <p>📍 {sitesOptions.find(s => s.id === c.site_id)?.name || '—'}</p>}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100">
-                  <button className="w-full text-sm text-emerald-700 font-medium hover:text-emerald-800">
+                <div className="mt-4 pt-3 border-t border-default">
+                  <button className="w-full text-sm text-success font-medium hover:text-success">
                     Voir les détails →
                   </button>
                 </div>
               </div>
             }
             back={
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+              <div className="bg-success-soft border border-default rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
                 <div>
-                  <h3 className="font-semibold text-slate-900 mb-3">{c.name}</h3>
+                  <h3 className="font-semibold text-primary mb-3">{c.name}</h3>
                   <dl className="space-y-2 text-sm">
-                    <div><dt className="text-slate-500 text-xs">Type</dt><dd className="font-medium">{c.type}</dd></div>
-                    <div><dt className="text-slate-500 text-xs">Email</dt><dd>{c.email || '—'}</dd></div>
-                    <div><dt className="text-slate-500 text-xs">Téléphone</dt><dd>{c.phone || '—'}</dd></div>
-                    <div><dt className="text-slate-500 text-xs">Site</dt><dd>{sitesOptions.find(s => s.id === c.site_id)?.name || '—'}</dd></div>
+                    <div><dt className="text-muted text-xs">Type</dt><dd className="font-medium">{c.type}</dd></div>
+                    <div><dt className="text-muted text-xs">Email</dt><dd>{c.email || '—'}</dd></div>
+                    <div><dt className="text-muted text-xs">Téléphone</dt><dd>{c.phone || '—'}</dd></div>
+                    <div><dt className="text-muted text-xs">Site</dt><dd>{sitesOptions.find(s => s.id === c.site_id)?.name || '—'}</dd></div>
                   </dl>
                 </div>
-                <div className="mt-4 pt-3 border-t border-emerald-200 flex gap-2">
+                <div className="mt-4 pt-3 border-t border-default flex gap-2">
                   <button
                     onClick={(e) => { e.stopPropagation(); openEdit(c); }}
-                    className="flex-1 bg-white text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-50"
+                    className="flex-1 bg-surface text-secondary border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-surface-hover"
                   >
                     Modifier
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}
-                    className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700"
+                    className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger"
                   >
                     Supprimer
                   </button>
@@ -303,7 +303,7 @@ export function ClientsPage() {
             } />
         ))}
         {clients.length === 0 && (
-          <div className="col-span-full p-8 text-center text-slate-500">
+          <div className="col-span-full p-8 text-center text-muted">
             <AlertCircle size={48} className="mb-3 opacity-50" />
             <p>Aucun client enregistré</p>
           </div>
@@ -326,21 +326,21 @@ export function ClientsPage() {
           />
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nom *</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Nom *</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Nom du client"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Type *</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Type *</label>
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
               >
                 <option value="particulier">Particulier</option>
                 <option value="restaurant">Restaurant</option>
@@ -350,30 +350,30 @@ export function ClientsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Email</label>
               <input
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 type="email"
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="contact@exemple.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Téléphone</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Téléphone</label>
               <input
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="+225 XX XX XX XX"
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Site lié</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Site lié</label>
               <select
                 value={form.site_id || ''}
                 onChange={(e) => setForm({ ...form, site_id: e.target.value || '' })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
               >
                 <option value="">Aucun</option>
                 {sitesOptions.map(s => (
@@ -387,14 +387,14 @@ export function ClientsPage() {
           <div className="mt-6 flex gap-3">
             <button
               type="submit"
-              className={editClient ? 'flex-1 bg-yellow-600 text-white hover:bg-yellow-700' : 'flex-1 bg-green-600 text-white hover:bg-green-700'}
+              className={editClient ? 'flex-1 bg-warning text-white hover:bg-warning' : 'flex-1 bg-success text-white hover:bg-success'}
             >
               {editClient ? 'Mettre à jour' : 'Créer'}
             </button>
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="flex-1 bg-slate-300 text-slate-900 hover:bg-slate-400"
+              className="flex-1 bg-surface-hover text-primary hover:bg-surface-hover"
             >
               Annuler
             </button>

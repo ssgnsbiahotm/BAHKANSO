@@ -279,56 +279,56 @@ export function AnimalManage() {
 
   const renderDetailFields = (a: any) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{a.identifier}</h2>
-          <p className="text-sm text-slate-500">{a.name || '—'}</p>
+          <h2 className="text-2xl font-bold text-primary">{a.identifier}</h2>
+          <p className="text-sm text-muted">{a.name || '—'}</p>
         </div>
         <SimpleBadge color={getStatusBadgeColor(a.status)}>{a.status}</SimpleBadge>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div><p className="text-xs text-slate-400">Identifiant</p><p className="text-sm font-medium">{a.identifier}</p></div>
-        <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{a.name || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Espèce</p><p className="text-sm font-medium">{a.species}</p></div>
-        <div><p className="text-xs text-slate-400">Race</p><p className="text-sm font-medium">{a.breed || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Sexe</p><p className="text-sm font-medium">{a.sex || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Date de naissance</p><p className="text-sm font-medium">{a.date_of_birth ? formatDate(String(a.date_of_birth)) : '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Poids (kg)</p><p className="text-sm font-medium">{a.weight_kg ?? '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Valeur estimée</p><p className="text-sm font-medium">{a.estimated_value !== null ? formatCurrency(a.estimated_value) : '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Localisation</p><p className="text-sm font-medium">{a.location || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{a.status}</p></div>
-        <div><p className="text-xs text-slate-400">Mère</p><p className="text-sm font-medium">{a.mother_id || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Père</p><p className="text-sm font-medium">{a.father_id || '—'}</p></div>
+        <div><p className="text-xs text-muted">Identifiant</p><p className="text-sm font-medium">{a.identifier}</p></div>
+        <div><p className="text-xs text-muted">Nom</p><p className="text-sm font-medium">{a.name || '—'}</p></div>
+        <div><p className="text-xs text-muted">Espèce</p><p className="text-sm font-medium">{a.species}</p></div>
+        <div><p className="text-xs text-muted">Race</p><p className="text-sm font-medium">{a.breed || '—'}</p></div>
+        <div><p className="text-xs text-muted">Sexe</p><p className="text-sm font-medium">{a.sex || '—'}</p></div>
+        <div><p className="text-xs text-muted">Date de naissance</p><p className="text-sm font-medium">{a.date_of_birth ? formatDate(String(a.date_of_birth)) : '—'}</p></div>
+        <div><p className="text-xs text-muted">Poids (kg)</p><p className="text-sm font-medium">{a.weight_kg ?? '—'}</p></div>
+        <div><p className="text-xs text-muted">Valeur estimée</p><p className="text-sm font-medium">{a.estimated_value !== null ? formatCurrency(a.estimated_value) : '—'}</p></div>
+        <div><p className="text-xs text-muted">Localisation</p><p className="text-sm font-medium">{a.location || '—'}</p></div>
+        <div><p className="text-xs text-muted">Statut</p><p className="text-sm font-medium">{a.status}</p></div>
+        <div><p className="text-xs text-muted">Mère</p><p className="text-sm font-medium">{a.mother_id || '—'}</p></div>
+        <div><p className="text-xs text-muted">Père</p><p className="text-sm font-medium">{a.father_id || '—'}</p></div>
       </div>
     </div>
   );
 
   const renderDetailFooter = (animal: any) => (
     <>
-      <button onClick={() => setConfirmDelete(animal)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-      <button onClick={() => openEdit(animal)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+      <button onClick={() => setConfirmDelete(animal)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+      <button onClick={() => openEdit(animal)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
       {animal.status === 'healthy' && (
-        <button onClick={() => { updateStatus(animal, 'sick'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Marquer malade</button>
+        <button onClick={() => { updateStatus(animal, 'sick'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger">Marquer malade</button>
       )}
       {animal.status === 'sick' && (
-        <button onClick={() => { updateStatus(animal, 'recovering'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700">Marquer en rétablissement</button>
+        <button onClick={() => { updateStatus(animal, 'recovering'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning">Marquer en rétablissement</button>
       )}
       {animal.status === 'recovering' && (
-        <button onClick={() => { updateStatus(animal, 'healthy'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer guéri</button>
+        <button onClick={() => { updateStatus(animal, 'healthy'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success">Marquer guéri</button>
       )}
       {(animal.status === 'healthy' || animal.status === 'recovering') && (
         <>
-          <button onClick={() => { updateStatus(animal, 'quarantined'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">Mettre en quarantaine</button>
+          <button onClick={() => { updateStatus(animal, 'quarantined'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning">Mettre en quarantaine</button>
           {animal.sex === 'female' && (
-            <button onClick={() => { updateStatus(animal, 'pregnant'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Marquer enceinte</button>
+            <button onClick={() => { updateStatus(animal, 'pregnant'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover">Marquer enceinte</button>
           )}
         </>
       )}
       {animal.status === 'quarantined' && (
-        <button onClick={() => { updateStatus(animal, 'healthy'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Retirer de quarantaine</button>
+        <button onClick={() => { updateStatus(animal, 'healthy'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success">Retirer de quarantaine</button>
       )}
       {(animal.status !== 'deceased') && (
-        <button onClick={() => { handleOpenDeathModal(animal); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Déclarer décès</button>
+        <button onClick={() => { handleOpenDeathModal(animal); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger">Déclarer décès</button>
       )}
     </>
   );
@@ -340,12 +340,12 @@ export function AnimalManage() {
         subtitle="Suivi individuel des animaux d'élevage"
         actions={
           <>
-            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
               <Plus size={18} /> Nouvel animal
             </button>
             <button
               onClick={() => navigate(LIVESTOCK_PATHS.animalsLegacy)}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 ml-2"
+              className="px-3 py-1 text-sm bg-success text-white rounded-lg hover:bg-success ml-2"
             >
               Tous les animaux
             </button>
@@ -354,26 +354,26 @@ export function AnimalManage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total animaux" value={String(kpis.totalAnimals)} icon={<Beef size={20} />} color="green" />
-        <KpiCard label="Valeur estimée" value={formatCurrency(kpis.totalValue)} icon={<Scale size={20} />} color="blue" />
-        <KpiCard label="Événements" value={String(kpis.events)} icon={<Activity size={20} />} color="amber" />
-        <KpiCard label="Vaccinations" value={String(kpis.vaccinations)} icon={<Heart size={20} />} color="red" />
+        <KpiCard label="Total animaux" value={String(kpis.totalAnimals)} icon={<Beef size={20} />} color="success" />
+        <KpiCard label="Valeur estimée" value={formatCurrency(kpis.totalValue)} icon={<Scale size={20} />} color="info" />
+        <KpiCard label="Événements" value={String(kpis.events)} icon={<Activity size={20} />} color="warning" />
+        <KpiCard label="Vaccinations" value={String(kpis.vaccinations)} icon={<Heart size={20} />} color="danger" />
       </div>
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
         <div className="flex-1 min-w-0">
-          <label className="block text-xs font-medium text-slate-600 mb-1">Rechercher des animaux</label>
+          <label className="block text-xs font-medium text-secondary mb-1">Rechercher des animaux</label>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
+            className="w-full px-3 py-2 border border-default rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
             placeholder="Rechercher par identificateur, nom, espèce, race, sexe, statut ou localisation..."
           />
         </div>
         <button
           onClick={() => setSearchTerm('')}
-          className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          className="px-3 py-2 text-sm text-secondary hover:bg-surface-hover"
         >
           Réinitialiser
         </button>
@@ -384,7 +384,7 @@ export function AnimalManage() {
           icon={null}
           title={searchTerm ? "Aucun résultat" : "Aucun animal"}
           message={searchTerm ? "Aucun animal ne correspond à votre recherche" : "Aucun animal enregistré"}
-          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Créer un animal</button>}
+          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">Créer un animal</button>}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -394,16 +394,16 @@ export function AnimalManage() {
               front={
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-slate-900">{animal.identifier ?? 'Non renseigné'}</h3>
+                    <h3 className="text-sm font-semibold text-primary">{animal.identifier ?? 'Non renseigné'}</h3>
                     <SimpleBadge color={getStatusColor(animal.status)}>
                       {animal.status}
                     </SimpleBadge>
                   </div>
                   {animal.species && (
-                    <div className="flex justify-between text-sm"><span className="text-slate-500">Espèce</span><span className="font-medium">{animal.species}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-muted">Espèce</span><span className="font-medium">{animal.species}</span></div>
                   )}
                   {animal.breed && (
-                    <div className="flex justify-between text-sm"><span className="text-slate-500">Race</span><span className="font-medium">{animal.breed}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-muted">Race</span><span className="font-medium">{animal.breed}</span></div>
                   )}
                 </div>
               }
@@ -411,22 +411,22 @@ export function AnimalManage() {
                 <div className="space-y-4">
                   <div className="space-y-2 text-sm">
                     {animal.name && (
-                      <div className="flex justify-between"><span className="text-slate-500">Nom</span><span className="font-medium">{animal.name}</span></div>
+                      <div className="flex justify-between"><span className="text-muted">Nom</span><span className="font-medium">{animal.name}</span></div>
                     )}
-                    <div className="flex justify-between"><span className="text-slate-500">Sexe</span><span className="font-medium">{animal.sex ?? '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Date de naissance</span><span className="font-medium">{animal.date_of_birth ? formatDate(String(animal.date_of_birth)) : '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Poids (kg)</span><span className="font-medium">{animal.weight_kg ?? '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Valeur estimée</span><span className="font-medium">{animal.estimated_value !== null ? formatCurrency(animal.estimated_value) : '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Localisation</span><span className="font-medium">{animal.location ?? '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Mère</span><span className="font-medium">{animal.mother_id ?? '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Père</span><span className="font-medium">{animal.father_id ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Sexe</span><span className="font-medium">{animal.sex ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Date de naissance</span><span className="font-medium">{animal.date_of_birth ? formatDate(String(animal.date_of_birth)) : '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Poids (kg)</span><span className="font-medium">{animal.weight_kg ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Valeur estimée</span><span className="font-medium">{animal.estimated_value !== null ? formatCurrency(animal.estimated_value) : '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Localisation</span><span className="font-medium">{animal.location ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Mère</span><span className="font-medium">{animal.mother_id ?? '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Père</span><span className="font-medium">{animal.father_id ?? '—'}</span></div>
                   </div>
-                  <div className="pt-2 border-t border-slate-100">
+                  <div className="pt-2 border-t border-default">
                     <div className="flex flex-wrap gap-2 mb-3">
                       {animal.status === 'healthy' && (
                         <button
                           onClick={() => { updateStatus(animal, 'sick'); }}
-                          className="px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                          className="px-3 py-1.5 text-xs bg-danger text-white rounded hover:bg-danger"
                         >
                           Marquer malade
                         </button>
@@ -434,7 +434,7 @@ export function AnimalManage() {
                       {animal.status === 'sick' && (
                         <button
                           onClick={() => { updateStatus(animal, 'recovering'); }}
-                          className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
+                          className="px-3 py-1.5 text-xs bg-warning text-white rounded hover:bg-warning"
                         >
                           Marquer en rétablissement
                         </button>
@@ -442,7 +442,7 @@ export function AnimalManage() {
                       {animal.status === 'recovering' && (
                         <button
                           onClick={() => { updateStatus(animal, 'healthy'); }}
-                          className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                          className="px-3 py-1.5 text-xs bg-success text-white rounded hover:bg-success"
                         >
                           Marquer guéri
                         </button>
@@ -451,14 +451,14 @@ export function AnimalManage() {
                         <>
                           <button
                             onClick={() => { updateStatus(animal, 'quarantined'); }}
-                            className="px-3 py-1.5 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                            className="px-3 py-1.5 text-xs bg-warning text-white rounded hover:bg-warning"
                           >
                             Mettre en quarantaine
                           </button>
                           {animal.sex === 'female' && (
                             <button
                               onClick={() => { updateStatus(animal, 'pregnant'); }}
-                              className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                              className="px-3 py-1.5 text-xs bg-accent-primary text-white rounded hover:bg-accent-primary-hover"
                             >
                               Marquer enceinte
                             </button>
@@ -468,7 +468,7 @@ export function AnimalManage() {
                       {animal.status === 'quarantined' && (
                         <button
                           onClick={() => { updateStatus(animal, 'healthy'); }}
-                          className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                          className="px-3 py-1.5 text-xs bg-success text-white rounded hover:bg-success"
                         >
                           Retirer de quarantaine
                         </button>
@@ -477,7 +477,7 @@ export function AnimalManage() {
                         <>
                           <button
                             onClick={() => { handleOpenDeathModal(animal); }}
-                            className="px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                            className="px-3 py-1.5 text-xs bg-danger text-white rounded hover:bg-danger"
                           >
                             Déclarer décès
                           </button>
@@ -487,13 +487,13 @@ export function AnimalManage() {
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => { openEdit(animal); }}
-                        className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
+                        className="px-3 py-1.5 text-xs bg-warning text-white rounded hover:bg-warning"
                       >
                         Modifier
                       </button>
                       <button
                         onClick={() => { setConfirmDelete(animal); }}
-                        className="px-3 py-1.5 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50"
+                        className="px-3 py-1.5 text-xs text-danger border border-default rounded hover:bg-danger-soft"
                       >
                         Supprimer
                       </button>
@@ -647,13 +647,13 @@ export function AnimalManage() {
       >
         {deathAnimal && (
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-secondary">
               Vous allez déclarer le décès de l'animal {deathAnimal.identifier}.{deathAnimal.name ? ' – ' + deathAnimal.name : ''}
             </p>
-            <p className="text-sm text-slate-500">Un événement de décès sera créé et le statut de l'animal sera mis à jour à "décédé".</p>
-            <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">
-              <button onClick={() => setOpenDeathModal(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
-              <button onClick={handleDeathSubmit} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">
+            <p className="text-sm text-muted">Un événement de décès sera créé et le statut de l'animal sera mis à jour à "décédé".</p>
+            <div className="pt-4 border-t border-default flex justify-end gap-2">
+              <button onClick={() => setOpenDeathModal(false)} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">Annuler</button>
+              <button onClick={handleDeathSubmit} className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger">
                 Enregistrer
               </button>
             </div>

@@ -25,7 +25,7 @@
 
 /* Focus visible for accessibility */
 *:focus-visible {
-  outline: 2px solid #16a34a;
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
@@ -49,17 +49,17 @@
 
 /* Selection styling */
 ::selection {
-  background-color: #16a34a;
+  background-color: var(--accent-primary);
   color: white;
 }
 
 /* Input placeholder styling */
 input::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 input:disabled::placeholder {
-  color: #cbd5e1;
+  color: var(--border-default);
 }
 
 /* Scrollbar styling (WebKit) */
@@ -69,28 +69,28 @@ input:disabled::placeholder {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg-surface-hover);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: var(--text-muted);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: var(--text-secondary);
 }
 
 /* Dark mode scrollbar */
 @media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-track {
-    background: #1e293b;
+    background: var(--bg-surface-raised);
   }
   ::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: var(--text-secondary);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+    background: var(--text-secondary);
   }
 }
 

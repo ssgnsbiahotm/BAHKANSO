@@ -9,9 +9,9 @@ export function AppLayout() {
   const location = useLocation();
 
   return (
-    <div className="flex min-h-screen bg-ivory">
+    <div className="flex min-h-screen bg-page">
       <Sidebar mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-ivory">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-page">
         <Header onOpenMobile={() => setMobileOpen(true)} />
         <main className="flex-1 overflow-y-auto">
           <Outlet />

@@ -187,45 +187,45 @@ export function CampaignManage() {
 
   const renderDetailFields = (campaign: any) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{campaign?.reference || `CAMP-${campaign?.year ?? ''}`}</h2>
-          <p className="text-sm text-slate-500">{campaign.crop_name ?? '—'}</p>
+          <h2 className="text-2xl font-bold text-primary">{campaign?.reference || `CAMP-${campaign?.year ?? ''}`}</h2>
+          <p className="text-sm text-muted">{campaign.crop_name ?? '—'}</p>
         </div>
         <SimpleBadge color={getStatusColor(campaign.status)}>
           {campaign.status}
         </SimpleBadge>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div><p className="text-xs text-slate-400">Année</p><p className="text-sm font-medium">{campaign.year}</p></div>
-        <div><p className="text-xs text-slate-400">Parcelle</p><p className="text-sm font-medium">{campaign.plot?.name || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Culture</p><p className="text-sm font-medium">{campaign.crop_name ?? '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Date de début</p><p className="text-sm font-medium">{formatDate(String(campaign.start_date))}</p></div>
-        <div><p className="text-xs text-slate-400">Récolte prévue</p><p className="text-sm font-medium">{campaign.expected_harvest_date ? formatDate(String(campaign.expected_harvest_date)) : '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Budget</p><p className="text-sm font-medium">{formatCurrency(campaign.budget)}</p></div>
-        <div><p className="text-xs text-slate-400">Responsable</p><p className="text-sm font-medium">{campaign.responsible ?? '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{campaign.status}</p></div>
+        <div><p className="text-xs text-muted">Année</p><p className="text-sm font-medium">{campaign.year}</p></div>
+        <div><p className="text-xs text-muted">Parcelle</p><p className="text-sm font-medium">{campaign.plot?.name || '—'}</p></div>
+        <div><p className="text-xs text-muted">Culture</p><p className="text-sm font-medium">{campaign.crop_name ?? '—'}</p></div>
+        <div><p className="text-xs text-muted">Date de début</p><p className="text-sm font-medium">{formatDate(String(campaign.start_date))}</p></div>
+        <div><p className="text-xs text-muted">Récolte prévue</p><p className="text-sm font-medium">{campaign.expected_harvest_date ? formatDate(String(campaign.expected_harvest_date)) : '—'}</p></div>
+        <div><p className="text-xs text-muted">Budget</p><p className="text-sm font-medium">{formatCurrency(campaign.budget)}</p></div>
+        <div><p className="text-xs text-muted">Responsable</p><p className="text-sm font-medium">{campaign.responsible ?? '—'}</p></div>
+        <div><p className="text-xs text-muted">Statut</p><p className="text-sm font-medium">{campaign.status}</p></div>
       </div>
     </div>
   );
 
   const renderDetailFooter = (campaign: any) => (
     <>
-      <button onClick={() => setConfirmDelete(campaign)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-      <button onClick={() => openEdit(campaign)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+      <button onClick={() => setConfirmDelete(campaign)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+      <button onClick={() => openEdit(campaign)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
       {campaign.status !== 'completed' && (
         <>
           {campaign.status === 'planned' && (
-            <button onClick={() => { updateStatus(campaign, 'planted'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Marquer plantée</button>
+            <button onClick={() => { updateStatus(campaign, 'planted'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover">Marquer plantée</button>
           )}
           {campaign.status === 'planted' && (
-            <button onClick={() => { updateStatus(campaign, 'growing'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer en croissance</button>
+            <button onClick={() => { updateStatus(campaign, 'growing'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success">Marquer en croissance</button>
           )}
           {campaign.status === 'growing' && (
-            <button onClick={() => { updateStatus(campaign, 'harvested'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700">Marquer récoltée</button>
+            <button onClick={() => { updateStatus(campaign, 'harvested'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning">Marquer récoltée</button>
           )}
           {campaign.status === 'harvested' && (
-            <button onClick={() => { updateStatus(campaign, 'completed'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Marquer terminée</button>
+            <button onClick={() => { updateStatus(campaign, 'completed'); setDetailCampaign(null); }} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success">Marquer terminée</button>
           )}
         </>
       )}
@@ -238,34 +238,34 @@ export function CampaignManage() {
         title="Gestion des campagnes"
         subtitle="Planification et suivi des campagnes culturales"
         actions={
-          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
             <Plus size={18} /> Nouvelle campagne
           </button>
         }
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Budget total" value={formatCurrency(kpis.totalBudget)} icon={<Calendar size={20} />} color="blue" />
-        <KpiCard label="Campagnes actives" value={String(kpis.activeCampaigns)} icon={<Layers size={20} />} color="green" />
-        <KpiCard label="Campagnes terminées" value={String(kpis.completedCampaigns)} icon={<Wheat size={20} />} color="amber" />
-        <KpiCard label="Total campagnes" value={String(campaigns.length)} icon={<Calendar size={20} />} color="dark" />
+        <KpiCard label="Budget total" value={formatCurrency(kpis.totalBudget)} icon={<Calendar size={20} />} color="info" />
+        <KpiCard label="Campagnes actives" value={String(kpis.activeCampaigns)} icon={<Layers size={20} />} color="success" />
+        <KpiCard label="Campagnes terminées" value={String(kpis.completedCampaigns)} icon={<Wheat size={20} />} color="warning" />
+        <KpiCard label="Total campagnes" value={String(campaigns.length)} icon={<Calendar size={20} />} color="slate" />
       </div>
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
         <div className="flex-1 min-w-0">
-          <label className="block text-xs font-medium text-slate-600 mb-1">Rechercher des campagnes</label>
+          <label className="block text-xs font-medium text-secondary mb-1">Rechercher des campagnes</label>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
+            className="w-full px-3 py-2 border border-default rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
             placeholder="Rechercher par année, parcelle, culture, responsable ou statut..."
           />
         </div>
         <button
           type="button"
           onClick={() => setSearchTerm('')}
-          className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          className="px-3 py-2 text-sm text-secondary hover:bg-surface-hover"
         >
           Réinitialiser
         </button>
@@ -276,7 +276,7 @@ export function CampaignManage() {
           icon={<Calendar size={48} />}
           title={searchTerm ? "Aucun résultat" : "Aucune campagne"}
           message={searchTerm ? "Aucune campagne ne correspond à votre recherche" : "Aucune campagne enregistrée"}
-          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Créer une campagne</button>}
+          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium"><Plus size={16} /> Créer une campagne</button>}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -289,38 +289,38 @@ export function CampaignManage() {
                 <div className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-slate-900">{campaign.crop_name}</h3>
-                      <p className="text-xs text-slate-500">Année {campaign.year}</p>
+                      <h3 className="font-semibold text-primary">{campaign.crop_name}</h3>
+                      <p className="text-xs text-muted">Année {campaign.year}</p>
                     </div>
                     <SimpleBadge color={getStatusColor(campaign.status)}>{campaign.status}</SimpleBadge>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span className="text-slate-500">Parcelle</span><span className="font-medium">{campaign.plot?.name || '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Date de début</span><span className="font-medium">{formatDate(campaign.start_date)}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Récolte prévue</span><span className="font-medium">{formatDate(campaign.expected_harvest_date) || '—'}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Budget</span><span className="font-medium text-right">{formatCurrency(campaign.budget)}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Responsable</span><span className="font-medium">{campaign.responsible || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Parcelle</span><span className="font-medium">{campaign.plot?.name || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Date de début</span><span className="font-medium">{formatDate(campaign.start_date)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Récolte prévue</span><span className="font-medium">{formatDate(campaign.expected_harvest_date) || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Budget</span><span className="font-medium text-right">{formatCurrency(campaign.budget)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted">Responsable</span><span className="font-medium">{campaign.responsible || '—'}</span></div>
                   </div>
                 </div>
               }
               back={
                 <div className="p-4 space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center justify-between pb-2 border-b border-default">
                     <div>
-                      <h3 className="font-semibold text-slate-900">{campaign.crop_name}</h3>
-                      <p className="text-xs text-slate-500">Année {campaign.year}</p>
+                      <h3 className="font-semibold text-primary">{campaign.crop_name}</h3>
+                      <p className="text-xs text-muted">Année {campaign.year}</p>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <button
                       onClick={() => openEdit(campaign)}
-                      className="w-full text-left px-3 py-2 text-xs text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100/50"
+                      className="w-full text-left px-3 py-2 text-xs text-info hover:bg-info-soft rounded-lg border border-default/50"
                     >
                       Modifier
                     </button>
                     <button
                       onClick={() => setConfirmDelete(campaign)}
-                      className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-100/50"
+                      className="w-full text-left px-3 py-2 text-xs text-danger hover:bg-danger-soft rounded-lg border border-danger-soft/50"
                     >
                       Supprimer
                     </button>

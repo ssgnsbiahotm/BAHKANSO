@@ -287,21 +287,34 @@ export function SalesModule() {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <p className="text-xs text-slate-500 font-medium mb-1">{sale.reference || `VTE-${new Date(sale.date).getFullYear()}-${sale.id.slice(-5)}`}</p>
-            <p className="text-2xl font-bold text-slate-900 mb-2">{formatCurrency(sale.total_amount || 0)}</p>
-            <p className="text-sm text-slate-600">{sale.customer?.name || 'Client inconnu'} {sale.customer?.type ? `(${sale.customer.type})` : ''}</p>
+            <p className="text-xs text-muted font-medium mb-1">{sale.reference || `VTE-${new Date(sale.date).getFullYear()}-${sale.id.slice(-5)}`}</p>
+            <p className="text-2xl font-bold text-primary mb-2">{formatCurrency(sale.total_amount || 0 || 0)}</p>
+            <p className="text-sm text-secondary">{sale.customer?.name || 'Client inconnu'} {sale.customer?.type ? `(${sale.customer.type})` : ''}</p>
           </div>
           <span className={`module-badge module-badge-${getBadgeColor(sale.status || 'en_attente')}`}>
-            {statusLabel(sale.status || 'en_attente')}
+            {statusLabel(sale.status || 'en_attente') || 'Non spécifié'}
           </span>
         </div>
         <div className="space-y-1 text-sm">
-          <p className="flex items-center gap-1"><MapPin size={12} className="text-slate-400" /> <span className="text-slate-500">Date :</span> <span className="font-medium">{formatDate(sale.date)}</span></p>
-          <p className="flex items-center gap-1"><MapPin size={12} className="text-slate-400" /> <span className="text-slate-500">Site :</span> <span className="font-medium">{sale.site?.name || '—'}</span></p>
+          <p className="flex items-center gap-1"><MapPin size={12} className="text-muted" /> <span className="text-muted">Date :</span> <span className="font-medium">{formatDate(sale.date)}</span></p>
+          <p className="flex items-center gap-1"><MapPin size={12} className="text-muted" /> <span className="text-muted">Site :</span> <span className="font-medium">{sale.site?.name || '—'}</span></p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200">
-        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      <div className="mt-4 pt-3 border-t border-default">
+        <button
+          onClick={() => setEditSale(sale)}
+          className="flex items-center gap-1 text-sm text-secondary hover:text-success transition-colors"
+          title="Modifier la vente"
+        >
+          <Pencil size={14} /> Modifier
+        </button>
+        <button
+          onClick={() => handleDelete(sale)}
+          className="flex items-center gap-1 text-sm text-secondary hover:text-danger transition-colors"
+          title="Supprimer la vente"
+        >
+          <Trash2 size={14} /> Supprimer
+        </button>
       </div>
     </div>
   );
@@ -309,30 +322,30 @@ export function SalesModule() {
   const renderSaleBack = (sale: SaleWithRelations) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">Détails de la vente</h3>
-        <p><span className="text-slate-500">Référence :</span> {sale.reference || '—'}</p>
-        <p><span className="text-slate-500">Date :</span> {formatDate(sale.date)}</p>
-        <p><span className="text-slate-500">Client :</span> {sale.customer?.name || '—'}</p>
-        <p><span className="text-slate-500">Site :</span> {sale.site?.name || '—'}</p>
-        <p><span className="text-slate-500">Paiement :</span> {paymentMethodLabels[sale.payment_method || 'espèces']}</p>
-        <p><span className="text-slate-500">Statut :</span> {statusLabel(sale.status || 'en_attente')}</p>
-        <p><span className="text-slate-500">Montant :</span> {formatCurrency(sale.total_amount || 0)}</p>
+        <h3 className="font-semibold text-primary mb-3">Détails de la vente</h3>
+        <p><span className="text-muted">Référence :</span> {sale.reference || '—'}</p>
+        <p><span className="text-muted">Date :</span> {formatDate(sale.date)}</p>
+        <p><span className="text-muted">Client :</span> {sale.customer?.name || '—'}</p>
+        <p><span className="text-muted">Site :</span> {sale.site?.name || '—'}</p>
+        <p><span className="text-muted">Paiement :</span> {paymentMethodLabels[sale.payment_method || 'espèces'] || 'Non spécifié'}</p>
+        <p><span className="text-muted">Statut :</span> {statusLabel(sale.status || 'en_attente') || 'Non spécifié'}</p>
+        <p><span className="text-muted">Montant :</span> {formatCurrency(sale.total_amount || 0 || 0)}</p>
         {(sale.items && sale.items.length > 0) && (
-          <div className="mt-2 pt-2 border-t border-slate-200 space-y-1">
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Articles</p>
+          <div className="mt-2 pt-2 border-t border-default space-y-1">
+            <p className="text-xs font-medium text-muted uppercase tracking-wider">Articles</p>
             {sale.items.map((item, idx) => (
-              <p key={idx} className="text-xs text-slate-600">
+              <p key={idx} className="text-xs text-secondary">
                 {item.description} — {item.quantity} {item.unit} × {formatCurrency(item.unit_price)} = {formatCurrency(item.total)}
               </p>
             ))}
           </div>
         )}
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-auto pt-3 border-t border-default space-y-2">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); openDetail(sale); }}
-          className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full bg-info-soft hover:bg-info-soft text-info border border-default px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Détails
         </button>
@@ -340,14 +353,14 @@ export function SalesModule() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); openEdit(sale); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleDelete(sale); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -360,57 +373,57 @@ export function SalesModule() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Référence</p>
-          <p className="font-mono text-slate-900">{sale.reference || '—'}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Référence</p>
+          <p className="font-mono text-primary">{sale.reference || '—'}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Date</p>
-          <p className="text-slate-900">{formatDate(sale.date)}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Date</p>
+          <p className="text-primary">{formatDate(sale.date)}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Client</p>
-          <p className="text-slate-900">{sale.customer?.name || '—'}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Client</p>
+          <p className="text-primary">{sale.customer?.name || '—'}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Type client</p>
-          <p className="text-slate-900 capitalize">{sale.customer?.type || '—'}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Type client</p>
+          <p className="text-primary capitalize">{sale.customer?.type || '—'}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Site</p>
-          <p className="text-slate-900">{sale.site?.name || '—'}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Site</p>
+          <p className="text-primary">{sale.site?.name || '—'}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Paiement</p>
-          <p className="text-slate-900 capitalize">{paymentMethodLabels[sale.payment_method || 'espèces']}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Paiement</p>
+          <p className="text-primary capitalize">{paymentMethodLabels[sale.payment_method || 'espèces'] || 'Non spécifié'}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Statut</p>
-          <p className={`text-slate-900 font-medium ${sale.status === 'payée' ? 'text-green-600' : sale.status === 'annulée' ? 'text-red-600' : 'text-amber-600'}`}>
-            {statusLabel(sale.status || 'en_attente')}
+          <p className="text-xs uppercase tracking-wider text-muted">Statut</p>
+          <p className={`text-primary font-medium ${sale.status === 'payée' ? 'text-success' : sale.status === 'annulée' ? 'text-danger' : 'text-warning'}`}>
+            {statusLabel(sale.status || 'en_attente') || 'Non spécifié'}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Montant total</p>
-          <p className="text-slate-900 font-bold">{formatCurrency(sale.total_amount)}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Montant total</p>
+          <p className="text-primary font-bold">{formatCurrency(sale.total_amount)}</p>
         </div>
       </div>
       <div>
-        <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">Articles</p>
+        <p className="text-xs uppercase tracking-wider text-muted mb-2">Articles</p>
         <div className="space-y-2">
           {sale.items && sale.items.length > 0 ? (
             sale.items.map((item, i) => (
-              <div key={item.id || i} className="p-3 bg-white rounded-lg border border-slate-100">
+              <div key={item.id || i} className="p-3 bg-surface rounded-lg border border-default">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{item.description || 'Article'}</p>
-                    <p className="text-xs text-slate-500">{item.quantity} {item.unit} × {formatCurrency(item.unit_price)}</p>
+                    <p className="font-medium text-primary truncate">{item.description || 'Article'}</p>
+                    <p className="text-xs text-muted">{item.quantity} {item.unit} × {formatCurrency(item.unit_price)}</p>
                   </div>
-                  <p className="font-semibold text-slate-900 ml-4 whitespace-nowrap">{formatCurrency(item.total)}</p>
+                  <p className="font-semibold text-primary ml-4 whitespace-nowrap">{formatCurrency(item.total)}</p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-sm text-slate-500 text-center py-4">Aucun article</p>
+            <p className="text-sm text-muted text-center py-4">Aucun article</p>
           )}
         </div>
       </div>
@@ -445,44 +458,44 @@ export function SalesModule() {
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
-                        <h3 className="font-semibold text-slate-900">{client.name}</h3>
-                        <p className="text-sm text-slate-500 capitalize">{client.type || 'particulier'}</p>
+                        <h3 className="font-semibold text-primary">{client.name}</h3>
+                        <p className="text-sm text-muted capitalize">{client.type || 'particulier'}</p>
                       </div>
                       <span className="module-badge module-badge-blue">Client</span>
                     </div>
                     <div className="space-y-1 text-sm">
-                      <p><span className="text-slate-500">Achats :</span> <span className="font-medium">{clientSalesCount}</span></p>
-                      <p><span className="text-slate-500">CA total :</span> <span className="font-medium">{formatCurrency(clientRevenue)}</span></p>
-                      <p><span className="text-slate-500">Dernier achat :</span> <span className="font-medium">{lastSale ? formatDate(lastSale.date) : '—'}</span></p>
+                      <p><span className="text-muted">Achats :</span> <span className="font-medium">{clientSalesCount}</span></p>
+                      <p><span className="text-muted">CA total :</span> <span className="font-medium">{formatCurrency(clientRevenue)}</span></p>
+                      <p><span className="text-muted">Dernier achat :</span> <span className="font-medium">{lastSale ? formatDate(lastSale.date) : '—'}</span></p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-emerald-200">
-                    <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+                  <div className="mt-4 pt-3 border-t border-default">
+                    <p className="text-sm text-success font-medium">Voir les détails →</p>
                   </div>
                 </div>
               }
               back={
                 <div className="h-full flex flex-col justify-between">
                   <div className="space-y-2 text-sm">
-                    <h3 className="font-semibold text-slate-900 mb-3">{client.name}</h3>
-                    <p><span className="text-slate-500">Type :</span> <span className="capitalize">{client.type || 'particulier'}</span></p>
-                    <p><span className="text-slate-500">Téléphone :</span> {client.phone || '—'}</p>
-                    <p><span className="text-slate-500">Email :</span> {client.email || '—'}</p>
-                    <p><span className="text-slate-500">Nombre d'achats :</span> {clientSalesCount}</p>
-                    <p><span className="text-slate-500">CA total :</span> {formatCurrency(clientRevenue)}</p>
+                    <h3 className="font-semibold text-primary mb-3">{client.name}</h3>
+                    <p><span className="text-muted">Type :</span> <span className="capitalize">{client.type || 'particulier'}</span></p>
+                    <p><span className="text-muted">Téléphone :</span> {client.phone || '—'}</p>
+                    <p><span className="text-muted">Email :</span> {client.email || '—'}</p>
+                    <p><span className="text-muted">Nombre d'achats :</span> {clientSalesCount}</p>
+                    <p><span className="text-muted">CA total :</span> {formatCurrency(clientRevenue)}</p>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+                  <div className="mt-4 pt-3 border-t border-default space-y-2">
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); navigate(`/app/finance?client=${client.id}`); }}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                      className="w-full bg-success hover:bg-success text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
                     >
                       <Eye size={16} /> Voir historique
                     </button>
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); openCreate(); }}
-                      className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+                      className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
                     >
                       <Plus size={14} /> Nouvelle vente
                     </button>
@@ -531,35 +544,35 @@ export function SalesModule() {
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <h3 className="font-semibold text-slate-900">{monthData.month}</h3>
-                      <p className="text-sm text-slate-500">Mois complet</p>
+                      <h3 className="font-semibold text-primary">{monthData.month}</h3>
+                      <p className="text-sm text-muted">Mois complet</p>
                     </div>
                     <span className="module-badge module-badge-green">Mensuel</span>
                   </div>
                   <div className="space-y-1 text-sm">
-                    <p><span className="text-slate-500">CA :</span> <span className="font-medium">{formatCurrency(monthData.revenue)}</span></p>
-                    <p><span className="text-slate-500">Nb ventes :</span> <span className="font-medium">{monthData.count}</span></p>
-                    <p><span className="text-slate-500">Panier moyen :</span> <span className="font-medium">{formatCurrency(monthData.count > 0 ? monthData.revenue / monthData.count : 0)}</span></p>
+                    <p><span className="text-muted">CA :</span> <span className="font-medium">{formatCurrency(monthData.revenue)}</span></p>
+                    <p><span className="text-muted">Nb ventes :</span> <span className="font-medium">{monthData.count}</span></p>
+                    <p><span className="text-muted">Panier moyen :</span> <span className="font-medium">{formatCurrency(monthData.count > 0 ? monthData.revenue / monthData.count : 0)}</span></p>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-emerald-200">
-                  <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+                <div className="mt-4 pt-3 border-t border-default">
+                  <p className="text-sm text-success font-medium">Voir les détails →</p>
                 </div>
               </div>
             }
             back={
               <div className="h-full flex flex-col justify-between">
                 <div className="space-y-2 text-sm">
-                  <h3 className="font-semibold text-slate-900 mb-3">{monthData.month}</h3>
-                  <p><span className="text-slate-500">Chiffre d'affaires :</span> {formatCurrency(monthData.revenue)}</p>
-                  <p><span className="text-slate-500">Nombre de ventes :</span> {monthData.count}</p>
-                  <p><span className="text-slate-500">Panier moyen :</span> {formatCurrency(monthData.count > 0 ? monthData.revenue / monthData.count : 0)}</p>
+                  <h3 className="font-semibold text-primary mb-3">{monthData.month}</h3>
+                  <p><span className="text-muted">Chiffre d'affaires :</span> {formatCurrency(monthData.revenue)}</p>
+                  <p><span className="text-muted">Nombre de ventes :</span> {monthData.count}</p>
+                  <p><span className="text-muted">Panier moyen :</span> {formatCurrency(monthData.count > 0 ? monthData.revenue / monthData.count : 0)}</p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-emerald-200">
+                <div className="mt-4 pt-3 border-t border-default">
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); navigate(`/app/finance?period=${monthData.month}`); }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                    className="w-full bg-success hover:bg-success text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
                   >
                     <Eye size={16} /> Voir les ventes du mois
                   </button>
@@ -691,7 +704,7 @@ export function SalesModule() {
           </div>
         )}
 
-        {activeTab === 'ventes' && filteredSales.length > 0 && (
+        {activeTab === 'ventes' && !loading && filteredSales.length > 0 && (
           <div className="module-cards-grid">
             {filteredSales.map((sale, index) => (
               <RotatingCard
@@ -828,7 +841,7 @@ export function SalesModule() {
                     <button
                       type="button"
                       onClick={() => setForm('items', formItems.filter((_, i) => i !== idx))}
-                      className="w-full h-10 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 flex items-center justify-center"
+                      className="w-full h-10 bg-danger-soft text-danger border border-default rounded-lg hover:bg-danger-soft flex items-center justify-center"
                       disabled={formItems.length <= 1}
                     >
                       <Trash2 size={16} />

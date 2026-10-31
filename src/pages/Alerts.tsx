@@ -47,36 +47,36 @@ export function Alerts() {
       <PageHeader title="Alertes" subtitle="Centre de gestion des alertes et anomalies" />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Alertes ouvertes" value={String(kpis.open)} icon={<Bell size={20} />} color="amber" />
-        <KpiCard label="Haute priorité" value={String(kpis.high)} icon={<AlertTriangle size={20} />} color="red" />
-        <KpiCard label="Priorité moyenne" value={String(kpis.medium)} icon={<Bell size={20} />} color="amber" />
-        <KpiCard label="Résolues" value={String(kpis.resolved)} icon={<CheckCircle size={20} />} color="green" />
+        <KpiCard label="Alertes ouvertes" value={String(kpis.open)} icon={<Bell size={20} />} color="warning" />
+        <KpiCard label="Haute priorité" value={String(kpis.high)} icon={<AlertTriangle size={20} />} color="danger" />
+        <KpiCard label="Priorité moyenne" value={String(kpis.medium)} icon={<Bell size={20} />} color="warning" />
+        <KpiCard label="Résolues" value={String(kpis.resolved)} icon={<CheckCircle size={20} />} color="success" />
       </div>
 
       <div className="space-y-3">
         {alerts.map(a => (
-          <div key={a.id} className={`bg-white rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-slate-200' : 'border-slate-100 opacity-60'}`}>
+          <div key={a.id} className={`bg-surface rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-default' : 'border-default opacity-60'}`}>
             <div className="flex items-start gap-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                a.severity === 'high' ? 'bg-red-100 text-red-600' : a.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                a.severity === 'high' ? 'bg-danger-soft text-danger' : a.severity === 'medium' ? 'bg-warning-soft text-warning' : 'bg-info-soft text-info'
               }`}>
                 {categoryIcons[a.category] || <Bell size={18} />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-slate-900">{a.title}</h3>
-                  <SimpleBadge color={a.severity === 'high' ? 'red' : a.severity === 'medium' ? 'amber' : 'blue'}>{a.severity}</SimpleBadge>
+                  <h3 className="font-semibold text-primary">{a.title}</h3>
+                  <SimpleBadge color={a.severity === 'high' ? 'danger' : a.severity === 'medium' ? 'warning' : 'info'}>{a.severity}</SimpleBadge>
                   <SimpleBadge color="gray">{a.category}</SimpleBadge>
-                  {a.status === 'résolue' && <SimpleBadge color="green">Résolue</SimpleBadge>}
+                  {a.status === 'résolue' && <SimpleBadge color="success">Résolue</SimpleBadge>}
                 </div>
-                <p className="text-sm text-slate-500">{a.description}</p>
-                <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                <p className="text-sm text-muted">{a.description}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-muted">
                   <span>{timeAgo(a.created_at)}</span>
                   {a.assigned_to && <span>· Assignée à {a.assigned_to}</span>}
                 </div>
               </div>
               {a.status === 'ouverte' && (
-                <button onClick={() => resolveAlert(a)} className="flex items-center gap-1 px-3 py-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200">
+                <button onClick={() => resolveAlert(a)} className="flex items-center gap-1 px-3 py-1.5 text-xs text-success bg-success-soft hover:bg-success-soft rounded-lg border border-default">
                   <CheckCircle size={14} /> Résoudre
                 </button>
               )}

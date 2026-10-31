@@ -31,11 +31,11 @@ export function FormSection({
         }}
       >
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wider">{title}</h3>
-          {description && <span className="text-xs text-slate-400">({description})</span>}
+          <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">{title}</h3>
+          {description && <span className="text-xs text-muted">({description})</span>}
         </div>
         <svg
-          className="w-4 h-4 text-slate-400 transition-transform duration-200 group-open:rotate-180"
+          className="w-4 h-4 text-muted transition-transform duration-200 group-open:rotate-180"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -44,7 +44,7 @@ export function FormSection({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </summary>
-      <div className="space-y-4 pt-2 border-t border-slate-100 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+      <div className="space-y-4 pt-2 border-t border-default animate-in fade-in-0 slide-in-from-top-2 duration-200">
         {children}
       </div>
     </details>

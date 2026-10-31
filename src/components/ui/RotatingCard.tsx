@@ -76,50 +76,46 @@ export function RotatingCard({
       role="region"
       aria-label={`${label} — ${flipped ? 'verso' : 'recto'}`}
       aria-expanded={flipped}
-      className={`rc ${flipped ? 'is-flipped' : ''} ${className ?? ''}`}
-      onKeyDown={handleKey}
+      className={`rc-container ${flipped ? 'is-flipped' : ''} ${className ?? ''}`}
       onClick={toggle}
+      onKeyDown={handleKey}
     >
       <div id={cardId} className="rc-inner">
         {/* Front */}
-        <div
-          className="rc-face rc-face--front"
-          data-rc-face="front"
-          aria-hidden={flipped}
-        >
-          {front}
-          <button
-            ref={frontButtonRef}
-            type="button"
-            data-rc-flip
-            aria-label={flipLabel}
-            aria-controls={cardId}
-            tabIndex={flipped ? -1 : 0}
-            onClick={handleFlipBtnClick}
-            className="rc-flip-btn rc-flip-btn--front"
-          >
-            <RotateCw size={12} /> <span>{flipLabel}</span>
-          </button>
+        <div className="rc-face rc-face--front" data-rc-face="front" aria-hidden={flipped}>
+          <div className="rc-content">{front}</div>
+          <div className="rc-footer">
+            <button
+              ref={frontButtonRef}
+              type="button"
+              data-rc-flip
+              aria-label={flipLabel}
+              aria-controls={cardId}
+              tabIndex={flipped ? -1 : 0}
+              onClick={handleFlipBtnClick}
+              disabled={disabled}
+            >
+              <RotateCw size={12} /> <span>{flipLabel}</span>
+            </button>
+          </div>
         </div>
         {/* Back */}
-        <div
-          className="rc-face rc-face--back"
-          data-rc-face="back"
-          aria-hidden={!flipped}
-        >
-          {back}
-          <button
-            ref={backButtonRef}
-            type="button"
-            data-rc-flip
-            aria-label={backLabel}
-            aria-controls={cardId}
-            tabIndex={flipped ? 0 : -1}
-            onClick={handleFlipBtnClick}
-            className="rc-flip-btn rc-flip-btn--back"
-          >
-            <RotateCcw size={12} /> <span>{backLabel}</span>
-          </button>
+        <div className="rc-face rc-face--back" data-rc-face="back" aria-hidden={!flipped}>
+          <div className="rc-content">{back}</div>
+          <div className="rc-footer">
+            <button
+              ref={backButtonRef}
+              type="button"
+              data-rc-flip
+              aria-label={backLabel}
+              aria-controls={cardId}
+              tabIndex={flipped ? 0 : -1}
+              onClick={handleFlipBtnClick}
+              disabled={disabled}
+            >
+              <RotateCcw size={12} /> <span>{backLabel}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

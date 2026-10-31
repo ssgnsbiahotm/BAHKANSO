@@ -170,34 +170,6 @@
   --z-toast: 800;
 }
 
-/* ── Dark Theme ── */
-.theme-dark,
-[data-theme="dark"] {
-  --bg-page: var(--color-night);
-  --bg-surface: var(--color-slate);
-  --bg-surface-hover: var(--color-slate-hover);
-  --bg-surface-raised: var(--color-slate-raised);
-  --bg-input: var(--color-slate-raised);
-  --text-primary: var(--color-ivory);
-  --text-secondary: #B8B0A4;
-  --text-muted: var(--color-ink-dim);
-  --text-on-accent: var(--color-night);
-  --border-subtle: rgba(185, 216, 107, 0.09);
-  --border-default: rgba(185, 216, 107, 0.22);
-  --border-focus: var(--color-signal);
-  --accent-primary: var(--color-signal);
-  --accent-primary-hover: var(--color-signal-strong);
-  --accent-soft: rgba(185, 216, 107, 0.16);
-  --success: var(--color-signal);
-  --success-soft: rgba(185, 216, 107, 0.18);
-  --warning: var(--color-terra-text);
-  --warning-soft: var(--color-terra-soft);
-  --danger: #F28B82;
-  --danger-soft: rgba(242, 139, 130, 0.18);
-  --info: #8FD3F4;
-  --info-soft: rgba(143, 211, 244, 0.18);
-}
-
 /* Respect reduced motion globally */
 @media (prefers-reduced-motion: reduce) {
   :root {

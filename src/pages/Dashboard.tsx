@@ -12,6 +12,7 @@ import {
 import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
 import '@/styles/components.css';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 const COLORS = {
   grass: 'var(--accent-primary)',
@@ -353,7 +354,7 @@ export function Dashboard() {
       {/* ========== HERO PANORAMIQUE ========== */}
       {heroImageUrl ? (
         <div className="hero-panorama" role="img" aria-label="Vue panoramique de l'exploitation agricole">
-          <img src={heroImageUrl} alt="" loading="eager" decoding="async" />
+          <OptimizedImage src={heroImageUrl} alt="" className="w-full h-full object-cover" />
           <div className="hero-overlay" />
           <div className="hero-content">
             <h2 className="hero-title">{typeof siteContent['farm-name']?.value === 'string' ? siteContent['farm-name']!.value : 'Exploitation BAHKANSO'}</h2>

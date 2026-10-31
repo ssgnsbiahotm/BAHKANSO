@@ -30,17 +30,17 @@ export function ConfirmDeleteModal<T>({
       size={size}
       footer={
         <>
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">
             Annuler
           </button>
-          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">
+          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger">
             Supprimer
           </button>
         </>
       }
     >
       {description || (
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-secondary">
           Voulez-vous vraiment supprimer « {getEntityName(entity)} » ? Cette action est irréversible.
         </p>
       )}

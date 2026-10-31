@@ -27,7 +27,7 @@ interface LogoProps {
   imageUrl?: string | null;
 }
 
-export function Logo({ icon = 'Sprout', color = '#FFFFFF', bgColor = '#16A34A', size = 40, className = '', imageUrl }: LogoProps) {
+export function Logo({ icon = 'Sprout', color = 'var(--text-primary)', bgColor = 'var(--accent-primary)', size = 40, className = '', imageUrl }: LogoProps) {
   const [useFallback, setUseFallback] = useState(false);
 
   if (imageUrl && !useFallback) {

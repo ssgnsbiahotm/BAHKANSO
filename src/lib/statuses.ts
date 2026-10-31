@@ -85,24 +85,24 @@ export const STATUS_LABELS: Record<string, string> = {
 // Couleurs de badge par statut (Tailwind)
 // ============================================
 export const STATUS_COLORS: Record<string, string> = {
-  actif: 'bg-green-100 text-green-700',
-  inactif: 'bg-gray-100 text-gray-700',
-  repos: 'bg-amber-100 text-amber-700',
-  planifié: 'bg-blue-100 text-blue-700',
-  'en cours': 'bg-emerald-100 text-emerald-700',
-  terminé: 'bg-green-100 text-green-700',
-  récolté: 'bg-teal-100 text-teal-700',
-  brouillon: 'bg-slate-100 text-slate-700',
-  'en attente': 'bg-amber-100 text-amber-700',
-  validée: 'bg-green-100 text-green-700',
-  payée: 'bg-green-100 text-green-700',
-  rejetée: 'bg-red-100 text-red-700',
-  annulée: 'bg-gray-100 text-gray-700',
-  vendu: 'bg-blue-100 text-blue-700',
-  mort: 'bg-red-100 text-red-700',
-  malade: 'bg-orange-100 text-orange-700',
-  'en retard': 'bg-red-100 text-red-700',
-  suspendu: 'bg-orange-100 text-orange-700',
+  actif: 'bg-success-soft text-success',
+  inactif: 'bg-surface-hover text-secondary',
+  repos: 'bg-warning-soft text-warning',
+  planifié: 'bg-info-soft text-info',
+  'en cours': 'bg-success-soft text-success',
+  terminé: 'bg-success-soft text-success',
+  récolté: 'bg-info-soft text-info',
+  brouillon: 'bg-surface-hover text-secondary',
+  'en attente': 'bg-warning-soft text-warning',
+  validée: 'bg-success-soft text-success',
+  payée: 'bg-success-soft text-success',
+  rejetée: 'bg-danger-soft text-danger',
+  annulée: 'bg-surface-hover text-secondary',
+  vendu: 'bg-info-soft text-info',
+  mort: 'bg-danger-soft text-danger',
+  malade: 'bg-warning-soft text-warning',
+  'en retard': 'bg-danger-soft text-danger',
+  suspendu: 'bg-warning-soft text-warning',
 };
 
 // ============================================
@@ -117,6 +117,6 @@ export function getStatusLabel(status: string | null | undefined): string {
 // Helper : obtenir la classe CSS d'un statut
 // ============================================
 export function getStatusColor(status: string | null | undefined): string {
-  if (!status) return 'bg-gray-100 text-gray-700';
-  return STATUS_COLORS[status] || 'bg-gray-100 text-gray-700';
+  if (!status) return 'bg-surface-hover text-secondary';
+  return STATUS_COLORS[status] || 'bg-surface-hover text-secondary';
 }

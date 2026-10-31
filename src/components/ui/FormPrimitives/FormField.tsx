@@ -29,10 +29,10 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
 
     return (
       <div ref={ref} className={`flex flex-col gap-1.5 ${className || ''}`}>
-        <label htmlFor={inputId} className="text-xs font-medium text-slate-700 flex items-center gap-1">
+        <label htmlFor={inputId} className="text-xs font-medium text-secondary flex items-center gap-1">
           {label}
-          {required && <span className="text-red-500" aria-hidden="true">*</span>}
-          {hint && <span className="text-slate-400 ml-auto">{hint}</span>}
+          {required && <span className="text-danger" aria-hidden="true">*</span>}
+          {hint && <span className="text-muted ml-auto">{hint}</span>}
         </label>
         {child
           ? cloneElement(child, {
@@ -41,7 +41,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
               'aria-describedby': describedBy,
             })
           : children}
-        {error && <p id={`${inputId}-error`} className="text-xs text-red-500" role="alert">{error}</p>}
+        {error && <p id={`${inputId}-error`} className="text-xs text-danger" role="alert">{error}</p>}
       </div>
     );
   }
@@ -57,8 +57,8 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
   ({ error, className = '', ...props }, ref) => (
     <input
       ref={ref}
-      className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors ${
-        error ? 'border-red-500' : 'border-slate-300'
+      className={`w-full px-3 py-2 bg-surface border rounded-lg text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors ${
+        error ? 'border-danger' : 'border-default'
       } ${className}`}
       aria-invalid={error ? 'true' : 'false'}
       aria-describedby={error ? `${props.id}-error` : undefined}
@@ -77,8 +77,8 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
   ({ error, className = '', ...props }, ref) => (
     <select
       ref={ref}
-      className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors ${
-        error ? 'border-red-500' : 'border-slate-300'
+      className={`w-full px-3 py-2 bg-surface border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors ${
+        error ? 'border-danger' : 'border-default'
       } ${className}`}
       aria-invalid={error ? 'true' : 'false'}
       {...props}
@@ -96,8 +96,8 @@ export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
   ({ error, className = '', ...props }, ref) => (
     <textarea
       ref={ref}
-      className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors resize-y ${
-        error ? 'border-red-500' : 'border-slate-300'
+      className={`w-full px-3 py-2 bg-surface border rounded-lg text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors resize-y ${
+        error ? 'border-danger' : 'border-default'
       } ${className}`}
       aria-invalid={error ? 'true' : 'false'}
       {...props}

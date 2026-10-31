@@ -195,7 +195,7 @@ export function HarvestManage() {
             setEditHarvest(null);
             setModalOpen(true);
           }}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+          className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success flex items-center gap-2"
         >
           <Plus size={18} /> Nouvelle récolte
         </button>
@@ -214,7 +214,7 @@ export function HarvestManage() {
                     setEditHarvest(null);
                     setModalOpen(true);
                   }}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                  className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success flex items-center gap-2"
                 >
                   <Plus size={18} /> Enregistrer ma première récolte
                 </button>
@@ -228,45 +228,45 @@ export function HarvestManage() {
               flipLabel="Actions"
               backLabel="Retour"
               front={
-                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm h-full">
+                <div className="bg-surface rounded-xl border border-default p-4 shadow-sm h-full">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-slate-900">Récolte {formatDate(h.date)}</h3>
-                      <p className="text-sm text-slate-500">{formatDate(h.date)}</p>
+                      <h3 className="font-semibold text-primary">Récolte {formatDate(h.date)}</h3>
+                      <p className="text-sm text-muted">{formatDate(h.date)}</p>
                     </div>
                     <SimpleBadge color="green">{h.unit}</SimpleBadge>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <div className="text-xs text-slate-500 mb-1">Quantité</div>
+                    <div className="bg-surface-hover p-2 rounded-lg">
+                      <div className="text-xs text-muted mb-1">Quantité</div>
                       <div className="font-medium">{h.quantity}</div>
                     </div>
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <div className="text-xs text-slate-500 mb-1">Prix estimé</div>
+                    <div className="bg-surface-hover p-2 rounded-lg">
+                      <div className="text-xs text-muted mb-1">Prix estimé</div>
                       <div className="font-medium">{formatCurrency(h.estimated_price)}</div>
                     </div>
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <div className="text-xs text-slate-500 mb-1">CA</div>
+                    <div className="bg-surface-hover p-2 rounded-lg">
+                      <div className="text-xs text-muted mb-1">CA</div>
                       <div className="font-medium">{formatCurrency(h.revenue)}</div>
                     </div>
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <div className="text-xs text-slate-500 mb-1">Qualité</div>
+                    <div className="bg-surface-hover p-2 rounded-lg">
+                      <div className="text-xs text-muted mb-1">Qualité</div>
                       <div className="font-medium">{h.quality || '—'}</div>
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-2 rounded-lg">
-                    <div className="text-xs text-slate-500 mb-1">Destination</div>
+                  <div className="bg-surface-hover p-2 rounded-lg">
+                    <div className="text-xs text-muted mb-1">Destination</div>
                     <div className="text-sm">{h.destination || '—'}</div>
                   </div>
                 </div>
               }
               back={
-                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm h-full flex flex-col justify-center">
-                  <h3 className="font-semibold text-slate-900 mb-4 text-center">Actions</h3>
+                <div className="bg-surface rounded-xl border border-default p-4 shadow-sm h-full flex flex-col justify-center">
+                  <h3 className="font-semibold text-primary mb-4 text-center">Actions</h3>
                   <div className="space-y-2">
                     <button
                       onClick={() => setDetailHarvest(h)}
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                      className="w-full px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium"
                     >
                       Voir détails
                     </button>
@@ -411,7 +411,7 @@ export function HarvestManage() {
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success disabled:opacity-50"
             >
               {saving ? 'Enregistrement...' : editHarvest ? 'Modifier' : 'Créer'}
             </button>
@@ -429,39 +429,39 @@ export function HarvestManage() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-slate-500">Quantité</p>
+              <p className="text-xs text-muted">Quantité</p>
               <p className="text-lg font-semibold">{detailHarvest?.quantity}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Unité</p>
+              <p className="text-xs text-muted">Unité</p>
               <p className="text-lg font-semibold">{detailHarvest?.unit}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Qualité</p>
+              <p className="text-xs text-muted">Qualité</p>
               <p className="text-lg font-semibold">{detailHarvest?.quality || '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Prix estimé</p>
+              <p className="text-xs text-muted">Prix estimé</p>
               <p className="text-lg font-semibold">{formatCurrency(detailHarvest?.estimated_price)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Chiffre d'affaires</p>
+              <p className="text-xs text-muted">Chiffre d'affaires</p>
               <p className="text-lg font-semibold">{formatCurrency(detailHarvest?.revenue)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Destination</p>
+              <p className="text-xs text-muted">Destination</p>
               <p className="text-lg font-semibold">{detailHarvest?.destination || '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Date</p>
+              <p className="text-xs text-muted">Date</p>
               <p className="text-lg font-semibold">{formatDate(detailHarvest?.date)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Campagne</p>
+              <p className="text-xs text-muted">Campagne</p>
               <p className="text-lg font-semibold">{getCampaignName(detailHarvest?.campaign_id ?? null)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Parcelle</p>
+              <p className="text-xs text-muted">Parcelle</p>
               <p className="text-lg font-semibold">{getPlotName(detailHarvest?.plot_id ?? null)}</p>
             </div>
           </div>

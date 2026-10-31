@@ -18,12 +18,12 @@ export function FormActions({
   className = '',
 }: FormActionsProps) {
   return (
-    <div className={`flex items-center justify-end gap-3 pt-4 border-t border-slate-200 ${className}`}>
+    <div className={`flex items-center justify-end gap-3 pt-4 border-t border-default ${className}`}>
       <button
         type="button"
         onClick={onCancel}
         disabled={isSubmitting}
-        className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+        className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
       >
         {cancelLabel}
       </button>
@@ -41,7 +41,7 @@ export function FormActions({
           }
         }}
         disabled={isSubmitting}
-        className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+        className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success transition-colors disabled:opacity-50 flex items-center gap-2"
       >
         {isSubmitting ? (
           <>

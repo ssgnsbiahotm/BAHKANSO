@@ -29,7 +29,7 @@ interface FormSimplifieProps<T extends object> {
 function FormGroup({ title, children }: FormGroupProps) {
   return (
     <section className="mb-6">
-      <h3 className="font-editorial text-lg text-ink mb-3">{title}</h3>
+      <h3 className="font-editorial text-lg text-primary mb-3">{title}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{children}</div>
     </section>
   );
@@ -37,12 +37,12 @@ function FormGroup({ title, children }: FormGroupProps) {
 
 function FormActions({ children, onCancel }: FormActionsProps) {
   return (
-    <div className="sticky bottom-0 z-10 flex items-center gap-2 pt-4 pb-2 border-t border-ivory/20 bg-ivory/80 backdrop-blur-sm">
+    <div className="sticky bottom-0 z-10 flex items-center gap-2 pt-4 pb-2 border-t border-default/20 bg-page/80 backdrop-blur-sm">
       {onCancel && (
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-3 rounded-sm font-medium text-sm text-ink-mut hover:bg-ivory/20 transition-colors"
+          className="px-4 py-3 rounded-sm font-medium text-sm text-primary-mut hover:bg-page/20 transition-colors"
         >
           Annuler
         </button>
@@ -104,14 +104,14 @@ export function FormSimplifie<T extends object>({
       className="max-w-lg mx-auto"
       onKeyDown={handleKeyDown}
     >
-      <h2 className="font-editorial text-xl text-ink mb-6">{title}</h2>
+      <h2 className="font-editorial text-xl text-primary mb-6">{title}</h2>
       <div className="space-y-6 mb-8">{children}</div>
       <FormActions onCancel={onCancel}>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-3 rounded-sm font-medium text-sm text-ink-mut hover:bg-ivory/20 transition-colors"
+            className="px-4 py-3 rounded-sm font-medium text-sm text-primary-mut hover:bg-page/20 transition-colors"
           >
             Annuler
           </button>
@@ -121,8 +121,8 @@ export function FormSimplifie<T extends object>({
           disabled={!isValid || isSubmitting}
           className={`flex items-center gap-2 px-6 py-3 rounded-sm font-medium transition-colors ${
             isValid && !isSubmitting
-              ? 'bg-signal text-ink hover:bg-signal/hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal'
-              : 'bg-ivory/50 text-ink-mut cursor-not-allowed'
+              ? 'bg-signal text-primary hover:bg-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary'
+              : 'bg-page/50 text-primary-mut cursor-not-allowed'
           }`}
         >
           {isSubmitting ? 'Enregistrement…' : submitLabel}

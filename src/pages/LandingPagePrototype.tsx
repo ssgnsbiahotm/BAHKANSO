@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useData } from '@/lib/DataContext';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 export default function LandingPagePrototype() {
   const [scrolled, setScrolled] = useState(false);
@@ -494,7 +495,7 @@ export default function LandingPagePrototype() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-8 md:mb-12">
             <div className="col-span-1 md:col-span-2">
               {farm?.logo_url ? (
-                <img src={farm.logo_url} alt="" className="h-10 w-auto mb-4" aria-hidden="true" style={{ filter: 'brightness(0) invert(1)' }} />
+                <OptimizedImage src={farm.logo_url} alt="" className="h-10 w-auto mb-4" aria-hidden="true" style={{ filter: 'brightness(0) invert(1)' }} />
               ) : (
                 <span className="font-editorial text-2xl font-bold" style={{ color: 'var(--color-ivory)' }}>
                   BAHKANSO

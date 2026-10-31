@@ -9,6 +9,7 @@ export interface Farm {
   phone: string | null;
   email: string | null;
   logo_url: string | null;
+  favicon_url: string | null;
 }
 
 export interface AppUser {

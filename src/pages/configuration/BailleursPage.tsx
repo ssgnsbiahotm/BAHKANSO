@@ -227,10 +227,10 @@ export function BailleursPage() {
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <KpiCard label="Total bailleurs" value={String(kpis.total)} icon={<Users size={20} />} color="dark" />
-        <KpiCard label="Actifs" value={String(kpis.active)} icon={<Users size={20} />} color="green" />
-        <KpiCard label="Total envoyé" value={String(kpis.totalSent)} icon={<Mail size={20} />} color="blue" />
-        <KpiCard label="Total reçu" value={String(kpis.totalReceived)} icon={<Mail size={20} />} color="purple" />
+        <KpiCard label="Total bailleurs" value={String(kpis.total)} icon={<Users size={20} />} color="slate" />
+        <KpiCard label="Actifs" value={String(kpis.active)} icon={<Users size={20} />} color="success" />
+        <KpiCard label="Total envoyé" value={String(kpis.totalSent)} icon={<Mail size={20} />} color="info" />
+        <KpiCard label="Total reçu" value={String(kpis.totalReceived)} icon={<Mail size={20} />} color="accent" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

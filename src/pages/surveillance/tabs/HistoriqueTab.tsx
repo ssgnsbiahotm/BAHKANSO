@@ -238,8 +238,8 @@ export function HistoriqueTab() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total actions" value={String(kpis.total)} icon={<Loader2 size={16} />} color="dark" />
-        <KpiCard label="Aujourd'hui" value={String(kpis.today)} icon={<Calendar size={16} />} color="blue" />
+        <KpiCard label="Total actions" value={String(kpis.total)} icon={<Loader2 size={16} />} color="slate" />
+        <KpiCard label="Aujourd'hui" value={String(kpis.today)} icon={<Calendar size={16} />} color="info" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">

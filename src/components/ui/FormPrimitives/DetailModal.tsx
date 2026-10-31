@@ -37,13 +37,13 @@ export function DetailModal<T>({
       footer={
         footer || (
           <>
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">
               Fermer
             </button>
             {onDelete && (
               <button
                 onClick={() => onDelete(entity)}
-                className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
               >
                 {deleteLabel}
               </button>
@@ -51,7 +51,7 @@ export function DetailModal<T>({
             {onEdit && (
               <button
                 onClick={() => onEdit(entity)}
-                className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50"
+                className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover"
               >
                 {editLabel}
               </button>

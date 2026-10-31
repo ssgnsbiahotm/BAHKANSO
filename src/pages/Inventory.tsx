@@ -182,22 +182,22 @@ export function Inventory() {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="font-semibold text-slate-900">{item.name}</h3>
-            <p className="text-sm text-slate-500">{item.category || '—'}</p>
+            <h3 className="font-semibold text-primary">{item.name}</h3>
+            <p className="text-sm text-muted">{item.category || '—'}</p>
           </div>
           <span className={`module-badge module-badge-${isLowStock(item) ? 'red' : 'green'}`}>
             {isLowStock(item) ? 'Stock faible' : 'Stock OK'}
           </span>
         </div>
         <div className="space-y-1 text-sm">
-          <p><span className="text-slate-500">Stock :</span> <span className={`font-medium ${isLowStock(item) ? 'text-amber-600' : 'text-slate-900'}`}>{item.current_stock} {item.unit}</span></p>
-          <p><span className="text-slate-500">Mini :</span> <span className="font-medium">{item.min_stock} {item.unit}</span></p>
-          <p><span className="text-slate-500">Coût :</span> <span className="font-medium">{formatCurrency(item.unit_cost)}</span></p>
-          <p><span className="text-slate-500">Emplacement :</span> <span className="font-medium">{item.location || '—'}</span></p>
+          <p><span className="text-muted">Stock :</span> <span className={`font-medium ${isLowStock(item) ? 'text-warning' : 'text-primary'}`}>{item.current_stock} {item.unit}</span></p>
+          <p><span className="text-muted">Mini :</span> <span className="font-medium">{item.min_stock} {item.unit}</span></p>
+          <p><span className="text-muted">Coût :</span> <span className="font-medium">{formatCurrency(item.unit_cost)}</span></p>
+          <p><span className="text-muted">Emplacement :</span> <span className="font-medium">{item.location || '—'}</span></p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200">
-        <p className="text-sm text-emerald-700 font-medium">Voir les détails →</p>
+      <div className="mt-4 pt-3 border-t border-default">
+        <p className="text-sm text-success font-medium">Voir les détails →</p>
       </div>
     </div>
   );
@@ -205,20 +205,20 @@ export function Inventory() {
   const renderItemBack = (item: InventoryItem) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">{item.name}</h3>
-        <p><span className="text-slate-500">Catégorie :</span> {item.category || '—'}</p>
-        <p><span className="text-slate-500">Unité :</span> {item.unit}</p>
-        <p><span className="text-slate-500">Stock actuel :</span> {item.current_stock}</p>
-        <p><span className="text-slate-500">Stock minimum :</span> {item.min_stock}</p>
-        <p><span className="text-slate-500">Coût unitaire :</span> {formatCurrency(item.unit_cost)}</p>
-        <p><span className="text-slate-500">Valeur totale :</span> {formatCurrency(item.current_stock * item.unit_cost)}</p>
-        <p><span className="text-slate-500">Emplacement :</span> {item.location || '—'}</p>
+        <h3 className="font-semibold text-primary mb-3">{item.name}</h3>
+        <p><span className="text-muted">Catégorie :</span> {item.category || '—'}</p>
+        <p><span className="text-muted">Unité :</span> {item.unit}</p>
+        <p><span className="text-muted">Stock actuel :</span> {item.current_stock}</p>
+        <p><span className="text-muted">Stock minimum :</span> {item.min_stock}</p>
+        <p><span className="text-muted">Coût unitaire :</span> {formatCurrency(item.unit_cost)}</p>
+        <p><span className="text-muted">Valeur totale :</span> {formatCurrency(item.current_stock * item.unit_cost)}</p>
+        <p><span className="text-muted">Emplacement :</span> {item.location || '—'}</p>
       </div>
-      <div className="mt-4 pt-3 border-t border-emerald-200 space-y-2">
+      <div className="mt-4 pt-3 border-t border-default space-y-2">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(`/app/stocks?select=${item.id}&action=view`); }}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full bg-success hover:bg-success text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
         >
           <Eye size={16} /> Voir détails
         </button>
@@ -226,14 +226,14 @@ export function Inventory() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); openEdit(item); }}
-            className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+            className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
           >
             <Pencil size={14} /> Modifier
           </button>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setConfirmDelete(item); }}
-            className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+            className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
           >
             <Trash2 size={14} /> Supprimer
           </button>
@@ -246,40 +246,40 @@ export function Inventory() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Nom</p>
-          <p className="font-mono text-slate-900">{item.name}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Nom</p>
+          <p className="font-mono text-primary">{item.name}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Catégorie</p>
-          <p className="text-slate-900">{item.category || '—'}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Catégorie</p>
+          <p className="text-primary">{item.category || '—'}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Unité</p>
-          <p className="text-slate-900">{item.unit}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Unité</p>
+          <p className="text-primary">{item.unit}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Stock actuel</p>
-          <p className={`text-slate-900 font-medium ${isLowStock(item) ? 'text-amber-600' : ''}`}>{item.current_stock} {item.unit}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Stock actuel</p>
+          <p className={`text-primary font-medium ${isLowStock(item) ? 'text-warning' : ''}`}>{item.current_stock} {item.unit}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Stock minimum</p>
-          <p className="text-slate-900">{item.min_stock} {item.unit}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Stock minimum</p>
+          <p className="text-primary">{item.min_stock} {item.unit}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Coût unitaire</p>
-          <p className="text-slate-900">{formatCurrency(item.unit_cost)}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Coût unitaire</p>
+          <p className="text-primary">{formatCurrency(item.unit_cost)}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Valeur totale</p>
-          <p className="text-slate-900 font-medium">{formatCurrency(item.current_stock * item.unit_cost)}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Valeur totale</p>
+          <p className="text-primary font-medium">{formatCurrency(item.current_stock * item.unit_cost)}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Emplacement</p>
-          <p className="text-slate-900">{item.location || '—'}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">Emplacement</p>
+          <p className="text-primary">{item.location || '—'}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">Statut</p>
-          <p className={`text-slate-900 font-medium ${isLowStock(item) ? 'text-amber-600' : 'text-green-600'}`}>
+          <p className="text-xs uppercase tracking-wider text-muted">Statut</p>
+          <p className={`text-primary font-medium ${isLowStock(item) ? 'text-warning' : 'text-success'}`}>
             {isLowStock(item) ? 'Stock faible' : 'Stock OK'}
           </p>
         </div>
@@ -420,11 +420,11 @@ export function Inventory() {
                 <div key={movement.id} className="module-movement-row">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-slate-900">{movement.item?.name || 'Article'}</p>
-                      <p className="text-sm text-slate-500">{formatDate(movement.date)} • {movement.type === 'in' ? 'Entrée' : 'Sortie'}</p>
+                      <p className="font-medium text-primary">{movement.item?.name || 'Article'}</p>
+                      <p className="text-sm text-muted">{formatDate(movement.date)} • {movement.type === 'in' ? 'Entrée' : 'Sortie'}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-semibold ${movement.type === 'in' ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`font-semibold ${movement.type === 'in' ? 'text-success' : 'text-danger'}`}>
                         {movement.type === 'in' ? '+' : '-'}{movement.quantity} {movement.item?.unit || ''}
                       </p>
                     </div>
@@ -443,11 +443,11 @@ export function Inventory() {
               const catLowStock = catItems.filter(i => i.current_stock <= i.min_stock).length;
               return (
                 <div key={cat} className="module-category-card">
-                  <h3 className="font-semibold text-slate-900">{cat}</h3>
+                  <h3 className="font-semibold text-primary">{cat}</h3>
                   <div className="space-y-1 text-sm mt-2">
-                    <p><span className="text-slate-500">Articles :</span> <span className="font-medium">{catItems.length}</span></p>
-                    <p><span className="text-slate-500">Valeur :</span> <span className="font-medium">{formatCurrency(catValue)}</span></p>
-                    <p><span className="text-slate-500">Alertes :</span> <span className={`font-medium ${catLowStock > 0 ? 'text-amber-600' : 'text-green-600'}`}>{catLowStock}</span></p>
+                    <p><span className="text-muted">Articles :</span> <span className="font-medium">{catItems.length}</span></p>
+                    <p><span className="text-muted">Valeur :</span> <span className="font-medium">{formatCurrency(catValue)}</span></p>
+                    <p><span className="text-muted">Alertes :</span> <span className={`font-medium ${catLowStock > 0 ? 'text-warning' : 'text-success'}`}>{catLowStock}</span></p>
                   </div>
                 </div>
               );

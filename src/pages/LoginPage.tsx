@@ -40,7 +40,7 @@ const BENEFIT_CARDS: BenefitCard[] = [
     icon: ShieldCheck,
     title: 'Sécurisé',
     description: 'Vos données sont protégées par Supabase Auth avec chiffrement et authentification renforcée.',
-    iconColor: 'text-primary-400',
+    iconColor: 'text-muted',
   },
   {
     icon: Zap,
@@ -85,12 +85,12 @@ function BenefitCard({ card, index }: { card: BenefitCard; index: number }) {
   const Icon = card.icon;
   return (
     <div className="animate-fade-in-up" style={{ animationDelay: `${100 + index * 150}ms` }}>
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-primary-500/40">
-        <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 bg-primary-500/20 {card.iconColor} shadow-lg" aria-hidden="true">
+      <div className="bg-surface/5 border border-default/10 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:border-accent-primary/40">
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 bg-accent-soft/20 {card.iconColor} shadow-lg" aria-hidden="true">
           <Icon size={28} />
         </div>
         <h3 className="text-heading-sm font-bold text-white text-center mb-2">{card.title}</h3>
-        <p className="text-body-sm text-neutral-400 leading-relaxed text-center">{card.description}</p>
+        <p className="text-body-sm text-muted leading-relaxed text-center">{card.description}</p>
       </div>
     </div>
   );
@@ -125,9 +125,9 @@ function InputField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400">{label}</label>
+      <label className="block text-xs font-medium text-secondary">{label}</label>
       <div className="relative">
-        <Icon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
+        <Icon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
         <input
           type={showPasswordToggle && showPassword ? 'text' : type}
           value={value}
@@ -135,10 +135,10 @@ function InputField({
           placeholder={placeholder}
           disabled={disabled}
           autoComplete={autoComplete}
-          className={`w-full pl-10 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-colors ${
+          className={`w-full pl-10 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-primary/20 transition-colors ${
             error
-              ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/20'
-              : 'border-neutral-200 dark:border-neutral-700 focus:border-primary-500 bg-white dark:bg-neutral-800'
+              ? 'border-danger bg-danger-soft/50'
+              : 'border-default focus:border-accent-primary bg-surface'
           }`}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${label.toLowerCase().replace(/\s+/g, '-')}-error` : undefined}
@@ -147,7 +147,7 @@ function InputField({
           <button
             type="button"
             onClick={onTogglePassword}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors"
             aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -155,7 +155,7 @@ function InputField({
         )}
       </div>
       {error && (
-        <p id={`${label.toLowerCase().replace(/\s+/g, '-')}-error`} className="text-xs text-red-500" role="alert">
+        <p id={`${label.toLowerCase().replace(/\s+/g, '-')}-error`} className="text-xs text-danger" role="alert">
           {error}
         </p>
       )}
@@ -180,7 +180,7 @@ function PrimaryButton({
     <button
       type={type}
       disabled={disabled || loading}
-      className={`w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl font-medium transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:hover:translate-y-0 ${className}`}
+      className={`w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent-primary text-white rounded-xl font-medium transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:hover:translate-y-0 ${className}`}
     >
       {loading ? (
         <span className="flex items-center gap-2">
@@ -207,8 +207,8 @@ function ModeLink({
   onClick: () => void;
 }) {
   return (
-    <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
-      {text} <button type="button" onClick={onClick} className="text-primary-600 dark:text-primary-400 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded">{linkText}</button>
+    <p className="text-sm text-muted text-center">
+      {text} <button type="button" onClick={onClick} className="text-accent-primary text-muted font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-accent-primary/20 rounded">{linkText}</button>
     </p>
   );
 }
@@ -216,9 +216,9 @@ function ModeLink({
 function QuoteSection({ quote, author }: { quote: string; author: string }) {
   if (!quote && !author) return null;
   return (
-    <div className="relative mt-12 pt-6 border-t border-white/10 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-      <p className="text-sm text-neutral-200/80 italic leading-relaxed">« {quote} »</p>
-      {author && <p className="text-xs text-neutral-300 mt-2">— {author}</p>}
+    <div className="relative mt-12 pt-6 border-t border-default/10 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+      <p className="text-sm text-muted italic leading-relaxed">« {quote} »</p>
+      {author && <p className="text-xs text-muted mt-2">— {author}</p>}
     </div>
   );
 }
@@ -373,9 +373,9 @@ export function LoginPage() {
   const currentMode = modeLabels[mode];
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-neutral-50 dark:bg-neutral-950" lang="fr">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-page" lang="fr">
       {/* Marketing Side */}
-      <div className="lg:w-1/2 relative bg-gradient-to-br from-primary-700 via-primary-800 to-neutral-900 text-white p-8 lg:p-12 flex flex-col justify-between overflow-hidden hidden lg:flex">
+      <div className="lg:w-1/2 relative bg-gradient-to-br from-accent-primary via-accent-primary-hover to-bg-page text-white p-8 lg:p-12 flex flex-col justify-between overflow-hidden hidden lg:flex">
         {/* Ambient pattern */}
         <div className="absolute inset-0 opacity-5" aria-hidden="true">
           <svg viewBox="0 0 60 60" className="w-full h-full" preserveAspectRatio="none">
@@ -400,7 +400,7 @@ export function LoginPage() {
             />
             <div>
               <h1 className="font-bold text-xl text-white">{appName}</h1>
-              <p className="text-xs text-primary-200">{appTagline}</p>
+              <p className="text-xs text-muted">{appTagline}</p>
             </div>
           </div>
 
@@ -409,7 +409,7 @@ export function LoginPage() {
             <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-4 animate-fade-in-up">
               {heroTitle}
             </h2>
-            <p className="text-primary-100 text-lg leading-relaxed mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <p className="text-muted text-lg leading-relaxed mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               {heroSubtitle}
             </p>
 
@@ -427,7 +427,7 @@ export function LoginPage() {
       </div>
 
       {/* Mobile marketing banner */}
-      <div className="lg:hidden bg-gradient-to-br from-primary-700 via-primary-800 to-neutral-900 text-white p-6 relative overflow-hidden">
+      <div className="lg:hidden bg-gradient-to-br from-accent-primary via-accent-primary-hover to-bg-page text-white p-6 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5" aria-hidden="true">
           <svg viewBox="0 0 60 60" className="w-full h-full" preserveAspectRatio="none">
             <defs>
@@ -447,9 +447,9 @@ export function LoginPage() {
             imageUrl={logoUrl}
           />
           <h1 className="font-bold text-xl mt-2">{appName}</h1>
-          <p className="text-xs text-primary-200 mt-1">{appTagline}</p>
+          <p className="text-xs text-muted mt-1">{appTagline}</p>
           <h2 className="text-xl font-bold mt-4">{heroTitle}</h2>
-          <p className="text-primary-100 text-sm mt-2">{heroSubtitle}</p>
+          <p className="text-muted text-sm mt-2">{heroSubtitle}</p>
         </div>
       </div>
 
@@ -459,15 +459,15 @@ export function LoginPage() {
           {/* Back link */}
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-sm text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 mb-8 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
+            className="flex items-center gap-2 text-sm text-muted hover:text-accent-primary  mb-8 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-primary/20 rounded"
           >
             <ArrowLeft size={16} /> Retour au site
           </button>
 
           {/* Form header */}
           <div className="text-center mb-8 animate-fade-in-up">
-            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">{currentMode.title}</h2>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">{currentMode.desc}</p>
+            <h2 className="text-2xl font-bold text-primary  mb-2">{currentMode.title}</h2>
+            <p className="text-sm text-muted">{currentMode.desc}</p>
           </div>
 
           {/* Form */}
@@ -540,11 +540,11 @@ export function LoginPage() {
                   id="terms"
                   checked={formState.acceptedTerms}
                   onChange={(e) => updateField('acceptedTerms', e.target.checked)}
-                  className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20 mt-0.5 flex-shrink-0"
+                  className="rounded border-default text-accent-primary focus:ring-accent-primary/20 mt-0.5 flex-shrink-0"
                   aria-describedby="terms-desc"
                 />
-                <label htmlFor="terms" className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed cursor-pointer" id="terms-desc">
-                  J\'accepte les <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">conditions d\'utilisation</span> et la <span className="text-primary-600 dark:text-primary-400 hover:underline font-medium">politique de confidentialité</span>
+                <label htmlFor="terms" className="text-xs text-muted leading-relaxed cursor-pointer" id="terms-desc">
+                  J\'accepte les <span className="text-accent-primary text-muted hover:underline font-medium">conditions d\'utilisation</span> et la <span className="text-accent-primary text-muted hover:underline font-medium">politique de confidentialité</span>
                 </label>
               </div>
             )}
@@ -552,14 +552,14 @@ export function LoginPage() {
             {/* Login options */}
             {mode === 'login' && (
               <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 cursor-pointer">
-                  <input type="checkbox" className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500/20" />
+                <label className="flex items-center gap-2 text-muted cursor-pointer">
+                  <input type="checkbox" className="rounded border-default text-accent-primary focus:ring-accent-primary/20" />
                   Se souvenir de moi
                 </label>
                 <button
                   type="button"
                   onClick={() => switchMode('forgot')}
-                  className="text-primary-600 dark:text-primary-400 hover:underline focus:outline-none focus:ring-2 focus:ring-primary-500/20 rounded"
+                  className="text-accent-primary text-muted hover:underline focus:outline-none focus:ring-2 focus:ring-accent-primary/20 rounded"
                 >
                   Mot de passe oublié ?
                 </button>
@@ -568,7 +568,7 @@ export function LoginPage() {
 
             {/* Password requirements hint (signup only) */}
             {mode === 'signup' && (
-              <div className="flex items-start gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+              <div className="flex items-start gap-2 text-xs text-muted">
                 <AlertCircle size={14} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <span>Le mot de passe doit contenir : 8+ caractères, majuscule, minuscule, chiffre.</span>
               </div>

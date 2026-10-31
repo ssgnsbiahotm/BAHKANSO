@@ -21,17 +21,8 @@ export interface NavItem {
 
 const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, module: 'dashboard' },
-  { id: 'agriculture', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture', children: [
-    { id: 'agriculture?plots', label: 'Parcelles', module: 'agriculture' },
-    { id: 'agriculture?campaigns', label: 'Campagnes', module: 'agriculture' },
-    { id: 'agriculture?operations', label: 'Opérations', module: 'agriculture' },
-    { id: 'agriculture?harvests', label: 'Récoltes', module: 'agriculture' },
-  ]},
-  { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock', children: [
-    { id: 'exploitation/lots', label: 'Lots', module: 'livestock' },
-    { id: 'exploitation/animaux', label: 'Animaux', module: 'livestock' },
-    { id: 'livestock/events', label: 'Événements', module: 'livestock' },
-  ]},
+  { id: 'agriculture', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture' },
+  { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock' },
   { id: 'finance', label: 'Gestion', icon: <Briefcase size={20} />, module: 'finance', children: [
     { id: 'finance', label: 'Finances', module: 'finance' },
     { id: 'inventory', label: 'Stocks', module: 'inventory' },
@@ -168,14 +159,14 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   return (
     <>
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-slate/80 lg:hidden" onClick={onCloseMobile} />
+        <div className="fixed inset-0 z-30 bg-surface/80 lg:hidden" onClick={onCloseMobile} />
       )}
       <aside className={`
-        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 bg-slate flex flex-col border-r border-ivory/10
+        fixed lg:sticky top-0 left-0 z-40 h-screen w-64 shrink-0 bg-surface flex flex-col border-r border-default/10
         transition-transform duration-300
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-ivory/10">
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-default/10">
           <Logo
             icon={branding.logoIcon || 'Sprout'}
             color="#F4F1E8" // exception logo, cf. design-system
@@ -184,10 +175,10 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             imageUrl={farm?.logo_url}
           />
           <div>
-            <div className="text-ivory font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</div>
-            <p className="text-ivory/70 text-xs">{branding.appTagline || ''}</p>
+            <div className="text-primary font-bold text-lg leading-tight">{branding.appName || 'Bahkanso'}</div>
+            <p className="text-primary/70 text-xs">{branding.appTagline || ''}</p>
           </div>
-          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-ivory/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal" aria-label="Fermer le menu">
+          <button onClick={onCloseMobile} className="ml-auto lg:hidden text-primary/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal" aria-label="Fermer le menu">
             <X size={20} />
           </button>
         </div>
@@ -223,24 +214,24 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-inset ${
                     isActive || containsActiveChild
-                      ? 'bg-slate-hover text-ivory border-l-3 border-signal pl-2'
-                      : 'text-ivory/70 hover:bg-slate-hover hover:text-ivory'
+                      ? 'bg-surface-hover text-primary border-l-3 border-signal pl-2'
+                      : 'text-primary/70 hover:bg-surface-hover hover:text-primary'
                   }`}
                 >
-                  <span className={isActive || containsActiveChild ? 'text-ivory' : 'text-ivory/70'}>
+                  <span className={isActive || containsActiveChild ? 'text-primary' : 'text-primary/70'}>
                     {item.icon}
                   </span>
                   <span className="flex-1 text-left">
                     {item.label}
                     {item.id === 'surveillance' && alertCount > 0 && (
-                      <span className="bg-red-100 text-red-600 rounded px-2 py-1 text-xs ml-1">
+                      <span className="bg-danger-soft text-danger rounded px-2 py-1 text-xs ml-1">
                         {alertCount}
                       </span>
                     )}
                   </span>
                   {/* Chevron pour les items avec children */}
                   {hasChildren && (
-                    <span className="text-ivory/40">
+                    <span className="text-primary/40">
                       {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </span>
                   )}
@@ -248,7 +239,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
 
                 {/* Sous-items (si expanded) */}
                 {hasChildren && isExpanded && (
-                  <div className="ml-6 mt-1 space-y-0.5 border-l border-ivory/10 pl-3">
+                  <div className="ml-6 mt-1 space-y-0.5 border-l border-default/10 pl-3">
                     {item.children!.map(child => {
                       const childActive = location.pathname === handleChildPath(child.id);
                       return (
@@ -257,8 +248,8 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                           onClick={() => handleNav(child.id)}
                           className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-inset ${
                             childActive
-                              ? 'text-signal'
-                              : 'text-ivory/60 hover:text-ivory'
+                              ? 'text-accent-primary'
+                              : 'text-primary/60 hover:text-primary'
                           }`}
                         >
                           {child.label}
@@ -271,10 +262,10 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             );
           })}
         </nav>
-        <div className="px-4 py-3 border-t border-ivory/10">
-          <p className="text-xs text-ivory/50 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>
+        <div className="px-4 py-3 border-t border-default/10">
+          <p className="text-xs text-primary/50 text-center">{branding.footerText || 'Bahkanso v1.0'} — {branding.footerSubtext || ''}</p>
           {appUser && (
-            <p className="text-xs text-ivory/50 text-center mt-1 capitalize">
+            <p className="text-xs text-primary/50 text-center mt-1 capitalize">
               Rôle : {appUser.role.replace('_', ' ')}
             </p>
           )}

@@ -8,10 +8,10 @@ interface ProgressBarProps {
 }
 
 const colorClasses: Record<string, string> = {
-  green: 'bg-green-500',
-  blue: 'bg-blue-500',
-  amber: 'bg-amber-500',
-  red: 'bg-red-500',
+  green: 'bg-success',
+  blue: 'bg-accent-primary',
+  amber: 'bg-warning',
+  red: 'bg-danger',
 };
 
 const sizes: Record<string, string> = {
@@ -26,12 +26,12 @@ export function ProgressBar({ value, max = 100, color = 'green', size = 'md', sh
   return (
     <div className="w-full">
       {showLabel && (
-        <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+        <div className="flex items-center justify-between text-xs text-muted mb-1">
           <span>{label || ''}</span>
           <span className="font-medium">{Math.round(pct)}%</span>
         </div>
       )}
-      <div className={`w-full bg-slate-100 rounded-full overflow-hidden ${sizes[size]}`}>
+      <div className={`w-full bg-surface-100 rounded-full overflow-hidden ${sizes[size]}`}>
         <div
           className={`${colorClasses[autoColor]} ${sizes[size]} rounded-full transition-all duration-500`}
           style={{ width: `${pct}%` }}

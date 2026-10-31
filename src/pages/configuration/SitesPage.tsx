@@ -191,7 +191,7 @@ const handleDelete = async (id: string) => {
           <button
             onClick={openCreate}
             disabled={!canManageSites}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             title={!canManageSites ? 'Réservé aux administrateurs et propriétaires' : undefined}
           >
             <Plus size={18} /> Nouveau site
@@ -200,16 +200,16 @@ const handleDelete = async (id: string) => {
       />
 
       {!canManageSites && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+        <div className="mb-6 p-4 bg-warning-soft border border-default rounded-lg text-sm text-warning">
           <MapPin size={16} className="mr-2 mt-0.5" />
           Vous n'avez pas le rôle nécessaire pour créer, modifier ou supprimer des sites.
         </div>
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total sites" value={String(kpis.total)} icon={<Users size={20} />} color="dark" />
-        <KpiCard label="Actifs" value={String(kpis.actifs)} icon={<Users size={20} />} color="green" />
-        <KpiCard label="Surface totale" value={String(kpis.surfaceTotale)} icon={<MapPin size={20} />} color="blue" />
+        <KpiCard label="Total sites" value={String(kpis.total)} icon={<Users size={20} />} color="slate" />
+        <KpiCard label="Actifs" value={String(kpis.actifs)} icon={<Users size={20} />} color="success" />
+        <KpiCard label="Surface totale" value={String(kpis.surfaceTotale)} icon={<MapPin size={20} />} color="info" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -219,40 +219,40 @@ const handleDelete = async (id: string) => {
             flipLabel="Détails"
             backLabel="Retour"
             front={
-              <div className="bg-white rounded-xl border border-slate-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+              <div className="bg-surface rounded-xl border border-default rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 bg-surface-raised rounded-full flex items-center justify-center text-white font-semibold">
                       {s.name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">{s.name}</h3>
-                      {s.code && <p className="text-xs text-slate-500">Code: {s.code}</p>}
+                      <h3 className="font-semibold text-primary">{s.name}</h3>
+                      {s.code && <p className="text-xs text-muted">Code: {s.code}</p>}
                     </div>
                   </div>
                   <SimpleBadge color={s.status !== 'inactif' ? 'green' : 'gray'}>${s.status !== 'inactif' ? 'Actif' : 'Inactif'}</SimpleBadge>
                 </div>
                 <div className="space-y-2 text-sm">
-                  {s.location && <div className="flex items-center gap-2 text-slate-600"><MapPin size={12} className="text-slate-400" /> {s.location}</div>}
-                  {s.area_hectares && <div className="flex items-center gap-2 text-slate-500 text-xs">Superficie: {String(s.area_hectares)} ha</div>}
-                  {s.responsible && <div className="flex items-center gap-2 text-slate-500 text-xs">Responsable: {s.responsible}</div>}
+                  {s.location && <div className="flex items-center gap-2 text-secondary"><MapPin size={12} className="text-muted" /> {s.location}</div>}
+                  {s.area_hectares && <div className="flex items-center gap-2 text-muted text-xs">Superficie: {String(s.area_hectares)} ha</div>}
+                  {s.responsible && <div className="flex items-center gap-2 text-muted text-xs">Responsable: {s.responsible}</div>}
                 </div>
               </div>
             }
             back={
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+              <div className="bg-success-soft border border-default rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
                 <div className="space-y-2 text-sm">
-                  <h3 className="font-semibold text-slate-900 mb-3">{s.name}</h3>
-                  {s.location && <p><span className="text-slate-500">Localisation :</span> {s.location}</p>}
-                  {s.area_hectares && <p><span className="text-slate-500">Superficie :</span> {String(s.area_hectares)} ha</p>}
-                  {s.responsible && <p><span className="text-slate-500">Responsable :</span> {s.responsible}</p>}
+                  <h3 className="font-semibold text-primary mb-3">{s.name}</h3>
+                  {s.location && <p><span className="text-muted">Localisation :</span> {s.location}</p>}
+                  {s.area_hectares && <p><span className="text-muted">Superficie :</span> {String(s.area_hectares)} ha</p>}
+                  {s.responsible && <p><span className="text-muted">Responsable :</span> {s.responsible}</p>}
                 </div>
-                <div className="mt-4 pt-3 border-t border-emerald-200 flex gap-2">
+                <div className="mt-4 pt-3 border-t border-default flex gap-2">
                   {canManageSites && (
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); openEdit(s); }} aria-label={`Modifier le site ${s.name}`}
-                      className="flex-1 bg-white text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-1"
+                      className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
                     >
                       <Pencil size={14} /> Modifier
                     </button>
@@ -261,7 +261,7 @@ const handleDelete = async (id: string) => {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} aria-label={`Supprimer le site ${s.name}`}
-                      className="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 flex items-center justify-center gap-1"
+                      className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
                     >
                       <Trash2 size={14} /> Supprimer
                     </button>
@@ -272,7 +272,7 @@ const handleDelete = async (id: string) => {
           />
         ))}
         {sites.length === 0 && (
-          <div className="col-span-full p-8 text-center text-slate-500">
+          <div className="col-span-full p-8 text-center text-muted">
             <MapPin size={48} className="mx-auto mb-4 opacity-50" />
             <p>Aucun site enregistré</p>
           </div>
@@ -295,61 +295,61 @@ const handleDelete = async (id: string) => {
           />
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nom *</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Nom *</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Nom du site"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Code *</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Code *</label>
               <input
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value })}
                 required
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="KAT"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Localisation</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Localisation</label>
               <input
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Localisation du site"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Superficie (ha)</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Superficie (ha)</label>
               <input
                 value={form.area_hectares}
                 onChange={(e) => setForm({ ...form, area_hectares: Number(e.target.value) || 0 })}
                 type="number"
                 min="0"
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="0"
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Responsable</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Responsable</label>
               <input
                 value={form.responsible}
                 onChange={(e) => setForm({ ...form, responsible: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Nom du responsible"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Statut</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Statut</label>
               <div className="space-y-1">
-                <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-slate-300 cursor-pointer ${
-                  form.status === 'actif' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'
+                <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-default cursor-pointer ${
+                  form.status === 'actif' ? 'bg-success-soft text-success' : 'bg-surface-hover text-secondary'
                 }">
                   <input
                     type="radio"
@@ -361,8 +361,8 @@ const handleDelete = async (id: string) => {
                   />
                   Actif
                 </label>
-                <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-slate-300 cursor-pointer ${
-                  form.status === 'inactif' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'
+                <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-default cursor-pointer ${
+                  form.status === 'inactif' ? 'bg-success-soft text-success' : 'bg-surface-hover text-secondary'
                 }">
                   <input
                     type="radio"
@@ -380,14 +380,14 @@ const handleDelete = async (id: string) => {
           <div className="mt-6 flex gap-3">
             <button
               type="submit"
-              className={editSite ? 'flex-1 bg-yellow-600 text-white hover:bg-yellow-700' : 'flex-1 bg-green-600 text-white hover:bg-green-700'}
+              className={editSite ? 'flex-1 bg-warning text-white hover:bg-warning' : 'flex-1 bg-success text-white hover:bg-success'}
             >
               {editSite ? 'Mettre à jour' : 'Créer'}
             </button>
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="flex-1 bg-slate-300 text-slate-900 hover:bg-slate-400"
+              className="flex-1 bg-surface-hover text-primary hover:bg-surface-hover"
             >
               Annuler
             </button>

@@ -132,15 +132,15 @@ export function Suppliers() {
     const totalSpent = supplierExpenses.reduce((sum, e) => sum + e.amount, 0);
     return (
       <div className="grid grid-cols-2 gap-4">
-        <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{s.name}</p></div>
-        <div><p className="text-xs text-slate-400">Catégorie</p><p className="text-sm font-medium">{s.category || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Contact</p><p className="text-sm font-medium">{s.contact_person || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Téléphone</p><p className="text-sm font-medium">{s.phone || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Email</p><p className="text-sm font-medium">{s.email || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Adresse</p><p className="text-sm font-medium">{s.address || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Note</p><p className="text-sm font-medium">{s.rating} / 5</p></div>
-        <div><p className="text-xs text-slate-400">Total achats</p><p className="text-sm font-medium text-green-600">{formatCurrency(totalSpent)}</p></div>
-        <div><p className="text-xs text-slate-400">Nb transactions</p><p className="text-sm font-medium">{supplierExpenses.length}</p></div>
+        <div><p className="text-xs text-muted">Nom</p><p className="text-sm font-medium">{s.name}</p></div>
+        <div><p className="text-xs text-muted">Catégorie</p><p className="text-sm font-medium">{s.category || '—'}</p></div>
+        <div><p className="text-xs text-muted">Contact</p><p className="text-sm font-medium">{s.contact_person || '—'}</p></div>
+        <div><p className="text-xs text-muted">Téléphone</p><p className="text-sm font-medium">{s.phone || '—'}</p></div>
+        <div><p className="text-xs text-muted">Email</p><p className="text-sm font-medium">{s.email || '—'}</p></div>
+        <div><p className="text-xs text-muted">Adresse</p><p className="text-sm font-medium">{s.address || '—'}</p></div>
+        <div><p className="text-xs text-muted">Note</p><p className="text-sm font-medium">{s.rating} / 5</p></div>
+        <div><p className="text-xs text-muted">Total achats</p><p className="text-sm font-medium text-success">{formatCurrency(totalSpent)}</p></div>
+        <div><p className="text-xs text-muted">Nb transactions</p><p className="text-sm font-medium">{supplierExpenses.length}</p></div>
       </div>
     );
   };
@@ -151,26 +151,26 @@ export function Suppliers() {
         title="Fournisseurs"
         subtitle="Gestion des fournisseurs et historique d'achats"
         actions={
-          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
             <Plus size={18} /> Nouveau fournisseur
           </button>
         }
       />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <KpiCard label="Total fournisseurs" value={String(kpis.count)} icon={<Truck size={20} />} color="dark" />
-        <KpiCard label="Total achats" value={formatCurrency(kpis.totalPurchases)} icon={<Truck size={20} />} color="green" />
-        <KpiCard label="Note moyenne" value={`${kpis.avgRating} / 5`} icon={<Star size={20} />} color="amber" />
+        <KpiCard label="Total fournisseurs" value={String(kpis.count)} icon={<Truck size={20} />} color="slate" />
+        <KpiCard label="Total achats" value={formatCurrency(kpis.totalPurchases)} icon={<Truck size={20} />} color="success" />
+        <KpiCard label="Note moyenne" value={`${kpis.avgRating} / 5`} icon={<Star size={20} />} color="warning" />
       </div>
 
       <div className="relative mb-4 max-w-md">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher un fournisseur..."
-          className="w-full pl-10 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+          className="w-full pl-10 pr-3 py-2 text-sm border border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary"
         />
       </div>
 
@@ -179,7 +179,7 @@ export function Suppliers() {
           icon={<Truck size={48} />}
           title={suppliers.length === 0 ? "Aucun fournisseur" : "Aucun résultat"}
           message={suppliers.length === 0 ? "Ajoutez votre premier fournisseur" : "Essayez de modifier votre recherche"}
-          action={suppliers.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"><Plus size={16} /> Ajouter</button> : undefined}
+          action={suppliers.length === 0 ? <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium"><Plus size={16} /> Ajouter</button> : undefined}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -187,34 +187,34 @@ export function Suppliers() {
             const supplierExpenses = expenses.filter(e => e.supplier_id === s.id);
             const totalSpent = supplierExpenses.reduce((sum, e) => sum + e.amount, 0);
             return (
-              <div key={s.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+              <div key={s.id} className="bg-surface rounded-xl border border-default p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600"><Truck size={20} /></div>
+                    <div className="w-10 h-10 bg-info-soft rounded-lg flex items-center justify-center text-info"><Truck size={20} /></div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">{s.name}</h3>
-                      <p className="text-xs text-slate-500">{s.category}</p>
+                      <h3 className="font-semibold text-primary">{s.name}</h3>
+                      <p className="text-xs text-muted">{s.category}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={12} className={i < s.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200'} />
+                      <Star key={i} size={12} className={i < s.rating ? 'text-warning fill-warning' : 'text-muted'} />
                     ))}
                   </div>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-slate-500">Contact</span><span className="font-medium">{s.contact_person || '—'}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Téléphone</span><span className="font-medium">{s.phone || '—'}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Email</span><span className="font-medium text-xs">{s.email || '—'}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Adresse</span><span className="font-medium text-xs">{s.address || '—'}</span></div>
-                  <div className="flex justify-between border-t border-slate-100 pt-2"><span className="text-slate-500">Total achats</span><span className="font-bold text-green-600">{formatCurrency(totalSpent)}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Nb transactions</span><span className="font-medium">{supplierExpenses.length}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Contact</span><span className="font-medium">{s.contact_person || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Téléphone</span><span className="font-medium">{s.phone || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Email</span><span className="font-medium text-xs">{s.email || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Adresse</span><span className="font-medium text-xs">{s.address || '—'}</span></div>
+                  <div className="flex justify-between border-t border-default pt-2"><span className="text-muted">Total achats</span><span className="font-bold text-success">{formatCurrency(totalSpent)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Nb transactions</span><span className="font-medium">{supplierExpenses.length}</span></div>
                 </div>
-                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
-                  <button onClick={() => openEdit(s)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-default">
+                  <button onClick={() => openEdit(s)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs border border-default rounded-lg hover:bg-surface-hover text-secondary">
                     <Pencil size={12} /> Modifier
                   </button>
-                  <button onClick={() => setConfirmDelete(s)} className="px-2.5 py-1.5 text-xs border border-red-200 rounded-lg hover:bg-red-50 text-red-600" title="Supprimer">
+                  <button onClick={() => setConfirmDelete(s)} className="px-2.5 py-1.5 text-xs border border-default rounded-lg hover:bg-danger-soft text-danger" title="Supprimer">
                     <Trash2 size={12} />
                   </button>
                 </div>

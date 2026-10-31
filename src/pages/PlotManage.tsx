@@ -232,10 +232,10 @@ export function PlotManage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Surface totale" value={`${kpis.totalArea} ha`} icon={<MapPin size={20} />} color="green" />
-        <KpiCard label="Parcelles actives" value={String(kpis.activePlots)} icon={<MapPin size={20} />} color="blue" />
-        <KpiCard label="Surface active" value={`${plots.filter(p => p.status === 'active').reduce((s, p) => s + p.area_hectares, 0)} ha`} icon={<MapPin size={20} />} color="amber" />
-        <KpiCard label="Total parcelles" value={String(plots.length)} icon={<Sprout size={20} />} color="dark" />
+        <KpiCard label="Surface totale" value={`${kpis.totalArea} ha`} icon={<MapPin size={20} />} color="success" />
+        <KpiCard label="Parcelles actives" value={String(kpis.activePlots)} icon={<MapPin size={20} />} color="info" />
+        <KpiCard label="Surface active" value={`${plots.filter(p => p.status === 'active').reduce((s, p) => s + p.area_hectares, 0)} ha`} icon={<MapPin size={20} />} color="warning" />
+        <KpiCard label="Total parcelles" value={String(plots.length)} icon={<Sprout size={20} />} color="slate" />
       </div>
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
