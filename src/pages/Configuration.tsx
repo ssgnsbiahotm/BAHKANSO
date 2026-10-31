@@ -15,25 +15,23 @@
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/lib/Toast';
 import { logAudit } from '@/lib/types';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { Logo, getIcon } from '@/components/ui/Logo';
 import {
-  Settings, Globe, Layout, Monitor, Eye, EyeOff, Save, Upload,
-  Trash2, RotateCcw, RefreshCw, AlertCircle, CheckCircle,
-  Loader2, Plus, X, ChevronRight, Search, Filter,
-  Edit3, Copy, Shield, Bell, Palette,
-  Building2, DollarSign, Mail, Phone, MapPin,
+  Settings, Globe, Layout, Eye, EyeOff, Save, Upload,
+  Trash2, RotateCcw, RefreshCw, AlertCircle,
+  Loader2, Plus, X, Search,
+  Edit3, Shield, Bell, Palette,
+  Building2, DollarSign, Mail,
   Home, BarChart3, Users as UsersIcon, Image as ImageIcon,
-  Zap, Wand2, Target, Layers, Clock, History,
-  FileText, ArrowUp, ArrowDown, Trash, ArrowLeft,
-  Lock, // Added missing Lock icon import
+  Zap, Wand2, Target, Layers, Clock,
+  FileText, ArrowUp, ArrowDown, Trash,
+  Lock,
 } from 'lucide-react';
 
 /* ============================================================================
@@ -71,7 +69,7 @@ interface ConfigField {
   options?: { label: string; value: string | number }[];
   description?: string;
   itemFields?: { id: string; label: string; type: FieldType; options?: { label: string; value: string | number }[] }[];
-  itemTemplate?: any;
+  itemTemplate?: unknown;
   validation?: {
     pattern?: string;
     min?: number;
@@ -88,15 +86,15 @@ interface ConfigSection {
   domain: ConfigDomain;
   fields: ConfigField[];
   isList?: boolean;
-  itemTemplate?: any;
+  itemTemplate?: unknown;
 }
 
 interface DraftChange {
   path: string;
   subsection: ConfigSubsection;
   fieldId: string;
-  value: any;
-  originalValue: any;
+  value: unknown;
+  originalValue: unknown;
 }
 
 /* ============================================================================
@@ -352,9 +350,8 @@ const isFarmSection = (subsection: ConfigSubsection): boolean =>
 
 export function Configuration() {
   const { siteContent, farm, refresh } = useData();
-  const { authUser, appUser, updatePassword } = useAuth();
+  const { authUser, appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
   const location = useLocation();
 
   // --- État du domaine et sous-section actifs ---
@@ -369,7 +366,7 @@ export function Configuration() {
   const [previewMode, setPreviewMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
+  const [autoSaveEnabled] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
@@ -388,8 +385,8 @@ export function Configuration() {
   }, [authUser, appUser]);
 
   // --- Valeurs actuelles (farm + siteContent fusionnées) ---
-  const currentValues = useMemo((): Record<string, any> => {
-    const values: Record<string, any> = {};
+  const currentValues = useMemo((): Record<string, unknown> => {
+    const values: Record<string, unknown> = {};
 
     // Farm fields
     if (farm) {
@@ -398,11 +395,11 @@ export function Configuration() {
       values[getDraftPath('exploitation', 'informations', 'phone')] = farm.phone;
       values[getDraftPath('exploitation', 'informations', 'email')] = farm.email;
       values[getDraftPath('exploitation', 'devise', 'currency')] = farm.currency;
-      values[getDraftPath('exploitation', 'securite', 'requireAuth')] = (siteContent['securite']?.value as any)?.requireAuth ?? false;
-      values[getDraftPath('exploitation', 'securite', 'allowPublicRegistration')] = (siteContent['securite']?.value as any)?.allowPublicRegistration ?? false;
-      values[getDraftPath('exploitation', 'notifications', 'emailNotifications')] = (siteContent['notifications']?.value as any)?.emailNotifications ?? true;
-      values[getDraftPath('exploitation', 'notifications', 'smsNotifications')] = (siteContent['notifications']?.value as any)?.smsNotifications ?? false;
-      values[getDraftPath('exploitation', 'notifications', 'alertThreshold')] = (siteContent['notifications']?.value as any)?.alertThreshold ?? 10;
+      values[getDraftPath('exploitation', 'securite', 'requireAuth')] = (siteContent['securite']?.value as unknown as { requireAuth?: boolean })?.requireAuth ?? false;
+      values[getDraftPath('exploitation', 'securite', 'allowPublicRegistration')] = (siteContent['securite']?.value as unknown as { allowPublicRegistration?: boolean })?.allowPublicRegistration ?? false;
+      values[getDraftPath('exploitation', 'notifications', 'emailNotifications')] = (siteContent['notifications']?.value as unknown as { emailNotifications?: boolean })?.emailNotifications ?? true;
+      values[getDraftPath('exploitation', 'notifications', 'smsNotifications')] = (siteContent['notifications']?.value as unknown as { smsNotifications?: boolean })?.smsNotifications ?? false;
+      values[getDraftPath('exploitation', 'notifications', 'alertThreshold')] = (siteContent['notifications']?.value as unknown as { alertThreshold?: number })?.alertThreshold ?? 10;
       values[getDraftPath('exploitation', 'appearance', 'logo_url')] = farm.logo_url;
       values[getDraftPath('exploitation', 'appearance', 'favicon_url')] = farm.favicon_url;
     }
@@ -410,7 +407,7 @@ export function Configuration() {
     // Site content fields
     for (const section of CONTENU_SECTIONS) {
       const content = siteContent[section.id];
-      const contentValue = (content?.value as any) || {};
+      const contentValue = (content?.value as unknown as Record<string, unknown>) || {};
       for (const field of section.fields) {
         values[getDraftPath('contenu', section.id, field.id)] = contentValue[field.id];
       }
@@ -427,7 +424,7 @@ export function Configuration() {
   const hasDrafts = changedFields.length > 0;
   // --- Map des brouillons pour lookup O(1) ---
   const draftsMap = useMemo(() => {
-    const map: Record<string, any> = {};
+    const map: Record<string, unknown> = {};
     for (const d of drafts) {
       map[d.path] = d.value;
     }
@@ -439,18 +436,8 @@ export function Configuration() {
     return path in draftsMap ? draftsMap[path] : currentValues[path];
   }, [draftsMap, currentValues]);
 
-  // --- Recherche / filtrage des sections ---
-  const filteredSections = useMemo(() => {
-    if (!searchQuery) return ALL_SECTIONS;
-    const q = searchQuery.toLowerCase();
-    return ALL_SECTIONS.filter(s =>
-      s.label.toLowerCase().includes(q) ||
-      s.fields.some(f => f.label.toLowerCase().includes(q))
-    );
-  }, [searchQuery]);
-
   // --- Gestion des brouillons ---
-  const updateDraft = useCallback((domain: ConfigDomain, subsection: ConfigSubsection, fieldId: string, value: any) => {
+  const updateDraft = useCallback((domain: ConfigDomain, subsection: ConfigSubsection, fieldId: string, value: unknown) => {
     const path = getDraftPath(domain, subsection, fieldId);
     const originalValue = currentValues[path];
 
@@ -493,12 +480,12 @@ export function Configuration() {
 
     setSaving(true);
     try {
-      const farmUpdates: Record<string, any> = {};
-      const siteContentUpserts: Array<{ key: string; value: any; updated_at: string }> = [];
+      const farmUpdates: Record<string, unknown> = {};
+      const siteContentUpserts: Array<{ key: string; value: unknown; updated_at: string }> = [];
       const changedSubsections: ConfigSubsection[] = [];
 
       for (const change of changedFields) {
-        const [domain, subsection, fieldId] = change.path.split(':') as [ConfigDomain, ConfigSubsection, string];
+        const [, subsection, fieldId] = change.path.split(':') as [unknown, ConfigSubsection, string];
 
         if (isFarmSection(subsection) && subsection !== 'securite' && subsection !== 'notifications') {
           if (subsection === 'appearance') {
@@ -514,12 +501,12 @@ export function Configuration() {
             const existing = siteContent[subsection];
             entry = {
               key: subsection,
-              value: existing ? { ...(existing.value as any) } : {},
+              value: existing ? { ...(existing.value as unknown as Record<string, unknown>) } : {},
               updated_at: new Date().toISOString(),
             };
             siteContentUpserts.push(entry);
           }
-          (entry.value as any)[fieldId] = change.value;
+          (entry.value as unknown as Record<string, unknown>)[fieldId] = change.value;
           changedSubsections.push(subsection);
         }
       }
@@ -745,7 +732,6 @@ export function Configuration() {
       const { data: pub } = supabase.storage.from('app-assets').getPublicUrl(fileName);
       const imageUrl = pub.publicUrl;
 
-      const path = getDraftPath('contenu', 'hero', 'heroImage');
       updateDraft('contenu', 'hero', 'heroImage', imageUrl);
 
       toast.show('Image du bandeau prévisualisée', 'success');
@@ -1162,7 +1148,6 @@ export function Configuration() {
               <div className="space-y-4">
                 {activeSection.fields.map(field => {
                   const path = getDraftPath(activeDomain, activeSubsection, field.id);
-                  const currentValue = currentValues[path];
                   const effectiveValue = getEffectiveValue(path);
                   const isChanged = drafts.some(d => d.path === path && JSON.stringify(d.value) !== JSON.stringify(d.originalValue));
                   const isInvalid = validateField(field, effectiveValue);
@@ -1372,12 +1357,12 @@ function ListEditor({
   isAuthorized,
 }: {
   field: ConfigField;
-  value: any[];
-  onChange: (val: any[]) => void;
+  value: unknown[];
+  onChange: (val: unknown[]) => void;
   isAuthorized: boolean;
 }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editValues, setEditValues] = useState<Record<string, any>>({});
+  const [editValues, setEditValues] = useState<Record<string, unknown>>({});
 
   const itemFields = field.itemFields || [{ id: 'value', label: 'Valeur', type: 'text' }];
 
@@ -1386,7 +1371,7 @@ function ListEditor({
     setEditValues({ ...value[index] });
   };
 
-  const cancelEdit = (index: number) => {
+  const cancelEdit = () => {
     setEditingIndex(null);
     setEditValues({});
   };
@@ -1528,10 +1513,10 @@ function ListEditor({
 
 function renderFieldInput(
   field: ConfigField,
-  value: any,
+  value: unknown,
   isInvalid: { message?: string } | null,
   isAuthorized: boolean,
-  onChange: (v: any) => void
+  onChange: (v: unknown) => void
 ) {
   const inputClasses = `w-full px-3 py-2 border rounded-sm text-sm focus:ring-2 focus:ring-signal focus:border-signal outline-none transition-colors ${
     isInvalid ? 'border-red-500 focus:ring-red-500' : 'border-ivory-deep'
@@ -1570,7 +1555,7 @@ function renderFieldInput(
             disabled={!isAuthorized}
             className="rounded border-ivory-deep text-signal focus:ring-signal"
           />
-          <span className="text-sm text-ink-mut">{Boolean(value) ? 'Activé' : 'Désactivé'}</span>
+          <span className="text-sm text-ink-mut">{value ? 'Activé' : 'Désactivé'}</span>
         </div>
       );
 
@@ -1633,7 +1618,7 @@ function renderFieldInput(
    VALIDATION INTELLIGENTE
    ============================================================================ */
 
-function validateField(field: ConfigField, value: any): { message?: string } | null {
+function validateField(field: ConfigField, value: unknown): { message?: string } | null {
   if (field.required && (value === undefined || value === null || value === '')) {
     return { message: `${field.label} est requis.` };
   }

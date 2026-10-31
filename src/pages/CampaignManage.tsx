@@ -1,17 +1,15 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Calendar, Layers, Wheat, Plus } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit } from '@/lib/types';
+import { logAudit, type Campaign } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
@@ -67,12 +65,10 @@ export function CampaignManage() {
   const { campaigns, plots, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
-
   const [modalOpen, setModalOpen] = useState(false);
-  const [editCampaign, setEditCampaign] = useState<any>(null);
-  const [detailCampaign, setDetailCampaign] = useState<any>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [editCampaign, setEditCampaign] = useState<Campaign | null>(null);
+  const [detailCampaign, setDetailCampaign] = useState<Campaign | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Campaign | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const { values: form, setFieldValue: setForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
@@ -119,7 +115,7 @@ export function CampaignManage() {
       (c.responsible || '').toLowerCase().includes(term) ||
       c.status.toLowerCase().includes(term)
     );
-  }, [campaigns, searchTerm, plots]);
+  }, [campaigns, searchTerm]);
 
   const kpis = useMemo(() => {
     const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0);
@@ -143,7 +139,7 @@ export function CampaignManage() {
     setModalOpen(true);
   }, [setForm]);
 
-  const openEdit = useCallback((campaign: any) => {
+  const openEdit = useCallback((campaign: Campaign) => {
     setEditCampaign(campaign);
     setForm('year', campaign.year);
     setForm('plot_id', campaign.plot_id);
@@ -157,7 +153,7 @@ export function CampaignManage() {
     setModalOpen(true);
   }, [setForm]);
 
-  const updateStatus = useCallback(async (campaign: any, status: string) => {
+  const updateStatus = useCallback(async (campaign: Campaign, status: string) => {
     if (!campaign) return;
     const { error } = await supabase.from('campaigns').update({ status }).eq('id', campaign.id);
     if (error) {
@@ -183,9 +179,9 @@ export function CampaignManage() {
     }
   }, [confirmDelete, appUser, refresh, toast]);
 
-  const getCampaignName = (c: any) => c.crop_name || `Campagne ${c.year}`;
+  const getCampaignName = (c: Campaign) => c.crop_name || `Campagne ${c.year}`;
 
-  const renderDetailFields = (campaign: any) => (
+  const renderDetailFields = (campaign: Campaign) => (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
         <div>
@@ -209,7 +205,7 @@ export function CampaignManage() {
     </div>
   );
 
-  const renderDetailFooter = (campaign: any) => (
+  const renderDetailFooter = (campaign: Campaign) => (
     <>
       <button onClick={() => setConfirmDelete(campaign)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
       <button onClick={() => openEdit(campaign)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
@@ -280,7 +276,7 @@ export function CampaignManage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCampaigns.map((campaign: any) => (
+          {filteredCampaigns.map((campaign: Campaign) => (
             <RotatingCard
               key={campaign.id}
               flipLabel="Actions"
@@ -367,7 +363,7 @@ export function CampaignManage() {
                   onChange={(e) => setForm('plot_id', e.target.value)}
                 >
                   <option value="">Sélectionner une parcelle...</option>
-                  {plots.map((plot: any) => (
+                  {plots.map((plot: Plot) => (
                     <option key={plot.id} value={plot.id}>
                       {plot.reference} - {plot.name} ({plot.area_hectares} ha)
                     </option>

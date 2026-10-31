@@ -299,22 +299,22 @@ export function SiteContentEditor() {
   };
 
   // Fonctions de gestion des fonctionnalités
-  const startEditingFeature = (index: number) => {
-    const feature = features[index];
+  const startEditingFeature = (_index: number) => {
+    const feature = features[_index];
     setEditingFeatureIndex(index);
     setEditFeatureTitle(feature.title || '');
     setEditFeatureIcon(feature.icon || 'Sprout');
     setEditFeatureDesc(feature.desc || '');
   };
 
-  const cancelFeatureEdit = (index: number) => {
+  const cancelFeatureEdit = () => {
     setEditingFeatureIndex(null);
     setEditFeatureTitle('');
     setEditFeatureIcon('Sprout');
     setEditFeatureDesc('');
   };
 
-  const saveFeatureEdit = (index: number) => {
+  const saveFeatureEdit = () => {
     // Validation du titre obligatoire
     if (!editFeatureTitle || String(editFeatureTitle).trim() === '') {
       toast.show('Le titre est obligatoire', 'error');
@@ -786,7 +786,6 @@ export function SiteContentEditor() {
                               <label className="block text-xs font-medium text-slate-600 mb-1">Icône</label>
                               <div className="flex flex-wrap gap-2">
                                 {ICON_CHOICES.map(ic => {
-                                  const IcComp = getIcon(ic);
                                   return (
                                     <button
                                       key={ic}

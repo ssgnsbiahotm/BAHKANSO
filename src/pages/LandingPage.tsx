@@ -4,70 +4,6 @@ import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 /* ============================================================================
-   HERO BACKGROUND — Image with institutional fallback
-   ============================================================================ */
-
-interface HeroBackgroundProps {
-  imageUrl: string | undefined;
-  alt: string;
-  children: React.ReactNode;
-}
-
-function HeroBackground({ imageUrl, alt, children }: HeroBackgroundProps) {
-  const [imgError, setImgError] = useState(false);
-  const [imgLoading, setImgLoading] = useState(true);
-
-  if (!imageUrl || imgError) {
-    return (
-      <div
-        className="absolute inset-0 flex items-center justify-content"
-        style={{
-          background: 'linear-gradient(135deg, var(--color-night) 0%, var(--color-forest) 100%), url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M30 5L34 15H44L36 21L40 31L30 26L20 31L24 21L16 15H26Z\' fill=\'none\' stroke=\'%23B9D86B\' stroke-width=\'0.5\' opacity=\'0.08\'/%3E%3C/svg%3E"), linear-gradient(90deg, var(--color-signal) 0%, transparent 15%)',
-          backgroundSize: 'cover, 120px 120px, 100% 100%',
-        }}
-        role="img"
-        aria-label={alt || 'Bandeau BAHKANSO'}
-      >
-        <div className="relative z-10 px-6" style={{ maxWidth: 'var(--container-max)', margin: '0 auto', width: '100%' }}>
-          {children}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <img
-        src={imageUrl}
-        alt={alt}
-        onLoad={() => setImgLoading(false)}
-        onError={() => setImgError(true)}
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{
-          display: imgError ? 'none' : 'block',
-          opacity: imgLoading ? 0 : 1,
-          transition: 'opacity var(--duration-500) var(--ease-out)',
-        }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0"
-        aria-hidden="true"
-        style={{
-          background: 'linear-gradient(180deg, rgba(17,26,24,0) 0%, rgba(17,26,24,0.35) 55%, rgba(17,26,24,0.65) 100%)',
-        }}
-      />
-      {imgLoading && (
-        <div className="absolute inset-0 bg-night animate-pulse" aria-hidden="true" style={{ opacity: 0.3 }} />
-      )}
-      <div className="relative z-10" style={{ position: 'relative', zIndex: 2 }}>
-        {children}
-      </div>
-    </>
-  );
-}
-
-/* ============================================================================
    TRUST BADGES — Inline chips
    ============================================================================ */
 
@@ -285,7 +221,7 @@ function KPICard({ id, title, desc }: KPICardProps) {
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
-  const { farm, siteContent, media } = useData();
+  const { farm, siteContent } = useData();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -294,9 +230,9 @@ export default function LandingPage() {
   }, []);
 
   // --- Configuration-driven content ---
-  const heroContent = useMemo(() => siteContent['hero']?.value as Record<string, any> || {}, [siteContent]);
-  const ctaContent = useMemo(() => siteContent['cta']?.value as Record<string, any> || {}, [siteContent]);
-  const footerContent = useMemo(() => siteContent['footer']?.value as Record<string, any> || {}, [siteContent]);
+  const heroContent = useMemo(() => siteContent['hero']?.value as Record<string, unknown> || {}, [siteContent]);
+  const ctaContent = useMemo(() => siteContent['cta']?.value as Record<string, unknown> || {}, [siteContent]);
+  const footerContent = useMemo(() => siteContent['footer']?.value as Record<string, unknown> || {}, [siteContent]);
 
   const heroImage = heroContent.heroImage as string | undefined;
   const heroAlt = heroContent.heroAlt as string | undefined;

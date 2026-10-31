@@ -2,7 +2,6 @@ import { useSimpleQuery } from '@/hooks/usePaginatedQuery';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import type { Sale, Customer } from '@/lib/types';
-import { formatCurrency } from '@/lib/format';
 
 const ROLES_ACCES_GLOBAL = ['administrateur', 'propriétaire'];
 

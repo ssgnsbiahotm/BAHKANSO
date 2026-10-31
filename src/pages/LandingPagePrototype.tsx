@@ -324,7 +324,7 @@ export default function LandingPagePrototype() {
 
           {/* Grille de cartes activités — 3 colonnes sur desktop */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" role="list" aria-label="Activités principales">
-            {activities.map((item, i) => (
+            {activities.map((item) => (
               <article
                 key={item.id}
                 className="group relative"
@@ -465,7 +465,7 @@ export default function LandingPagePrototype() {
               { id: '02', title: 'Équipe synchronisée', desc: 'Terrain et responsable à distance travaillent sur les mêmes données.' },
               { id: '03', title: 'Sécurité des données', desc: 'Authentification, permissions et audit intègres, hébergement maîtrisé.' },
               { id: '04', title: 'Pilotage par indicateurs', desc: 'Tableaux de bord automatiques, alertes seuls, exports pour le décideur.' },
-            ].map((item, i) => (
+            ].map((item) => (
               <article
                 key={item.id}
                 className="module-kpi-card"

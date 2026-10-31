@@ -140,7 +140,6 @@ const DocumentCardFront = ({ document, onEdit, onDelete, onView }: {
 
 const DocumentCardBack = ({ document, onClose, onEdit, onDelete }: { document: Document; onClose: () => void; onEdit: () => void; onDelete: () => void }) => {
   const status = document.status || 'ajouté';
-  const FileIcon = getFileIcon(document.mime_type);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
       <div className="flex items-start justify-between gap-2">

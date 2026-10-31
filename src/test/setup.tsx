@@ -139,10 +139,10 @@ vi.mock('@/components/ui', () => ({
     <span {...props} className={className} data-testid="badge">{children}</span>
   ),
   Label: ({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => <label {...props} data-testid="label">{children}</label>,
-  Dialog: ({ open, onOpenChange, children, ...props }: { open: boolean; onOpenChange: (open: boolean) => void; children: React.ReactNode }) => (
+  Dialog: ({ open, children, ...props }: { open: boolean; children: React.ReactNode }) => (
     open ? <div {...props} data-testid="dialog">{children}</div> : null
   ),
-  Modal: ({ open, onClose, children, ...props }: { open: boolean; onClose: () => void; children: React.ReactNode }) => (
+  Modal: ({ open, children, ...props }: { open: boolean; children: React.ReactNode }) => (
     open ? <div {...props} data-testid="modal">{children}</div> : null
   ),
   DialogTrigger: ({ children, ...props }: { children: React.ReactNode }) => <div {...props} data-testid="dialog-trigger">{children}</div>,

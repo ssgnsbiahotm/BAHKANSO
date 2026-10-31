@@ -1,17 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Beef, Heart, Scale, Activity, Plus, Trash2, Pencil, Eye, Loader2, Save, CheckCircle, XCircle } from 'lucide-react';
+import { Beef, Heart, Scale, Activity, Plus, Loader2, Save } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit } from '@/lib/types';
+import { logAudit, Animal } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
-import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import * as z from 'zod';
@@ -39,20 +37,6 @@ const animalSchema = z.object({
   father_id: z.string().uuid().optional(),
 });
 
-interface AnimalFormValues {
-  identifier: string;
-  name?: string;
-  species: 'cattle' | 'sheep' | 'goat' | 'poultry' | 'swine';
-  breed?: string;
-  date_of_birth?: Date;
-  sex?: 'male' | 'female';
-  weight_kg?: number;
-  status: 'healthy' | 'sick' | 'recovering' | 'quarantined' | 'sold' | 'deceased' | 'pregnant';
-  location?: string;
-  mother_id?: string;
-  father_id?: string;
-}
-
 export function AnimalManage() {
   const { animals, animalLots, refresh } = useData();
   const { appUser } = useAuth();
@@ -60,12 +44,11 @@ export function AnimalManage() {
   const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editAnimal, setEditAnimal] = useState<any>(null);
-  const [detailAnimal, setDetailAnimal] = useState<any>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [editAnimal, setEditAnimal] = useState<Animal | null>(null);
+  const [detailAnimal, setDetailAnimal] = useState<Animal | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Animal | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const { values: form, setFieldValue: setForm, errors } = useValidatedForm({
     schema: animalSchema,
@@ -93,7 +76,7 @@ export function AnimalManage() {
     const term = searchTerm.toLowerCase();
     return animals.filter(a =>
       (a.identifier || '').toLowerCase().includes(term) ||
-      (((a as any).name || '') as string).toLowerCase().includes(term) ||
+      ((a.name || '') as string).toLowerCase().includes(term) ||
       a.species.toString().includes(term) ||
       ((a.breed || '') as string).toLowerCase().includes(term) ||
       ((a.sex || '') as string).toString().includes(term) ||
@@ -127,7 +110,7 @@ export function AnimalManage() {
     setModalOpen(true);
   };
 
-  const openEdit = (animal: any) => {
+  const openEdit = (animal: Animal) => {
     setEditAnimal(animal);
     // Mettre à jour les valeurs du formulaire
     setForm('identifier', animal.identifier);
@@ -212,7 +195,7 @@ export function AnimalManage() {
     }
   };
 
-  const updateStatus = async (animal: any, status: string) => {
+  const updateStatus = async (animal: Animal, status: string) => {
     const { error } = await supabase.from('animals').update({ status }).eq('id', animal.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
@@ -437,7 +420,7 @@ export function AnimalManage() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Espèce *</label>
                 <select
                   value={form.species}
-                  onChange={(e) => setForm('species', e.target.value as any)}
+                  onChange={(e) => setForm('species', e.target.value as Animal['species'])}
                   className="form-input"
                 >
                   <option value="cattle">Bovin</option>
@@ -518,7 +501,7 @@ export function AnimalManage() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Statut</label>
                 <select
                   value={form.status}
-                  onChange={(e) => setForm('status', e.target.value as any)}
+                  onChange={(e) => setForm('status', e.target.value as Animal['status'])}
                   className="form-input"
                 >
                   <option value="healthy">En bonne santé</option>
@@ -591,9 +574,3 @@ export function AnimalManage() {
   );
 }
 
-// Extrait les erreurs du hook useValidatedForm pour une utilisation plus simple dans ce composant
-function extractErrors<T>(result: any): Partial<Record<keyof T, string>> {
-  // Cette fonction serait normalement fournie par le hook useValidatedForm
-  // Pour cet exemple, on retourne un objet vide
-  return {};
-}

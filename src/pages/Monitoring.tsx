@@ -14,23 +14,21 @@
  */
 
 import { useMemo, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
   ScrollText, Bell, FileBarChart, Search, AlertTriangle,
-  CheckCircle, ChevronLeft, Download, Layout, List, FileText,
+  CheckCircle, Download, Layout, List, FileText,
 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import {
   formatDateTime, formatCurrency, formatDate, timeAgo,
 } from '@/lib/format';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
-import type { Alert, AuditLog } from '@/lib/types';
+import type { Alert } from '@/lib/types';
 
 /* ============================================================================
    SOUS-SECTIONS
@@ -70,10 +68,9 @@ const ACTION_COLORS: Record<string, string> = {
    ============================================================================ */
 
 export function Monitoring() {
-  const { auditLogs, alerts, fundings, expenses, projects, harvests, animalLots, refresh } = useData();
+  const { auditLogs, alerts, fundings, expenses, projects, harvests, animalLots } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
   const location = useLocation();
 
   // --- Onglet actif ---

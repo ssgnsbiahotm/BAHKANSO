@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { supabase } from '@/lib/supabase';
+import { type Animal, type AnimalLot, type AnimalEvent } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useToast } from '@/lib/Toast';
 import { RotatingCard } from '@/components/ui/RotatingCard';
@@ -23,7 +24,7 @@ export function Livestock() {
       if (error) throw error;
       toast.show('Lot supprimé', 'success');
       refresh?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.show('Erreur: ' + err.message, 'error');
     }
@@ -40,7 +41,7 @@ export function Livestock() {
       if (error) throw error;
       toast.show('Animal supprimé', 'success');
       refresh?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.show('Erreur: ' + err.message, 'error');
     }
@@ -57,7 +58,7 @@ export function Livestock() {
       if (error) throw error;
       toast.show('Événement supprimé', 'success');
       refresh?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.show('Erreur: ' + err.message, 'error');
     }
@@ -105,7 +106,7 @@ export function Livestock() {
     return 'gray';
   };
 
-  const renderLotFront = (lot: any) => (
+  const renderLotFront = (lot: AnimalLot) => (
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between gap-3 mb-3">
@@ -134,7 +135,7 @@ export function Livestock() {
     </div>
   );
 
-  const renderLotBack = (lot: any) => (
+  const renderLotBack = (lot: AnimalLot) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
         <h3 className="font-semibold text-primary mb-3">{lot.identifier}</h3>
@@ -172,7 +173,7 @@ export function Livestock() {
     </div>
   );
 
-  const renderAnimalFront = (a: any) => (
+  const renderAnimalFront = (a: Animal) => (
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -193,7 +194,7 @@ export function Livestock() {
     </div>
   );
 
-  const renderAnimalBack = (a: any) => (
+  const renderAnimalBack = (a: Animal) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
         <h3 className="font-semibold text-primary mb-3">{a.identifier}</h3>
@@ -232,7 +233,7 @@ export function Livestock() {
     </div>
   );
 
-  const renderEventFront = (e: any) => (
+  const renderEventFront = (e: AnimalEvent) => (
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -255,7 +256,7 @@ export function Livestock() {
     </div>
   );
 
-  const renderEventBack = (e: any) => (
+  const renderEventBack = (e: AnimalEvent) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
         <h3 className="font-semibold text-primary mb-3">{formatDate(e.date)}</h3>

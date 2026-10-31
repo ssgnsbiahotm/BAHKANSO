@@ -1,17 +1,14 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Sprout, MapPin, Plus } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit } from '@/lib/types';
+import { logAudit, type Plot } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
-import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
@@ -66,15 +63,14 @@ function getStatusColor(status: string): 'green' | 'red' | 'yellow' {
 }
 
 export function PlotManage() {
-  const { plots, sites, refresh } = useData();
+  const { plots, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editPlot, setEditPlot] = useState<any>(null);
-  const [detailPlot, setDetailPlot] = useState<any>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [editPlot, setEditPlot] = useState<Plot | null>(null);
+  const [detailPlot, setDetailPlot] = useState<Plot | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Plot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const { values: form, setFieldValue: setForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
@@ -139,20 +135,20 @@ export function PlotManage() {
     setModalOpen(true);
   }, [setForm]);
 
-  const openEdit = useCallback((plot: any) => {
+  const openEdit = useCallback((plot: Plot) => {
     setEditPlot(plot);
     setForm('reference', plot.reference);
     setForm('name', plot.name);
     setForm('area_hectares', plot.area_hectares);
     setForm('location', plot.location || '');
-    setForm('soil_type', plot.soil_type as any);
+    setForm('soil_type', plot.soil_type as PlotFormValues['soil_type'] | undefined);
     setForm('status', plot.status);
     setForm('current_crop', plot.current_crop || '');
     setDetailPlot(null);
     setModalOpen(true);
   }, [setForm]);
 
-  const updateStatus = useCallback(async (plot: any, status: string) => {
+  const updateStatus = useCallback(async (plot: Plot, status: string) => {
     const { error } = await supabase.from('plots').update({ status }).eq('id', plot.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
@@ -177,9 +173,9 @@ export function PlotManage() {
     }
   }, [confirmDelete, appUser, refresh, toast]);
 
-  const getPlotName = (p: any) => p.reference || p.name;
+  const getPlotName = (p: Plot) => p.reference || p.name;
 
-  const renderDetailFields = (plot: any) => (
+  const renderDetailFields = (plot: Plot) => (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
         <div>
@@ -202,7 +198,7 @@ export function PlotManage() {
     </div>
   );
 
-  const renderDetailFooter = (plot: any) => (
+  const renderDetailFooter = (plot: Plot) => (
     <>
       <button onClick={() => setConfirmDelete(plot)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
       <button onClick={() => openEdit(plot)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
@@ -266,7 +262,7 @@ export function PlotManage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPlots.map((plot: any) => (
+          {filteredPlots.map((plot: Plot) => (
             <div key={plot.id} className="rotatable-card bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDetailPlot(plot)}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">

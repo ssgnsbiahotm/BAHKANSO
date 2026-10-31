@@ -1,12 +1,11 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, Plus, Shield, Mail, Phone, Trash2, Lock, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { Users, Plus, Mail, Phone, AlertCircle } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit } from '@/lib/types';
+import { logAudit, type Funder, type AppUser } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { formatDate } from '@/lib/format';
-import { ROLES, ROLE_LABELS } from '@/lib/constants';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
@@ -21,8 +20,8 @@ export function BailleursPage() {
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
-  const [editFunder, setEditFunder] = useState<any | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [editFunder, setEditFunder] = useState<Funder | null>(null);
+  const [, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     organization: '',
@@ -32,7 +31,7 @@ export function BailleursPage() {
     user_id: '',
   });
   const formRef = useRef<HTMLFormElement>(null);
-  const [usersFinanceur, setUsersFinanceur] = useState<any[]>([]);
+  const [usersFinanceur, setUsersFinanceur] = useState<AppUser[]>([]);
 
   const kpis = useMemo(() => {
     const total = funders.length;
@@ -55,7 +54,7 @@ export function BailleursPage() {
     if (formRef.current) formRef.current.reset();
   };
 
-  const openEdit = (f: any) => {
+  const openEdit = (f: Funder) => {
     if (!canManageFunders) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
       return;
@@ -125,62 +124,20 @@ export function BailleursPage() {
         setModalOpen(false);
         refresh();
       }
-    } catch (err: any) {
-      toast.show('Erreur inattendue: ' + (err.message || 'Unknown error'), 'error');
+    } catch (err) {
+      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
       setSaving(false);
     }
   };
 
-  const toggleActive = async (f: any) => {
-    if (!canManageFunders) {
-      toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
-      return;
-    }
-    if (f.id === appUser?.id) {
-      toast.show('Vous ne pouvez pas modifier votre propre entrée', 'error');
-      return;
-    }
-    const { error } = await supabase.from('funders').update({ active: !f.active }).eq('id', f.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'UPDATE', 'funder', f.id, `Bailleur ${f.name} ${f.active ? 'désactivé' : 'activé'}`);
-      toast.show(`Bailleur ${f.active ? 'désactivé' : 'activé'}`);
-      refresh();
-    }
-  };
-
-  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
-
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    if (!canManageFunders) {
-      toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
-      setConfirmDelete(null);
-      return;
-    }
-    if (confirmDelete.id === appUser?.id) {
-      toast.show('Vous ne pouvez pas supprimer votre propre entrée', 'error');
-      setConfirmDelete(null);
-      return;
-    }
-    const { error } = await supabase.from('funders').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'funder', confirmDelete.id, `Bailleur ${confirmDelete.name} supprimé`);
-      toast.show('Bailleur supprimé');
-      setConfirmDelete(null);
-      refresh();
-    }
-  };
+  const [, setConfirmDelete] = useState<Funder | null>(null);
 
   // Load funders from Supabase if not loaded via DataContext
   useEffect(() => {
     if (!funders || funders.length === 0) {
       // Try to fetch funders directly
       ;(async () => {
-        const { data, error } = await supabase.from('funders').select('*');
+        const { error } = await supabase.from('funders').select('*');
         if (error) {
           console.error('Error fetching funders:', error);
         } else {

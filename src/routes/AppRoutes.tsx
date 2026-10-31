@@ -3,8 +3,7 @@ import { lazy, useEffect } from 'react';
 import { RequireAuth, RequireModule } from './authGuard';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
-import { Suspense, type ComponentType, type PropsWithChildren } from 'react';
-import type { ModuleKey, PermissionAction } from '@/lib/rbac';
+import { Suspense, type ComponentType } from 'react';
 
 // Redirect component preserving search params and hash
 function PreservingRedirect({ to }: { to: string }) {
@@ -35,13 +34,8 @@ const Projects = lazy(() => import('@/pages/Projects').then(m => ({ default: m.P
 const Suppliers = lazy(() => import('@/pages/Suppliers').then(m => ({ default: m.Suppliers })));
 const Media = lazy(() => import('@/pages/Media').then(m => ({ default: m.Media })));
 const FinanceModule = lazy(() => import('@/modules/Finance').then(m => ({ default: m.FinanceModule })));
-const AnimalManage = lazy(() => import('@/pages/AnimalManage').then(m => ({ default: m.AnimalManage })));
-const AnimalLotManage = lazy(() => import('@/pages/AnimalLotManage').then(m => ({ default: m.AnimalLotManage })));
 const AnimalEventManage = lazy(() => import('@/pages/AnimalEventManage').then(m => ({ default: m.AnimalEventManage })));
 const PlotManage = lazy(() => import('@/pages/PlotManage').then(m => ({ default: m.PlotManage })));
-const CampaignManage = lazy(() => import('@/pages/CampaignManage').then(m => ({ default: m.CampaignManage })));
-const HarvestManage = lazy(() => import('@/pages/HarvestManage').then(m => ({ default: m.HarvestManage })));
-const CropOperationManage = lazy(() => import('@/pages/CropOperationManage').then(m => ({ default: m.CropOperationManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
 const SitesPage = lazy(() => import('@/pages/configuration/SitesPage').then(m => ({ default: m.SitesPage })));
 const SitesPageSuspense = createSuspenseWrapper(SitesPage);
@@ -91,13 +85,8 @@ const ProjectsSuspense = createSuspenseWrapper(Projects);
 const SuppliersSuspense = createSuspenseWrapper(Suppliers);
 const MediaSuspense = createSuspenseWrapper(Media);
 const FinanceModuleSuspense = createSuspenseWrapper(FinanceModule);
-const AnimalManageSuspense = createSuspenseWrapper(AnimalManage);
-const AnimalLotManageSuspense = createSuspenseWrapper(AnimalLotManage);
 const AnimalEventManageSuspense = createSuspenseWrapper(AnimalEventManage);
 const PlotManageSuspense = createSuspenseWrapper(PlotManage);
-const CampaignManageSuspense = createSuspenseWrapper(CampaignManage);
-const HarvestManageSuspense = createSuspenseWrapper(HarvestManage);
-const CropOperationManageSuspense = createSuspenseWrapper(CropOperationManage);
 const ParcellesPageSuspense = createSuspenseWrapper(ParcellesPage);
 
 const CampagnesPage = lazy(() => import('@/pages/exploitation/CampagnesPage').then(m => ({ default: m.CampagnesPage })));

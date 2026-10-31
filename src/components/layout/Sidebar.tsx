@@ -7,7 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, MapPin,
+  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase,
   ChevronDown, ChevronRight,
 } from 'lucide-react';
 

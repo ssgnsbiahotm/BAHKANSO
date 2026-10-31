@@ -2,6 +2,7 @@ import { useMemo, useState, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { supabase } from '@/lib/supabase';
+import { Plot, Campaign } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useToast } from '@/lib/Toast';
@@ -42,9 +43,9 @@ export function Agriculture() {
       if (error) throw error;
       toast.show('Parcelle supprimée', 'success');
       refresh?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.show('Erreur: ' + err.message, 'error');
+      toast.show('Erreur: ' + (err as Error).message, 'error');
     }
   };
 
@@ -59,9 +60,9 @@ export function Agriculture() {
       if (error) throw error;
       toast.show('Campagne supprimée', 'success');
       refresh?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.show('Erreur: ' + err.message, 'error');
+      toast.show('Erreur: ' + (err as Error).message, 'error');
     }
   };
 
@@ -76,9 +77,9 @@ export function Agriculture() {
       if (error) throw error;
       toast.show('Opération supprimée', 'success');
       refresh?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.show('Erreur: ' + err.message, 'error');
+      toast.show('Erreur: ' + (err as Error).message, 'error');
     }
   };
 
@@ -93,9 +94,9 @@ export function Agriculture() {
       if (error) throw error;
       toast.show('Récolte supprimée', 'success');
       refresh?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.show('Erreur: ' + err.message, 'error');
+      toast.show('Erreur: ' + (err as Error).message, 'error');
     }
   };
 
@@ -167,7 +168,7 @@ export function Agriculture() {
     return 'module-badge-gray';
   };
 
-  const renderPlotFront = (p: any) => (
+  const renderPlotFront = (p: Plot) => (
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -190,7 +191,7 @@ export function Agriculture() {
     </div>
   );
 
-  const renderPlotBack = (p: any) => (
+  const renderPlotBack = (p: Plot) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
         <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>{p.name}</h3>
@@ -228,7 +229,7 @@ export function Agriculture() {
     </div>
   );
 
-  const renderCampaignFront = (c: any) => (
+  const renderCampaignFront = (c: Campaign) => (
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -252,7 +253,7 @@ export function Agriculture() {
     </div>
   );
 
-  const renderCampaignBack = (c: any) => (
+  const renderCampaignBack = (c: Campaign) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
         <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>{c.crop_name}</h3>
@@ -292,7 +293,7 @@ export function Agriculture() {
     </div>
   );
 
-  const renderOperationFront = (o: any) => (
+  const renderOperationFront = (o: CropOperation) => (
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -314,7 +315,7 @@ export function Agriculture() {
     </div>
   );
 
-  const renderOperationBack = (o: any) => (
+  const renderOperationBack = (o: CropOperation) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
         <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>{operationTypeLabel(o.type)}</h3>
@@ -353,7 +354,7 @@ export function Agriculture() {
     </div>
   );
 
-  const renderHarvestFront = (h: any) => (
+  const renderHarvestFront = (h: Harvest) => (
     <div className="h-full flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -375,7 +376,7 @@ export function Agriculture() {
     </div>
   );
 
-  const renderHarvestBack = (h: any) => (
+  const renderHarvestBack = (h: Harvest) => (
     <div className="h-full flex flex-col justify-between">
       <div className="space-y-2 text-sm">
         <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Récolte du {formatDate(h.date)}</h3>

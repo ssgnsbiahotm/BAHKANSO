@@ -3,9 +3,9 @@ export interface Database {
   public: {
     Tables: {
       [tableName: string]: {
-        Row: any;
-        Insert: any;
-        Update: any;
+        Row: unknown;
+        Insert: unknown;
+        Update: unknown;
       };
     };
   };

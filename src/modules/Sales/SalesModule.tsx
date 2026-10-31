@@ -1,13 +1,11 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Users, CreditCard, TrendingUp, Plus, Eye, Pencil, Trash2, Filter, ChevronDown, MapPin, Calendar, DollarSign, Package } from 'lucide-react';
+import { ShoppingBag, Users, CreditCard, TrendingUp, Plus, Eye, Pencil, Trash2, MapPin, Calendar } from 'lucide-react';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useSalesData } from './hooks/useSalesData';
 import { useToast } from '@/lib/Toast';
 import type { SaleWithRelations } from './hooks/useSalesData';
-import { SaleFormModal } from './components/SaleFormModal';
-import { SaleDetailsModal } from './components/SaleDetailsModal';
 import { useSite } from '@/lib/SiteContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -15,7 +13,6 @@ import { logAudit } from '@/lib/types';
 import * as z from 'zod';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
-import { Accordion } from '@/components/ui/Accordion';
 import { Modal } from '@/components/ui/Modal';
 
 import '@/styles/module-theme.css';
@@ -65,18 +62,9 @@ const paymentMethodLabels: Record<string, string> = {
   'carte': 'Carte',
 };
 
-const periodLabels: Record<string, string> = {
-  month: 'Ce mois',
-  quarter: 'Ce trimestre',
-  year: 'Cette année',
-  all: 'Tout',
-};
-
-const statusOptions = ['', 'payée', 'en_attente', 'annulée'];
-
 export function SalesModule() {
   const navigate = useNavigate();
-  const { sales, customers, stats, loading, error, refresh, deleteSale } = useSalesData();
+  const { sales, customers, loading, refresh } = useSalesData();
   const { currentSiteId, availableSites, isGlobalView } = useSite();
   const { appUser } = useAuth();
   const toast = useToast();
@@ -108,6 +96,19 @@ export function SalesModule() {
       return true;
     });
   }, [sales, effectiveSiteId, searchTerm]);
+
+  const salesByMonth = useMemo(() => {
+    const map = new Map<string, { month: string; revenue: number; count: number }>();
+    filteredSales.forEach(sale => {
+      const date = new Date(sale.date);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const existing = map.get(key) || { month: key, revenue: 0, count: 0 };
+      existing.revenue += sale.total_amount || 0;
+      existing.count += 1;
+      map.set(key, existing);
+    });
+    return Array.from(map.values()).sort((a, b) => b.month.localeCompare(a.month));
+  }, [filteredSales]);
 
   const kpis = useMemo(() => {
     const baseSales = effectiveSiteId
@@ -212,8 +213,7 @@ export function SalesModule() {
   });
 
   // Memoize typed form items for the Articles FormSection
-  // Cast de errors pour contourner le bug d'inférence du hook
-  const errors = rawErrors as any;
+  const errors = rawErrors as unknown as Record<string, string>;
 
   const formItems: SaleItem[] = useMemo(() => {
     const items = form.items as unknown;
@@ -510,19 +510,6 @@ export function SalesModule() {
   };
 
   const renderParMoisTab = () => {
-    const salesByMonth = useMemo(() => {
-      const map = new Map<string, { month: string; revenue: number; count: number }>();
-      filteredSales.forEach(sale => {
-        const date = new Date(sale.date);
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const existing = map.get(key) || { month: key, revenue: 0, count: 0 };
-        existing.revenue += sale.total_amount || 0;
-        existing.count += 1;
-        map.set(key, existing);
-      });
-      return Array.from(map.values()).sort((a, b) => b.month.localeCompare(a.month));
-    }, [filteredSales]);
-
     if (salesByMonth.length === 0) {
       return (
         <div className="module-empty-state">
@@ -706,7 +693,7 @@ export function SalesModule() {
 
         {activeTab === 'ventes' && !loading && filteredSales.length > 0 && (
           <div className="module-cards-grid">
-            {filteredSales.map((sale, index) => (
+            {filteredSales.map((sale) => (
               <RotatingCard
                 key={sale.id}
                 flipLabel="Détails"
@@ -794,7 +781,7 @@ export function SalesModule() {
               {(formItems as SaleItem[]).map((item, idx) => (
                 <div key={idx} className="grid grid-cols-12 gap-3 items-end">
                   <div className="col-span-12 md:col-span-4">
-                    <FormField label="Description" error={errors.items?.[idx]?.description}>
+                    <FormField label="Description" error={errors.items}>
                       <FormInput
                         value={item.description}
                         onChange={e => setForm('items', formItems.map((it, i) => i === idx ? { ...it, description: e.target.value } : it))}
@@ -802,7 +789,7 @@ export function SalesModule() {
                     </FormField>
                   </div>
                   <div className="col-span-12 md:col-span-2">
-                    <FormField label="Quantité" error={errors.items?.[idx]?.quantity}>
+                    <FormField label="Quantité" error={errors.items}>
                       <FormInput
                         type="number"
                         step="0.01"
@@ -813,7 +800,7 @@ export function SalesModule() {
                     </FormField>
                   </div>
                   <div className="col-span-12 md:col-span-2">
-                    <FormField label="Unité" error={errors.items?.[idx]?.unit}>
+                    <FormField label="Unité" error={errors.items}>
                       <FormSelect
                         value={item.unit}
                         onChange={e => setForm('items', formItems.map((it, i) => i === idx ? { ...it, unit: e.target.value } : it))}
@@ -827,7 +814,7 @@ export function SalesModule() {
                     </FormField>
                   </div>
                   <div className="col-span-12 md:col-span-3">
-                    <FormField label="Prix unitaire" error={errors.items?.[idx]?.unit_price}>
+                    <FormField label="Prix unitaire" error={errors.items}>
                       <FormInput
                         type="number"
                         step="0.01"

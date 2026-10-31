@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, DollarSign, FileText, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
+import { Plus, DollarSign, FileText, Trash2, Edit2, Eye } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';

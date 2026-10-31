@@ -3,6 +3,7 @@ import { Plus, Trash2, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { useToast } from '@/lib/Toast';
+import type { SaleWithRelations } from '@/modules/Sales/hooks/useSalesData';
 
 interface Line {
   description: string;
@@ -11,10 +12,15 @@ interface Line {
   source_type: string;
 }
 
+interface Row {
+  id: string;
+  name: string;
+}
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  saleToEdit: any | null;
+  saleToEdit: SaleWithRelations | null;
   onSuccess: () => void;
 }
 
@@ -23,8 +29,8 @@ export function SaleFormModal({ isOpen, onClose, saleToEdit, onSuccess }: Props)
   const { show: toast } = useToast();
 
   // States
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [sites, setSites] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<Row[]>([]);
+  const [sites, setSites] = useState<Row[]>([]);
   const [customerId, setCustomerId] = useState('');
   const [siteId, setSiteId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -67,7 +73,7 @@ export function SaleFormModal({ isOpen, onClose, saleToEdit, onSuccess }: Props)
   };
 
   // Modifier une ligne
-  const updateLine = (index: number, field: keyof Line, value: any) => {
+  const updateLine = (index: number, field: keyof Line, value: string | number) => {
     const newLines = [...lines];
     newLines[index] = { ...newLines[index], [field]: value };
     setLines(newLines);
@@ -107,9 +113,9 @@ export function SaleFormModal({ isOpen, onClose, saleToEdit, onSuccess }: Props)
       toast('Vente enregistrée', 'success');
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast('Erreur: ' + err.message, 'error');
+      toast('Erreur: ' + (err as Error).message, 'error');
     } finally {
       setIsSubmitting(false);
     }

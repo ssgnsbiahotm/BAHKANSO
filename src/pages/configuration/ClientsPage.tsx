@@ -1,16 +1,13 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, UserPlus, UserCheck, UserX, Mail, Phone, MapPin, Settings, AlertCircle, CheckCircle, Loader2, Plus } from 'lucide-react';
+import { Users, AlertCircle, Plus } from 'lucide-react';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
 import { supabase } from '@/lib/supabase';
-import { logAudit } from '@/lib/types';
+import { logAudit, type Customer, type Site } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
-import { formatDate } from '@/lib/format';
-import { ROLES, ROLE_LABELS } from '@/lib/constants';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { useRef } from 'react';
 
@@ -18,12 +15,12 @@ const isAdminOrOwner = (role: string | undefined) =>
   role === 'administrateur' || role === 'propriétaire';
 
 export function ClientsPage() {
-  const { sites, refresh } = useData();
+  const { refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
-  const [editClient, setEditClient] = useState<any | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [editClient, setEditClient] = useState<Customer | null>(null);
+  const [, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     type: 'particulier',
@@ -32,9 +29,9 @@ export function ClientsPage() {
     site_id: '',
   });
   const formRef = useRef<HTMLFormElement>(null);
-  const [typesOptions, setTypesOptions] = useState<string[]>(['particulier', 'restaurant', 'marché', 'exportateur', 'autre']);
-  const [clients, setClients] = useState<any[]>([]);
-  const [sitesOptions, setSitesOptions] = useState<any[]>([]);
+  const [clients, setClients] = useState<Customer[]>([]);
+  const [sitesOptions, setSitesOptions] = useState<Site[]>([]);
+
 
   const canManageClients = useMemo(() => isAdminOrOwner(appUser?.role), [appUser?.role]);
 
@@ -49,11 +46,6 @@ export function ClientsPage() {
         refresh?.();
       }
     })();
-  }, []);
-
-  // Load types options
-  useEffect(() => {
-    setTypesOptions(['particulier', 'restaurant', 'marché', 'exportateur', 'autre']);
   }, []);
 
   // Load sites for the select
@@ -85,7 +77,7 @@ export function ClientsPage() {
     if (formRef.current) formRef.current.reset();
   };
 
-  const openEdit = (c: any) => {
+  const openEdit = (c: Customer) => {
     if (!canManageClients) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
       return;
@@ -153,35 +145,13 @@ export function ClientsPage() {
         setModalOpen(false);
         refresh();
       }
-    } catch (err: any) {
-      toast.show('Erreur inattendue: ' + (err.message || 'Unknown error'), 'error');
+    } catch (err) {
+      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
       setSaving(false);
     }
   };
 
-  const toggleActive = async (c: any) => {
-    if (!canManageClients) {
-      toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
-      return;
-    }
-    if (c.id === appUser?.id) {
-      toast.show('Vous ne pouvez pas modifier votre propre entrée', 'error');
-      return;
-    }
-    const { error } = await supabase
-      .from('customers')
-      .update({ active: !c.active })
-      .eq('id', c.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'UPDATE', 'customer', c.id, `Client ${c.name} ${c.active ? 'désactivé' : 'activé'}`);
-      toast.show(`Client ${c.active ? 'désactivé' : 'activé'}`);
-      refresh();
-    }
-  };
-
-  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
     setConfirmDelete(id);
@@ -206,11 +176,6 @@ export function ClientsPage() {
       refresh();
     }
   };
-
-  // Load client types
-  useEffect(() => {
-    setTypesOptions(['particulier', 'restaurant', 'marché', 'exportateur', 'autre']);
-  }, []);
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">

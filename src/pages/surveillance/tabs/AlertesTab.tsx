@@ -1,16 +1,13 @@
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Bell, AlertTriangle, CheckCircle, RefreshCw, Search} from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
-import { formatDate, timeAgo } from '@/lib/format';
+import { timeAgo } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
-import { Modal } from '@/components/ui/Modal';
-import { useValidatedForm } from '@/components/ui/ValidatedForm';
-import { z } from 'zod';
 import { logAudit } from '@/lib/types';
 
 export function AlertesTab() {
@@ -20,12 +17,6 @@ export function AlertesTab() {
 
   // Bouton de rafraîchissement des alertes
   const [checkAlertsRunning, setCheckAlertsRunning] = useState(false);
-
-  // Schéma de validation pour la résolution d'alerte
-  const resolveSchema = z.object({
-    status: z.enum(['résolue']),
-    resolved_at: z.string().optional(),
-  });
 
   const kpis = useMemo(() => {
     const open = alerts.filter(a => a.status === 'ouverte').length;
@@ -293,7 +284,7 @@ export function AlertesTab() {
         </div>
         <select
           value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value as any)}
+          onChange={e => setFilterStatus(e.target.value as 'ouverte' | 'résolue' | '')}
           className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white"
         >
           <option value="">Tous les statuts</option>
@@ -302,7 +293,7 @@ export function AlertesTab() {
         </select>
         <select
           value={filterSeverity}
-          onChange={e => setFilterSeverity(e.target.value as any)}
+          onChange={e => setFilterSeverity(e.target.value as 'high' | 'medium' | 'low' | '')}
           className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white"
         >
           <option value="">Toutes les sévérités</option>

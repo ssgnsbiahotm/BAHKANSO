@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { hasPermission, getAccessibleModules, type ModuleKey, type PermissionAction, type UserRole } from '@/lib/rbac';
 
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { appUser, authUser, loading } = useAuth();
   const location = useLocation();
@@ -27,7 +27,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 }
 
 // Composant pour protéger les routes nécessitant un module spécifique
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export function RequireModule({ module, action = 'read', children }: { module: ModuleKey; action?: PermissionAction; children: React.ReactNode }) {
   const { appUser, authUser, loading } = useAuth();
   const location = useLocation();
@@ -81,7 +81,7 @@ export function RequireModule({ module, action = 'read', children }: { module: M
 }
 
 // Composant pour protéger les routes nécessitant un rôle spécifique (legacy)
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export function RequireRole({ role, children }: { role: string; children: React.ReactNode }) {
   const { appUser } = useAuth();
 

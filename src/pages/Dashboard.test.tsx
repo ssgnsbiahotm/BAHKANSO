@@ -16,7 +16,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>();
   return {
     ...actual,
-    Link: ({ children, to, ...props }: any) => <a href={to || '#'} {...props}>{children}</a>,
+    Link: ({ children, to, ...props }: { children?: React.ReactNode; to?: string; [key: string]: unknown }) => <a href={to || '#'} {...props}>{children}</a>,
   };
 });
 vi.mock('lucide-react', async (importOriginal) => {
@@ -30,7 +30,7 @@ const mockUseAuth = useAuth as ReturnType<typeof vi.fn>;
 function renderDash(overrides: {
   role?: string;
   sourceStatus?: Partial<Record<string, SourceStatus>>;
-  arrays?: Record<string, any[]>;
+  arrays?: Record<string, unknown[]>;
   loading?: boolean;
   error?: string | null;
 } = {}) {

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Users, Plus, Shield, MapPin, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Users, Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
 export interface Site {
   id: string;
   name: string;
@@ -15,7 +15,6 @@ import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
-import { formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
@@ -32,7 +31,7 @@ export function SitesPage() {
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editSite, setEditSite] = useState<Site | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     code: '',
@@ -126,13 +125,13 @@ export function SitesPage() {
         setModalOpen(false);
         refresh();
       }
-    } catch (err: any) {
-      toast.show('Erreur inattendue: ' + (err.message || 'Unknown error'), 'error');
+    } catch (err) {
+      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
       setSaving(false);
     }
   };
 
-  const [confirmSite, setConfirmSite] = useState<any | null>(null);
+  const [confirmSite, setConfirmSite] = useState<Site | null>(null);
 
 const handleDelete = async (id: string) => {
     if (!window.confirm('Supprimer ce site ?')) return;
@@ -162,7 +161,7 @@ const handleDelete = async (id: string) => {
   useEffect(() => {
     if (!sites || sites.length === 0) {
       ;(async () => {
-        const { data, error } = await supabase.from('sites').select('*');
+        const { error } = await supabase.from('sites').select('*');
         if (error) {
           console.error('Error fetching sites:', error);
         } else {
@@ -175,7 +174,7 @@ const handleDelete = async (id: string) => {
   // Fetch users with role for linking
   useEffect(() => {
     ;(async () => {
-      const { data, error } = await supabase.from('app_users').select('*').eq('role', 'responsible');
+      const { error } = await supabase.from('app_users').select('*').eq('role', 'responsible');
       if (error) {
         console.error('Error fetching responsables:', error);
       }
@@ -251,7 +250,7 @@ const handleDelete = async (id: string) => {
                   {canManageSites && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); openEdit(s); }} aria-label={`Modifier le site ${s.name}`}
+                      onClick={() => { openEdit(s); }} aria-label={`Modifier le site ${s.name}`}
                       className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
                     >
                       <Pencil size={14} /> Modifier
@@ -260,7 +259,7 @@ const handleDelete = async (id: string) => {
                   {canManageSites && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} aria-label={`Supprimer le site ${s.name}`}
+                      onClick={() => { handleDelete(s.id); }} aria-label={`Supprimer le site ${s.name}`}
                       className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
                     >
                       <Trash2 size={14} /> Supprimer
@@ -356,7 +355,7 @@ const handleDelete = async (id: string) => {
                     name="status"
                     value="actif"
                     checked={form.status === 'actif'}
-                    onChange={(e) => setForm({ ...form, status: 'actif' })}
+                    onChange={() => setForm({ ...form, status: 'actif' })}
                     className="hidden"
                   />
                   Actif
@@ -369,7 +368,7 @@ const handleDelete = async (id: string) => {
                     name="status"
                     value="inactif"
                     checked={form.status === 'inactif'}
-                    onChange={(e) => setForm({ ...form, status: 'inactif' })}
+                    onChange={() => setForm({ ...form, status: 'inactif' })}
                     className="hidden"
                   />
                   Inactif

@@ -14,7 +14,7 @@ export interface Column<T> {
 }
 
 interface DataTableState {
-  sortedColumn: any;
+  sortedColumn: string | null;
   sortDirection: 'asc' | 'desc';
   searchTerm: string;
   currentPage: number;
@@ -25,7 +25,7 @@ interface DataTableState {
  * Composant de tableau de données avec tri, recherche et pagination côté client
  * Contrat rétabli pour être compatible avec l'usage existant dans les pages Documents, Expenses, Fundings
  */
-export function DataTable<T = any>({
+export function DataTable<T = unknown>({
   columns,
   data,
   rowKey,
@@ -136,7 +136,7 @@ export function DataTable<T = any>({
       }
       return {
         ...prev,
-        sortedColumn: key,
+        sortedColumn: key as string,
         sortDirection: 'asc',
         currentPage: 1, // Retour à la première page lors de nouveau tri
       };

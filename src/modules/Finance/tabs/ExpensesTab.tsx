@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { List, CreditCard, FileText, Plus, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
+import { List, CreditCard, Plus, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';

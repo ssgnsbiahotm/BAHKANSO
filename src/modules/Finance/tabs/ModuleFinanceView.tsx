@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Sprout, Beef, HardHat, Package, Truck, DollarSign, CreditCard, FileText, Wallet, ArrowUp, ArrowDown, Minus, RotateCw, RotateCcw, ChevronRight } from 'lucide-react';
+import { Sprout, Beef, HardHat, Package, Truck, DollarSign, CreditCard, FileText, Wallet, Minus, RotateCcw, ChevronRight } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useFundings } from '@/modules/Finance/hooks/useFinanceData';

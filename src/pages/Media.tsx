@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Plus, Search, X, Upload, Image as ImageIcon, Eye, Pencil, Trash2, ChevronDown, Menu, Calendar } from 'lucide-react';
+import { Plus, Search, Upload, Image as ImageIcon, Calendar } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -9,7 +9,6 @@ import { formatDate } from '@/lib/format';
 import { MEDIA_TYPES, MEDIA_CATEGORIES } from '@/lib/constants';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { SimpleBadge, StatusBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -74,18 +73,6 @@ export function Media() {
     setEditMedia(null);
     setForm(emptyForm());
     setImageUrl(null);
-    setModalOpen(true);
-  };
-
-  const openEdit = (m: Media) => {
-    setEditMedia(m);
-    setForm({
-      title: m.title,
-      description: m.description ?? '',
-      type: m.type,
-      category: m.category ?? '',
-    });
-    setImageUrl(m.url);
     setModalOpen(true);
   };
 
@@ -207,7 +194,7 @@ export function Media() {
         </div>
         <select
           value={typeFilter}
-          onChange={e => setTypeFilter(e.target.value as any)}
+          onChange={e => setTypeFilter(e.target.value as Media['type'] | 'all')}
           className="px-3 py-2 text-sm border border-default rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
         >
           <option value="all">Tous types</option>

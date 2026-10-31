@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Wheat, Plus } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -9,7 +8,6 @@ import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -70,7 +68,6 @@ export function CropOperationManage() {
   const { cropOperations, campaigns, plots, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editOperation, setEditOperation] = useState<CropOperation | null>(null);
@@ -168,13 +165,13 @@ export function CropOperationManage() {
 
   const getCampaignName = (campaignId: string | null) => {
     if (!campaignId) return '—';
-    const c = campaigns.find((x: any) => x.id === campaignId);
+    const c = campaigns.find((x) => x.id === campaignId);
     return c ? `Campagne ${c.year} – ${c.crop_name}` : '—';
   };
 
   const getPlotName = (plotId: string | null) => {
     if (!plotId) return '—';
-    const p = plots.find((x: any) => x.id === plotId);
+    const p = plots.find((x) => x.id === plotId);
     return p ? `${p.reference || ''} ${p.name || ''}`.trim() : '—';
   };
 
@@ -436,7 +433,7 @@ export function CropOperationManage() {
                   onChange={(e) => setForm('campaign_id', e.target.value || undefined)}
                 >
                   <option value="">—</option>
-                  {campaigns.map((c: any) => (
+                  {campaigns.map((c) => (
                     <option key={c.id} value={c.id}>
                       Campagne {c.year} – {c.crop_name}
                     </option>
@@ -449,7 +446,7 @@ export function CropOperationManage() {
                   onChange={(e) => setForm('plot_id', e.target.value || undefined)}
                 >
                   <option value="">—</option>
-                  {plots.map((p: any) => (
+                  {plots.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.reference} — {p.name}
                     </option>

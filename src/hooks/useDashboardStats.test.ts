@@ -14,7 +14,7 @@ type SourceMap = Record<string, SourceStatus>;
 
 function setup(overrides: {
   sourceStatus?: Partial<SourceMap>;
-  arrays?: Record<string, any[]>;
+  arrays?: Record<string, unknown[]>;
   loading?: boolean;
   error?: string | null;
 }) {
@@ -48,8 +48,8 @@ function setup(overrides: {
   return renderHook(() => useDashboardStats());
 }
 
-function current(result: ReturnType<typeof renderHook>): any {
-  return result.result.current;
+function current(result: ReturnType<typeof renderHook>) {
+  return result.result.current as unknown as Record<string, unknown>;
 }
 
 describe('useDashboardStats', () => {

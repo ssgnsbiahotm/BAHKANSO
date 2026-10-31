@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -16,7 +16,7 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import { FormField, FormInput, FormSelect, FormTextarea, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import { Plus } from 'lucide-react';
 import * as z from 'zod';
-import type { AnimalEvent, Animal, AnimalLot } from '@/lib/types';
+import type { AnimalEvent } from '@/lib/types';
 
 const eventSchema = z.object({
   type: z.string().min(1, 'Le type est obligatoire'),
@@ -72,7 +72,6 @@ export function AnimalEventManage() {
   const { animalEvents, animals, animalLots, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [modalOpen, setModalOpen] = useState(false);

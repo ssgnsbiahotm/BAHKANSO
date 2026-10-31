@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook } from '@testing-library/react';
 import { useSurveillance, useSurveillanceMutations, isOverdue, getTypeLabel, getStatusLabel, getStatusColor, getTypeColor } from './useSurveillance';
 import type { SurveillanceEvent } from '@/lib/types';
 
@@ -24,24 +24,20 @@ vi.mock('@/lib/Toast', () => ({
 
 // Mock supabase
 vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn(),
-    })),
-  },
+  from: vi.fn(() => ({
+    select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn(),
+  })),
 }));
 
 import { usePaginatedQuery } from './usePaginatedQuery';
 import { useAsyncAction } from './useAsyncAction';
-import { supabase } from '@/lib/supabase';
 
 const mockUsePaginatedQuery = vi.mocked(usePaginatedQuery);
 const mockUseAsyncAction = vi.mocked(useAsyncAction);
-const mockSupabase = vi.mocked(supabase);
 
 // Helper to create a complete mock SurveillanceEvent for testing
 const createMockEvent = (overrides: Partial<SurveillanceEvent> = {}): SurveillanceEvent => ({
@@ -131,7 +127,7 @@ describe('useSurveillance', () => {
 
     const callArgs = mockUsePaginatedQuery.mock.calls[0][0];
     const filters = callArgs.filters ?? [];
-    const deletedAtFilter = filters.find(f => f.column === 'deleted_at');
+    const deletedAtFilter = filters.find((f: { column: string }) => f.column === 'deleted_at');
     expect(deletedAtFilter).toEqual({ column: 'deleted_at', operation: 'is', value: null });
   });
 
@@ -140,7 +136,7 @@ describe('useSurveillance', () => {
 
     const callArgs = mockUsePaginatedQuery.mock.calls[0][0];
     const filters = callArgs.filters ?? [];
-    const typeFilter = filters.find(f => f.column === 'type');
+    const typeFilter = filters.find((f: { column: string }) => f.column === 'type');
     expect(typeFilter).toEqual({ column: 'type', operation: 'eq', value: 'phyto_traitement' });
   });
 
@@ -149,7 +145,7 @@ describe('useSurveillance', () => {
 
     const callArgs = mockUsePaginatedQuery.mock.calls[0][0];
     const filters = callArgs.filters ?? [];
-    const statusFilter = filters.find(f => f.column === 'status');
+    const statusFilter = filters.find((f: { column: string }) => f.column === 'status');
     expect(statusFilter).toEqual({ column: 'status', operation: 'eq', value: 'planifie' });
   });
 
@@ -158,7 +154,7 @@ describe('useSurveillance', () => {
 
     const callArgs = mockUsePaginatedQuery.mock.calls[0][0];
     const filters = callArgs.filters ?? [];
-    const plotFilter = filters.find(f => f.column === 'plot_id');
+    const plotFilter = filters.find((f: { column: string }) => f.column === 'plot_id');
     expect(plotFilter).toEqual({ column: 'plot_id', operation: 'eq', value: 'plot-123' });
   });
 });

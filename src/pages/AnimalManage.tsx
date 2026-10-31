@@ -10,7 +10,6 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
-import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { Modal } from '@/components/ui/Modal';
@@ -112,10 +111,10 @@ export function AnimalManage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editAnimal, setEditAnimal] = useState<Animal | null>(null);
   const [detailAnimal, setDetailAnimal] = useState<Animal | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Animal | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [openDeathModal, setOpenDeathModal] = useState(false);
-  const [deathAnimal, setDeathAnimal] = useState<any>(null);
+  const [deathAnimal, setDeathAnimal] = useState<Animal | null>(null);
   const [deathReason, setDeathReason] = useState('');
   const [deathCost, setDeathCost] = useState(0);
 
@@ -183,7 +182,7 @@ export function AnimalManage() {
     const term = searchTerm.toLowerCase();
     return animals.filter(a =>
       (a.identifier || '').toLowerCase().includes(term) ||
-      (((a as any).name || '') as string).toLowerCase().includes(term) ||
+      ((a.name || '') as string).toLowerCase().includes(term) ||
       a.species.toString().includes(term) ||
       ((a.breed || '') as string).toLowerCase().includes(term) ||
       ((a.sex || '') as string).toString().includes(term) ||
@@ -217,7 +216,7 @@ export function AnimalManage() {
     setModalOpen(true);
   }, [setForm]);
 
-  const openEdit = useCallback((animal: any) => {
+  const openEdit = useCallback((animal: Animal) => {
     setEditAnimal(animal);
     setForm('identifier', animal.identifier);
     setForm('name', animal.name || '');
@@ -233,14 +232,14 @@ export function AnimalManage() {
     setModalOpen(true);
   }, [setForm]);
 
-  const handleOpenDeathModal = useCallback((animal: any) => {
+  const handleOpenDeathModal = useCallback((animal: Animal) => {
     setDeathAnimal(animal);
     setDeathReason('');
     setDeathCost(0);
     setOpenDeathModal(true);
   }, []);
 
-  const updateStatus = async (animal: any, status: string) => {
+  const updateStatus = async (animal: Animal, status: string) => {
     const { error } = await supabase.from('animals').update({ status }).eq('id', animal.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
@@ -275,9 +274,9 @@ export function AnimalManage() {
     refresh();
   };
 
-  const getAnimalName = (a: any) => a.identifier || a.name || `Animal ${a.id}`;
+  const getAnimalName = (a: Animal) => a.identifier || a.name || `Animal ${a.id}`;
 
-  const renderDetailFields = (a: any) => (
+  const renderDetailFields = (a: Animal) => (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
         <div>
@@ -303,7 +302,7 @@ export function AnimalManage() {
     </div>
   );
 
-  const renderDetailFooter = (animal: any) => (
+  const renderDetailFooter = (animal: Animal) => (
     <>
       <button onClick={() => setConfirmDelete(animal)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
       <button onClick={() => openEdit(animal)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
@@ -388,7 +387,7 @@ export function AnimalManage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredAnimals.map((animal: any) => (
+          {filteredAnimals.map((animal: Animal) => (
             <RotatingCard
               key={animal.id}
               front={

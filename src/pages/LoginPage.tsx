@@ -230,7 +230,7 @@ function QuoteSection({ quote, author }: { quote: string; author: string }) {
 export function LoginPage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signIn, signUp, resetPassword, authUser, appUser } = useAuth();
+  const { signIn, signUp, resetPassword, appUser } = useAuth();
   const { siteContent, farm } = useData();
 
   const branding = useMemo(() => (siteContent.branding?.value as Record<string, string>) || {}, [siteContent]);

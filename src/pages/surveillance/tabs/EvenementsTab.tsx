@@ -1,8 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
-import { FormSimplifie } from '@/components/ui/FormSimplifie';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useSurveillance } from '@/hooks/useSurveillance';
-import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
@@ -11,10 +9,8 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { Modal } from '@/components/ui/Modal';
-import { useValidatedForm } from '@/components/ui/ValidatedForm';
-import { z } from 'zod';
-import { Plus, Edit2, Trash2, CheckCircle, Calendar, Filter, Search , Wrench, AlertTriangle, RotateCw} from 'lucide-react';
-import { logAudit } from '@/lib/types';
+import { Plus, Edit2, Trash2, CheckCircle, Calendar, Filter, Search, Wrench, AlertTriangle, RotateCw } from 'lucide-react';
+import { logAudit, type SurveillanceEvent, type SurveillanceEventStatus } from '@/lib/types';
 
 const TYPE_LABELS: Record<string, string> = {
   phyto_traitement: 'Traitement phytosanitaire',
@@ -55,28 +51,7 @@ const STATUS_LABELS: Record<string, string> = {
   annule: 'Annulé',
 };
 
-/* ---- Schéma Zod ---- */
-const surveillanceSchema = z.object({
-  type: z.enum(['phyto_traitement', 'equip_panne']),
-  plot_id: z.string().nullable().optional(),
-  campaign_id: z.string().nullable().optional(),
-  lot_id: z.string().nullable().optional(),
-  animal_id: z.string().nullable().optional(),
-  project_id: z.string().nullable().optional(),
-  label: z.string().min(1, 'Libellé obligatoire').max(255),
-  description: z.string().nullable().optional(),
-  scheduled_at: z.string().min(1, 'Date planifiée obligatoire'),
-  completed_at: z.string().nullable().optional(),
-  status: z.enum(['planifie', 'en_cours', 'termine', 'annule']).default('planifie'),
-  cost_amount: z.number().nonnegative('Coût doit être positif ou nul').nullable().optional(),
-  responsible_id: z.string().nullable().optional(),
-  details: z.record(z.string(), z.unknown()).default({}),
-});
-
-type SurveillanceFormValues = z.infer<typeof surveillanceSchema>;
-
 export function EvenementsTab() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { appUser } = useAuth();
   const toast = useToast();
@@ -95,16 +70,8 @@ export function EvenementsTab() {
     }
   }, [location.search]);
 
-  // Synchroniser le changement d'onglet via navigation
-  const handleTabChange = (tab: SurveillanceTab) => {
-    setActiveTab(tab);
-    const params = new URLSearchParams();
-    params.set('tab', tab);
-    navigate(`?${params.toString()}`, { replace: true });
-  };
-
   const events = useSurveillance(
-    { type: undefined, status: (activeTab !== "tous" ? activeTab : undefined) as any },
+    { type: undefined, status: (activeTab !== "tous" ? activeTab : undefined) as SurveillanceEventStatus },
     1,
     100
   );
@@ -116,9 +83,9 @@ export function EvenementsTab() {
     const data = events.data?.data ?? [];
     return {
       total: data.length,
-      planifies: data.filter((e: any) => e.status === 'planifie').length,
-      enCours: data.filter((e: any) => e.status === 'en_cours').length,
-      enRetard: data.filter((e: any) => e.status === 'planifie' && new Date(e.scheduled_at) < new Date()).length,
+      planifies: data.filter((e: SurveillanceEvent) => e.status === 'planifie').length,
+      enCours: data.filter((e: SurveillanceEvent) => e.status === 'en_cours').length,
+      enRetard: data.filter((e: SurveillanceEvent) => e.status === 'planifie' && new Date(e.scheduled_at) < new Date()).length,
     };
   }, [events.data?.data]);
 
@@ -127,7 +94,7 @@ export function EvenementsTab() {
   const [filterStatus, setFilterStatus] = useState<'planifie' | 'en_cours' | 'termine' | 'annule' | ''>('');
 
   const filtered = useMemo(() => {
-    return (events.data?.data ?? []).filter((e: any) => {
+    return (events.data?.data ?? []).filter((e: SurveillanceEvent) => {
       if (filterType && e.type !== filterType) return false;
       if (filterStatus && e.status !== filterStatus) return false;
       return true;
@@ -136,19 +103,19 @@ export function EvenementsTab() {
 
   // Modal création/édition
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<any | null>(null);
+  const [editingEvent, setEditingEvent] = useState<SurveillanceEvent | null>(null);
 
   const handleNewEvent = () => {
     setEditingEvent(null);
     setModalOpen(true);
   };
 
-  const handleEdit = (event: any) => {
+  const handleEdit = (event: SurveillanceEvent) => {
     setEditingEvent(event);
     setModalOpen(true);
   };
 
-  const handleDelete = async (event: any) => {
+  const handleDelete = async (event: SurveillanceEvent) => {
     if (!window.confirm('Supprimer cet événement ?')) return;
     const { error } = await supabase.from('surveillance_events').delete().eq('id', event.id);
     if (error) {
@@ -162,7 +129,7 @@ export function EvenementsTab() {
     }
   };
 
-  const handleModalSubmit = async (values: SurveillanceFormValues) => {
+  const handleModalSubmit = async (values: Partial<SurveillanceEvent>) => {
     if (editingEvent) {
       // Mise à jour de l'événement existant
       const { error } = await supabase
@@ -284,7 +251,7 @@ export function EvenementsTab() {
             <p className="text-sm">Cliquez sur « Nouvel événement » pour commencer</p>
           </div>
         ) : (
-          filtered.map((event: any) => (
+          filtered.map((event: SurveillanceEvent) => (
             <RotatingCard
               key={event.id}
               flipLabel={`Détail — ${event.label}`}

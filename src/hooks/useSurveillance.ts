@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { usePaginatedQuery } from './usePaginatedQuery';
 import { supabase } from '@/lib/supabase';
 import { useAsyncAction } from './useAsyncAction';
-import { useToast } from '@/lib/Toast';
 import type { SurveillanceEvent, SurveillanceEventType, SurveillanceEventStatus } from '@/lib/types';
 
 /**
@@ -83,7 +82,6 @@ export interface SurveillanceEventInput {
  * Utilise useAsyncAction pour toasts et état de chargement.
  */
 export function useSurveillanceMutations() {
-  const toast = useToast();
   const { loading, executeAction } = useAsyncAction();
 
   const create = async (input: SurveillanceEventInput): Promise<SurveillanceEvent | null> => {

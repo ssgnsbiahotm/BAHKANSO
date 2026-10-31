@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Wheat, Plus, Trash2, Pencil, Eye, Save, List } from 'lucide-react';
+import { Wheat, Plus, Save, List } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -29,28 +28,15 @@ const harvestSchema = z.object({
   destination: z.string().optional(),
 });
 
-interface HarvestFormValues {
-  campaign_id?: string;
-  plot_id?: string;
-  date: string;
-  quantity: number;
-  unit: string;
-  quality?: string;
-  estimated_price?: number;
-  revenue?: number;
-  destination?: string;
-}
-
 export function HarvestManage() {
   const { harvests, campaigns, plots, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editHarvest, setEditHarvest] = useState<any>(null);
-  const [detailHarvest, setDetailHarvest] = useState<any>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [editHarvest, setEditHarvest] = useState<Harvest | null>(null);
+  const [detailHarvest, setDetailHarvest] = useState<Harvest | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Harvest | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -162,13 +148,13 @@ export function HarvestManage() {
 
   const getCampaignName = (campaignId: string | null) => {
     if (!campaignId) return '—';
-    const c = campaigns.find((x: any) => x.id === campaignId);
+    const c = campaigns.find((x) => x.id === campaignId);
     return c ? `Campagne ${c.year} – ${c.crop_name}` : '—';
   };
 
   const getPlotName = (plotId: string | null) => {
     if (!plotId) return '—';
-    const p = plots.find((x: any) => x.id === plotId);
+    const p = plots.find((x) => x.id === plotId);
     return p ? `${p.reference || ''} ${p.name || ''}`.trim() : '—';
   };
 
@@ -313,7 +299,7 @@ export function HarvestManage() {
                 className="form-input w-full"
               >
                 <option value="">—</option>
-                {campaigns.map((c: any) => (
+                {campaigns.map((c) => (
                   <option key={c.id} value={c.id}>
                     Campagne {c.year} – {c.crop_name}
                   </option>
@@ -328,7 +314,7 @@ export function HarvestManage() {
                 className="form-input w-full"
               >
                 <option value="">—</option>
-                {plots.map((p: any) => (
+                {plots.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.reference} — {p.name}
                   </option>

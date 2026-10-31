@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, TrendingDown, Minus, CreditCard, Wallet, List, Plus, Trash2, Edit2, Eye, ExternalLink, ArrowUp, ArrowDown } from 'lucide-react';
+import { CreditCard, Wallet, List, Plus, Trash2, Edit2, Eye, ArrowUp, ArrowDown } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';

@@ -9,7 +9,7 @@ import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import * as z from 'zod';
-import type { InventoryItem, InventoryMovement, Site } from '@/lib/types';
+import type { InventoryItem } from '@/lib/types';
 
 import '@/styles/module-theme.css';
 
@@ -37,7 +37,7 @@ const DEFAULT_VALUES: ItemFormValues = {
 
 export function Inventory() {
   const navigate = useNavigate();
-  const { inventoryItems, inventoryMovements, sites, refresh } = useData();
+  const { inventoryItems, inventoryMovements, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
 
@@ -143,17 +143,6 @@ export function Inventory() {
     setForm('unit_cost', item.unit_cost);
     setModalOpen(true);
   }, []);
-
-  const openDetail = useCallback((item: InventoryItem) => {
-    setDetailItem(item);
-  }, []);
-
-  const handleDelete = useCallback(
-    (item: InventoryItem) => {
-      setConfirmDelete(item);
-    },
-    [],
-  );
 
   const handleDeleteConfirmed = useCallback(async (item: InventoryItem) => {
     const { error } = await supabase.from('inventory_items').delete().eq('id', item.id);
@@ -542,6 +531,6 @@ export function Inventory() {
 }
 
 // Import form primitives
-import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
+import { FormField, FormInput, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { Modal } from '@/components/ui/Modal';

@@ -1,12 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { useData } from '@/lib/DataContext';
-import { useAuth } from '@/lib/AuthContext';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/lib/Toast';
-import { formatDate, formatDateTime } from '@/lib/format';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { RotatingCard } from '@/components/ui/RotatingCard';
 import { AlertesTab } from '@/pages/surveillance/tabs/AlertesTab';
 import { EvenementsTab } from '@/pages/surveillance/tabs/EvenementsTab';
 import { HistoriqueTab } from '@/pages/surveillance/tabs/HistoriqueTab';
@@ -14,7 +7,6 @@ import { Plus, AlertCircle } from 'lucide-react';
 
 export function SurveillancePage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   // Récupérer l'onglet actif depuis l'URL (?tab=)
@@ -25,10 +17,6 @@ export function SurveillancePage() {
     if (tab === 'historique') return 'HistoriqueTab';
     return 'EvenementsTab'; // par défaut
   })();
-
-  const { refresh } = useData();
-  const { appUser } = useAuth();
-  const toast = useToast();
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">

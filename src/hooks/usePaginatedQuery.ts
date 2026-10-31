@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/supabase';
 
 // Types génériques pour la pagination
-interface PaginatedQueryOptions<T> {
+interface PaginatedQueryOptions<T = unknown> {
   table: keyof Database['public']['Tables'];
   columns?: string;
   filters?: Array<{
@@ -61,7 +61,7 @@ export function usePaginatedQuery<T = unknown>(
     let query = supabase.from(table as string).select(columns, { count: 'exact' });
 
     // Appliquer les filtres
-    filters.forEach(filter => {
+    filters.forEach((filter: { column: string; operation: string; value: unknown }) => {
       switch (filter.operation) {
         case 'eq':
           query = query.eq(filter.column, filter.value as unknown);
@@ -166,7 +166,7 @@ export function useSimpleQuery<T = unknown>(
     let query = supabase.from(table as string).select(columns);
 
     // Appliquer les filtres
-    filters.forEach(filter => {
+    filters.forEach((filter: { column: string; operation: string; value: unknown }) => {
       switch (filter.operation) {
         case 'eq':
           query = query.eq(filter.column, filter.value as unknown);

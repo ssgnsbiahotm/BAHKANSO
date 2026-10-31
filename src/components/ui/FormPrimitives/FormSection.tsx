@@ -15,11 +15,11 @@ export function FormSection({
   className = '',
   defaultOpen = true,
 }: FormSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
   if (!title) {
     return <div className={`space-y-4 ${className}`}>{children}</div>;
   }
-
-  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <details className={`group ${className}`} open={defaultOpen}>

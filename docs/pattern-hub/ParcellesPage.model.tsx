@@ -5,7 +5,6 @@ import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
-import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import * as z from 'zod';
 import type { Plot, Site } from '@/lib/types';
@@ -145,17 +144,6 @@ export function ParcellesPage() {
     setForm('current_crop', plot.current_crop ?? '');
     setModalOpen(true);
   }, []);
-
-  const openDetail = useCallback((plot: Plot) => {
-    setDetailPlot(plot);
-  }, []);
-
-  const handleDelete = useCallback(
-    (plot: Plot) => {
-      setConfirmDelete(plot);
-    },
-    [],
-  );
 
   const handleDeleteConfirmed = useCallback(async (plot: Plot) => {
     const { error } = await supabase.from('plots').delete().eq('id', plot.id);

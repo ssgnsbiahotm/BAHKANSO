@@ -1,11 +1,10 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
-import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
@@ -16,7 +15,6 @@ import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import { Plus } from 'lucide-react';
 import * as z from 'zod';
-import type { AnimalLot } from '@/lib/types';
 
 const lotSchema = z.object({
   identifier: z.string().min(1, 'L identificateur est obligatoire'),
@@ -54,7 +52,6 @@ export function AnimalLotManage() {
   const { animalLots, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [modalOpen, setModalOpen] = useState(false);

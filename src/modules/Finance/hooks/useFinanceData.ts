@@ -1,5 +1,4 @@
 import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import type { Transaction, Funding, Expense, Document } from '@/lib/types';
 
