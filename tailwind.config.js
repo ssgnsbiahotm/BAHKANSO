@@ -17,7 +17,7 @@ export default {
           900: 'var(--accent-primary-hover)',
           950: 'var(--accent-primary-hover)',
         },
-        secondary: {
+        info: {
           50:  'var(--info-soft)',
           100: 'var(--info-soft)',
           200: 'var(--info-soft)',
@@ -30,7 +30,7 @@ export default {
           900: 'var(--info)',
           950: 'var(--info)',
         },
-        accent: {
+        warning: {
           50:  'var(--warning-soft)',
           100: 'var(--warning-soft)',
           200: 'var(--warning-soft)',
@@ -76,6 +76,21 @@ export default {
           500: 'var(--danger)',
           600: 'var(--danger)',
           700: 'var(--danger)',
+        },
+        signal: {
+          500: 'var(--accent-primary)',
+        },
+        night: {
+          500: 'var(--color-night)',
+        },
+        ivory: {
+          500: 'var(--color-ivory)',
+        },
+        gold: {
+          500: 'var(--color-gold)',
+        },
+        terra: {
+          500: 'var(--color-terra)',
         },
         /* Semantic aliases for direct use */
         'bg-page': 'var(--bg-page)',
