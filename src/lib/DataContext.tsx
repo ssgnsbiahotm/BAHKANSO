@@ -49,7 +49,9 @@ interface DataContextType {
   cropOperations: CropOperation[];
   harvests: Harvest[];
   animals: Animal[];
+  animaux: Animal[];
   animalLots: AnimalLot[];
+  lots: AnimalLot[];
   animalEvents: AnimalEvent[];
   projects: Project[];
   projectSteps: ProjectStep[];
@@ -276,6 +278,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       nextStatus.animals = 'success';
       nextSourceError.animals = null;
       setAnimals(animalsRes.data || []);
+      setAnimaux(animalsRes.data || []);
     }
     if (lotsRes.error) {
       nextStatus.animalLots = 'error';
@@ -284,6 +287,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       nextStatus.animalLots = 'success';
       nextSourceError.animalLots = null;
       setAnimalLots(lotsRes.data || []);
+      setLots(lotsRes.data || []);
     }
     if (campaignsRes.error) {
       nextStatus.campaigns = 'error';
@@ -314,7 +318,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     <DataContext.Provider value={{
       farm, users, funders, fundings, bankAccounts, cashAccounts, transactions,
       suppliers, expenses, documents, sites, plots, campaigns, cropOperations,
-      harvests, animals, animalLots, animalEvents, projects, projectSteps,
+      harvests, animaux: animals, lots: animalLots, animalEvents, projects, projectSteps,
       inventoryItems, inventoryMovements, inventoryCounts, budgets, alerts,
       notifications, auditLogs, siteContent, media,
       loading, error, sourceStatus, sourceError, refresh: loadAll,
