@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { RotatingCard } from '@/components/ui/RotatingCard';
+import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 import { useRef } from 'react';
 
 const isAdminOrOwner = (role: string | undefined) =>
@@ -131,6 +132,32 @@ export function BailleursPage() {
   };
 
   const [confirmDelete, setConfirmDelete] = useState<Funder | null>(null);
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      const { error } = await supabase
+        .from('funders')
+        .delete()
+        .eq('id', confirmDelete.id);
+      if (error) throw error;
+      await logAudit(
+        appUser?.name || 'Système',
+        'DELETE',
+        'funder',
+        confirmDelete.id,
+        `Bailleur ${confirmDelete.name} supprimé`,
+      );
+      toast.show('Bailleur supprimé', 'success');
+      setConfirmDelete(null);
+      refresh();
+    } catch (err) {
+      toast.show(
+        'Erreur lors de la suppression : ' + (err instanceof Error ? err.message : 'Inconnue'),
+        'error',
+      );
+    }
+  };
 
   // Load funders from Supabase if not loaded via DataContext
   useEffect(() => {
@@ -347,6 +374,15 @@ export function BailleursPage() {
           </div>
         </form>
       </Modal>
+      {confirmDelete && (
+        <ConfirmDeleteModal
+          entity={confirmDelete}
+          getEntityName={(f) => f.name}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={handleConfirmDelete}
+          title="Supprimer ce bailleur ?"
+        />
+      )}
     </div>
   );
 }
