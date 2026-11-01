@@ -125,11 +125,11 @@ export function SaleFormModal({ isOpen, onClose, saleToEdit, onSuccess }: Props)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-white rounded-xl shadow-2xl">
+      <form onSubmit={handleSubmit} className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-surface rounded-xl shadow-2xl">
         {/* Header */}
         <div className="shrink-0 p-6 border-b flex justify-between items-center">
           <h2 className="text-xl font-bold">{saleToEdit ? 'Modifier la vente' : 'Nouvelle vente'}</h2>
-          <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-800"><X size={24} /></button>
+          <button type="button" onClick={onClose} className="text-muted hover:text-primary"><X size={24} /></button>
         </div>
 
         {/* Body scrollable */}
@@ -170,21 +170,21 @@ export function SaleFormModal({ isOpen, onClose, saleToEdit, onSuccess }: Props)
             <h3 className="text-lg font-semibold mb-2">Articles</h3>
             <div className="space-y-3">
               {lines.map((line, idx) => (
-                <div key={idx} className="bg-slate-50 p-3 rounded-lg grid grid-cols-12 gap-2 items-end">
+                <div key={idx} className="bg-surface-hover p-3 rounded-lg grid grid-cols-12 gap-2 items-end">
                   <div className="col-span-4">
-                    <label className="block text-xs text-slate-600 mb-1">Description</label>
+                    <label className="block text-xs text-secondary mb-1">Description</label>
                     <input type="text" value={line.description} onChange={e => updateLine(idx, 'description', e.target.value)} placeholder="ex: 500 kg de maïs" className="w-full border rounded px-2 py-1 text-sm" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs text-slate-600 mb-1">Qté</label>
+                    <label className="block text-xs text-secondary mb-1">Qté</label>
                     <input type="number" value={line.quantity} onChange={e => updateLine(idx, 'quantity', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs text-slate-600 mb-1">Prix unit.</label>
+                    <label className="block text-xs text-secondary mb-1">Prix unit.</label>
                     <input type="number" value={line.unit_price} onChange={e => updateLine(idx, 'unit_price', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" />
                   </div>
                   <div className="col-span-3">
-                    <label className="block text-xs text-slate-600 mb-1">Type</label>
+                    <label className="block text-xs text-secondary mb-1">Type</label>
                     <select value={line.source_type} onChange={e => updateLine(idx, 'source_type', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
                       <option value="harvest">Récolte</option>
                       <option value="animal">Animal</option>
@@ -211,8 +211,8 @@ export function SaleFormModal({ isOpen, onClose, saleToEdit, onSuccess }: Props)
         </div>
 
         {/* Footer fixe */}
-        <div className="shrink-0 p-6 border-t bg-slate-50 flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-300">Annuler</button>
+        <div className="shrink-0 p-6 border-t bg-surface-hover flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="bg-slate-200 text-secondary px-4 py-2 rounded-lg hover:bg-slate-300">Annuler</button>
           <button type="submit" disabled={isSubmitting} className="bg-green-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50">
             {isSubmitting ? 'Enregistrement...' : (saleToEdit ? 'Mettre à jour' : 'Enregistrer')}
           </button>
