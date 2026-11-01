@@ -2,7 +2,7 @@ import { useMemo, useState, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
 import { supabase } from '@/lib/supabase';
-import { Plot, Campaign } from '@/lib/types';
+import { Plot, Campaign, CropOperation, Harvest } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useToast } from '@/lib/Toast';

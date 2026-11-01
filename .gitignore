@@ -125,3 +125,4 @@ e2e/
 test-results/
 playwright/.auth/
 .directory
+auth.json

@@ -25,8 +25,8 @@ export function Livestock() {
       toast.show('Lot supprimé', 'success');
       refresh?.();
     } catch (err) {
-      console.error(err);
-      toast.show('Erreur: ' + err.message, 'error');
+      console.error(err instanceof Error ? err.message : String(err));
+      toast.show('Erreur: ' + (err instanceof Error ? err.message : String(err)), 'error');
     }
   };
 
@@ -42,8 +42,8 @@ export function Livestock() {
       toast.show('Animal supprimé', 'success');
       refresh?.();
     } catch (err) {
-      console.error(err);
-      toast.show('Erreur: ' + err.message, 'error');
+      console.error(err instanceof Error ? err.message : String(err));
+      toast.show('Erreur: ' + (err instanceof Error ? err.message : String(err)), 'error');
     }
   };
 
@@ -59,8 +59,8 @@ export function Livestock() {
       toast.show('Événement supprimé', 'success');
       refresh?.();
     } catch (err) {
-      console.error(err);
-      toast.show('Erreur: ' + err.message, 'error');
+      console.error(err instanceof Error ? err.message : String(err));
+      toast.show('Erreur: ' + (err instanceof Error ? err.message : String(err)), 'error');
     }
   };
 
