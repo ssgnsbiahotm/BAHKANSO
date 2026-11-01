@@ -62,7 +62,7 @@ export function RotatingCard({
 
   return (
     <div
-      className={`rc-container cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 ${className ?? ''}`}
+      className={`rc-container ${flipped ? 'is-flipped' : ''} cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 ${className ?? ''}`}
       role="button"
       tabIndex={0}
       aria-expanded={flipped}
