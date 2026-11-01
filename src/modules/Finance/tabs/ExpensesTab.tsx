@@ -97,25 +97,25 @@ const ExpenseCardFront = ({ expense, onEdit, onDelete, onView }: {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{expense.reference ?? '—'}</p>
-          <p className="text-xs text-slate-500 truncate">{expense.label ?? '—'}</p>
+          <p className="text-xs text-muted truncate">{expense.label ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
         </span>
       </div>
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-        <div className="flex items-center gap-1 text-xs text-slate-500">
+        <div className="flex items-center gap-1 text-xs text-muted">
           <span>{expense.category ?? '—'}</span>
         </div>
         <div className="text-right">
-          <p className="text-lg font-bold text-slate-900">{formatCurrency(expense.amount_paid ?? expense.amount)} {expense.currency}</p>
-          <p className="text-xs text-slate-500">{formatDate(expense.date)}</p>
+          <p className="text-lg font-bold text-primary">{formatCurrency(expense.amount_paid ?? expense.amount)} {expense.currency}</p>
+          <p className="text-xs text-muted">{formatDate(expense.date)}</p>
         </div>
       </div>
       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
         <button
           onClick={onView}
-          className="pointer-events-auto text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-slate-50 rounded border border-slate-200"
+          className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
           aria-label="Voir les détails"
         >
           <Eye size={12} /> Détail
@@ -123,14 +123,14 @@ const ExpenseCardFront = ({ expense, onEdit, onDelete, onView }: {
         <div className="flex items-center gap-1 pointer-events-auto">
           <button
             onClick={onEdit}
-            className="text-xs text-slate-500 hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-green-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
             aria-label="Modifier"
           >
             <Edit2 size={12} />
           </button>
           <button
             onClick={onDelete}
-            className="text-xs text-slate-500 hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-red-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
             aria-label="Supprimer"
           >
             <Trash2 size={12} />
@@ -153,7 +153,7 @@ const ExpenseCardBack = ({ expense, onClose, onEdit, onDelete }: {
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-base font-semibold">{expense.label ?? 'Dépense'}</h3>
-          <p className="text-xs text-slate-500">{expense.reference ?? '—'}</p>
+          <p className="text-xs text-muted">{expense.reference ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
@@ -161,43 +161,43 @@ const ExpenseCardBack = ({ expense, onClose, onEdit, onDelete }: {
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-slate-500">Fournisseur</p>
+          <p className="text-muted">Fournisseur</p>
           <p className="font-medium">{expense.supplier?.name ?? expense.supplier_id ?? '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Méthode de paiement</p>
+          <p className="text-muted">Méthode de paiement</p>
           <p className="font-medium">{expense.payment_method ?? '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Justificatif</p>
+          <p className="text-muted">Justificatif</p>
           <p className="font-medium">{expense.has_justificatif ? 'Oui' : 'Non'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Montant</p>
+          <p className="text-muted">Montant</p>
           <p className="font-medium">{formatCurrency(expense.amount_paid ?? expense.amount)} {expense.currency}</p>
         </div>
         <div>
-          <p className="text-slate-500">Catégorie</p>
+          <p className="text-muted">Catégorie</p>
           <p className="font-medium capitalize">{expense.category ?? '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Responsable</p>
+          <p className="text-muted">Responsable</p>
           <p className="font-medium">{expense.responsible ?? '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Date</p>
+          <p className="text-muted">Date</p>
           <p className="font-medium">{formatDate(expense.date)}</p>
         </div>
       </div>
       {expense.description && (
         <div>
-          <p className="text-slate-500 text-sm">Description</p>
+          <p className="text-muted text-sm">Description</p>
           <p className="text-sm">{expense.description}</p>
         </div>
       )}
       {expense.justificatif_url && (
         <div>
-          <p className="text-slate-500 text-sm">Justificatif</p>
+          <p className="text-muted text-sm">Justificatif</p>
           <a href={expense.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline flex items-center gap-1">
             <ExternalLink size={12} /> Ouvrir le fichier
           </a>
@@ -218,7 +218,7 @@ const ExpenseCardBack = ({ expense, onClose, onEdit, onDelete }: {
         </button>
         <button
           onClick={onClose}
-          className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+          className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
         >
           Retour
         </button>
@@ -239,8 +239,8 @@ const CreateExpenseCard = ({ onCreate }: { onCreate: () => void }) => (
           <Plus size={28} className="text-red-600" />
         </div>
         <div className="text-center">
-          <h4 className="font-semibold text-slate-900">Nouvelle dépense</h4>
-          <p className="text-sm text-slate-500">Enregistrer une dépense</p>
+          <h4 className="font-semibold text-primary">Nouvelle dépense</h4>
+          <p className="text-sm text-muted">Enregistrer une dépense</p>
         </div>
         <button
           onClick={onCreate}
@@ -503,7 +503,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       </div>
 
       {rows.length === 0 && (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-muted">
           <CreditCard size={48} className="mx-auto mb-4 text-slate-300" />
           <p className="text-lg font-medium">Aucune dépense</p>
           <p className="text-sm">Cliquez sur « Nouvelle dépense » pour commencer</p>
@@ -520,7 +520,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
         <form onSubmit={form.handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Référence *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Référence *</label>
               <input
                 type="text"
                 value={form.values.reference}
@@ -531,7 +531,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Libellé *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Libellé *</label>
               <input
                 type="text"
                 value={form.values.label}
@@ -543,7 +543,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Montant *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Montant *</label>
               <input
                 type="number"
                 value={form.values.amount}
@@ -553,7 +553,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               {form.errors.amount && <p className="text-xs text-red-500 mt-1">{form.errors.amount}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Devise *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Devise *</label>
               <input
                 type="text"
                 value={form.values.currency}
@@ -566,7 +566,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Catégorie</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Catégorie</label>
               <input
                 type="text"
                 value={form.values.category ?? ''}
@@ -576,7 +576,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Statut *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Statut *</label>
               <select
                 value={form.values.status}
                 onChange={(e) => form.setFieldValue('status', e.target.value)}
@@ -591,7 +591,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Fournisseur</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Fournisseur</label>
               <input
                 type="text"
                 value={form.values.supplier_id ?? ''}
@@ -601,7 +601,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Responsable</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Responsable</label>
               <input
                 type="text"
                 value={form.values.responsible ?? ''}
@@ -611,7 +611,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Méthode de paiement *</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Méthode de paiement *</label>
             <input
               type="text"
               value={form.values.payment_method}
@@ -622,7 +622,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Date *</label>
               <input
                 type="date"
                 value={form.values.date}
@@ -631,7 +631,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date paiement</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Date paiement</label>
               <input
                 type="date"
                 value={form.values.date_paid ?? ''}
@@ -641,7 +641,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Description</label>
             <input
               type="text"
               value={form.values.description ?? ''}
@@ -650,7 +650,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Commentaire</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Commentaire</label>
             <input
               type="text"
               value={form.values.comment ?? ''}
@@ -659,13 +659,13 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Site</label>
             <input
               type="text"
               value={siteName ?? form.values.site_id ?? ''}
               readOnly
               disabled
-              className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+              className="form-input w-full bg-surface-hover cursor-not-allowed text-secondary"
               title="Site déterminé automatiquement depuis votre session"
             />
             <input
@@ -678,7 +678,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             <button
               type="button"
               onClick={() => { setModalOpen(false); setEditingExpense(null); }}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
@@ -701,13 +701,13 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           title="Confirmer la suppression"
           size="sm"
         >
-          <p className="text-sm text-slate-600 mb-4">
+          <p className="text-sm text-secondary mb-4">
             Supprimer la dépense <strong>{deletingExpense.label ?? deletingExpense.reference ?? '—'}</strong> ?
           </p>
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setDeletingExpense(null)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
