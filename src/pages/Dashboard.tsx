@@ -560,7 +560,7 @@ export function Dashboard() {
                       <span className={`dashboard-op-amount ${t.direction === 'entree' ? 'dashboard-op-amount-income' : 'dashboard-op-amount-outcome'}`}>
                         {formatCurrency(t.amount)}
                       </span>
-                      <ArrowRight size={14} style={{ color: 'var(--dn-accent)', opacity: 0.5 }} />
+                      <ArrowRight size={14} className="text-accent-primary opacity-50" />
                     </div>
                   </Link>
                 </div>
