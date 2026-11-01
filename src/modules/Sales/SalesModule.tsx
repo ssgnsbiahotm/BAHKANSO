@@ -159,7 +159,11 @@ export function SalesModule() {
         if (error) throw error;
 
         // Delete old items and insert new ones
-        await supabase.from('sale_items').delete().eq('sale_id', editSale.id);
+        const { error: deleteItemsError } = await supabase
+          .from('sale_items')
+          .delete()
+          .eq('sale_id', editSale.id);
+        if (deleteItemsError) throw deleteItemsError;
         if (itemsWithTotals.length > 0) {
           const { error: itemsError } = await supabase.from('sale_items').insert(
             itemsWithTotals.map(item => ({ ...item, sale_id: editSale.id }))
@@ -302,7 +306,7 @@ export function SalesModule() {
       </div>
       <div className="mt-4 pt-3 border-t border-default">
         <button
-          onClick={() => setEditSale(sale)}
+          onClick={() => openEdit(sale)}
           className="flex items-center gap-1 text-sm text-secondary hover:text-success transition-colors"
           title="Modifier la vente"
         >
