@@ -126,3 +126,5 @@ test-results/
 playwright/.auth/
 .directory
 auth.json
+__pycache__/
+*.pyc
