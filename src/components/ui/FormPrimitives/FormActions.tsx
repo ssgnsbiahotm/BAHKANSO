@@ -41,7 +41,7 @@ export function FormActions({
           }
         }}
         disabled={isSubmitting}
-        className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success transition-colors disabled:opacity-50 flex items-center gap-2"
+        className="px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover transition-colors disabled:opacity-50 flex items-center gap-2"
       >
         {isSubmitting ? (
           <>

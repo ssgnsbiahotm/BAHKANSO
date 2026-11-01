@@ -35,7 +35,7 @@ export const FinanceModule = () => {
       <div className="module-page">
         <header className="module-header">
           <div className="module-header-left">
-            <h1 style={{ color: 'var(--color-ivory)' }}>Finance</h1>
+            <h1 className="text-primary">Finance</h1>
             <p className="module-subtitle">
               Gestion des financements, dépenses, documents et trésorerie
             </p>

@@ -33,7 +33,7 @@ export function ConfirmDeleteModal<T>({
           <button onClick={onClose} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">
             Annuler
           </button>
-          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger">
+          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-[var(--danger)] text-white rounded-lg hover:bg-[var(--danger)]">
             Supprimer
           </button>
         </>

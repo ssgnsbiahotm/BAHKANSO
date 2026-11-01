@@ -25,7 +25,7 @@ interface LoadingStateProps {
 export function LoadingState({ message = 'Chargement...' }: LoadingStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16">
-      <div className="w-10 h-10 border-3 border-default border-t-success rounded-full animate-spin mb-3" />
+      <div className="w-10 h-10 border-3 border-default border-t-[var(--success)] rounded-full animate-spin mb-3" />
       <p className="text-sm text-muted">{message}</p>
     </div>
   );
@@ -39,10 +39,10 @@ interface ErrorStateProps {
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16">
-      <div className="w-12 h-12 bg-danger-soft text-danger rounded-full flex items-center justify-center mb-3 text-xl">!</div>
-      <p className="text-sm text-danger mb-3">{message}</p>
+      <div className="w-12 h-12 bg-[var(--danger-soft)] text-[var(--danger)] rounded-full flex items-center justify-center mb-3 text-xl">!</div>
+      <p className="text-sm text-[var(--danger)] mb-3">{message}</p>
       {onRetry && (
-        <button onClick={onRetry} className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger">
+        <button onClick={onRetry} className="px-4 py-2 text-sm bg-[var(--danger)] text-white rounded-lg hover:bg-[var(--danger)]">
           Réessayer
         </button>
       )}

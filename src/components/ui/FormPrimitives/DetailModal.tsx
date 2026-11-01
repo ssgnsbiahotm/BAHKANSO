@@ -43,7 +43,7 @@ export function DetailModal<T>({
             {onDelete && (
               <button
                 onClick={() => onDelete(entity)}
-                className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
+                className="px-4 py-2 text-sm text-[var(--danger)] border border-default rounded-lg hover:bg-[var(--danger-soft)]"
               >
                 {deleteLabel}
               </button>

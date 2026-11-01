@@ -214,7 +214,7 @@ export function DataTable<T = unknown>({
 
   if (isError) {
     return (
-      <div className="p-4 text-danger text-center">
+      <div className="p-4 text-[var(--danger)] text-center">
         Erreur de chargement: Quelque chose s'est mal passé
         <button
           onClick={() => window.location.reload()}

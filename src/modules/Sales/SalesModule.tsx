@@ -121,10 +121,10 @@ export function SalesModule() {
       baseSales.some(s => s.customer_id === c.id)
     ).length;
     return [
-      { label: 'Chiffre d\'affaires', value: formatCurrency(totalRevenue), iconColor: '#2E7D32' },
-      { label: 'Nombre de ventes', value: String(salesCount), iconColor: '#0277BD' },
-      { label: 'Panier moyen', value: formatCurrency(avgSale), iconColor: '#F57F17' },
-      { label: 'Clients actifs', value: String(activeClients), iconColor: '#C62828' },
+      { label: 'Chiffre d\'affaires', value: formatCurrency(totalRevenue), iconColor: '--success' },
+      { label: 'Nombre de ventes', value: String(salesCount), iconColor: '--info' },
+      { label: 'Panier moyen', value: formatCurrency(avgSale), iconColor: '--warning' },
+      { label: 'Clients actifs', value: String(activeClients), iconColor: '--danger' },
     ];
   }, [sales, customers, effectiveSiteId]);
 
@@ -598,9 +598,9 @@ export function SalesModule() {
       {/* ========== KPI GRID ========== */}
       <div className="module-kpi-grid">
         {kpis.map((kpi, index) => (
-          <div key={index} className="module-kpi-card" style={{ borderLeftColor: kpi.iconColor }}>
+          <div key={index} className="module-kpi-card" style={{ borderLeftColor: `var(${kpi.iconColor})` }}>
             <div className="module-kpi-header">
-              <div className="module-kpi-icon" style={{ backgroundColor: `${kpi.iconColor}15`, color: kpi.iconColor }}>
+              <div className="module-kpi-icon" style={{ backgroundColor: `var(${kpi.iconColor}-soft)`, color: `var(${kpi.iconColor})` }}>
                 {index === 0 && <TrendingUp size={20} />}
                 {index === 1 && <ShoppingBag size={20} />}
                 {index === 2 && <CreditCard size={20} />}
@@ -609,7 +609,7 @@ export function SalesModule() {
             </div>
             <div className="module-kpi-body">
               <p className="module-kpi-label">{kpi.label}</p>
-              <div className="module-kpi-value" style={{ color: kpi.iconColor }}>
+              <div className="module-kpi-value" style={{ color: `var(${kpi.iconColor})` }}>
                 {kpi.value}
               </div>
             </div>

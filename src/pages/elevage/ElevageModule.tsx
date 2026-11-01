@@ -77,7 +77,7 @@ export function ElevageModule() {
       {/* ========== HEADER ========== */}
       <header className="module-header">
         <div className="module-header-left">
-          <h1 style={{ color: 'var(--color-ivory)' }}>Élevage</h1>
+          <h1 className="text-primary">Élevage</h1>
           <p className="module-subtitle">Gestion des lots, animaux et événements d'élevage</p>
         </div>
         <div className="module-header-right">
@@ -92,41 +92,41 @@ export function ElevageModule() {
 
       {/* ========== KPI GRID ========== */}
       <div className="module-kpi-grid">
-        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--accent-primary)' }}>
+        <div className="module-kpi-card border-l-[var(--accent-primary)]">
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-primary)' }}>
+            <div className="module-kpi-icon bg-[var(--accent-soft)] text-[var(--accent-primary)]">
               <Building size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Lots</p>
-            <div className="module-kpi-value" style={{ color: 'var(--accent-primary)' }}>
+            <div className="module-kpi-value text-[var(--accent-primary)]">
               {kpis.totalLots}
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--info)' }}>
+        <div className="module-kpi-card border-l-[var(--info)]">
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--info-soft)', color: 'var(--info)' }}>
+            <div className="module-kpi-icon bg-[var(--info-soft)] text-[var(--info)]">
               <Users size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Animaux</p>
-            <div className="module-kpi-value" style={{ color: 'var(--info)' }}>
+            <div className="module-kpi-value text-[var(--info)]">
               {kpis.totalAnimals}
             </div>
           </div>
         </div>
-        <div className="module-kpi-card" style={{ borderLeftColor: 'var(--warning)' }}>
+        <div className="module-kpi-card border-l-[var(--warning)]">
           <div className="module-kpi-header">
-            <div className="module-kpi-icon" style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}>
+            <div className="module-kpi-icon bg-[var(--warning-soft)] text-[var(--warning)]">
               <Calendar size={20} />
             </div>
           </div>
           <div className="module-kpi-body">
             <p className="module-kpi-label">Événements</p>
-            <div className="module-kpi-value" style={{ color: 'var(--warning)' }}>
+            <div className="module-kpi-value text-[var(--warning)]">
               {kpis.totalEvents}
             </div>
           </div>

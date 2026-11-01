@@ -1019,7 +1019,7 @@ export function Configuration() {
                         <button
                           onClick={() => logoFileRef.current?.click()}
                           disabled={uploadingLogo || !farm}
-                          className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-sm hover:bg-accent-primary-hover disabled:opacity-50"
                         >
                           {uploadingLogo ? (
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1063,7 +1063,7 @@ export function Configuration() {
                         <button
                           onClick={() => faviconFileRef.current?.click()}
                           disabled={uploadingFavicon || !farm}
-                          className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-sm hover:bg-accent-primary-hover disabled:opacity-50"
                         >
                           {uploadingFavicon ? (
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1114,7 +1114,7 @@ export function Configuration() {
                       <button
                         onClick={() => heroFileRef.current?.click()}
                         disabled={uploadingHeroImage || !isAuthorized}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-sm hover:bg-accent-primary-hover disabled:opacity-50"
                       >
                         {uploadingHeroImage ? (
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1444,7 +1444,7 @@ function ListEditor({
                     ))}
                     <div className="flex items-center gap-2">
                       <button onClick={() => saveEdit(i)} disabled={!isAuthorized}
-                        className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50">
+                        className="flex items-center gap-1 px-2 py-1 text-xs bg-accent-primary text-white rounded hover:bg-accent-primary-hover disabled:opacity-50">
                         <Save size={14} /> Appliquer
                       </button>
                       <button onClick={() => cancelEdit()}
@@ -1498,7 +1498,7 @@ function ListEditor({
 
       <div className="pt-3 border-t border-ivory-deep">
         <button onClick={addItem} disabled={!isAuthorized}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50">
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-sm hover:bg-accent-primary-hover disabled:opacity-50">
           <Plus size={16} /> Ajouter un élément
         </button>
       </div>

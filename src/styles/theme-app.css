@@ -13,7 +13,7 @@
 
   /* Textes */
   --text-primary:       var(--color-ivory);
-  --text-secondary:     #B8B0A4;
+  --text-secondary:     var(--color-ink-mut);
   --text-muted:         var(--color-ink-dim);
   --text-on-accent:     var(--color-night);
 
@@ -23,9 +23,9 @@
   --border-focus:       var(--color-signal);
 
   /* Accent */
-  --accent-primary:       var(--color-signal);
-  --accent-primary-hover: var(--color-signal-strong);
-  --accent-soft:          rgba(185, 216, 107, 0.16);
+  --accent-primary:       var(--color-forest);
+  --accent-primary-hover: var(--color-forest-hover);
+  --accent-soft:          var(--color-forest-soft);
 
   /* Sémantique */
   --success:       var(--color-grass);
@@ -37,9 +37,15 @@
   --info:          var(--color-sky);
   --info-soft:     rgba(2, 119, 189, 0.15);
 
+  /* Marque — référence forêt (Lot 1) */
+  --brand-primary:   var(--color-forest);
+  --brand-primary-hover: var(--color-forest-hover);
+  --brand-primary-soft: var(--color-forest-soft);
+
   /* Terre */
   --terra:         var(--color-terra);
   --terra-soft:    var(--color-terra-soft);
+  --terra-text:    var(--color-terra-text);
 
   /* ========================================================================
      ALIAS DE TRANSITION — Rétrocompatibilité avec --mdn-*
@@ -71,7 +77,7 @@
   --mdn-harvest:  var(--warning);
   --mdn-alert:    var(--danger);
   --mdn-slate:    var(--text-muted);
-  --mdn-earth:    #5C4033;
+  --mdn-earth:    var(--color-terra);
 
   --mdn-border:       var(--border-default);
   --mdn-border-muted: var(--border-subtle);
@@ -210,8 +216,8 @@
 
 .module-btn-danger:hover,
 .module-btn-danger:focus-visible {
-  background: #b71c1c;
-  border-color: #b71c1c;
+  background: var(--danger);
+  border-color: var(--danger);
   outline: none;
 }
 
