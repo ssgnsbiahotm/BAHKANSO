@@ -32,21 +32,13 @@ const colorClasses: Record<string, { bg: string; text: string }> = {
   terra: { bg: 'bg-terra-soft', text: 'text-terra-text' },
 };
 
-// CSS variable mappings for tones (dark theme palette) — opt-in override
-const toneBg: Record<string, string> = {
-  success: 'var(--success-soft)',
-  info: 'var(--info-soft)',
-  warning: 'var(--warning-soft)',
-  danger: 'var(--danger-soft)',
-  neutral: 'var(--bg-surface-hover)',
-};
-
-const toneText: Record<string, string> = {
-  success: 'var(--success)',
-  info: 'var(--info)',
-  warning: 'var(--warning)',
-  danger: 'var(--danger)',
-  neutral: 'var(--text-secondary)',
+// Tone classes using Tailwind arbitrary values — opt-in override
+const toneClasses: Record<string, { bg: string; text: string }> = {
+  success: { bg: 'bg-[var(--success-soft)]', text: 'text-[var(--success)]' },
+  info: { bg: 'bg-[var(--info-soft)]', text: 'text-[var(--info)]' },
+  warning: { bg: 'bg-[var(--warning-soft)]', text: 'text-[var(--warning)]' },
+  danger: { bg: 'bg-[var(--danger-soft)]', text: 'text-[var(--danger)]' },
+  neutral: { bg: 'bg-[var(--bg-surface-hover)]', text: 'text-[var(--text-secondary)]' },
 };
 
 const TREND_TEXT: Record<string, string> = {
@@ -87,8 +79,8 @@ export function KpiCard({
 
   // tone (opt-in) overrides color with CSS variables; otherwise tailwind classes via color
   const c = colorClasses[color] || colorClasses.success;
-  const bgClass = tone ? toneBg[tone] || toneBg.success : c.bg;
-  const textClass = tone ? toneText[tone] || toneText.success : c.text;
+  const bgClass = tone ? toneClasses[tone]?.bg || toneClasses.success.bg : c.bg;
+  const textClass = tone ? toneClasses[tone]?.text || toneClasses.success.text : c.text;
 
   return (
     <div className="rotatable-card bg-surface rounded-lg border border-default p-5 hover:shadow-md transition-shadow">
