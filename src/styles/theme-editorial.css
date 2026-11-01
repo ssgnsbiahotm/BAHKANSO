@@ -1,0 +1,44 @@
+/* ==========================================================================
+   BAHKANSO — Theme: Editorial (LIGHT)
+   Public-facing : Landing, Login, Mentions légales, Confidentialité
+   ========================================================================== */
+
+[data-theme="editorial"],
+:root:not([data-theme]) {
+  /* Surfaces */
+  --bg-page:            var(--color-ivory);
+  --bg-surface:         #FFFFFF;
+  --bg-surface-hover:   var(--color-ivory-alt);
+  --bg-surface-raised:  #FFFFFF;
+  --bg-input:           #FFFFFF;
+
+  /* Textes */
+  --text-primary:       var(--color-ink);
+  --text-secondary:     var(--color-ink-mut);
+  --text-muted:         var(--color-ink-dim);
+  --text-on-accent:     var(--color-night);
+
+  /* Bordures */
+  --border-subtle:      var(--color-ivory-deep);
+  --border-default:     var(--color-ivory-deep);
+  --border-focus:       var(--color-signal);
+
+  /* Accent */
+  --accent-primary:       var(--color-signal);
+  --accent-primary-hover: var(--color-signal-strong);
+  --accent-soft:          var(--color-signal-soft);
+
+  /* Sémantique */
+  --success:       var(--color-grass);
+  --success-soft:  rgba(46, 125, 50, 0.12);
+  --warning:       var(--color-harvest);
+  --warning-soft:  rgba(245, 127, 23, 0.12);
+  --danger:        var(--color-alert);
+  --danger-soft:   rgba(198, 40, 40, 0.12);
+  --info:          var(--color-sky);
+  --info-soft:     rgba(2, 119, 189, 0.12);
+
+  /* Terre */
+  --terra:         var(--color-terra);
+  --terra-soft:    var(--color-terra-soft);
+}
