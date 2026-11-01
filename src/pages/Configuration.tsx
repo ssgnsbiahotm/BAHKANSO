@@ -16,6 +16,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { KpiCard } from '@/components/ui/KpiCard';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/DataContext';
@@ -1304,10 +1305,7 @@ export function Configuration() {
                     const statValue = getEffectiveValue(getDraftPath('contenu', 'stats', `stat${i}Value`));
                     if (!stats && !statValue) return null;
                     return (
-                      <div key={i} className="p-4 bg-ivory rounded-sm border border-ivory-deep">
-                        <p className="text-xs text-ink-mut uppercase font-semibold">{stats || `Stat ${i}`}</p>
-                        <p className="text-2xl font-bold text-ink mt-1">{statValue || '—'}</p>
-                      </div>
+                      <KpiCard key={i} label={String(stats)} value={String(statValue)} icon={<BarChart3 size={20} />} color="success" />
                     );
                   })}
                 </div>
