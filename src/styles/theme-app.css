@@ -1,8 +1,9 @@
 /* ==========================================================================
-   BAHKANSO — Theme: App (DARK)
-   Internal : Dashboard, modules Exploitation, Finance, Sales, Surveillance
+   BAHKANSO — Theme: App (DARK, PAR DÉFAUT)
+   S'applique partout sauf [data-theme="editorial"]
    ========================================================================== */
 
+:root,
 [data-theme="app"] {
   /* Surfaces */
   --bg-page:            var(--color-night);

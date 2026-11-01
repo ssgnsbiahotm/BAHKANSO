@@ -3,8 +3,7 @@
    Public-facing : Landing, Login, Mentions légales, Confidentialité
    ========================================================================== */
 
-[data-theme="editorial"],
-:root:not([data-theme]) {
+[data-theme="editorial"] {
   /* Surfaces */
   --bg-page:            var(--color-ivory);
   --bg-surface:         #FFFFFF;
