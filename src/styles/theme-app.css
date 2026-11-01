@@ -1,33 +1,82 @@
-/* Module Theme - Dark Design System for BAHKANSO Modules
-   Based on Dashboard.css palette and component patterns
-   Import this in module pages for consistent dark theming */
+/* ==========================================================================
+   BAHKANSO — Theme: App (DARK)
+   Internal : Dashboard, modules Exploitation, Finance, Sales, Surveillance
+   ========================================================================== */
 
-:root {
-  /* Core Palette - Dark Theme (matches Dashboard) */
-  --mdn-bg-page: #111A18;
-  --mdn-bg-night: #111A18;
-  --mdn-bg-surface: #1C2925;
-  --mdn-bg-surface-hover: #243430;
-  --mdn-bg-surface-raised: #202824;
-  --mdn-accent: #B9D86B;
-  --mdn-accent-soft: rgba(185, 216, 107, 0.16);
-  --mdn-accent-strong: #A3C45D;
-  --mdn-ivoire: #F4F1E8;
-  --mdn-encre: #202824;
-  --mdn-terre: #C87551;
-  --mdn-terre-soft: rgba(200, 117, 81, 0.14);
-  --mdn-terre-text: #D4906A;
-  --mdn-grass: #2E7D32;
-  --mdn-earth: #5C4033;
-  --mdn-sky: #0277BD;
-  --mdn-harvest: #F57F17;
-  --mdn-alert: #C62828;
-  --mdn-slate: #64748B;
-  --mdn-border: rgba(185, 216, 107, 0.22);
-  --mdn-border-muted: rgba(185, 216, 107, 0.09);
-  --mdn-text: #E8E4DC;
-  --mdn-text-secondary: #B8B0A4;
-  --mdn-text-muted: #8A948E;
+[data-theme="app"] {
+  /* Surfaces */
+  --bg-page:            var(--color-night);
+  --bg-surface:         var(--color-slate);
+  --bg-surface-hover:   var(--color-slate-hover);
+  --bg-surface-raised:  var(--color-slate-raised);
+  --bg-input:           var(--color-slate-raised);
+
+  /* Textes */
+  --text-primary:       var(--color-ivory);
+  --text-secondary:     #B8B0A4;
+  --text-muted:         var(--color-ink-dim);
+  --text-on-accent:     var(--color-night);
+
+  /* Bordures */
+  --border-subtle:      rgba(185, 216, 107, 0.09);
+  --border-default:     rgba(185, 216, 107, 0.22);
+  --border-focus:       var(--color-signal);
+
+  /* Accent */
+  --accent-primary:       var(--color-signal);
+  --accent-primary-hover: var(--color-signal-strong);
+  --accent-soft:          rgba(185, 216, 107, 0.16);
+
+  /* Sémantique */
+  --success:       var(--color-grass);
+  --success-soft:  rgba(46, 125, 50, 0.15);
+  --warning:       var(--color-harvest);
+  --warning-soft:  rgba(245, 127, 23, 0.15);
+  --danger:        var(--color-alert);
+  --danger-soft:   rgba(198, 40, 40, 0.15);
+  --info:          var(--color-sky);
+  --info-soft:     rgba(2, 119, 189, 0.15);
+
+  /* Terre */
+  --terra:         var(--color-terra);
+  --terra-soft:    var(--color-terra-soft);
+
+  /* ========================================================================
+     ALIAS DE TRANSITION — Rétrocompatibilité avec --mdn-*
+     Tous les --mdn-* deviennent des alias vers les tokens sémantiques.
+     AUCUNE valeur hex directe ici.
+     ======================================================================== */
+  --mdn-bg-page:          var(--bg-page);
+  --mdn-bg-night:         var(--color-night);
+  --mdn-bg-surface:       var(--bg-surface);
+  --mdn-bg-surface-hover: var(--bg-surface-hover);
+  --mdn-bg-surface-raised: var(--bg-surface-raised);
+
+  --mdn-accent:        var(--accent-primary);
+  --mdn-accent-soft:   var(--accent-soft);
+  --mdn-accent-strong: var(--accent-primary-hover);
+
+  --mdn-ivoire:  var(--color-ivory);
+  --mdn-encre:   var(--text-primary);
+  --mdn-text:    var(--text-primary);
+  --mdn-text-secondary: var(--text-secondary);
+  --mdn-text-muted:     var(--text-muted);
+
+  --mdn-terre:       var(--terra);
+  --mdn-terre-soft:  var(--terra-soft);
+  --mdn-terre-text:  var(--color-terra-text);
+
+  --mdn-grass:    var(--success);
+  --mdn-sky:      var(--info);
+  --mdn-harvest:  var(--warning);
+  --mdn-alert:    var(--danger);
+  --mdn-slate:    var(--text-muted);
+  --mdn-earth:    #5C4033;
+
+  --mdn-border:       var(--border-default);
+  --mdn-border-muted: var(--border-subtle);
+
+  /* Conservés tels quels (pas de token sémantique équivalent) */
   --mdn-radius-sm: 6px;
   --mdn-radius-md: 10px;
   --mdn-radius-lg: 14px;
@@ -35,7 +84,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  [data-theme="app"] {
     --mdn-transition: 0ms;
   }
 }
@@ -166,107 +215,8 @@
   outline: none;
 }
 
-/* ========== KPI GRID ========== */
-.module-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.module-kpi-card {
-  position: relative;
-  background: var(--mdn-bg-surface-raised);
-  border: 1px solid var(--mdn-border);
-  border-left-width: 4px;
-  border-radius: var(--mdn-radius-md);
-  padding: 1rem;
-  transition: box-shadow var(--mdn-transition), border-color var(--mdn-transition);
-}
-
-.module-kpi-card:hover {
-  border-color: var(--mdn-accent);
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.3);
-}
-
-.module-kpi-card.restricted {
-  border-left-color: var(--mdn-slate);
-  background: var(--mdn-bg-surface-hover);
-}
-
-.module-kpi-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
-}
-
-.module-kpi-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--mdn-radius-sm);
-}
-
-.module-kpi-trend {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 0.125rem 0.5rem;
-  border-radius: 999px;
-}
-
-.module-kpi-trend.positive {
-  background: rgba(46, 125, 50, 0.18);
-  color: var(--mdn-grass);
-}
-
-.module-kpi-trend.negative {
-  background: rgba(198, 40, 40, 0.18);
-  color: var(--mdn-alert);
-}
-
-.module-kpi-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.module-kpi-label {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--mdn-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.module-kpi-value {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  color: var(--mdn-ivoire);
-}
-
-.module-kpi-card.restricted .module-kpi-value {
-  color: var(--mdn-slate);
-}
-
-.module-kpi-sub {
-  display: block;
-  font-size: 0.6875rem;
-  font-weight: 400;
-  color: var(--mdn-text-muted);
-  margin-top: 0.125rem;
-}
-
 /* ========== SECTION ========== */
+
 .module-section {
   background: var(--mdn-bg-surface);
   border: 1px solid var(--mdn-border);
@@ -324,7 +274,7 @@
   box-shadow: 0 0 0 2px var(--mdn-accent);
 }
 
-/* ========== ROTATING CARD OVERRIDES FOR DARK THEME ========== */
+/* ========== ROTATING CARD OVERRIDES FOR D THEME ========== */
 .module-page .rc {
   background: transparent;
   perspective: 1000px;
