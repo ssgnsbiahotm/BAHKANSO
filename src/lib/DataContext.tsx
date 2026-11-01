@@ -50,8 +50,10 @@ interface DataContextType {
   harvests: Harvest[];
   animals: Animal[];
   animaux: Animal[];
+  animauxSetter: (v: Animal[]) => void;
   animalLots: AnimalLot[];
   lots: AnimalLot[];
+  lotsSetter: (v: AnimalLot[]) => void;
   animalEvents: AnimalEvent[];
   projects: Project[];
   projectSteps: ProjectStep[];
@@ -97,7 +99,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [cropOperations, setCropOperations] = useState<CropOperation[]>([]);
   const [harvests, setHarvests] = useState<Harvest[]>([]);
   const [animals, setAnimals] = useState<Animal[]>([]);
+  const [animaux, setAnimaux] = useState<Animal[]>([]);
   const [animalLots, setAnimalLots] = useState<AnimalLot[]>([]);
+  const [lots, setLots] = useState<AnimalLot[]>([]);
   const [animalEvents, setAnimalEvents] = useState<AnimalEvent[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectSteps, setProjectSteps] = useState<ProjectStep[]>([]);
@@ -318,7 +322,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     <DataContext.Provider value={{
       farm, users, funders, fundings, bankAccounts, cashAccounts, transactions,
       suppliers, expenses, documents, sites, plots, campaigns, cropOperations,
-      harvests, animaux: animals, lots: animalLots, animalEvents, projects, projectSteps,
+      harvests, animals, animaux: animals, animauxSetter: setAnimaux, animalLots, lots: animalLots, lotsSetter: setLots, animalEvents, projects, projectSteps,
       inventoryItems, inventoryMovements, inventoryCounts, budgets, alerts,
       notifications, auditLogs, siteContent, media,
       loading, error, sourceStatus, sourceError, refresh: loadAll,

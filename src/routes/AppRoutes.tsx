@@ -232,14 +232,6 @@ export const appRouter = createBrowserRouter([
         ],
       },
       {
-        path: 'exploitation/campagnes',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <CampagnesPageSuspense />
-          </RequireModule>
-        ),
-      },
-      {
         path: 'elevage',
         element: (
           <RequireModule module="livestock" action="read">
@@ -275,7 +267,7 @@ export const appRouter = createBrowserRouter([
         ],
       },
       { path: 'livestock', element: <Navigate to="/app/elevage" replace /> },
-      { path: 'livestock/events', element: <Navigate to="/app/elevage?tab=events" replace /> },
+      { path: 'livestock/events', element: <Navigate to="/app/elevage?tab=evenements" replace /> },
       {
         path: 'exploitation/lots',
         element: <Navigate to="/app/elevage?tab=lots" replace />,

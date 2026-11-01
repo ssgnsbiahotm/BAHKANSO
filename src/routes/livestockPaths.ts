@@ -9,12 +9,12 @@ export const LIVESTOCK_PATHS = {
   hub: '/app/livestock',
 
   /** Lots — destination finale (page de gestion) */
-  lots: '/app/exploitation/lots',
+  lots: '/app/elevage/lots',
   /** Lots — ancienne URL (redirection préservant search/hash) */
   lotsLegacy: '/app/livestock/lots',
 
   /** Animaux — destination finale (page de gestion) */
-  animals: '/app/exploitation/animaux',
+  animals: '/app/elevage/animaux',
   /** Animaux — ancienne URL (redirection préservant search/hash) */
   animalsLegacy: '/app/livestock/animals',
 

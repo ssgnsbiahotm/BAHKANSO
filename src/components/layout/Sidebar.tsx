@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -8,7 +8,6 @@ import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac'
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
   LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase,
-  ChevronDown, ChevronRight,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -16,34 +15,29 @@ export interface NavItem {
   label: string;
   icon: React.ReactNode;
   module: ModuleKey;
-  children?: { id: string; label: string; module: ModuleKey }[];
+  route: string;
 }
 
+// Une entrée par module. Les onglets internes (finance, surveillance, configuration…)
+// restent gérés par les pages mères via ?tab= ; la Sidebar ne les duplique pas.
 const ALL_NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, module: 'dashboard' },
-  { id: 'exploitation', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture' },
-  { id: 'elevage', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock' },
-  { id: 'finance', label: 'Gestion financière', icon: <Briefcase size={20} />, module: 'finance', children: [
-    { id: 'finance?tab=fundings', label: 'Financements', module: 'finance' },
-    { id: 'finance?tab=expenses', label: 'Dépenses', module: 'finance' },
-    { id: 'finance?tab=treasury', label: 'Trésorerie', module: 'finance' },
-    { id: 'finance?tab=ventes', label: 'Ventes', module: 'finance' },
-  ]},
-  { id: 'surveillance', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'surveillance', children: [
-    { id: 'surveillance?tab=alertes', label: 'Alertes', module: 'surveillance' },
-    { id: 'surveillance?tab=evenements', label: 'Événements', module: 'surveillance' },
-    { id: 'surveillance?tab=historique', label: 'Historique', module: 'surveillance' },
-    { id: 'surveillance?tab=audit', label: 'Audit', module: 'surveillance' },
-  ]},
-  { id: 'media', label: 'Médiathèque', icon: <Image size={20} />, module: 'media' },
-  { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', children: [
-    { id: 'config-general', label: 'Général', module: 'configuration' },
-    { id: 'users', label: 'Utilisateurs', module: 'users' },
-    { id: 'bailleurs', label: 'Bailleurs', module: 'bailleurs' },
-    { id: 'clients', label: 'Clients', module: 'clients' },
-    { id: 'sites', label: 'Sites', module: 'configuration' },
-  ]},
+  { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, module: 'dashboard', route: '/app/dashboard' },
+  { id: 'exploitation', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture', route: '/app/exploitation' },
+  { id: 'elevage', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock', route: '/app/elevage' },
+  { id: 'finance', label: 'Gestion financière', icon: <Briefcase size={20} />, module: 'finance', route: '/app/finance' },
+  { id: 'surveillance', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'surveillance', route: '/app/surveillance' },
+  { id: 'media', label: 'Médiathèque', icon: <Image size={20} />, module: 'media', route: '/app/media' },
+  { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', route: '/app/configuration' },
+  { id: 'users', label: 'Utilisateurs', icon: <Settings size={20} />, module: 'users', route: '/app/users' },
+  { id: 'bailleurs', label: 'Bailleurs', icon: <Settings size={20} />, module: 'bailleurs', route: '/app/configuration/bailleurs' },
+  { id: 'clients', label: 'Clients', icon: <Settings size={20} />, module: 'clients', route: '/app/configuration/clients' },
+  { id: 'sites', label: 'Sites', icon: <Image size={20} />, module: 'configuration', route: '/app/configuration/sites' },
 ];
+
+const ROUTE_BY_ID: Record<string, string> = {};
+for (const item of ALL_NAV_ITEMS) {
+  ROUTE_BY_ID[item.id] = item.route;
+}
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -58,62 +52,24 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
   const [alertCount, setAlertCount] = useState(0);
 
-  // Map unifiée des routes (utilisée par handleNav et getChildActiveState)
-  const routeMap: Record<string, string> = {
-    dashboard: '/app/dashboard',
-    exploitation: '/app/exploitation',
-    elevage: '/app/elevage',
-    finance: '/app/finance',
-    surveillance: '/app/surveillance',
-    media: '/app/media',
-    configuration: '/app/configuration',
-    'config-general': '/app/configuration',
-    users: '/app/users',
-    bailleurs: '/app/configuration/bailleurs',
-    clients: '/app/configuration/clients',
-    sites: '/app/configuration/sites',
-    'finance?tab=fundings': '/app/finance?tab=fundings',
-    'finance?tab=expenses': '/app/finance?tab=expenses',
-    'finance?tab=treasury': '/app/finance?tab=treasury',
-    'finance?tab=ventes': '/app/finance?tab=ventes',
-    'surveillance?tab=alertes': '/app/surveillance?tab=alertes',
-    'surveillance?tab=evenements': '/app/surveillance?tab=evenements',
-    'surveillance?tab=historique': '/app/surveillance?tab=historique',
-    'surveillance?tab=audit': '/app/surveillance?tab=audit',
-  };
-
-  // État d'expansion des items avec enfants
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
-    const current = location.pathname + location.search;
-    const expanded = new Set<string>();
-    ALL_NAV_ITEMS.forEach(item => {
-      if (item.children?.some(child => routeMap[child.id] === current)) {
-        expanded.add(item.id);
-      }
-    });
-    return expanded;
-  });
-
   // Filtrer les éléments de navigation selon les permissions du rôle
   const userRole = appUser?.role as UserRole;
   const accessibleModules = getAccessibleModules(userRole);
   const NAV_ITEMS = ALL_NAV_ITEMS.filter(item => accessibleModules.includes(item.module));
 
-  // Fonction pour déterminer si un élément de navigation est actif
-  const isNavActive = (navId: string): boolean => {
-    return location.pathname.includes(navId.split('?')[0]);
-  };
+  // L'item actif est celui dont la route correspond exactement, ou, à défaut,
+  // le module parent dont la route est le plus long préfixe de l'URL courante.
+  const activeItem = useMemo(() => {
+    const exact = NAV_ITEMS.find(item => item.route === location.pathname);
+    if (exact) return exact;
+    const prefixes = NAV_ITEMS.filter(item => location.pathname.startsWith(item.route + '/'));
+    return prefixes.reduce((best, cur) => (cur.route.length > best.route.length ? cur : best), prefixes[0]);
+  }, [NAV_ITEMS, location.pathname]);
 
-  // Fonction pour naviguer vers une page (utilise routeMap unifiée)
-  const handleNav = (page: string) => {
-    let target = routeMap[page] || `/app/${page}`;
-    navigate(target);
+  // Fonction pour naviguer vers une page
+  const handleNav = (route: string) => {
+    navigate(route);
     onCloseMobile();
-  };
-
-  // Déterminer si un enfant correspond à la route actuelle
-  const getChildActiveState = (childId: string): boolean => {
-    return location.pathname + location.search === routeMap[childId];
   };
 
   useEffect(() => {
@@ -162,39 +118,18 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5 scrollbar-thin">
           {NAV_ITEMS.map(item => {
-            const isActive = isNavActive(item.id);
-            const hasChildren = item.children && item.children.length > 0;
-            const isExpanded = expandedItems.has(item.id);
-            const containsActiveChild = hasChildren && item.children?.some(
-              child => location.pathname + location.search === routeMap[child.id]
-            );
-
+            const isActive = activeItem?.id === item.id;
             return (
               <div key={item.id}>
                 <button
-                  onClick={() => {
-                    if (hasChildren) {
-                      setExpandedItems(prev => {
-                        const next = new Set(prev);
-                        if (next.has(item.id)) {
-                          next.delete(item.id);
-                        } else {
-                          next.add(item.id);
-                        }
-                        return next;
-                      });
-                      handleNav(item.id);
-                    } else {
-                      handleNav(item.id);
-                    }
-                  }}
+                  onClick={() => handleNav(item.route)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-inset ${
-                    isActive || containsActiveChild
+                    isActive
                       ? 'bg-surface-hover text-primary border-l-3 border-signal pl-2'
                       : 'text-primary/70 hover:bg-surface-hover hover:text-primary'
                   }`}
                 >
-                  <span className={isActive || containsActiveChild ? 'text-primary' : 'text-primary/70'}>
+                  <span className={isActive ? 'text-primary' : 'text-primary/70'}>
                     {item.icon}
                   </span>
                   <span className="flex-1 text-left">
@@ -205,33 +140,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                       </span>
                     )}
                   </span>
-                  {hasChildren && (
-                    <span className="text-primary/40">
-                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                    </span>
-                  )}
                 </button>
-
-                {hasChildren && isExpanded && (
-                  <div className="ml-6 mt-1 space-y-0.5 border-l border-default/10 pl-3">
-                    {item.children!.map(child => {
-                      const childActive = getChildActiveState(child.id);
-                      return (
-                        <button
-                          key={child.id}
-                          onClick={() => handleNav(child.id)}
-                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-inset ${
-                            childActive
-                              ? 'text-accent-primary'
-                              : 'text-primary/60 hover:text-primary'
-                          }`}
-                        >
-                          {child.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             );
           })}

@@ -10,9 +10,10 @@ import { SiteSelector } from '@/components/ui/SiteSelector';
 
 interface HeaderProps {
   onOpenMobile: () => void;
+  pageTitle?: string;
 }
 
-export function Header({ onOpenMobile }: HeaderProps) {
+export function Header({ onOpenMobile, pageTitle }: HeaderProps) {
   const { farm, notifications, alerts, siteContent } = useData();
   const { appUser, signOut } = useAuth();
   const { isGlobalView } = useSite();
@@ -34,8 +35,17 @@ export function Header({ onOpenMobile }: HeaderProps) {
           <Menu size={20} className="text-primary/70" />
         </button>
         <div className="flex-1 min-w-0">
-          <h2 className="font-medium text-primary truncate">{farm?.name || (siteContent.branding?.value as Record<string, string>)?.appName || 'Bahkanso'}</h2>
-          <p className="text-xs text-primary/60 hidden sm:block">{farm?.location || ''}</p>
+          {pageTitle ? (
+            <>
+              <h2 className="font-medium text-primary truncate">{pageTitle}</h2>
+              <p className="text-xs text-primary/60 hidden sm:block">{farm?.name || (siteContent.branding?.value as Record<string, string>)?.appName || 'Bahkanso'}</p>
+            </>
+          ) : (
+            <>
+              <h2 className="font-medium text-primary truncate">{farm?.name || (siteContent.branding?.value as Record<string, string>)?.appName || 'Bahkanso'}</h2>
+              <p className="text-xs text-primary/60 hidden sm:block">{farm?.location || ''}</p>
+            </>
+          )}
         </div>
 
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-accent-soft text-xs text-accent-primary">

@@ -15,7 +15,7 @@ export function SurveillancePage() {
     if (tab === 'alertes') return 'AlertesTab';
     if (tab === 'evenements') return 'EvenementsTab';
     if (tab === 'historique') return 'HistoriqueTab';
-    return 'EvenementsTab'; // par défaut
+    return 'AlertesTab'; // par défaut
   })();
 
   return (
@@ -47,7 +47,6 @@ export function SurveillancePage() {
       {activeTab === 'AlertesTab' && <AlertesTab />}
       {activeTab === 'EvenementsTab' && <EvenementsTab />}
       {activeTab === 'HistoriqueTab' && <HistoriqueTab />}
-      {activeTab === 'EvenementsTab' && <EvenementsTab />}
 
     </div>
   );
