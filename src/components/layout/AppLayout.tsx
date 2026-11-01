@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
-import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 
 // Libellés de page affichés dans l'en-tête, cohérents avec la Sidebar et le breadcrumb.
 const PAGE_TITLES: Record<string, string> = {
@@ -36,14 +35,6 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
-      {location.pathname !== '/app/agriculture/plots' && (
-        <FloatingActionButton
-          onAction={(action) => {
-            // À implémenter selon les besoins spécifiques après inspection du contrat
-            console.log('Action:', action);
-          }}
-        />
-      )}
     </div>
   );
 }
