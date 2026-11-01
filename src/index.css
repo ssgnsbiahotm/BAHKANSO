@@ -1,14 +1,20 @@
+/* 1. Fonts */
 @import "@fontsource-variable/fraunces";
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/geist-mono";
 
+/* 2. Design System (DOIT être avant @tailwind) */
+@import './styles/tokens.css';
+@import './styles/theme-editorial.css';
+@import './styles/theme-app.css';
+@import './styles/components.css';
+
+/* 3. Tailwind (APRÈS les imports) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import './styles/tokens.css';
-@import './styles/theme-editorial.css';
-@import './styles/theme-app.css';
+/* 4. Le reste de ton CSS (body, #root, etc.) */
 
 /* ==========================================================================
    BAHKANSO — Unified Design System

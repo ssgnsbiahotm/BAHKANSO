@@ -25,10 +25,9 @@ const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const Configuration = lazy(() => import('@/pages/Configuration').then(m => ({ default: m.Configuration })));
 const UsersPage = lazy(() => import('@/pages/UsersPage').then(m => ({ default: m.UsersPage })));
-const Monitoring = lazy(() => import('@/pages/Monitoring').then(m => ({ default: m.Monitoring })));
 const SurveillancePage = lazy(() => import('@/pages/surveillance/SurveillancePage').then(m => ({ default: m.SurveillancePage })));
-const Agriculture = lazy(() => import('@/pages/Agriculture').then(m => ({ default: m.Agriculture })));
-const Livestock = lazy(() => import('@/pages/Livestock').then(m => ({ default: m.Livestock })));
+const ExploitationModule = lazy(() => import('@/pages/exploitation/ExploitationModule').then(m => ({ default: m.ExploitationModule })));
+const ElevageModule = lazy(() => import('@/pages/elevage/ElevageModule').then(m => ({ default: m.ElevageModule })));
 const Inventory = lazy(() => import('@/pages/Inventory').then(m => ({ default: m.Inventory })));
 const Projects = lazy(() => import('@/pages/Projects').then(m => ({ default: m.Projects })));
 const Suppliers = lazy(() => import('@/pages/Suppliers').then(m => ({ default: m.Suppliers })));
@@ -75,10 +74,9 @@ const DashboardSuspense = createSuspenseWrapper(Dashboard);
 const ProfilePageSuspense = createSuspenseWrapper(ProfilePage);
 const ConfigurationSuspense = createSuspenseWrapper(Configuration);
 const UsersPageSuspense = createSuspenseWrapper(UsersPage);
-const MonitoringSuspense = createSuspenseWrapper(Monitoring);
 const SurveillancePageSuspense = createSuspenseWrapper(SurveillancePage);
-const AgricultureSuspense = createSuspenseWrapper(Agriculture);
-const LivestockSuspense = createSuspenseWrapper(Livestock);
+const ExploitationModuleSuspense = createSuspenseWrapper(ExploitationModule);
+const ElevageModuleSuspense = createSuspenseWrapper(ElevageModule);
 const InventorySuspense = createSuspenseWrapper(Inventory);
 const ProjectsSuspense = createSuspenseWrapper(Projects);
 const SuppliersSuspense = createSuspenseWrapper(Suppliers);
@@ -173,11 +171,6 @@ export const appRouter = createBrowserRouter([
       { path: 'reports', element: <Navigate to="/app/surveillance?tab=historique" replace /> },
       { path: 'alerts', element: <Navigate to="/app/surveillance?tab=alertes" replace /> },
       { path: 'audit', element: <Navigate to="/app/surveillance?tab=historique" replace /> },
-      { path: 'monitoring', element: (
-        <RequireModule module="monitoring" action="read">
-          <MonitoringSuspense />
-        </RequireModule>
-      )},
       {
         path: 'surveillance',
         element: (
@@ -186,49 +179,57 @@ export const appRouter = createBrowserRouter([
           </RequireModule>
         ),
       },
+      { path: 'monitoring', element: <Navigate to="/app/surveillance?tab=alertes" replace /> },
       {
-        path: 'agriculture',
+        path: 'exploitation',
         element: (
           <RequireModule module="agriculture" action="read">
-            <AgricultureSuspense />
+            <ExploitationModuleSuspense />
           </RequireModule>
         ),
-      },
-      {
-        path: 'agriculture/plots',
-        element: <Navigate to="/app/exploitation/parcelles" replace />,
-      },
-      {
-        path: 'agriculture/campaigns',
-        element: <Navigate to="/app/exploitation/campagnes" replace />,
-      },
-      {
-        path: 'exploitation/parcelles',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <ParcellesPageSuspense />
-          </RequireModule>
-        ),
-      },
-      {
-        path: 'exploitation/operations',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <OperationsPageSuspense />
-          </RequireModule>
-        ),
-      },
-      {
-        path: 'exploitation/recoltes',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <RecoltesPageSuspense />
-          </RequireModule>
-        ),
-      },
-      {
-        path: 'agriculture/campaigns',
-        element: <Navigate to="/app/exploitation/campagnes" replace />,
+        children: [
+          { index: true, element: <Navigate to="/app/exploitation/parcelles" replace /> },
+          {
+            path: 'parcelles',
+            element: (
+              <RequireModule module="agriculture" action="read">
+                <ParcellesPageSuspense />
+              </RequireModule>
+            ),
+          },
+          {
+            path: 'campagnes',
+            element: (
+              <RequireModule module="agriculture" action="read">
+                <CampagnesPageSuspense />
+              </RequireModule>
+            ),
+          },
+          {
+            path: 'operations',
+            element: (
+              <RequireModule module="agriculture" action="read">
+                <OperationsPageSuspense />
+              </RequireModule>
+            ),
+          },
+          {
+            path: 'recoltes',
+            element: (
+              <RequireModule module="agriculture" action="read">
+                <RecoltesPageSuspense />
+              </RequireModule>
+            ),
+          },
+          {
+            path: 'journal/:plotId',
+            element: (
+              <RequireModule module="agriculture" action="read">
+                <JournalCulturePageSuspense />
+              </RequireModule>
+            ),
+          },
+        ],
       },
       {
         path: 'exploitation/campagnes',
@@ -239,53 +240,55 @@ export const appRouter = createBrowserRouter([
         ),
       },
       {
-        path: 'exploitation/journal/:plotId',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <JournalCulturePageSuspense />
-          </RequireModule>
-        ),
-      },
-      {
-        path: 'agriculture/operations',
-        element: <Navigate to="/app/exploitation/operations" replace />,
-      },
-      {
-        path: 'agriculture/harvests',
-        element: <Navigate to="/app/exploitation/recoltes" replace />,
-      },
-      {
-        path: 'exploitation/lots',
+        path: 'elevage',
         element: (
           <RequireModule module="livestock" action="read">
-            <LotsPageSuspense />
+            <ElevageModuleSuspense />
           </RequireModule>
         ),
+        children: [
+          { index: true, element: <Navigate to="/app/elevage/lots" replace /> },
+          {
+            path: 'lots',
+            element: (
+              <RequireModule module="livestock" action="read">
+                <LotsPageSuspense />
+              </RequireModule>
+            ),
+          },
+          {
+            path: 'animaux',
+            element: (
+              <RequireModule module="livestock" action="read">
+                <AnimauxPageSuspense />
+              </RequireModule>
+            ),
+          },
+          {
+            path: 'evenements',
+            element: (
+              <RequireModule module="livestock" action="read">
+                <AnimalEventManageSuspense />
+              </RequireModule>
+            ),
+          },
+        ],
+      },
+      { path: 'livestock', element: <Navigate to="/app/elevage" replace /> },
+      { path: 'livestock/events', element: <Navigate to="/app/elevage?tab=events" replace /> },
+      {
+        path: 'exploitation/lots',
+        element: <Navigate to="/app/elevage?tab=lots" replace />,
       },
       {
         path: 'exploitation/animaux',
-        element: (
-          <RequireModule module="livestock" action="read">
-            <AnimauxPageSuspense />
-          </RequireModule>
-        ),
+        element: <Navigate to="/app/elevage?tab=animaux" replace />,
       },
-      {
-        path: 'livestock',
-        element: (
-          <RequireModule module="livestock" action="read">
-            <LivestockSuspense />
-          </RequireModule>
-        ),
-      },
-      {
-        path: 'livestock/events',
-        element: (
-          <RequireModule module="livestock" action="read">
-            <AnimalEventManageSuspense />
-          </RequireModule>
-        ),
-      },
+      { path: 'agriculture', element: <Navigate to="/app/exploitation" replace /> },
+      { path: 'agriculture/plots', element: <Navigate to="/app/exploitation?tab=parcelles" replace /> },
+      { path: 'agriculture/campaigns', element: <Navigate to="/app/exploitation?tab=campagnes" replace /> },
+      { path: 'agriculture/operations', element: <Navigate to="/app/exploitation?tab=operations" replace /> },
+      { path: 'agriculture/harvests', element: <Navigate to="/app/exploitation?tab=recoltes" replace /> },
       {
         path: 'inventory',
         element: (

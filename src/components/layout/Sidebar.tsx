@@ -21,22 +21,21 @@ export interface NavItem {
 
 const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} />, module: 'dashboard' },
-  { id: 'agriculture', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture' },
-  { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock' },
-  { id: 'finance', label: 'Gestion', icon: <Briefcase size={20} />, module: 'finance', children: [
+  { id: 'exploitation', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture' },
+  { id: 'elevage', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock' },
+  { id: 'finance', label: 'Gestion financière', icon: <Briefcase size={20} />, module: 'finance', children: [
     { id: 'finance?tab=fundings', label: 'Financements', module: 'finance' },
     { id: 'finance?tab=expenses', label: 'Dépenses', module: 'finance' },
     { id: 'finance?tab=treasury', label: 'Trésorerie', module: 'finance' },
     { id: 'finance?tab=ventes', label: 'Ventes', module: 'finance' },
-    { id: 'inventory', label: 'Stocks', module: 'inventory' },
-    { id: 'projects', label: 'Projets', module: 'projects' },
-    { id: 'suppliers', label: 'Fournisseurs', module: 'suppliers' },
   ]},
-  { id: 'monitoring', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'monitoring', children: [
-    { id: 'monitoring', label: 'Alertes', module: 'monitoring' },
-    { id: 'surveillance', label: 'Événements', module: 'surveillance' },
+  { id: 'surveillance', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'surveillance', children: [
+    { id: 'surveillance?tab=alertes', label: 'Alertes', module: 'surveillance' },
+    { id: 'surveillance?tab=evenements', label: 'Événements', module: 'surveillance' },
+    { id: 'surveillance?tab=historique', label: 'Historique', module: 'surveillance' },
+    { id: 'surveillance?tab=audit', label: 'Audit', module: 'surveillance' },
   ]},
-  { id: 'media', label: 'Médias', icon: <Image size={20} />, module: 'media' },
+  { id: 'media', label: 'Médiathèque', icon: <Image size={20} />, module: 'media' },
   { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', children: [
     { id: 'config-general', label: 'Général', module: 'configuration' },
     { id: 'users', label: 'Utilisateurs', module: 'users' },
@@ -59,28 +58,17 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
   const [alertCount, setAlertCount] = useState(0);
 
-  // Map unifiée des routes (utilisée aussi bien par handleNav que handleChildPath)
+  // Map unifiée des routes (utilisée par handleNav et getChildActiveState)
   const routeMap: Record<string, string> = {
     dashboard: '/app/dashboard',
+    exploitation: '/app/exploitation',
+    elevage: '/app/elevage',
     finance: '/app/finance',
-    agriculture: '/app/exploitation',
-    'agriculture?plots': '/app/exploitation/parcelles',
-    'agriculture?campaigns': '/app/exploitation/campagnes',
-    'agriculture?operations': '/app/exploitation/operations',
-    'agriculture?harvests': '/app/exploitation/recoltes',
-    livestock: '/app/livestock',
-    'exploitation/lots': '/app/exploitation/lots',
-    'exploitation/animaux': '/app/exploitation/animaux',
-    'livestock/events': '/app/livestock/events',
-    projects: '/app/projects',
-    inventory: '/app/inventory',
-    suppliers: '/app/suppliers',
-    media: '/app/media',
-    monitoring: '/app/surveillance?tab=alertes',
     surveillance: '/app/surveillance',
-    users: '/app/users',
+    media: '/app/media',
     configuration: '/app/configuration',
     'config-general': '/app/configuration',
+    users: '/app/users',
     bailleurs: '/app/configuration/bailleurs',
     clients: '/app/configuration/clients',
     sites: '/app/configuration/sites',
@@ -88,12 +76,15 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     'finance?tab=expenses': '/app/finance?tab=expenses',
     'finance?tab=treasury': '/app/finance?tab=treasury',
     'finance?tab=ventes': '/app/finance?tab=ventes',
+    'surveillance?tab=alertes': '/app/surveillance?tab=alertes',
+    'surveillance?tab=evenements': '/app/surveillance?tab=evenements',
+    'surveillance?tab=historique': '/app/surveillance?tab=historique',
+    'surveillance?tab=audit': '/app/surveillance?tab=audit',
   };
 
   // État d'expansion des items avec enfants
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
-    // Auto-expand l'item qui contient la route courante
-    const current = location.pathname;
+    const current = location.pathname + location.search;
     const expanded = new Set<string>();
     ALL_NAV_ITEMS.forEach(item => {
       if (item.children?.some(child => routeMap[child.id] === current)) {
@@ -122,7 +113,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
 
   // Déterminer si un enfant correspond à la route actuelle
   const getChildActiveState = (childId: string): boolean => {
-    return location.pathname === routeMap[childId];
+    return location.pathname + location.search === routeMap[childId];
   };
 
   useEffect(() => {
@@ -156,8 +147,8 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         <div className="flex items-center gap-3 px-5 py-5 border-b border-default/10">
           <Logo
             icon={branding.logoIcon || 'Sprout'}
-            color="#F4F1E8" // exception logo, cf. design-system
-            bgColor="#B9D86B" // exception logo, cf. design-system
+            color="#F4F1E8"
+            bgColor="#B9D86B"
             size={40}
             imageUrl={farm?.logo_url}
           />
@@ -175,16 +166,14 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expandedItems.has(item.id);
             const containsActiveChild = hasChildren && item.children?.some(
-              child => routeMap[child.id] === location.pathname
+              child => location.pathname + location.search === routeMap[child.id]
             );
 
             return (
               <div key={item.id}>
-                {/* Bouton parent */}
                 <button
                   onClick={() => {
                     if (hasChildren) {
-                      // Toggle l'expansion + naviguer vers la page parent
                       setExpandedItems(prev => {
                         const next = new Set(prev);
                         if (next.has(item.id)) {
@@ -216,7 +205,6 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                       </span>
                     )}
                   </span>
-                  {/* Chevron pour les items avec children */}
                   {hasChildren && (
                     <span className="text-primary/40">
                       {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -224,7 +212,6 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                   )}
                 </button>
 
-                {/* Sous-items (si expanded) */}
                 {hasChildren && isExpanded && (
                   <div className="ml-6 mt-1 space-y-0.5 border-l border-default/10 pl-3">
                     {item.children!.map(child => {
