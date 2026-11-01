@@ -703,7 +703,7 @@ export function SiteContentEditor() {
 
                           {/* Formulaire d'édition (affiché uniquement en mode édition) */}
                           {isEditing && (
-                            <div className="mt-4 p-3 bg-accent-soft rounded-lg border border-border-subtle">
+                            <div className="mt-4 p-3 bg-accent-soft rounded-lg border border-subtle">
                               <div className="space-y-3">
                                 <div>
                                   <label className="block text-xs font-medium text-secondary mb-1">Titre</label>
@@ -767,7 +767,7 @@ export function SiteContentEditor() {
 
                       {/* Formulaire d'ajout (affiché lorsque l'utilisateur clique sur "Ajouter une fonctionnalité") */}
                       {isAddingFeature && (
-                        <div className="mt-4 p-4 bg-accent-soft rounded-lg border border-border-subtle">
+                        <div className="mt-4 p-4 bg-accent-soft rounded-lg border border-subtle">
                           <div className="space-y-3">
                             <div>
                               <label className="block text-xs font-medium text-secondary mb-1">Titre</label>
