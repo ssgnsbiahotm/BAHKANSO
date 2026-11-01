@@ -4,7 +4,6 @@ import { RotatingCard } from './RotatingCard';
 
 vi.mock('lucide-react', () => ({
   RotateCw: () => <span aria-hidden="true">rotate-cw</span>,
-  RotateCcw: () => <span aria-hidden="true">rotate-ccw</span>,
 }));
 
 function renderCard() {
@@ -16,47 +15,76 @@ function renderCard() {
   );
 }
 
+function face(name: 'front' | 'back') {
+  const text = name === 'front' ? 'Recto' : 'Verso';
+  const el = screen.getByText(text) as HTMLElement;
+  return el.closest(`[data-rc-face="${name}"]`)!;
+}
+
 describe('RotatingCard', () => {
-  it('retourne la carte avec le bouton Détails puis revient avec Retour', () => {
+  it('retourne la carte au clic et revient au second clic', () => {
     renderCard();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Détails' }));
-    expect(screen.getByText('Verso')).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Retour' })).toHaveFocus();
+    const card = screen.getByRole('button', { name: 'Ouvrir les détails de Carte' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Retour' }));
+    fireEvent.click(card);
+    expect(screen.getByText('Verso')).toBeVisible();
+    expect(face('front')).toHaveAttribute('aria-hidden', 'true');
+    expect(card).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(card);
     expect(screen.getByText('Recto')).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Détails' })).toHaveFocus();
+    expect(face('back')).toHaveAttribute('aria-hidden', 'true');
+    expect(card).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('retourne la carte avec Entrée ou Espace depuis le conteneur', () => {
+  it('retourne la carte avec Entrée ou Espace depuis le clavier', () => {
     renderCard();
-    const card = screen.getByRole('region', { name: 'Carte — recto' });
+    const card = screen.getByRole('button', { name: 'Ouvrir les détails de Carte' });
 
     fireEvent.keyDown(card, { key: 'Enter' });
+    expect(screen.getByText('Verso')).toBeVisible();
     expect(card).toHaveAttribute('aria-expanded', 'true');
 
     fireEvent.keyDown(card, { key: ' ' });
+    expect(screen.getByText('Recto')).toBeVisible();
     expect(card).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('revient au recto avec Escape et rend le focus au bouton Détails', () => {
+  it('revient au recto avec Escape', () => {
     renderCard();
-    const card = screen.getByRole('region', { name: 'Carte — recto' });
+    const card = screen.getByRole('button', { name: 'Ouvrir les détails de Carte' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Détails' }));
+    fireEvent.click(card);
+    expect(card).toHaveAttribute('aria-expanded', 'true');
+
     fireEvent.keyDown(card, { key: 'Escape' });
-
     expect(card).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.getByRole('button', { name: 'Détails' })).toHaveFocus();
+    expect(screen.getByText('Recto')).toBeVisible();
   });
 
-  it('référence une cible réelle avec aria-controls', () => {
-    renderCard();
-    const button = screen.getByRole('button', { name: 'Détails' });
-    const targetId = button.getAttribute('aria-controls');
+  it('ne bascule pas quand on clique sur un élément interactif interne', () => {
+    const { container } = render(
+      <RotatingCard
+        front={
+          <div>
+            <div>Recto</div>
+            <button type="button">Modifier</button>
+          </div>
+        }
+        back={<div>Verso</div>}
+      />,
+    );
 
-    expect(targetId).toBeTruthy();
-    expect(document.getElementById(targetId as string)).toBeInTheDocument();
+    const card = container.querySelector('[role="button"]')!;
+    const modifier = screen.getByRole('button', { name: 'Modifier' });
+
+    fireEvent.click(modifier);
+    expect(screen.getByText('Recto')).toBeVisible();
+    expect(face('front')).toHaveAttribute('aria-hidden', 'false');
+
+    // Le clic sur la carte elle-même bascule toujours
+    fireEvent.click(card);
+    expect(screen.getByText('Verso')).toBeVisible();
   });
 });

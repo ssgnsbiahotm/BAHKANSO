@@ -233,11 +233,6 @@ export function ClientsPage() {
                   {c.site_id && <p>📍 {sitesOptions.find(s => s.id === c.site_id)?.name || '—'}</p>}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-default">
-                  <button className="w-full text-sm text-success font-medium hover:text-success">
-                    Voir les détails →
-                  </button>
-                </div>
               </div>
             }
             back={
