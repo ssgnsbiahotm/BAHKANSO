@@ -64,7 +64,7 @@ const TransactionCardFront = ({ transaction, onEdit, onDelete, onView }: {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{transaction.description || transaction.reference || 'Opération'}</p>
-          <p className="text-xs text-slate-500 truncate">{transaction.reference ?? '—'}</p>
+          <p className="text-xs text-muted truncate">{transaction.reference ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${DIRECTION_COLORS[transaction.direction]} flex-shrink-0`}>
           {isIncome ? <ArrowUp size={10} className="inline" /> : <ArrowDown size={10} className="inline" />}
@@ -72,18 +72,18 @@ const TransactionCardFront = ({ transaction, onEdit, onDelete, onView }: {
         </span>
       </div>
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-        <span className="text-xs text-slate-500 capitalize">{transaction.type}</span>
+        <span className="text-xs text-muted capitalize">{transaction.type}</span>
         <div className="text-right">
           <p className="text-lg font-bold" style={{ color: isIncome ? '#166534' : '#92400E' }}>
             {formatCurrency(transaction.amount)}
           </p>
-          <p className="text-xs text-slate-500">{formatDate(transaction.transaction_date)}</p>
+          <p className="text-xs text-muted">{formatDate(transaction.transaction_date)}</p>
         </div>
       </div>
       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
         <button
           onClick={onView}
-          className="pointer-events-auto text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-slate-50 rounded border border-slate-200"
+          className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
           aria-label="Voir les détails"
         >
           <Eye size={12} /> Détail
@@ -91,14 +91,14 @@ const TransactionCardFront = ({ transaction, onEdit, onDelete, onView }: {
         <div className="flex items-center gap-1 pointer-events-auto">
           <button
             onClick={onEdit}
-            className="text-xs text-slate-500 hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-green-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
             aria-label="Modifier"
           >
             <Edit2 size={12} />
           </button>
           <button
             onClick={onDelete}
-            className="text-xs text-slate-500 hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-red-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
             aria-label="Supprimer"
           >
             <Trash2 size={12} />
@@ -116,7 +116,7 @@ const TransactionCardBack = ({ transaction, onClose, onEdit, onDelete }: { trans
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-base font-semibold">{transaction.description || transaction.reference || 'Opération'}</h3>
-          <p className="text-xs text-slate-500">{transaction.reference ?? '—'}</p>
+          <p className="text-xs text-muted">{transaction.reference ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${DIRECTION_COLORS[transaction.direction]} flex-shrink-0`}>
           {isIncome ? <ArrowUp size={10} className="inline" /> : <ArrowDown size={10} className="inline" />}
@@ -125,33 +125,33 @@ const TransactionCardBack = ({ transaction, onClose, onEdit, onDelete }: { trans
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-slate-500">Type</p>
+          <p className="text-muted">Type</p>
           <p className="font-medium capitalize">{transaction.type}</p>
         </div>
         <div>
-          <p className="text-slate-500">Montant</p>
+          <p className="text-muted">Montant</p>
           <p className="font-bold" style={{ color: isIncome ? '#166534' : '#92400E' }}>{formatCurrency(transaction.amount)}</p>
         </div>
         <div>
-          <p className="text-slate-500">Devise</p>
+          <p className="text-muted">Devise</p>
           <p className="font-medium">{transaction.currency}</p>
         </div>
         <div>
-          <p className="text-slate-500">Date</p>
+          <p className="text-muted">Date</p>
           <p className="font-medium">{formatDate(transaction.transaction_date)}</p>
         </div>
         <div>
-          <p className="text-slate-500">Compte Banque</p>
+          <p className="text-muted">Compte Banque</p>
           <p className="font-medium">{transaction.bank_account_id ?? '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Compte Caisse</p>
+          <p className="text-muted">Compte Caisse</p>
           <p className="font-medium">{transaction.cash_account_id ?? '—'}</p>
         </div>
       </div>
       {transaction.description && (
         <div>
-          <p className="text-slate-500 text-sm">Description</p>
+          <p className="text-muted text-sm">Description</p>
           <p className="text-sm">{transaction.description}</p>
         </div>
       )}
@@ -170,7 +170,7 @@ const TransactionCardBack = ({ transaction, onClose, onEdit, onDelete }: { trans
         </button>
         <button
           onClick={onClose}
-          className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+          className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
         >
           Retour
         </button>
@@ -319,7 +319,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
             <Plus size={16} /> Nouveau mouvement interne
           </button>
         </div>
-        <p className="text-xs text-slate-500 mt-1 leading-relaxed">Virement entre comptes ou frais bancaires.</p>
+        <p className="text-xs text-muted mt-1 leading-relaxed">Virement entre comptes ou frais bancaires.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{ minHeight: '200px' }}>
@@ -335,7 +335,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
       </div>
 
       {rows.length === 0 && (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-muted">
           <CreditCard size={48} className="mx-auto mb-4 text-slate-300" />
           <p className="text-lg font-medium">Aucune opération</p>
           <p className="text-sm">Cliquez sur « Nouvelle opération » pour commencer</p>
@@ -352,7 +352,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
         <form onSubmit={form.handleSubmit} className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Référence *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Référence *</label>
               <input
                 type="text"
                 value={form.values.reference}
@@ -364,7 +364,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Type *</label>
                 <select
                   value={form.values.type}
                   onChange={(e) => form.setFieldValue('type', e.target.value)}
@@ -377,7 +377,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
                 {form.errors.type && <p className="text-xs text-red-500 mt-1">{form.errors.type}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Direction *</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Direction *</label>
                 <select
                   value={form.values.direction}
                   onChange={(e) => form.setFieldValue('direction', e.target.value as 'entrée' | 'sortie')}
@@ -390,7 +390,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Montant *</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Montant *</label>
                 <input
                   type="number"
                   value={form.values.amount}
@@ -401,7 +401,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
                 {form.errors.amount && <p className="text-xs text-red-500 mt-1">{form.errors.amount}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Devise *</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Devise *</label>
                 <input
                   type="text"
                   value={form.values.currency}
@@ -413,7 +413,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Compte Banque</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Compte Banque</label>
               <input
                 type="text"
                 value={form.values.bank_account_id ?? ''}
@@ -423,7 +423,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Compte Caisse</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Compte Caisse</label>
               <input
                 type="text"
                 value={form.values.cash_account_id ?? ''}
@@ -433,7 +433,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Description</label>
               <input
                 type="text"
                 value={form.values.description ?? ''}
@@ -443,7 +443,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Date *</label>
               <input
                 type="datetime-local"
                 value={form.values.transaction_date}
@@ -453,13 +453,13 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
               {form.errors.transaction_date && <p className="text-xs text-red-500 mt-1">{form.errors.transaction_date}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Site</label>
               <input
                 type="text"
                 value={form.values.site_id ?? appUser?.site_id ?? ''}
                 readOnly
                 disabled
-                className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+                className="form-input w-full bg-surface-hover cursor-not-allowed text-secondary"
                 title="Site déterminé automatiquement depuis votre session"
               />
             </div>
@@ -468,7 +468,7 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
             <button
               type="button"
               onClick={() => { setModalOpen(false); setEditingTransaction(null); }}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
@@ -491,13 +491,13 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
           title="Confirmer la suppression"
           size="sm"
         >
-          <p className="text-sm text-slate-600 mb-4">
+          <p className="text-sm text-secondary mb-4">
             Supprimer l'opération <strong>{deletingTransaction.description || deletingTransaction.reference || 'Opération'}</strong> ({deletingTransaction.reference ?? '—'}) ?
           </p>
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setDeletingTransaction(null)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
