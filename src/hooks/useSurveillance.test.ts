@@ -317,7 +317,7 @@ describe('getStatusColor', () => {
   });
 
   it('should return correct color for annule', () => {
-    expect(getStatusColor('annule')).toBe('bg-slate-100 text-slate-700');
+    expect(getStatusColor('annule')).toBe('bg-surface-hover text-secondary');
   });
 });
 

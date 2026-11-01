@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useDashboardStats } from './useDashboardStats';
 import { useData } from '@/lib/DataContext';
@@ -49,12 +49,21 @@ function setup(overrides: {
 }
 
 function current(result: ReturnType<typeof renderHook>) {
-  return result.result.current as unknown as Record<string, unknown>;
+  return result.result.current as unknown as Record<string, unknown> & {
+    sourceStatus: Record<string, string>;
+    sourceError: Record<string, string | null>;
+  };
 }
 
 describe('useDashboardStats', () => {
   beforeEach(() => {
     mockUseData.mockClear();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-15T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('identifie les huit sources comme disponibles quand leurs requetes reussissent', () => {

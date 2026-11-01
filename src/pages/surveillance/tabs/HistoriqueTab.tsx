@@ -19,6 +19,7 @@ export function HistoriqueTab() {
   useAuth();
 
   const [logs, setLogs] = useState<EnrichedLog[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchLogs() {
@@ -44,13 +45,13 @@ export function HistoriqueTab() {
       let plots: { data: null | { id: string; name: string }[]; error: null } = { data: null, error: null };
 
       await Promise.allSettled([
-        supabase.from('sites').select('id, name').in('id', getIds('site')).then(r => { sites = r; }),
-        supabase.from('expenses').select('id, reference, description').in('id', getIds('expense')).then(r => { expenses = r; }),
-        supabase.from('customers').select('id, name').in('id', getIds('customer')).then(r => { customers = r; }),
-        supabase.from('funders').select('id, name').in('id', getIds('funder')).then(r => { funders = r; }),
-        supabase.from('animals').select('id, identifier').in('id', getIds('animal')).then(r => { animals = r; }),
-        supabase.from('projects').select('id, name').in('id', getIds('project')).then(r => { projects = r; }),
-        supabase.from('plots').select('id, name').in('id', getIds('plot')).then(r => { plots = r; }),
+        supabase.from('sites').select('id, name').in('id', getIds('site')).then(({ data, error }) => { sites = { data, error: error ? error as unknown as null : null }; }),
+        supabase.from('expenses').select('id, reference, description').in('id', getIds('expense')).then(({ data, error }) => { expenses = { data, error: error ? error as unknown as null : null }; }),
+        supabase.from('customers').select('id, name').in('id', getIds('customer')).then(({ data, error }) => { customers = { data, error: error ? error as unknown as null : null }; }),
+        supabase.from('funders').select('id, name').in('id', getIds('funder')).then(({ data, error }) => { funders = { data, error: error ? error as unknown as null : null }; }),
+        supabase.from('animals').select('id, identifier').in('id', getIds('animal')).then(({ data, error }) => { animals = { data, error: error ? error as unknown as null : null }; }),
+        supabase.from('projects').select('id, name').in('id', getIds('project')).then(({ data, error }) => { projects = { data, error: error ? error as unknown as null : null }; }),
+        supabase.from('plots').select('id, name').in('id', getIds('plot')).then(({ data, error }) => { plots = { data, error: error ? error as unknown as null : null }; }),
       ]);
 
       const resolveName = (type: string, id: string): string => {
@@ -130,7 +131,7 @@ export function HistoriqueTab() {
       ? timeAgo(data[0].created_at)
       : 'aucune';
 
-    const activeUsers = new Set(data.map((l: AuditLog) => l.user_id)).size;
+    const activeUsers = new Set<string>(data.map((l: AuditLog) => l.user_id).filter((id): id is string => id !== null)).size;
 
     const criticalActions = criterialogs.filter(
       (l: AuditLog) => l.action === 'DELETE' || l.action === 'UPDATE'
@@ -152,7 +153,7 @@ export function HistoriqueTab() {
 
   const users = useMemo(() => {
     const usersSet = new Set<string>();
-    (logs ?? []).forEach((log: AuditLog) => usersSet.add(log.user_id));
+    (logs ?? []).forEach((log: AuditLog) => { if (log.user_id) usersSet.add(log.user_id); });
     return Array.from(usersSet).map(id => {
       const log = (logs ?? []).find((l: AuditLog) => l.user_id === id);
       return { id, name: log?.user_name || `Utilisateur ${id.slice(0, 8)}...` };
@@ -168,25 +169,25 @@ export function HistoriqueTab() {
           <div className="flex gap-2">
             <button
               onClick={() => handleTabChange('tous')}
-              className={activeTab === 'tous' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-700 px-3 py-1 rounded'}
+              className={activeTab === 'tous' ? 'bg-blue-600 text-white' : 'text-muted hover:text-secondary px-3 py-1 rounded'}
             >
               Tout
             </button>
             <button
               onClick={() => handleTabChange('hier')}
-              className={activeTab === 'hier' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-700 px-3 py-1 rounded'}
+              className={activeTab === 'hier' ? 'bg-blue-600 text-white' : 'text-muted hover:text-secondary px-3 py-1 rounded'}
             >
               Hier
             </button>
             <button
               onClick={() => handleTabChange('semaine')}
-              className={activeTab === 'semaine' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-700 px-3 py-1 rounded'}
+              className={activeTab === 'semaine' ? 'bg-blue-600 text-white' : 'text-muted hover:text-secondary px-3 py-1 rounded'}
             >
               Semaine
             </button>
             <button
               onClick={() => handleTabChange('mois')}
-              className={activeTab === 'mois' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-700 px-3 py-1 rounded'}
+              className={activeTab === 'mois' ? 'bg-blue-600 text-white' : 'text-muted hover:text-secondary px-3 py-1 rounded'}
             >
               Mois
             </button>
@@ -201,20 +202,20 @@ export function HistoriqueTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Rechercher..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-default rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Rechercher"
           />
         </div>
         <select
           value={filterUser || ''}
           onChange={(e) => setFilterUser(e.target.value || null)}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white"
+          className="px-3 py-2 text-sm border border-default rounded-lg bg-surface"
         >
           <option value="">Tous les utilisateurs</option>
           {users.map(u => (
@@ -224,7 +225,7 @@ export function HistoriqueTab() {
         <select
           value={filterAction || ''}
           onChange={(e) => setFilterAction(e.target.value || null)}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white"
+          className="px-3 py-2 text-sm border border-default rounded-lg bg-surface"
         >
           <option value="">Toutes les actions</option>
           <option value="CREATE">Création</option>
@@ -235,33 +236,33 @@ export function HistoriqueTab() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{ minHeight: '200px' }}>
         {filteredLogs.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-slate-500">
+          <div className="col-span-full text-center py-12 text-muted">
             <AlertCircle size={48} className="mx-auto mb-4 text-slate-300" />
             <p>Aucune action enregistrée</p>
             <p className="text-sm">Les actions apparaissent ici à mesure que vous utilisez l'application</p>
           </div>
         ) : (
-          filteredLogs.map((log: AuditLog) => (
-            <div key={log.id} className={`bg-white rounded-xl border p-4 ${log.status === 'résolue' ? 'border-slate-200 opacity-60' : ''} ${log.action === 'DELETE' ? 'ring-2 ring-red-500/20' : ''}`}>
+          filteredLogs.map((log: EnrichedLog) => (
+            <div key={log.id} className={`bg-surface rounded-xl border p-4 ${log.status === 'résolue' ? 'border-default opacity-60' : ''} ${log.action === 'DELETE' ? 'ring-2 ring-red-500/20' : ''}`}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-slate-400 text-sm">{timeAgo(log.created_at)}</span>
+                    <span className="text-muted text-sm">{timeAgo(log.created_at)}</span>
                     {log.user_name && <span>· {log.user_name}</span>}
                     <span className="ml-2 text-xs font-bold bg-red-100 text-red-800 rounded px-2 py-0.5">{log.action === 'DELETE' ? '🔴 DELETE' : log.action === 'UPDATE' ? '🔵 UPDATE' : '🟢 CREATE'}</span>
                   </div>
-                  <h4 className="font-semibold text-slate-900">{log.action}</h4>
+                  <h4 className="font-semibold text-primary">{log.action}</h4>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400 capitalize">
+                  <span className="text-sm text-muted capitalize">
                     {log.resolved_object || `ID ${log.object_id?.slice(0, 8) ?? '—'}`}
                   </span>
                 </div>
               </div>
-              <p className="text-sm text-slate-500 truncate mt-2">{log.description || log.title || ''}</p>
+              <p className="text-sm text-muted truncate mt-2">{log.description || log.title || ''}</p>
               {log.object_type && (
-                <p className="text-xs text-slate-400 mt-1">
-                  Cible: <a href={`/app/${log.object_type}/?id=${log.object_id}`} className="text-slate-600 underline hover:text-slate-800" target="_blank" rel="noopener noreferrer">
+                <p className="text-xs text-muted mt-1">
+                  Cible: <a href={`/app/${log.object_type}/?id=${log.object_id}`} className="text-secondary underline hover:text-primary" target="_blank" rel="noopener noreferrer">
                     {log.resolved_object}
                   </a>
                 </p>

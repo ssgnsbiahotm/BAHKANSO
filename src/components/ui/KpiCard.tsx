@@ -3,16 +3,25 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 type TrendValue = number | null | { value: string; positive: boolean };
 
-interface KpiCardProps {
+export interface KpiCardProps {
   label: string;
   value: string;
   icon: ReactNode;
   trend?: TrendValue;
   trendLabel?: string;
-  color?: 'accent' | 'success' | 'info' | 'warning' | 'danger' | 'slate' | 'terra';
+  tone?: 'success' | 'info' | 'warning' | 'danger' | 'neutral';
+  color?:
+    | 'accent'
+    | 'success'
+    | 'info'
+    | 'warning'
+    | 'danger'
+    | 'slate'
+    | 'terra';
   subtitle?: string;
 }
 
+// Color -> tailwind class mapping (existing API, unchanged behavior)
 const colorClasses: Record<string, { bg: string; text: string }> = {
   accent: { bg: 'bg-accent-soft', text: 'text-accent-primary' },
   success: { bg: 'bg-success-soft', text: 'text-success' },
@@ -23,14 +32,38 @@ const colorClasses: Record<string, { bg: string; text: string }> = {
   terra: { bg: 'bg-terra-soft', text: 'text-terra-text' },
 };
 
+// CSS variable mappings for tones (dark theme palette) — opt-in override
+const toneBg: Record<string, string> = {
+  success: 'var(--success-soft)',
+  info: 'var(--info-soft)',
+  warning: 'var(--warning-soft)',
+  danger: 'var(--danger-soft)',
+  neutral: 'var(--bg-surface-hover)',
+};
+
+const toneText: Record<string, string> = {
+  success: 'var(--success)',
+  info: 'var(--info)',
+  warning: 'var(--warning)',
+  danger: 'var(--danger)',
+  neutral: 'var(--text-secondary)',
+};
+
 const TREND_TEXT: Record<string, string> = {
   positive: 'text-success',
   negative: 'text-danger',
   neutral: 'text-muted',
 };
-export function KpiCard({ label, value, icon, trend, trendLabel, color = 'success', subtitle }: KpiCardProps) {
-  const c = colorClasses[color];
-
+export function KpiCard({
+  label,
+  value,
+  icon,
+  trend,
+  trendLabel,
+  tone,
+  color = 'success',
+  subtitle,
+}: KpiCardProps) {
   const renderTrend = () => {
     if (trend === undefined || trend === null) return null;
 
@@ -52,10 +85,15 @@ export function KpiCard({ label, value, icon, trend, trendLabel, color = 'succes
     );
   };
 
+  // tone (opt-in) overrides color with CSS variables; otherwise tailwind classes via color
+  const c = colorClasses[color] || colorClasses.success;
+  const bgClass = tone ? toneBg[tone] || toneBg.success : c.bg;
+  const textClass = tone ? toneText[tone] || toneText.success : c.text;
+
   return (
     <div className="rotatable-card bg-surface rounded-lg border border-default p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
-        <div className={`p-2.5 rounded-lg ${c.bg} ${c.text}`}>
+        <div className={`p-2.5 rounded-lg ${bgClass} ${textClass}`}>
           {icon}
         </div>
         {renderTrend()}

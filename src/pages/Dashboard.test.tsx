@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import { useData } from '@/lib/DataContext';
@@ -68,6 +68,12 @@ describe('Dashboard', () => {
   beforeEach(() => {
     mockUseData.mockClear();
     mockUseAuth.mockClear();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-15T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('le bouton d explication ouvre/ferme et met a jour ses attributs ARIA', () => {
