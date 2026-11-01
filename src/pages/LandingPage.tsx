@@ -686,7 +686,7 @@ export default function LandingPage() {
                   footerSecurity.map((sec, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <span aria-hidden="true" className="text-signal">{sec.icon || '✓'}</span>
-                      <a href="#" className="hover:text-ivory transition-colors underline underline-offset-2 text-ivory">{sec.text}</a>
+                      <span className="hover:text-ivory transition-colors underline underline-offset-2 text-ivory">{sec.text}</span>
                     </li>
                   ))
                 ) : (
