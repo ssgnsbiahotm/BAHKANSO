@@ -85,174 +85,6 @@ const STATUS_COLORS: Record<string, string> = {
   payée: 'text-blue-700 bg-blue-50',
 };
 
-const ExpenseCardFront = ({ expense, onEdit, onDelete, onView }: {
-  expense: Expense;
-  onEdit: () => void;
-  onDelete: () => void;
-  onView: () => void;
-}) => {
-  const status = expense.status || 'en_attente';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{expense.reference ?? '—'}</p>
-          <p className="text-xs text-muted truncate">{expense.label ?? '—'}</p>
-        </div>
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
-          {STATUS_LABELS[status] ?? status}
-        </span>
-      </div>
-      <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-        <div className="flex items-center gap-1 text-xs text-muted">
-          <span>{expense.category ?? '—'}</span>
-        </div>
-        <div className="text-right">
-          <p className="text-lg font-bold text-primary">{formatCurrency(expense.amount_paid ?? expense.amount)} {expense.currency}</p>
-          <p className="text-xs text-muted">{formatDate(expense.date)}</p>
-        </div>
-      </div>
-      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
-        <button
-          onClick={onView}
-          className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
-          aria-label="Voir les détails"
-        >
-          <Eye size={12} /> Détail
-        </button>
-        <div className="flex items-center gap-1 pointer-events-auto">
-          <button
-            onClick={onEdit}
-            className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
-            aria-label="Modifier"
-          >
-            <Edit2 size={12} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
-            aria-label="Supprimer"
-          >
-            <Trash2 size={12} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ExpenseCardBack = ({ expense, onClose, onEdit, onDelete }: {
-  expense: Expense;
-  onClose: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}) => {
-  const status = expense.status || 'en_attente';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h3 className="text-base font-semibold">{expense.label ?? 'Dépense'}</h3>
-          <p className="text-xs text-muted">{expense.reference ?? '—'}</p>
-        </div>
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
-          {STATUS_LABELS[status] ?? status}
-        </span>
-      </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <p className="text-muted">Fournisseur</p>
-          <p className="font-medium">{expense.supplier?.name ?? expense.supplier_id ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-muted">Méthode de paiement</p>
-          <p className="font-medium">{expense.payment_method ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-muted">Justificatif</p>
-          <p className="font-medium">{expense.has_justificatif ? 'Oui' : 'Non'}</p>
-        </div>
-        <div>
-          <p className="text-muted">Montant</p>
-          <p className="font-medium">{formatCurrency(expense.amount_paid ?? expense.amount)} {expense.currency}</p>
-        </div>
-        <div>
-          <p className="text-muted">Catégorie</p>
-          <p className="font-medium capitalize">{expense.category ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-muted">Responsable</p>
-          <p className="font-medium">{expense.responsible ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-muted">Date</p>
-          <p className="font-medium">{formatDate(expense.date)}</p>
-        </div>
-      </div>
-      {expense.description && (
-        <div>
-          <p className="text-muted text-sm">Description</p>
-          <p className="text-sm">{expense.description}</p>
-        </div>
-      )}
-      {expense.justificatif_url && (
-        <div>
-          <p className="text-muted text-sm">Justificatif</p>
-          <a href={expense.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline flex items-center gap-1">
-            <ExternalLink size={12} /> Ouvrir le fichier
-          </a>
-        </div>
-      )}
-      <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
-        <button
-          onClick={onEdit}
-          className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
-        >
-          <Edit2 size={14} /> Modifier
-        </button>
-        <button
-          onClick={onDelete}
-          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
-        >
-          <Trash2 size={14} /> Supprimer
-        </button>
-        <button
-          onClick={onClose}
-          className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
-        >
-          Retour
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const CreateExpenseCard = ({ onCreate }: { onCreate: () => void }) => (
-  <div className="rc" style={{ minHeight: '180px' }}>
-    <div className="rc-inner" style={{ transform: 'none' }}>
-      <div className="rc-face rc-face--front" style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: '1rem', padding: '2rem', border: '2px dashed #CBD5E1', background: '#FAFAFA',
-        transform: 'rotateY(0deg)', backfaceVisibility: 'hidden'
-      }}>
-        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
-          <Plus size={28} className="text-red-600" />
-        </div>
-        <div className="text-center">
-          <h4 className="font-semibold text-primary">Nouvelle dépense</h4>
-          <p className="text-sm text-muted">Enregistrer une dépense</p>
-        </div>
-        <button
-          onClick={onCreate}
-          className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-        >
-          Créer une dépense
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
 export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
   const { data, loading, error, refetch } = expensesData;
   const { authUser, appUser } = useAuth();
@@ -490,16 +322,146 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{ minHeight: '200px' }}>
-        {rows.map((expense) => (
-          <RotatingCard
-            key={expense.id}
-            flipLabel={`Détail — ${expense.reference ?? expense.label}`}
-            backLabel="Retour"
-            front={<ExpenseCardFront expense={expense} onEdit={() => handleEdit(expense)} onDelete={() => handleDelete(expense)} onView={() => handleEdit(expense)} />}
-            back={<ExpenseCardBack expense={expense} onClose={() => {}} onEdit={() => handleEdit(expense)} onDelete={() => handleDelete(expense)} />}
-          />
-        ))}
-        <CreateExpenseCard onCreate={handleNewExpense} />
+        {rows.map((expense) => {
+          const status = expense.status || 'en_attente';
+          return (
+            <RotatingCard
+              key={expense.id}
+              flipLabel={`Détail — ${expense.reference ?? expense.label}`}
+              backLabel="Retour"
+              front={
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{expense.reference ?? '—'}</p>
+                      <p className="text-xs text-muted truncate">{expense.label ?? '—'}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
+                      {STATUS_LABELS[status] ?? status}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-1 text-xs text-muted">
+                      <span>{expense.category ?? '—'}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-primary">{formatCurrency(expense.amount_paid ?? expense.amount)} {expense.currency}</p>
+                      <p className="text-xs text-muted">{formatDate(expense.date)}</p>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
+                    <button
+                      onClick={() => handleEdit(expense)}
+                      className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
+                      aria-label="Voir les détails"
+                    >
+                      <Eye size={12} /> Détail
+                    </button>
+                    <div className="flex items-center gap-1 pointer-events-auto">
+                      <button
+                        onClick={() => handleEdit(expense)}
+                        className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
+                        aria-label="Modifier"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(expense)}
+                        className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+              back={
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-base font-semibold">{expense.label ?? 'Dépense'}</h3>
+                      <p className="text-xs text-muted">{expense.reference ?? '—'}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
+                      {STATUS_LABELS[status] ?? status}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-muted">Fournisseur</p>
+                      <p className="font-medium">{expense.supplier?.name ?? expense.supplier_id ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Méthode de paiement</p>
+                      <p className="font-medium">{expense.payment_method ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Justificatif</p>
+                      <p className="font-medium">{expense.has_justificatif ? 'Oui' : 'Non'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Montant</p>
+                      <p className="font-medium">{formatCurrency(expense.amount_paid ?? expense.amount)} {expense.currency}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Catégorie</p>
+                      <p className="font-medium capitalize">{expense.category ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Responsable</p>
+                      <p className="font-medium">{expense.responsible ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Date</p>
+                      <p className="font-medium">{formatDate(expense.date)}</p>
+                    </div>
+                  </div>
+                  {expense.description && (
+                    <div>
+                      <p className="text-muted text-sm">Description</p>
+                      <p className="text-sm">{expense.description}</p>
+                    </div>
+                  )}
+                  {expense.justificatif_url && (
+                    <div>
+                      <p className="text-muted text-sm">Justificatif</p>
+                      <a href={expense.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline flex items-center gap-1">
+                        <ExternalLink size={12} /> Ouvrir le fichier
+                      </a>
+                    </div>
+                  )}
+                  <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => handleEdit(expense)}
+                      className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
+                    >
+                      <Edit2 size={14} /> Modifier
+                    </button>
+                    <button
+                      onClick={() => handleDelete(expense)}
+                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
+                    >
+                      <Trash2 size={14} /> Supprimer
+                    </button>
+                    <button
+                      onClick={() => {}}
+                      className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
+                    >
+                      Retour
+                    </button>
+                  </div>
+                </div>
+              }
+            />
+          );
+        })}
+        <button
+          onClick={handleNewExpense}
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
+        >
+          <Plus size={16} /> Nouvelle dépense
+        </button>
       </div>
 
       {rows.length === 0 && (

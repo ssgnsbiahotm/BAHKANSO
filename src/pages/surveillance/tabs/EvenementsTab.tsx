@@ -423,7 +423,12 @@ export function EvenementsTab() {
             />
           ))
         )}
-        <CreateEventCard onCreate={handleNewEvent} />
+        <button
+          onClick={handleNewEvent}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          <Plus size={16} /> Créer un événement
+        </button>
       </div>
 
       {/* Modal création/édition */}
@@ -483,30 +488,3 @@ export function EvenementsTab() {
     </div>
   );
 }
-
-/* ---- Card vide de création ---- */
-const CreateEventCard = ({ onCreate }: { onCreate: () => void }) => (
-  <div className="rc" style={{ minHeight: '180px' }}>
-    <div className="rc-inner" style={{ transform: 'none' }}>
-      <div className="rc-face rc-face--front" style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: '1rem', padding: '2rem', border: '2px dashed #CBD5E1', background: '#FAFAFA',
-        transform: 'rotateY(0deg)', backfaceVisibility: 'hidden'
-      }}>
-        <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center">
-          <Plus size={28} className="text-blue-600" />
-        </div>
-        <div className="text-center">
-          <h4 className="font-semibold text-primary">Nouvel événement</h4>
-          <p className="text-sm text-muted">Créer un événement de surveillance</p>
-        </div>
-        <button
-          onClick={onCreate}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
-          Créer un événement
-        </button>
-      </div>
-    </div>
-  </div>
-);

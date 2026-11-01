@@ -69,182 +69,6 @@ const formatFileSize = (bytes: number | null | undefined) => {
   return `${(bytes / 1024 / 1024).toFixed(1)} Mo`;
 };
 
-const DocumentCardFront = ({ document, onEdit, onDelete, onView }: {
-  document: Document;
-  onEdit: () => void;
-  onDelete: () => void;
-  onView: () => void;
-}) => {
-  const status = document.status || 'ajouté';
-  const FileIcon = getFileIcon(document.mime_type);
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{document.name}</p>
-          <p className="text-xs text-muted truncate">{document.reference ?? '—'}</p>
-        </div>
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
-          {STATUS_LABELS[status] ?? status}
-        </span>
-      </div>
-      <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-        <div className="flex items-center gap-1 text-xs text-muted">
-          <FileIcon size={12} />
-          <span>{document.type}</span>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-medium text-secondary">{formatFileSize(document.file_size)}</p>
-          <p className="text-xs text-muted">{formatDate(document.upload_date)}</p>
-        </div>
-      </div>
-      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
-        <button
-          onClick={onView}
-          className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
-          aria-label="Voir les détails"
-        >
-          <Eye size={12} /> Détail
-        </button>
-        <div className="flex items-center gap-1 pointer-events-auto">
-          {document.file_url && (
-            <a
-              href={document.file_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
-              aria-label="Télécharger"
-            >
-              <Download size={12} />
-            </a>
-          )}
-          <button
-            onClick={onEdit}
-            className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
-            aria-label="Modifier"
-          >
-            <Edit2 size={12} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
-            aria-label="Supprimer"
-          >
-            <Trash2 size={12} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DocumentCardBack = ({ document, onClose, onEdit, onDelete }: { document: Document; onClose: () => void; onEdit: () => void; onDelete: () => void }) => {
-  const status = document.status || 'ajouté';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h3 className="text-base font-semibold">{document.name}</h3>
-          <p className="text-xs text-muted">{document.reference ?? '—'}</p>
-        </div>
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
-          {STATUS_LABELS[status] ?? status}
-        </span>
-      </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <p className="text-muted">Type</p>
-          <p className="font-medium capitalize">{document.type}</p>
-        </div>
-        <div>
-          <p className="text-muted">Statut</p>
-          <p className="font-medium capitalize">{STATUS_LABELS[status] ?? status}</p>
-        </div>
-        <div>
-          <p className="text-muted">Fichier</p>
-          <p className="font-medium">{document.mime_type ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-muted">Taille</p>
-          <p className="font-medium">{formatFileSize(document.file_size)}</p>
-        </div>
-        <div>
-          <p className="text-muted">Date upload</p>
-          <p className="font-medium">{formatDate(document.upload_date)}</p>
-        </div>
-        <div>
-          <p className="text-muted">Uploadé par</p>
-          <p className="font-medium">{document.uploaded_by ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-muted">Objet</p>
-          <p className="font-medium">{document.object_type ?? '—'} #{document.object_id ?? '—'}</p>
-        </div>
-      </div>
-      {document.comment && (
-        <div>
-          <p className="text-muted text-sm">Commentaire</p>
-          <p className="text-sm">{document.comment}</p>
-        </div>
-      )}
-      {document.file_url && (
-        <div>
-          <p className="text-muted text-sm">Fichier</p>
-          <a href={document.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline flex items-center gap-1">
-            <ExternalLink size={12} /> Ouvrir le fichier
-          </a>
-        </div>
-      )}
-      <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
-        <button
-          onClick={onEdit}
-          className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
-        >
-          <Edit2 size={14} /> Modifier
-        </button>
-        <button
-          onClick={onDelete}
-          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
-        >
-          <Trash2 size={14} /> Supprimer
-        </button>
-        <button
-          onClick={onClose}
-          className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
-        >
-          Retour
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const CreateDocumentCard = ({ onCreate }: { onCreate: () => void }) => (
-  <div className="rc" style={{ minHeight: '180px' }}>
-    <div className="rc-inner" style={{ transform: 'none' }}>
-      <div className="rc-face rc-face--front" style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: '1rem', padding: '2rem', border: '2px dashed #CBD5E1', background: '#FAFAFA',
-        transform: 'rotateY(0deg)', backfaceVisibility: 'hidden'
-      }}>
-        <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center">
-          <Plus size={28} className="text-blue-600" />
-        </div>
-        <div className="text-center">
-          <h4 className="font-semibold text-primary">Nouveau document</h4>
-          <p className="text-sm text-muted">Ajouter un justificatif ou document</p>
-        </div>
-        <button
-          onClick={onCreate}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
-          Créer un document
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
 export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
   const { data, loading, error, refetch } = documentsData;
   const { authUser, appUser } = useAuth();
@@ -479,16 +303,159 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{ minHeight: '200px' }}>
-        {rows.map((document) => (
-          <RotatingCard
-            key={document.id}
-            flipLabel={`Détail — ${document.name}`}
-            backLabel="Retour"
-            front={<DocumentCardFront document={document} onEdit={() => handleEdit(document)} onDelete={() => handleDelete(document)} onView={() => handleEdit(document)} />}
-            back={<DocumentCardBack document={document} onClose={() => {}} onEdit={() => handleEdit(document)} onDelete={() => handleDelete(document)} />}
-          />
-        ))}
-        <CreateDocumentCard onCreate={handleNewDocument} />
+        {rows.map((document) => {
+          const status = document.status || 'ajouté';
+          const FileIcon = getFileIcon(document.mime_type);
+          return (
+            <RotatingCard
+              key={document.id}
+              flipLabel={`Détail — ${document.name}`}
+              backLabel="Retour"
+              front={
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%', paddingBottom: '3rem' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{document.name}</p>
+                      <p className="text-xs text-muted truncate">{document.reference ?? '—'}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
+                      {STATUS_LABELS[status] ?? status}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-1 text-xs text-muted">
+                      <FileIcon size={12} />
+                      <span>{document.type}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-secondary">{formatFileSize(document.file_size)}</p>
+                      <p className="text-xs text-muted">{formatDate(document.upload_date)}</p>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
+                    <button
+                      onClick={() => handleEdit(document)}
+                      className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
+                      aria-label="Voir les détails"
+                    >
+                      <Eye size={12} /> Détail
+                    </button>
+                    <div className="flex items-center gap-1 pointer-events-auto">
+                      {document.file_url && (
+                        <a
+                          href={document.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
+                          aria-label="Télécharger"
+                        >
+                          <Download size={12} />
+                        </a>
+                      )}
+                      <button
+                        onClick={() => handleEdit(document)}
+                        className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
+                        aria-label="Modifier"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(document)}
+                        className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+              back={
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-base font-semibold">{document.name}</h3>
+                      <p className="text-xs text-muted">{document.reference ?? '—'}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
+                      {STATUS_LABELS[status] ?? status}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-muted">Type</p>
+                      <p className="font-medium capitalize">{document.type}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Statut</p>
+                      <p className="font-medium capitalize">{STATUS_LABELS[status] ?? status}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Fichier</p>
+                      <p className="font-medium">{document.mime_type ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Taille</p>
+                      <p className="font-medium">{formatFileSize(document.file_size)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Date upload</p>
+                      <p className="font-medium">{formatDate(document.upload_date)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Uploadé par</p>
+                      <p className="font-medium">{document.uploaded_by ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted">Objet</p>
+                      <p className="font-medium">{document.object_type ?? '—'} #{document.object_id ?? '—'}</p>
+                    </div>
+                  </div>
+                  {document.comment && (
+                    <div>
+                      <p className="text-muted text-sm">Commentaire</p>
+                      <p className="text-sm">{document.comment}</p>
+                    </div>
+                  )}
+                  {document.file_url && (
+                    <div>
+                      <p className="text-muted text-sm">Fichier</p>
+                      <a href={document.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline flex items-center gap-1">
+                        <ExternalLink size={12} /> Ouvrir le fichier
+                      </a>
+                    </div>
+                  )}
+                  <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => handleEdit(document)}
+                      className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
+                    >
+                      <Edit2 size={14} /> Modifier
+                    </button>
+                    <button
+                      onClick={() => handleDelete(document)}
+                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
+                    >
+                      <Trash2 size={14} /> Supprimer
+                    </button>
+                    <button
+                      onClick={() => {}}
+                      className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
+                    >
+                      Retour
+                    </button>
+                  </div>
+                </div>
+              }
+            />
+          );
+        })}
+        <button
+          onClick={handleNewDocument}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+        >
+          <Plus size={16} /> Nouveau document
+        </button>
       </div>
 
       {rows.length === 0 && (
