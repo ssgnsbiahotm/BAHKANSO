@@ -9,9 +9,9 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { Modal } from '@/components/ui/Modal';
-import { Plus, Edit2, Trash2, CheckCircle, Calendar, Filter, Search, Wrench, AlertTriangle, RotateCw } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Filter, Search, Wrench, AlertTriangle } from 'lucide-react';
 import { logAudit, type SurveillanceEvent, type SurveillanceEventStatus, type SurveillanceEventType } from '@/lib/types';
-import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_NEUTRAL } from '@/lib/constants';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_NEUTRAL, STATUS_CLASS_DANGER } from '@/lib/constants';
 
 const TYPE_LABELS: Record<string, string> = {
   phyto_traitement: 'Traitement phytosanitaire',
@@ -295,13 +295,6 @@ export function EvenementsTab() {
                   )}
 
                   <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
-                    <button
-                      onClick={() => {}}
-                      className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
-                      aria-label="Voir les détails"
-                    >
-                      <RotateCw size={12} /> Détail
-                    </button>
                     <div className="flex items-center gap-1 pointer-events-auto">
                       <button
                         onClick={() => handleEdit(event)}
@@ -412,14 +405,6 @@ export function EvenementsTab() {
                   )}
 
                   <div className="mt-auto flex justify-end gap-2 pt-2 border-t border-slate-100">
-                    {event.status !== 'termine' && event.status !== 'annule' && (
-                      <button
-                        onClick={() => {}}
-                        className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
-                      >
-                        <CheckCircle size={14} /> Marquer terminé
-                      </button>
-                    )}
                     <button
                       onClick={() => handleEdit(event)}
                       className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-1"
@@ -431,12 +416,6 @@ export function EvenementsTab() {
                       className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
                     >
                       <Trash2 size={14} /> Supprimer
-                    </button>
-                    <button
-                      onClick={() => {}}
-                      className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
-                    >
-                      Retour
                     </button>
                   </div>
                 </div>
