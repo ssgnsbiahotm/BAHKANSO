@@ -64,8 +64,8 @@ const MODULE_CONFIG: Record<string, Omit<ModuleSummary, 'expenses' | 'expenseCou
     key: 'aucun',
     label: 'Non lié',
     icon: <Minus size={20} />,
-    color: 'text-slate-700',
-    bgColor: 'bg-slate-50',
+    color: 'text-secondary',
+    bgColor: 'bg-surface-hover',
   },
 };
 
@@ -197,10 +197,10 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
       </div>
 
       {/* Vue par module — cartes rotatives */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <h3 className="text-lg font-semibold text-slate-900">Répartition par module</h3>
-          <p className="text-sm text-slate-500 mt-1">Synthèse des flux financiers rattachés à chaque activité</p>
+      <div className="bg-surface border border-default rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-default bg-surface-hover">
+          <h3 className="text-lg font-semibold text-primary">Répartition par module</h3>
+          <p className="text-sm text-muted mt-1">Synthèse des flux financiers rattachés à chaque activité</p>
         </div>
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -218,32 +218,32 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
                           {module.icon}
                         </div>
                         <div>
-                          <h4 className="font-semibold text-slate-900">{module.label}</h4>
-                          <p className="text-xs text-slate-500">
+                          <h4 className="font-semibold text-primary">{module.label}</h4>
+                          <p className="text-xs text-muted">
                             {module.expenseCount} dépense{module.expenseCount > 1 ? 's' : ''} •
                             {module.fundingCount} financement{module.fundingCount > 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Solde</p>
-                        <p className={`font-bold text-slate-900 ${module.net >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        <p className="text-xs text-muted uppercase tracking-wider font-semibold">Solde</p>
+                        <p className={`font-bold text-primary ${module.net >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                           {module.net >= 0 ? '+' : ''}{formatAmount(module.net)}
                         </p>
                       </div>
                     </div>
-                    <div className="mt-auto grid grid-cols-3 gap-4 pt-4 border-t border-slate-200">
+                    <div className="mt-auto grid grid-cols-3 gap-4 pt-4 border-t border-default">
                       <div>
-                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Financements</p>
+                        <p className="text-xs text-muted uppercase tracking-wider font-semibold">Financements</p>
                         <p className="font-bold text-green-700">{formatAmount(module.fundings)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Dépenses</p>
+                        <p className="text-xs text-muted uppercase tracking-wider font-semibold">Dépenses</p>
                         <p className="font-bold text-amber-700">{formatAmount(module.expenses)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Écart</p>
-                        <p className="font-bold text-slate-900">{formatAmount(Math.abs(module.net))}</p>
+                        <p className="text-xs text-muted uppercase tracking-wider font-semibold">Écart</p>
+                        <p className="font-bold text-primary">{formatAmount(Math.abs(module.net))}</p>
                       </div>
                     </div>
                   </div>
@@ -252,12 +252,12 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
                   <div className="h-full flex flex-col">
                     <div className="flex items-start justify-between gap-2 mb-4">
                       <div>
-                        <h4 className="font-semibold text-slate-900">{module.label}</h4>
-                        <p className="text-xs text-slate-500">Activités liées</p>
+                        <h4 className="font-semibold text-primary">{module.label}</h4>
+                        <p className="text-xs text-muted">Activités liées</p>
                       </div>
                       <button
                         onClick={() => setFlippedModule(null)}
-                        className="text-xs text-slate-600 hover:text-slate-800 flex items-center gap-1"
+                        className="text-xs text-secondary hover:text-primary flex items-center gap-1"
                       >
                         <RotateCcw size={12} /> Retour
                       </button>
@@ -267,28 +267,28 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
                         expensesByModule[module.key].map(expense => {
                           const activity = parseActivity(expense.activity);
                           return (
-                            <div key={expense.id} className="flex items-center justify-between px-3 py-2 rounded-lg border border-slate-100 bg-slate-50/50 text-sm">
+                            <div key={expense.id} className="flex items-center justify-between px-3 py-2 rounded-lg border border-slate-100 bg-surface-hover/50 text-sm">
                               <div className="flex items-center gap-3">
                                 <ChevronRight size={14} className={module.color} />
                                 <div className="min-w-0">
-                                  <p className="font-medium text-slate-900 truncate">{expense.label}</p>
-                                  <p className="text-xs text-slate-500 truncate">
+                                  <p className="font-medium text-primary truncate">{expense.label}</p>
+                                  <p className="text-xs text-muted truncate">
                                     {moduleActivityLabel(activity, expense)} • {new Date(expense.date).toLocaleDateString('fr-FR')}
                                   </p>
                                 </div>
                               </div>
-                              <p className="font-semibold text-slate-900 text-right">{formatAmount(parseAmount(expense.amount))}</p>
+                              <p className="font-semibold text-primary text-right">{formatAmount(parseAmount(expense.amount))}</p>
                             </div>
                           );
                         })
                       ) : (
-                        <div className="text-center py-6 text-xs text-slate-400 uppercase tracking-wider">
+                        <div className="text-center py-6 text-xs text-muted uppercase tracking-wider">
                           Aucune activité liée
                         </div>
                       )}
                     </div>
-                    <div className="mt-auto pt-4 border-t border-slate-200">
-                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Total dépenses</p>
+                    <div className="mt-auto pt-4 border-t border-default">
+                      <p className="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Total dépenses</p>
                       <p className="font-bold text-amber-700">{formatAmount(module.expenses)}</p>
                     </div>
                   </div>
@@ -296,7 +296,7 @@ export const ModuleFinanceView = ({ expensesData, fundingsData }: ModuleFinanceV
               />
             ))}
             {moduleSummaries.length === 0 && (
-              <div className="col-span-3 px-6 py-12 text-center text-slate-500">
+              <div className="col-span-3 px-6 py-12 text-center text-muted">
                 <DollarSign size={48} className="mx-auto mb-4 text-slate-300" />
                 <p className="text-lg font-medium">Aucune donnée financière</p>
                 <p className="text-sm">Créez des financements ou des dépenses pour voir la répartition</p>
