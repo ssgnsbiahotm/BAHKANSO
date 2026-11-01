@@ -57,7 +57,7 @@ const STATUS_COLORS: Record<string, string> = {
   prévu: 'text-blue-700 bg-blue-50',
   envoyé: 'text-indigo-700 bg-indigo-50',
   reçu: 'text-green-700 bg-green-50',
-  annulé: 'text-slate-700 bg-slate-100',
+  annulé: 'text-secondary bg-surface-hover',
 };
 
 const FundingCardFront = ({ funding, onEdit, onDelete, onView }: {
@@ -72,23 +72,23 @@ const FundingCardFront = ({ funding, onEdit, onDelete, onView }: {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{funding.reference}</p>
-          <p className="text-xs text-slate-500 truncate">{funding.funder_id ?? '—'}</p>
+          <p className="text-xs text-muted truncate">{funding.funder_id ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
         </span>
       </div>
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-        <span className="text-xs text-slate-500 capitalize">{funding.currency_sent}</span>
+        <span className="text-xs text-muted capitalize">{funding.currency_sent}</span>
         <div className="text-right">
-          <p className="text-lg font-bold text-slate-900">{formatCurrency(funding.amount_sent)}</p>
-          <p className="text-xs text-slate-500">{formatDate(funding.date_sent)}</p>
+          <p className="text-lg font-bold text-primary">{formatCurrency(funding.amount_sent)}</p>
+          <p className="text-xs text-muted">{formatDate(funding.date_sent)}</p>
         </div>
       </div>
       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
         <button
           onClick={onView}
-          className="pointer-events-auto text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-slate-50 rounded border border-slate-200"
+          className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
           aria-label="Voir les détails"
         >
           <Eye size={12} /> Détail
@@ -96,14 +96,14 @@ const FundingCardFront = ({ funding, onEdit, onDelete, onView }: {
         <div className="flex items-center gap-1 pointer-events-auto">
           <button
             onClick={onEdit}
-            className="text-xs text-slate-500 hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-green-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
             aria-label="Modifier"
           >
             <Edit2 size={12} />
           </button>
           <button
             onClick={onDelete}
-            className="text-xs text-slate-500 hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-red-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
             aria-label="Supprimer"
           >
             <Trash2 size={12} />
@@ -121,7 +121,7 @@ const FundingCardBack = ({ funding, onClose, onEdit, onDelete }: { funding: Fund
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-base font-semibold">{funding.reference}</h3>
-          <p className="text-xs text-slate-500">{funding.funder_id ?? '—'}</p>
+          <p className="text-xs text-muted">{funding.funder_id ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
@@ -129,33 +129,33 @@ const FundingCardBack = ({ funding, onClose, onEdit, onDelete }: { funding: Fund
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-slate-500">Montant envoyé</p>
-          <p className="font-bold text-slate-900">{formatCurrency(funding.amount_sent)} {funding.currency_sent}</p>
+          <p className="text-muted">Montant envoyé</p>
+          <p className="font-bold text-primary">{formatCurrency(funding.amount_sent)} {funding.currency_sent}</p>
         </div>
         <div>
-          <p className="text-slate-500">Montant reçu</p>
+          <p className="text-muted">Montant reçu</p>
           <p className="font-medium">{funding.amount_received ? formatCurrency(funding.amount_received) : '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Taux de change</p>
+          <p className="text-muted">Taux de change</p>
           <p className="font-medium">{funding.exchange_rate}</p>
         </div>
         <div>
-          <p className="text-slate-500">Frais de transfert</p>
+          <p className="text-muted">Frais de transfert</p>
           <p className="font-medium">{funding.transfer_fees ? formatCurrency(funding.transfer_fees) : '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Date d'envoi</p>
+          <p className="text-muted">Date d'envoi</p>
           <p className="font-medium">{formatDate(funding.date_sent)}</p>
         </div>
         <div>
-          <p className="text-slate-500">Date de réception</p>
+          <p className="text-muted">Date de réception</p>
           <p className="font-medium">{funding.date_received ? formatDate(funding.date_received) : '—'}</p>
         </div>
       </div>
       {funding.comment && (
         <div>
-          <p className="text-slate-500 text-sm">Commentaire</p>
+          <p className="text-muted text-sm">Commentaire</p>
           <p className="text-sm">{funding.comment}</p>
         </div>
       )}
@@ -174,7 +174,7 @@ const FundingCardBack = ({ funding, onClose, onEdit, onDelete }: { funding: Fund
         </button>
         <button
           onClick={onClose}
-          className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+          className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
         >
           Retour
         </button>
@@ -465,7 +465,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
         </div>
 
       {rows.length === 0 && (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-muted">
           <DollarSign size={48} className="mx-auto mb-4 text-slate-300" />
           <p className="text-lg font-medium">Aucun financement</p>
           <p className="text-sm">Cliquez sur « Nouveau financement » pour commencer</p>
@@ -482,7 +482,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
         <form onSubmit={form.handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Référence *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Référence *</label>
               <input
                 type="text"
                 value={form.values.reference}
@@ -493,7 +493,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Bailleur de fonds</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Bailleur de fonds</label>
               <select
                 value={form.values.funder_id ?? ''}
                 onChange={(e) => form.setFieldValue('funder_id', e.target.value || null)}
@@ -509,7 +509,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               {form.errors.funder_id && <p className="text-xs text-red-500 mt-1">{form.errors.funder_id}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Montant envoyé *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Montant envoyé *</label>
               <input
                 type="number"
                 value={form.values.amount_sent}
@@ -522,7 +522,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Devise *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Devise *</label>
               <input
                 type="text"
                 value={form.values.currency_sent}
@@ -533,7 +533,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               {form.errors.currency_sent && <p className="text-xs text-red-500 mt-1">{form.errors.currency_sent}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Taux de change</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Taux de change</label>
               <input
                 type="number"
                 value={form.values.exchange_rate}
@@ -546,7 +546,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Montant reçu</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Montant reçu</label>
               <input
                 type="number"
                 value={form.values.amount_received ?? 0}
@@ -557,7 +557,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               {form.errors.amount_received && <p className="text-xs text-red-500 mt-1">{form.errors.amount_received}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Frais de transfert</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Frais de transfert</label>
               <input
                 type="number"
                 value={form.values.transfer_fees ?? 0}
@@ -570,7 +570,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Statut *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Statut *</label>
               <select
                 value={form.values.status}
                 onChange={(e) => form.setFieldValue('status', e.target.value as FundingFormValues['status'])}
@@ -583,7 +583,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date d'envoi *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Date d'envoi *</label>
               <input
                 type="date"
                 value={form.values.date_sent}
@@ -595,7 +595,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date de réception</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Date de réception</label>
               <input
                 type="date"
                 value={form.values.date_received ?? ''}
@@ -605,7 +605,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Commentaire</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Commentaire</label>
             <textarea
               value={form.values.comment ?? ''}
               onChange={(e) => form.setFieldValue('comment', e.target.value || null)}
@@ -615,7 +615,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Site</label>
             {isAuthorized ? (
               <select
                 value={form.values.site_id ?? ''}
@@ -633,7 +633,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
                 value={form.values.site_id ?? ''}
                 readOnly
                 disabled
-                className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+                className="form-input w-full bg-surface-hover cursor-not-allowed text-secondary"
                 title="Site déterminé automatiquement depuis votre session"
               />
             )}
@@ -642,7 +642,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
             <button
               type="button"
               onClick={() => { setModalOpen(false); setEditingFunding(null); }}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
@@ -665,13 +665,13 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           title="Confirmer la suppression"
           size="sm"
         >
-          <p className="text-sm text-slate-600 mb-4">
+          <p className="text-sm text-secondary mb-4">
             Supprimer le financement <strong>{deletingFunding.reference}</strong> ?
           </p>
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setDeletingFunding(null)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
