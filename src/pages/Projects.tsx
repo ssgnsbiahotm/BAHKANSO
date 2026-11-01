@@ -7,7 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { logAudit, type Project } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
-import { PROJECT_STATUS_COLORS, PROJECT_STATUSES } from '@/lib/constants';
+import {
+  PROJECT_STATUS_COLORS, PROJECT_STATUSES,
+  STATUS_CLASS_SUCCESS, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+} from '@/lib/constants';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Modal } from '@/components/ui/Modal';
@@ -179,7 +182,7 @@ export function Projects() {
               <p className="text-sm text-muted py-2 text-center">Aucune étape définie</p>
             ) : steps.map(s => (
               <div key={s.id} className="flex items-center gap-3 p-3 bg-surface-hover rounded-lg">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${s.progress === 100 ? 'bg-success-soft text-white' : s.progress > 0 ? 'bg-warning-soft0 text-white' : 'bg-surface-hover text-muted'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${s.progress === 100 ? STATUS_CLASS_SUCCESS : s.progress > 0 ? STATUS_CLASS_WARNING : 'bg-surface-hover text-muted'}`}>
                   {s.progress}%
                 </div>
                 <div className="flex-1">
@@ -468,13 +471,13 @@ export function Projects() {
                           toggleProjectCard(p.id);
                           setConfirmDelete(p);
                         }}
-                        className="flex items-center gap-3 w-full rounded-xl border border-default p-3 text-left hover:bg-danger-soft transition-colors"
+                        className={`flex items-center gap-3 w-full rounded-xl border border-default p-3 text-left transition-colors ${STATUS_CLASS_DANGER}`}
                       >
-                        <span className="w-10 h-10 rounded-lg flex items-center justify-center bg-danger-soft text-danger">
+                        <span className={`w-10 h-10 rounded-lg flex items-center justify-center ${STATUS_CLASS_DANGER}`}>
                           <Trash2 size={18} />
                         </span>
                         <span>
-                          <strong className="block text-sm text-danger">Supprimer</strong>
+                          <strong className={`block text-sm ${STATUS_CLASS_DANGER.split(' ')[1]}`}>Supprimer</strong>
                           <span className="text-xs text-muted">Supprimer après confirmation</span>
                         </span>
                       </button>

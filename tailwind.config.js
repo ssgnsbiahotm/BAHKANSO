@@ -91,7 +91,15 @@ export default {
           500: 'var(--color-gold)',
         },
         terra: {
-          500: 'var(--color-terra)',
+          DEFAULT: 'var(--color-terra)',
+          soft:    'var(--color-terra-soft)',
+          text:    'var(--color-terra-text)',
+          500:     'var(--color-terra)',
+        },
+        cyan: {
+          DEFAULT: 'var(--color-cyan)',
+          soft:    'var(--color-cyan-soft)',
+          text:    'var(--color-cyan-text)',
         },
         /* Semantic aliases for direct use */
         'bg-page': 'var(--bg-page)',

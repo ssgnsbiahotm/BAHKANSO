@@ -8,6 +8,9 @@ import { useToast } from '@/lib/Toast';
 import { formatCurrency } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
+import {
+  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+} from '@/lib/constants';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
@@ -139,7 +142,7 @@ export function Suppliers() {
         <div><p className="text-xs text-muted">Email</p><p className="text-sm font-medium">{s.email || '—'}</p></div>
         <div><p className="text-xs text-muted">Adresse</p><p className="text-sm font-medium">{s.address || '—'}</p></div>
         <div><p className="text-xs text-muted">Note</p><p className="text-sm font-medium">{s.rating} / 5</p></div>
-        <div><p className="text-xs text-muted">Total achats</p><p className="text-sm font-medium text-success">{formatCurrency(totalSpent)}</p></div>
+        <div><p className="text-xs text-muted">Total achats</p><p className={`text-sm font-medium ${STATUS_CLASS_SUCCESS.split(' ')[1]}`}>{formatCurrency(totalSpent)}</p></div>
         <div><p className="text-xs text-muted">Nb transactions</p><p className="text-sm font-medium">{supplierExpenses.length}</p></div>
       </div>
     );
@@ -190,7 +193,7 @@ export function Suppliers() {
               <div key={s.id} className="bg-surface rounded-xl border border-default p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-info-soft rounded-lg flex items-center justify-center text-info"><Truck size={20} /></div>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${STATUS_CLASS_INFO}`}><Truck size={20} /></div>
                     <div>
                       <h3 className="font-semibold text-primary">{s.name}</h3>
                       <p className="text-xs text-muted">{s.category}</p>
@@ -207,14 +210,14 @@ export function Suppliers() {
                   <div className="flex justify-between"><span className="text-muted">Téléphone</span><span className="font-medium">{s.phone || '—'}</span></div>
                   <div className="flex justify-between"><span className="text-muted">Email</span><span className="font-medium text-xs">{s.email || '—'}</span></div>
                   <div className="flex justify-between"><span className="text-muted">Adresse</span><span className="font-medium text-xs">{s.address || '—'}</span></div>
-                  <div className="flex justify-between border-t border-default pt-2"><span className="text-muted">Total achats</span><span className="font-bold text-success">{formatCurrency(totalSpent)}</span></div>
+                  <div className="flex justify-between border-t border-default pt-2"><span className="text-muted">Total achats</span><span className={`font-bold ${STATUS_CLASS_SUCCESS.split(' ')[1]}`}>{formatCurrency(totalSpent)}</span></div>
                   <div className="flex justify-between"><span className="text-muted">Nb transactions</span><span className="font-medium">{supplierExpenses.length}</span></div>
                 </div>
                 <div className="flex items-center gap-2 mt-4 pt-3 border-t border-default">
                   <button onClick={() => openEdit(s)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs border border-default rounded-lg hover:bg-surface-hover text-secondary">
                     <Pencil size={12} /> Modifier
                   </button>
-                  <button onClick={() => setConfirmDelete(s)} className="px-2.5 py-1.5 text-xs border border-default rounded-lg hover:bg-danger-soft text-danger" title="Supprimer">
+                  <button onClick={() => setConfirmDelete(s)} className={`px-2.5 py-1.5 text-xs border border-default rounded-lg ${STATUS_CLASS_DANGER}`} title="Supprimer">
                     <Trash2 size={12} />
                   </button>
                 </div>

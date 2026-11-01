@@ -14,13 +14,11 @@ import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
-const COLORS = {
-  grass: 'var(--accent-primary)',
-  earth: 'var(--warning)',
-  sky: 'var(--info)',
-  harvest: 'var(--warning)',
-  alert: 'var(--danger)',
-  slate: 'var(--text-muted)',
+// Activités — couleurs d'icône (mappées aux tokens sémantiques)
+const ACTIVITY_COLORS: Record<string, 'signal' | 'warning' | 'info'> = {
+  Agriculture: 'signal',
+  Élevage: 'warning',
+  Projets: 'warning',
 };
 
 const isFinanceSensitive = (role: string | null | undefined) =>
@@ -67,13 +65,13 @@ const KpiCard = ({
   label: string;
   value: ReactNode;
   sub?: string;
-  color?: string;
+  color?: 'signal' | 'warning' | 'info' | 'muted';
   icon: ReactNode;
   trend?: { value: string; positive: boolean };
 }) => (
-  <div className="dashboard-kpi-card" style={{ borderLeftColor: color }}>
+  <div className={`dashboard-kpi-card ${color || ''}`}>
     <div className="dashboard-kpi-header">
-      <div className="dashboard-kpi-icon" style={{ backgroundColor: `${color}15`, color }}>
+      <div className={`dashboard-kpi-icon ${color || ''}`}>
         {icon}
       </div>
       {trend && (
@@ -84,7 +82,7 @@ const KpiCard = ({
     </div>
     <div className="dashboard-kpi-body">
       <p className="dashboard-kpi-label">{label}</p>
-      <div className="dashboard-kpi-value" style={{ color }}>
+      <div className={`dashboard-kpi-value ${color || ''}`}>
         {value}
         {sub && <span className="dashboard-kpi-sub">{sub}</span>}
       </div>
@@ -134,13 +132,13 @@ const ActivityCard = ({
   value: number | null;
   detail: string;
   icon: ReactNode;
-  color: string;
+  color: 'signal' | 'warning' | 'info';
   to: string;
   toLabel: string;
   subValues?: { label: string; count: number }[];
 }) => (
   <Link to={to} className="dashboard-activity-card">
-    <div className="dashboard-activity-icon" style={{ backgroundColor: `${color}15`, color }}>
+    <div className={`dashboard-activity-icon ${color}`}>
       {icon}
     </div>
     <div className="dashboard-activity-body">
@@ -310,7 +308,7 @@ export function Dashboard() {
       value: activeCampaigns,
       detail: 'Campagnes actives',
       icon: <Sprout size={24} />,
-      color: COLORS.grass,
+      color: ACTIVITY_COLORS.Agriculture,
       to: '/app/exploitation/campagnes',
       toLabel: 'Voir les campagnes',
     },
@@ -319,7 +317,7 @@ export function Dashboard() {
       value: null,
       detail: 'Registre du cheptel',
       icon: <Beef size={24} />,
-      color: COLORS.earth,
+      color: ACTIVITY_COLORS.Élevage,
       to: LIVESTOCK_PATHS.animalsLegacy,
       toLabel: 'Voir l\'élevage',
       subValues: [
@@ -332,7 +330,7 @@ export function Dashboard() {
       value: activeProjects,
       detail: 'Chantiers en cours',
       icon: <HardHat size={24} />,
-      color: COLORS.harvest,
+      color: ACTIVITY_COLORS.Projets,
       to: '/app/projects',
       toLabel: 'Voir les projets',
     },
@@ -419,7 +417,7 @@ export function Dashboard() {
                   value={formatFCFA(netTreasury)}
                   sub="Entrées − sorties connues"
                   icon={<DollarSign size={20} />}
-                  color="#B9D86B"
+                  color="signal"
                 />
                 <KpiCard
                   label="Résultat net"
@@ -427,26 +425,26 @@ export function Dashboard() {
                   trend={{ value: `${periodResultTrend?.toFixed(1) || '0'}%`, positive: (periodResultTrend ?? 0) >= 0 }}
                   sub="Entrées − sorties de la période"
                   icon={<TrendingUp size={20} />}
-                  color="#B9D86B"
+                  color="signal"
                 />
                 <KpiCard
                   label="Marge brute"
                   value={`${grossMargin.toFixed(1)}%`}
                   sub="(Entrées − sorties) / entrées"
                   icon={<DollarSign size={20} />}
-                  color="#8FD3F4"
+                  color="info"
                 />
               </>
             ) : (
-              <div className="dashboard-kpi-card restricted" style={{ gridColumn: '1 / -1' }}>
+              <div className="dashboard-kpi-card restricted muted" style={{ gridColumn: '1 / -1' }}>
                 <div className="dashboard-kpi-header">
-                  <div className="dashboard-kpi-icon" style={{ backgroundColor: 'rgba(100, 116, 139, 0.15)', color: '#64748B' }}>
+                  <div className="dashboard-kpi-icon muted">
                     <Lock size={20} />
                   </div>
                 </div>
                 <div className="dashboard-kpi-body">
                   <p className="dashboard-kpi-label">Données financières</p>
-                  <div className="dashboard-kpi-value" style={{ color: '#64748B' }}>Accès réservé</div>
+                  <div className="dashboard-kpi-value muted">Accès réservé</div>
                   <p className="dashboard-kpi-sub">Réservé aux rôles admin, responsable et gestionnaire</p>
                 </div>
               </div>

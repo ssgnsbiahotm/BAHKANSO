@@ -10,6 +10,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import * as z from 'zod';
 import type { InventoryItem } from '@/lib/types';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_DANGER } from '@/lib/constants';
 
 import '@/styles/theme-app.css';
 
@@ -174,7 +175,7 @@ export function Inventory() {
             <h3 className="font-semibold text-primary">{item.name}</h3>
             <p className="text-sm text-muted">{item.category || '—'}</p>
           </div>
-          <span className={`module-badge module-badge-${isLowStock(item) ? 'red' : 'green'}`}>
+          <span className={isLowStock(item) ? STATUS_CLASS_DANGER : STATUS_CLASS_SUCCESS}>
             {isLowStock(item) ? 'Stock faible' : 'Stock OK'}
           </span>
         </div>

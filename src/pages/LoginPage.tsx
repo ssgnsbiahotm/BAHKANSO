@@ -52,7 +52,7 @@ const BENEFIT_CARDS: BenefitCard[] = [
     icon: BarChart3,
     title: 'Pilotage',
     description: 'Suivez vos financements, dépenses, cultures et élevage avec une traçabilité complète.',
-    iconColor: 'text-secondary-400',
+    iconColor: 'text-muted',
   },
 ] as const;
 

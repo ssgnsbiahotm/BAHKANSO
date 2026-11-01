@@ -9,6 +9,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER } from '@/lib/constants';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
@@ -222,7 +223,7 @@ export function AnimalEventManage() {
           <h2 className="text-2xl font-bold text-primary">{TYPE_LABELS[event.type] || event.type}</h2>
           <p className="text-sm text-muted">{formatDate(event.date)}</p>
         </div>
-        <SimpleBadge color="blue">{event.type}</SimpleBadge>
+        <SimpleBadge color="info">{event.type}</SimpleBadge>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div><p className="text-xs text-muted">Type</p><p className="text-sm font-medium">{event.type}</p></div>
@@ -238,7 +239,7 @@ export function AnimalEventManage() {
 
   const renderDetailFooter = (event: AnimalEvent) => (
     <>
-      <button onClick={() => setConfirmDelete(event)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+      <button onClick={() => setConfirmDelete(event)} className={`px-4 py-2 text-sm border border-default rounded-lg ${STATUS_CLASS_DANGER}`}>Supprimer</button>
       <button onClick={() => openEdit(event)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
     </>
   );
@@ -319,7 +320,7 @@ export function AnimalEventManage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-primary">{formatDate(event.date)}</h3>
-                      <SimpleBadge color="blue">{TYPE_LABELS[event.type] || event.type}</SimpleBadge>
+                      <SimpleBadge color="info">{TYPE_LABELS[event.type] || event.type}</SimpleBadge>
                     </div>
                     <div className="flex justify-between text-sm"><span className="text-muted">Animal / Lot</span><span className="font-medium">{animal} {lot !== '—' ? '/' + lot : ''}</span></div>
                     <div className="flex justify-between text-sm"><span className="text-muted">Coût</span><span className="font-medium">{formatCurrency(event.cost)}</span></div>
@@ -342,7 +343,7 @@ export function AnimalEventManage() {
                     </button>
                     <button
                       onClick={() => { setConfirmDelete(event); }}
-                      className="w-full px-3 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
+                      className={`w-full px-3 py-2 text-sm border border-default rounded-lg ${STATUS_CLASS_DANGER}`}
                     >
                       Supprimer
                     </button>

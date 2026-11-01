@@ -83,7 +83,7 @@ export function Breadcrumb() {
                     e.preventDefault();
                     navigate(segment.route + location.search);
                   }}
-                  className="text-accent-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+                  className="text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
                 >
                   {segment.label}
                 </Link>

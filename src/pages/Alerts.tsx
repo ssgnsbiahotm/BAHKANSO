@@ -9,6 +9,7 @@ import { timeAgo } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER } from '@/lib/constants';
 import type { Alert } from '@/lib/types';
 
 export function Alerts() {
@@ -58,7 +59,7 @@ export function Alerts() {
           <div key={a.id} className={`bg-surface rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-default' : 'border-default opacity-60'}`}>
             <div className="flex items-start gap-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                a.severity === 'high' ? 'bg-danger-soft text-danger' : a.severity === 'medium' ? 'bg-warning-soft text-warning' : 'bg-info-soft text-info'
+                a.severity === 'high' ? STATUS_CLASS_DANGER : a.severity === 'medium' ? STATUS_CLASS_WARNING : STATUS_CLASS_INFO
               }`}>
                 {categoryIcons[a.category] || <Bell size={18} />}
               </div>
@@ -76,7 +77,7 @@ export function Alerts() {
                 </div>
               </div>
               {a.status === 'ouverte' && (
-                <button onClick={() => resolveAlert(a)} className="flex items-center gap-1 px-3 py-1.5 text-xs text-success bg-success-soft hover:bg-success-soft rounded-lg border border-default">
+                <button onClick={() => resolveAlert(a)} className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border ${STATUS_CLASS_SUCCESS}`}>
                   <CheckCircle size={14} /> Résoudre
                 </button>
               )}

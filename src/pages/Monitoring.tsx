@@ -30,6 +30,9 @@ import {
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import type { Alert } from '@/lib/types';
+import {
+  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+} from '@/lib/constants';
 
 /* ============================================================================
    SOUS-SECTIONS
@@ -45,8 +48,8 @@ const TABS: { id: MonitoringTab; label: string; icon: React.ReactNode }[] = [
 
 const tabColor = (id: MonitoringTab) =>
   id === 'audit' ? 'text-secondary bg-surface-hover border-default'
-  : id === 'alertes' ? 'text-warning bg-warning-soft border-default'
-  : 'text-info bg-info-soft border-default';
+  : id === 'alertes' ? STATUS_CLASS_WARNING
+  : STATUS_CLASS_INFO;
 
 /* ============================================================================
    AUDIT — COLORS ET HELPERS
@@ -178,11 +181,11 @@ export function Monitoring() {
   const [selectedReport, setSelectedReport] = useState('financial');
 
   const reportList = [
-    { id: 'financial', label: 'Rapport financier', icon: <FileBarChart size={20} />, color: 'bg-info-soft text-info' },
-    { id: 'agricultural', label: 'Rapport agricole', icon: <FileText size={20} />, color: 'bg-success-soft text-success' },
-    { id: 'livestock', label: 'Rapport élevage', icon: <FileText size={20} />, color: 'bg-warning-soft text-warning' },
+    { id: 'financial', label: 'Rapport financier', icon: <FileBarChart size={20} />, color: STATUS_CLASS_INFO },
+    { id: 'agricultural', label: 'Rapport agricole', icon: <FileText size={20} />, color: STATUS_CLASS_SUCCESS },
+    { id: 'livestock', label: 'Rapport élevage', icon: <FileText size={20} />, color: STATUS_CLASS_WARNING },
     { id: 'investment', label: 'Rapport investissements', icon: <FileText size={20} />, color: 'bg-accent-soft text-accent-primary' },
-    { id: 'funder', label: 'Rapport financeur', icon: <FileText size={20} />, color: 'bg-cyan-50 text-cyan-600' },
+    { id: 'funder', label: 'Rapport financeur', icon: <FileText size={20} />, color: STATUS_CLASS_INFO },
   ];
 
   const financialData = () => {
@@ -270,7 +273,7 @@ export function Monitoring() {
       <aside className="hidden lg:flex lg:w-64 flex-col border-r border-default bg-surface">
         <div className="p-5 border-b border-default">
           <div className="flex items-center gap-2">
-            <Layout size={24} className="text-accent-primary" />
+            <Layout size={24} className="text-primary" />
             <h2 className="font-bold text-lg text-primary">Surveillance</h2>
           </div>
           <p className="text-xs text-muted mt-1">Audit · Alertes · Rapports</p>
@@ -419,7 +422,7 @@ export function Monitoring() {
                     <div key={a.id} className={`bg-surface rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-default' : 'border-default opacity-60'}`}>
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          a.severity === 'high' ? 'bg-danger-soft text-danger' : a.severity === 'medium' ? 'bg-warning-soft text-warning' : 'bg-info-soft text-info'
+                          a.severity === 'high' ? STATUS_CLASS_DANGER : a.severity === 'medium' ? STATUS_CLASS_WARNING : STATUS_CLASS_INFO
                         }`}>
                           {categoryIcons[a.category] || <Bell size={18} />}
                         </div>
@@ -438,7 +441,7 @@ export function Monitoring() {
                           </div>
                         </div>
                         {a.status === 'ouverte' && (
-                          <button onClick={() => resolveAlert(a)} className="flex items-center gap-1 px-3 py-1.5 text-xs text-success bg-success-soft hover:bg-success-soft rounded-lg border border-default">
+                          <button onClick={() => resolveAlert(a)} className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border ${STATUS_CLASS_SUCCESS}`}>
                             <CheckCircle size={14} /> Résoudre
                           </button>
                         )}
@@ -464,11 +467,11 @@ export function Monitoring() {
                         key={r.id}
                         onClick={() => setSelectedReport(r.id)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
-                          selectedReport === r.id ? 'bg-success-soft border-success' : 'bg-surface border-default hover:bg-surface-hover'
+                          selectedReport === r.id ? STATUS_CLASS_SUCCESS : 'bg-surface border-default hover:bg-surface-hover'
                         }`}
                       >
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${r.color}`}>{r.icon}</div>
-                        <span className={`text-sm font-medium ${selectedReport === r.id ? 'text-success' : 'text-secondary'}`}>{r.label}</span>
+                        <span className={`text-sm font-medium ${selectedReport === r.id ? STATUS_CLASS_SUCCESS.split(' ')[1] : 'text-secondary'}`}>{r.label}</span>
                       </button>
                     ))}
                   </div>
@@ -495,9 +498,9 @@ export function Monitoring() {
                     {selectedReport === 'financial' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-info-soft rounded-lg"><p className="text-xs text-muted">Total financé</p><p className="text-xl font-bold text-primary">{formatCurrency(fin.totalFunded)}</p></div>
-                          <div className="p-4 bg-warning-soft rounded-lg"><p className="text-xs text-muted">Total dépensé</p><p className="text-xl font-bold text-primary">{formatCurrency(fin.totalSpent)}</p></div>
-                          <div className="p-4 bg-success-soft rounded-lg"><p className="text-xs text-muted">Solde</p><p className="text-xl font-bold text-success">{formatCurrency(fin.totalFunded - fin.totalSpent)}</p></div>
+                          <div className={`p-4 rounded-lg ${STATUS_CLASS_INFO}`}><p className="text-xs text-muted">Total financé</p><p className="text-xl font-bold text-primary">{formatCurrency(fin.totalFunded)}</p></div>
+                          <div className={`p-4 rounded-lg ${STATUS_CLASS_WARNING}`}><p className="text-xs text-muted">Total dépensé</p><p className="text-xl font-bold text-primary">{formatCurrency(fin.totalSpent)}</p></div>
+                          <div className={`p-4 rounded-lg ${STATUS_CLASS_SUCCESS}`}><p className="text-xs text-muted">Solde</p><p className="text-xl font-bold text-primary">{formatCurrency(fin.totalFunded - fin.totalSpent)}</p></div>
                           <div className="p-4 bg-surface-hover rounded-lg"><p className="text-xs text-muted">Nb dépenses</p><p className="text-xl font-bold text-primary">{expenses.length}</p></div>
                         </div>
                         <div>
@@ -517,8 +520,8 @@ export function Monitoring() {
                     {selectedReport === 'agricultural' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-success-soft rounded-lg"><p className="text-xs text-muted">Récoltes totales</p><p className="text-xl font-bold text-primary">{harvests.reduce((s, h) => s + h.quantity, 0)} kg</p></div>
-                          <div className="p-4 bg-warning-soft rounded-lg"><p className="text-xs text-muted">Chiffre d’affaires</p><p className="text-xl font-bold text-primary">{formatCurrency(harvests.reduce((s, h) => s + (h.revenue || 0), 0))}</p></div>
+                          <div className={`p-4 rounded-lg ${STATUS_CLASS_SUCCESS}`}><p className="text-xs text-muted">Récoltes totales</p><p className="text-xl font-bold text-primary">{harvests.reduce((s, h) => s + h.quantity, 0)} kg</p></div>
+                          <div className={`p-4 rounded-lg ${STATUS_CLASS_WARNING}`}><p className="text-xs text-muted">Chiffre d’affaires</p><p className="text-xl font-bold text-primary">{formatCurrency(harvests.reduce((s, h) => s + (h.revenue || 0), 0))}</p></div>
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-secondary mb-2">Détail des récoltes</h4>
@@ -539,8 +542,8 @@ export function Monitoring() {
                     {selectedReport === 'livestock' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-warning-soft rounded-lg"><p className="text-xs text-muted">Total animaux</p><p className="text-xl font-bold text-primary">{animalLots.reduce((s, l) => s + l.count, 0)}</p></div>
-                          <div className="p-4 bg-success-soft rounded-lg"><p className="text-xs text-muted">Valeur cheptel</p><p className="text-xl font-bold text-primary">{formatCurrency(animalLots.reduce((s, l) => s + l.estimated_value, 0))}</p></div>
+                          <div className={`p-4 rounded-lg ${STATUS_CLASS_WARNING}`}><p className="text-xs text-muted">Total animaux</p><p className="text-xl font-bold text-primary">{animalLots.reduce((s, l) => s + l.count, 0)}</p></div>
+                          <div className={`p-4 rounded-lg ${STATUS_CLASS_SUCCESS}`}><p className="text-xs text-muted">Valeur cheptel</p><p className="text-xl font-bold text-primary">{formatCurrency(animalLots.reduce((s, l) => s + l.estimated_value, 0))}</p></div>
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-secondary mb-2">Détail des lots</h4>
@@ -588,7 +591,7 @@ export function Monitoring() {
                                 <p className="text-sm font-medium text-primary">{f.reference}</p>
                                 <p className="text-xs text-muted">{f.funder?.name}</p>
                               </div>
-                              <span className="text-sm font-medium text-success">{formatCurrency(f.amount_received || 0)}</span>
+                              <span className={`text-sm font-medium ${STATUS_CLASS_SUCCESS.split(' ')[1]}`}>{formatCurrency(f.amount_received || 0)}</span>
                             </div>
                           ))}
                         </div>

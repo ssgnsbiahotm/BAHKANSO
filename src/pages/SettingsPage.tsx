@@ -7,6 +7,9 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
 import { logAudit } from '@/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
+import {
+  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+} from '@/lib/constants';
 
 export function SettingsPage() {
   const { farm, refresh } = useData();
@@ -79,7 +82,7 @@ export function SettingsPage() {
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  tab === t.id ? 'bg-success-soft text-success' : 'text-secondary hover:bg-surface-hover'
+                  tab === t.id ? STATUS_CLASS_SUCCESS : 'text-secondary hover:bg-surface-hover'
                 }`}
               >
                 {t.icon}
@@ -149,7 +152,7 @@ export function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {['Alimentation animale', 'Semences', 'Engrais', 'Produits vétérinaires', 'Main-d\'œuvre', 'Matériaux', 'Carburant', 'Transport', 'Équipement', 'Maintenance', 'Construction', 'Administration', 'Autre'].map(c => (
                     <div key={c} className="flex items-center gap-2 p-2 bg-surface-hover rounded-lg text-sm text-secondary">
-                      <span className="w-2 h-2 rounded-full bg-success-soft" />
+                      <span className={`w-2 h-2 rounded-full ${STATUS_CLASS_SUCCESS.split(' ')[0]}`} />
                       {c}
                     </div>
                   ))}
@@ -274,7 +277,7 @@ export function SettingsPage() {
                             refresh();
                           }
                         }}
-                        className="ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft"
+                        className={`ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-sm border border-default rounded-lg ${STATUS_CLASS_DANGER}`}
                       >
                         <Trash2 size={14} /> Retirer
                       </button>

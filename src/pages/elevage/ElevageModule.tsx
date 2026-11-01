@@ -9,14 +9,16 @@
  *
  * Remplace l'ancienne page /app/livestock et centralise l'élevage sous
  * /app/elevage. Le CRUD complet reste dans les pages dédiées.
+ *
+ * Pattern : un seul <Outlet />, l'URL est la source de vérité pour l'onglet actif.
+ * Identique au pattern ExploitationModule.
  */
 
-import { useMemo, useState, KeyboardEvent } from 'react';
-import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
+import { useMemo, KeyboardEvent } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
-import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useToast } from '@/lib/Toast';
-import { Beef, Building, Users, Calendar } from 'lucide-react';
+import { Building, Users, Calendar } from 'lucide-react';
 
 import '@/styles/components.css';
 
@@ -41,12 +43,21 @@ const TAB_PATHS: Record<ElevageTab, string> = {
 export function ElevageModule() {
   const { lots, animaux, animalEvents } = useData();
   const toast = useToast();
-  const [searchParams] = useSearchParams();
-  const urlTab = searchParams.get('tab') as ElevageTab | null;
-  const [tab, setTab] = useState<ElevageTab>(
-    ELEVAGE_TABS.includes(urlTab as ElevageTab) ? (urlTab as ElevageTab) : 'overview'
-  );
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Dériver le tab actif depuis l'URL — source unique de vérité
+  const tab: ElevageTab = useMemo(() => {
+    const path = location.pathname;
+    if (path.endsWith('/lots')) return 'lots';
+    if (path.endsWith('/animaux')) return 'animaux';
+    if (path.endsWith('/evenements')) return 'evenements';
+    return 'overview';
+  }, [location.pathname]);
+
+  const handleTabChange = (t: ElevageTab) => {
+    navigate(TAB_PATHS[t]);
+  };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     const currentIndex = ELEVAGE_TABS.indexOf(tab);
@@ -60,8 +71,11 @@ export function ElevageModule() {
 
     event.preventDefault();
     const nextTab = ELEVAGE_TABS[nextIndex];
-    setTab(nextTab);
-    document.getElementById(`elevage-tab-${nextTab}`)?.focus();
+    handleTabChange(nextTab);
+    // Focus après navigation
+    requestAnimationFrame(() => {
+      document.getElementById(`elevage-tab-${nextTab}`)?.focus();
+    });
   };
 
   const kpis = useMemo(() => {
@@ -71,6 +85,13 @@ export function ElevageModule() {
       totalEvents: animalEvents.length,
     };
   }, [lots, animaux, animalEvents]);
+
+  const tabCounts = (t: ElevageTab): number => {
+    if (t === 'overview') return kpis.totalLots + kpis.totalAnimals + kpis.totalEvents;
+    if (t === 'lots') return kpis.totalLots;
+    if (t === 'animaux') return kpis.totalAnimals;
+    return kpis.totalEvents;
+  };
 
   return (
     <div className="module-page">
@@ -141,9 +162,8 @@ export function ElevageModule() {
             id={`elevage-tab-${t}`}
             role="tab"
             aria-selected={tab === t}
-            aria-controls={`elevage-panel-${t}`}
             tabIndex={tab === t ? 0 : -1}
-            onClick={() => setTab(t)}
+            onClick={() => handleTabChange(t)}
             onKeyDown={handleTabKeyDown}
             className={`module-tab ${tab === t ? 'active' : ''}`}
           >
@@ -152,26 +172,10 @@ export function ElevageModule() {
         ))}
       </div>
 
-      {/* ========== PANELS (délégation aux pages dédiées via Outlet) ========== */}
-      <section id="elevage-panel-overview" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="elevage-tab-overview" hidden={tab !== 'overview'}>
-        <Outlet context={{ mode: 'tab', section: 'overview' }} />
-      </section>
-      <section id="elevage-panel-lots" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="elevage-tab-lots" hidden={tab !== 'lots'}>
-        <Outlet context={{ mode: 'tab', section: 'lots' }} />
-      </section>
-      <section id="elevage-panel-animaux" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="elevage-tab-animaux" hidden={tab !== 'animaux'}>
-        <Outlet context={{ mode: 'tab', section: 'animaux' }} />
-      </section>
-      <section id="elevage-panel-evenements" role="tabpanel" tabIndex={0} className="module-section" aria-labelledby="elevage-tab-evenements" hidden={tab !== 'evenements'}>
-        <Outlet context={{ mode: 'tab', section: 'evenements' }} />
+      {/* ========== UN SEUL OUTLET ========== */}
+      <section className="module-section" role="tabpanel" tabIndex={0}>
+        <Outlet />
       </section>
     </div>
   );
-
-  function tabCounts(t: ElevageTab): number {
-    if (t === 'overview') return kpis.totalLots + kpis.totalAnimals + kpis.totalEvents;
-    if (t === 'lots') return kpis.totalLots;
-    if (t === 'animaux') return kpis.totalAnimals;
-    return kpis.totalEvents;
-  }
 }

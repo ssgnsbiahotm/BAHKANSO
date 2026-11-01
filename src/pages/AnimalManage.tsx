@@ -9,6 +9,9 @@ import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
+import {
+  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+} from '@/lib/constants';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { RotatingCard } from '@/components/ui/RotatingCard';
@@ -304,7 +307,7 @@ export function AnimalManage() {
 
   const renderDetailFooter = (animal: Animal) => (
     <>
-      <button onClick={() => setConfirmDelete(animal)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+      <button onClick={() => setConfirmDelete(animal)} className={`px-4 py-2 text-sm border border-default rounded-lg ${STATUS_CLASS_DANGER}`}>Supprimer</button>
       <button onClick={() => openEdit(animal)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
       {animal.status === 'healthy' && (
         <button onClick={() => { updateStatus(animal, 'sick'); setDetailAnimal(null); }} className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger">Marquer malade</button>
@@ -492,7 +495,7 @@ export function AnimalManage() {
                       </button>
                       <button
                         onClick={() => { setConfirmDelete(animal); }}
-                        className="px-3 py-1.5 text-xs text-danger border border-default rounded hover:bg-danger-soft"
+                        className={`px-3 py-1.5 text-xs border border-default rounded ${STATUS_CLASS_DANGER}`}
                       >
                         Supprimer
                       </button>

@@ -6,12 +6,17 @@ import { supabase } from '@/lib/supabase';
 import { logAudit, type Media } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { formatDate } from '@/lib/format';
-import { MEDIA_TYPES, MEDIA_CATEGORIES } from '@/lib/constants';
+import { MEDIA_TYPES, MEDIA_CATEGORIES, STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING } from '@/lib/constants';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 
+const TYPE_STATUS_CLASS: Record<string, string> = {
+  image: STATUS_CLASS_INFO,
+  icon: STATUS_CLASS_SUCCESS,
+  logo: STATUS_CLASS_WARNING,
+};
 const TYPE_COLORS: Record<string, 'info' | 'success' | 'warning'> = {
   image: 'info',
   icon: 'success',
@@ -236,7 +241,7 @@ export function Media() {
                   </div>
                 )}
                 <div className="absolute top-2 right-2">
-                  <span className={`px-2 py-0.5 text-xs rounded ${TYPE_COLORS[m.type] || 'gray'} bg-${TYPE_COLORS[m.type] || 'gray'}-20`}>
+                  <span className={`px-2 py-0.5 text-xs rounded ${TYPE_STATUS_CLASS[m.type] || ''}`}>
                     {m.type}
                   </span>
                 </div>

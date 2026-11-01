@@ -48,8 +48,8 @@ export function Header({ onOpenMobile, pageTitle }: HeaderProps) {
           )}
         </div>
 
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-accent-soft text-xs text-accent-primary">
-          <Wifi size={14} className="text-accent-primary" />
+        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-surface-raised text-xs text-secondary">
+          <Wifi size={14} className="text-secondary" />
           <span>Synchronisé</span>
         </div>
 
@@ -78,7 +78,7 @@ export function Header({ onOpenMobile, pageTitle }: HeaderProps) {
               <div className="absolute right-0 top-full mt-2 w-80 bg-surface-deep border border-default/10 z-20 max-h-96 overflow-y-auto">
                 <div className="px-4 py-3 border-b border-default/10 flex items-center justify-between">
                   <h3 className="font-semibold text-primary">Notifications</h3>
-                  <button onClick={() => { navigate('/app/surveillance?tab=alertes'); setShowNotif(false); }} className="text-xs text-accent-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
+                  <button onClick={() => { navigate('/app/surveillance?tab=alertes'); setShowNotif(false); }} className="text-xs text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
                     Voir les {openAlerts.length} alertes
                   </button>
                 </div>
@@ -87,7 +87,7 @@ export function Header({ onOpenMobile, pageTitle }: HeaderProps) {
                 ) : (
                   <div className="divide-y divide-ivory/10">
                     {notifications.slice(0, 8).map(n => (
-                      <div key={n.id} className={`px-4 py-3 hover:bg-surface-hover ${!n.read ? 'bg-accent-soft' : ''}`}>
+                      <div key={n.id} className={`px-4 py-3 hover:bg-surface-hover ${!n.read ? 'bg-surface-raised' : ''}`}>
                         <div className="flex items-start gap-2">
                           <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
                             n.level === 'error' ? 'bg-terra' : n.level === 'warning' ? 'bg-terra' : 'bg-accent-primary'

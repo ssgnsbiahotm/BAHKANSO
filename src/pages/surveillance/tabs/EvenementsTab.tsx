@@ -11,6 +11,7 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import { Modal } from '@/components/ui/Modal';
 import { Plus, Edit2, Trash2, CheckCircle, Calendar, Filter, Search, Wrench, AlertTriangle, RotateCw } from 'lucide-react';
 import { logAudit, type SurveillanceEvent, type SurveillanceEventStatus, type SurveillanceEventType } from '@/lib/types';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_NEUTRAL } from '@/lib/constants';
 
 const TYPE_LABELS: Record<string, string> = {
   phyto_traitement: 'Traitement phytosanitaire',
@@ -33,15 +34,15 @@ const STATUS_OPTIONS = [
 ] as const;
 
 const TYPE_COLORS: Record<string, string> = {
-  phyto_traitement: 'bg-green-100 text-green-700',
-  equip_panne: 'bg-red-100 text-red-700',
+  phyto_traitement: STATUS_CLASS_SUCCESS,
+  equip_panne: STATUS_CLASS_DANGER,
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  planifie: 'bg-blue-100 text-blue-700',
-  en_cours: 'bg-amber-100 text-amber-700',
-  termine: 'bg-green-100 text-green-700',
-  annule: 'bg-surface-hover text-secondary',
+  planifie: STATUS_CLASS_INFO,
+  en_cours: STATUS_CLASS_WARNING,
+  termine: STATUS_CLASS_SUCCESS,
+  annule: STATUS_CLASS_NEUTRAL,
 };
 
 const STATUS_LABELS: Record<string, string> = {

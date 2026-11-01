@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { logAudit } from '@/lib/types';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER } from '@/lib/constants';
 
 export function AlertesTab() {
   const { alerts, refresh } = useData();
@@ -313,7 +314,7 @@ export function AlertesTab() {
             <div key={a.id} className={`bg-surface rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-default' : 'border-slate-100 opacity-60'}`}>
               <div className="flex items-start gap-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  a.severity === 'high' ? 'bg-red-100 text-red-600' : a.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                  a.severity === 'high' ? STATUS_CLASS_DANGER : a.severity === 'medium' ? STATUS_CLASS_WARNING : STATUS_CLASS_INFO
                 }`}>
                   {a.severity === 'high' ? <AlertTriangle size={18} /> : a.severity === 'medium' ? <Bell size={18} /> : <CheckCircle size={18} />}
                 </div>
@@ -332,7 +333,7 @@ export function AlertesTab() {
                 </div>
               </div>
               {a.status === 'ouverte' && (
-                <button onClick={() => resolveAlert({ id: a.id, title: a.title })} className="flex items-center gap-1 px-3 py-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200">
+                <button onClick={() => resolveAlert({ id: a.id, title: a.title })} className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg ${STATUS_CLASS_SUCCESS}`}>
                   <CheckCircle size={14} /> Résoudre
                 </button>
               )}

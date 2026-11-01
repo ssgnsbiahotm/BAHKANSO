@@ -443,6 +443,176 @@
 }
 
 /* ==========================================================================
+   LANDING PAGE — Activity cards (public vitrine)
+   ========================================================================== */
+.activity-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform var(--duration-300) var(--ease-out), box-shadow var(--duration-300) var(--ease-out), border-color var(--duration-300) var(--ease-out);
+}
+
+.activity-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-2xl);
+  border-color: color-mix(in srgb, var(--color-signal) 50%, var(--border-default));
+}
+
+.activity-card:focus-visible {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-2xl);
+  border-color: color-mix(in srgb, var(--color-signal) 50%, var(--border-default));
+  outline: none;
+}
+
+.activity-kpi-card {
+  border-left-color: var(--color-signal);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: color-mix(in srgb, var(--color-signal) 40%, var(--border-default));
+}
+
+.activity-kpi-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: color-mix(in srgb, var(--color-signal) 40%, var(--border-default));
+  outline: none;
+}
+
+/* ==========================================================================
+   LANDING PAGE — Layout utilities (public vitrine, light theme)
+   ========================================================================== */
+.landing-root {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.landing-header {
+  background: color-mix(in srgb, var(--bg-surface) 98%, transparent);
+  transition: background var(--duration-300) var(--ease-out),
+              border-color var(--duration-300) var(--ease-out),
+              box-shadow var(--duration-300) var(--ease-out),
+              backdrop-filter var(--duration-300) var(--ease-out);
+}
+
+.landing-header.scrolled {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
+}
+
+.landing-nav-item {
+  color: var(--text-secondary);
+}
+
+.landing-nav-item:hover,
+.landing-nav-item:focus-visible {
+  color: var(--color-terra);
+}
+
+.landing-nav-item:hover .landing-nav-underline,
+.landing-nav-item:focus-visible .landing-nav-underline {
+  transform: scaleX(1);
+}
+
+.landing-nav-underline {
+  background: var(--color-terra);
+}
+
+.landing-btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+}
+
+.landing-btn-outline:hover,
+.landing-btn-outline:focus-visible {
+  background: var(--color-ink);
+  color: var(--color-ivory);
+  border-color: var(--color-ink);
+}
+
+/* Hero section atmosphere */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-night) 0%, var(--color-forest) 100%),
+              url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L34 15H44L36 21L40 31L30 26L20 31L24 21L16 15H26Z' fill='none' stroke='%23B9D86B' stroke-width='0.5' opacity='0.06'/%3E%3C/svg%3E"),
+              linear-gradient(90deg, var(--color-signal) 0%, transparent 8%);
+  background-size: cover, 140px 140px, 100% 100%;
+}
+
+.hero-accent-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--color-terra) 0%, var(--color-signal) 50%, var(--color-grass) 100%);
+  border-radius: 0 4px 4px 0;
+}
+
+.hero-image-wrap {
+  position: relative;
+  aspect-ratio: 4/5;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl), 0 0 0 1px rgba(244, 241, 232, 0.06);
+}
+
+.hero-image-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: var(--space-6);
+  background: linear-gradient(180deg, rgba(17,26,24,0) 0%, rgba(17,26,24,0.55) 50%, rgba(17,26,24,0.92) 100%);
+}
+
+/* Section backgrounds */
+.section-page { background: var(--bg-page); }
+.section-surface { background: var(--bg-surface); }
+.section-night { background: var(--color-night); color: var(--color-ivory); }
+
+/* Night section text/border variants */
+.text-night-dim { color: rgba(244, 241, 232, 0.5); }
+.text-night-75 { color: rgba(244, 241, 232, 0.75); }
+.border-night-10 { border-color: rgba(244, 241, 232, 0.1); }
+.border-night-subtle { border-color: rgba(185, 216, 107, 0.18); }
+
+/* ==========================================================================
+   DASHBOARD — KPI card color variants (replaces inline color styles)
+   ========================================================================== */
+.dashboard-kpi-card.signal { border-left-color: var(--color-signal); }
+.dashboard-kpi-card.warning { border-left-color: var(--color-harvest); }
+.dashboard-kpi-card.info { border-left-color: var(--color-sky); }
+
+.dashboard-kpi-icon.signal { background: color-mix(in srgb, var(--color-signal) 15%, transparent); color: var(--color-signal); }
+.dashboard-kpi-icon.warning { background: color-mix(in srgb, var(--color-harvest) 15%, transparent); color: var(--color-harvest); }
+.dashboard-kpi-icon.info { background: color-mix(in srgb, var(--color-sky) 15%, transparent); color: var(--color-sky); }
+
+.dashboard-kpi-value.signal { color: var(--color-signal); }
+.dashboard-kpi-value.warning { color: var(--color-harvest); }
+.dashboard-kpi-value.info { color: var(--color-sky); }
+
+.dashboard-kpi-icon.muted { background: color-mix(in srgb, var(--color-ink-dim) 15%, transparent); color: var(--color-ink-dim); }
+.dashboard-kpi-value.muted { color: var(--color-ink-dim); }
+
+/* Dashboard activity icon color variants */
+.dashboard-activity-icon.signal { background: color-mix(in srgb, var(--color-signal) 15%, transparent); color: var(--color-signal); }
+.dashboard-activity-icon.warning { background: color-mix(in srgb, var(--color-harvest) 15%, transparent); color: var(--color-harvest); }
+.dashboard-activity-icon.info { background: color-mix(in srgb, var(--color-sky) 15%, transparent); color: var(--color-sky); }
+
+/* ==========================================================================
    CARDS GRID
    ========================================================================== */
 .module-cards-grid,

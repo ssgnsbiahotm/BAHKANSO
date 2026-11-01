@@ -206,7 +206,7 @@ export function UsersPage() {
           <button
             onClick={openCreate}
             disabled={!canManageUsers}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             title={!canManageUsers ? 'Réservé aux administrateurs et propriétaires' : undefined}
           >
             <Plus size={18} /> Nouvel utilisateur
@@ -215,7 +215,7 @@ export function UsersPage() {
       />
 
       {!canManageUsers && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+        <div className="mb-6 p-4 rounded-lg ${STATUS_CLASS_WARNING} text-sm">
           <AlertCircle size={16} className="mr-2 mt-0.5" />
           Vous n\'avez pas le rôle nécessaire pour créer, modifier ou supprimer des utilisateurs.
         </div>
@@ -299,7 +299,7 @@ export function UsersPage() {
         footer={
           <>
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success disabled:opacity-50">
               {saving ? 'Enregistrement...' : editUser ? 'Modifier' : 'Créer'}
             </button>
           </>

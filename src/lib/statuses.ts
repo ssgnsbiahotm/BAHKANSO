@@ -2,6 +2,8 @@
 // Statuts standardisés Bahkanso - Tout en français
 // ============================================
 
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER, STATUS_CLASS_NEUTRAL } from '@/lib/constants';
+
 export const SITE_STATUSES = {
   ACTIF: 'actif',
   INACTIF: 'inactif',
@@ -82,27 +84,27 @@ export const STATUS_LABELS: Record<string, string> = {
 };
 
 // ============================================
-// Couleurs de badge par statut (Tailwind)
+// Couleurs de badge par statut (utilise les STATUS_CLASS_* de constants.ts)
 // ============================================
 export const STATUS_COLORS: Record<string, string> = {
-  actif: 'bg-success-soft text-success',
-  inactif: 'bg-surface-hover text-secondary',
-  repos: 'bg-warning-soft text-warning',
-  planifié: 'bg-info-soft text-info',
-  'en cours': 'bg-success-soft text-success',
-  terminé: 'bg-success-soft text-success',
-  récolté: 'bg-info-soft text-info',
-  brouillon: 'bg-surface-hover text-secondary',
-  'en attente': 'bg-warning-soft text-warning',
-  validée: 'bg-success-soft text-success',
-  payée: 'bg-success-soft text-success',
-  rejetée: 'bg-danger-soft text-danger',
-  annulée: 'bg-surface-hover text-secondary',
-  vendu: 'bg-info-soft text-info',
-  mort: 'bg-danger-soft text-danger',
-  malade: 'bg-warning-soft text-warning',
-  'en retard': 'bg-danger-soft text-danger',
-  suspendu: 'bg-warning-soft text-warning',
+  actif: STATUS_CLASS_SUCCESS,
+  inactif: STATUS_CLASS_NEUTRAL,
+  repos: STATUS_CLASS_WARNING,
+  planifié: STATUS_CLASS_INFO,
+  'en cours': STATUS_CLASS_SUCCESS,
+  terminé: STATUS_CLASS_SUCCESS,
+  récolté: STATUS_CLASS_INFO,
+  brouillon: STATUS_CLASS_NEUTRAL,
+  'en attente': STATUS_CLASS_WARNING,
+  validée: STATUS_CLASS_SUCCESS,
+  payée: STATUS_CLASS_SUCCESS,
+  rejetée: STATUS_CLASS_DANGER,
+  annulée: STATUS_CLASS_NEUTRAL,
+  vendu: STATUS_CLASS_INFO,
+  mort: STATUS_CLASS_DANGER,
+  malade: STATUS_CLASS_WARNING,
+  'en retard': STATUS_CLASS_DANGER,
+  suspendu: STATUS_CLASS_WARNING,
 };
 
 // ============================================
@@ -117,6 +119,6 @@ export function getStatusLabel(status: string | null | undefined): string {
 // Helper : obtenir la classe CSS d'un statut
 // ============================================
 export function getStatusColor(status: string | null | undefined): string {
-  if (!status) return 'bg-surface-hover text-secondary';
-  return STATUS_COLORS[status] || 'bg-surface-hover text-secondary';
+  if (!status) return STATUS_CLASS_NEUTRAL;
+  return STATUS_COLORS[status] || STATUS_CLASS_NEUTRAL;
 }

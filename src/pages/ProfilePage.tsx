@@ -5,6 +5,7 @@ import { useToast } from '@/lib/Toast';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { ROLE_LABELS } from '@/lib/constants';
+import { STATUS_CLASS_SUCCESS } from '@/lib/constants';
 import { validatePasswordStrength } from '@/lib/password';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -96,7 +97,7 @@ const handleChangePassword = async () => {
           <div>
             <h3 className="font-semibold text-lg text-primary">{appUser.name}</h3>
             <p className="text-sm text-muted">{appUser.email}</p>
-            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-success-soft text-success text-xs font-medium rounded-full border border-default">
+            <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-medium rounded-full border ${STATUS_CLASS_SUCCESS}`}>
               <Shield size={12} /> {ROLE_LABELS[appUser.role] || appUser.role}
             </span>
           </div>

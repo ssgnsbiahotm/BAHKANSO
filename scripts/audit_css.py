@@ -174,7 +174,7 @@ def md(r):
     if undef: acts.append(f"🔴 **P0** — Définir/supprimer les {len(undef)} variables CSS fantômes")
     if r.colors: acts.append(f"🔴 **P0** — Remplacer les {len(r.colors)} couleurs hardcodées")
     if tw_total>50: acts.append(f"🟠 **P1** — Migrer les {tw_total} classes Tailwind par défaut")
-    if r.inline>50: acts.append(f"🟠 **P1** — Convertir les {len(r.inline)} styles inline")
+    if len(r.inline)>50: acts.append(f"🟠 **P1** — Convertir les {len(r.inline)} styles inline")
     if orphan: acts.append(f"🟡 **P2** — Nettoyer les {len(orphan)} classes orphelines")
     for a in acts: L.append(f"- {a}")
     L.append("")
