@@ -51,17 +51,17 @@ export function Modal({ open, onClose, title, children, size = 'md', footer }: M
         aria-labelledby={titleId}
         className={`relative bg-surface rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] flex flex-col`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-default">
+        <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-default">
           <h3 id={titleId} className="text-lg font-semibold text-primary">{title}</h3>
           <button ref={closeButtonRef} type="button" aria-label="Fermer" onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-hover text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary">
             <X size={20} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
           {children}
         </div>
         {footer && (
-          <div className="px-6 py-4 border-t border-default flex items-center justify-end gap-2">
+          <div className="shrink-0 px-6 py-4 border-t border-default flex items-center justify-end gap-2">
             {footer}
           </div>
         )}
