@@ -3,5 +3,22 @@
     "security-guidance@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
     "oh-my-claudecode@omc": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(npm run lint)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(git push:*)",
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)"
+    ]
   }
 }

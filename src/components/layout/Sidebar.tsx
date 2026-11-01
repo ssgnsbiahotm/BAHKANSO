@@ -24,7 +24,10 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'agriculture', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture' },
   { id: 'livestock', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock' },
   { id: 'finance', label: 'Gestion', icon: <Briefcase size={20} />, module: 'finance', children: [
-    { id: 'finance', label: 'Finances', module: 'finance' },
+    { id: 'finance?tab=fundings', label: 'Financements', module: 'finance' },
+    { id: 'finance?tab=expenses', label: 'Dépenses', module: 'finance' },
+    { id: 'finance?tab=treasury', label: 'Trésorerie', module: 'finance' },
+    { id: 'finance?tab=ventes', label: 'Ventes', module: 'finance' },
     { id: 'inventory', label: 'Stocks', module: 'inventory' },
     { id: 'projects', label: 'Projets', module: 'projects' },
     { id: 'suppliers', label: 'Fournisseurs', module: 'suppliers' },
@@ -56,13 +59,44 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const branding = (siteContent.branding?.value as Record<string, string>) || {};
   const [alertCount, setAlertCount] = useState(0);
 
+  // Map unifiée des routes (utilisée aussi bien par handleNav que handleChildPath)
+  const routeMap: Record<string, string> = {
+    dashboard: '/app/dashboard',
+    finance: '/app/finance',
+    agriculture: '/app/exploitation',
+    'agriculture?plots': '/app/exploitation/parcelles',
+    'agriculture?campaigns': '/app/exploitation/campagnes',
+    'agriculture?operations': '/app/exploitation/operations',
+    'agriculture?harvests': '/app/exploitation/recoltes',
+    livestock: '/app/livestock',
+    'exploitation/lots': '/app/exploitation/lots',
+    'exploitation/animaux': '/app/exploitation/animaux',
+    'livestock/events': '/app/livestock/events',
+    projects: '/app/projects',
+    inventory: '/app/inventory',
+    suppliers: '/app/suppliers',
+    media: '/app/media',
+    monitoring: '/app/surveillance?tab=alertes',
+    surveillance: '/app/surveillance',
+    users: '/app/users',
+    configuration: '/app/configuration',
+    'config-general': '/app/configuration',
+    bailleurs: '/app/configuration/bailleurs',
+    clients: '/app/configuration/clients',
+    sites: '/app/configuration/sites',
+    'finance?tab=fundings': '/app/finance?tab=fundings',
+    'finance?tab=expenses': '/app/finance?tab=expenses',
+    'finance?tab=treasury': '/app/finance?tab=treasury',
+    'finance?tab=ventes': '/app/finance?tab=ventes',
+  };
+
   // État d'expansion des items avec enfants
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
     // Auto-expand l'item qui contient la route courante
     const current = location.pathname;
     const expanded = new Set<string>();
     ALL_NAV_ITEMS.forEach(item => {
-      if (item.children?.some(child => handleChildPath(child.id) === current)) {
+      if (item.children?.some(child => routeMap[child.id] === current)) {
         expanded.add(item.id);
       }
     });
@@ -79,64 +113,17 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     return location.pathname.includes(navId.split('?')[0]);
   };
 
+  // Fonction pour naviguer vers une page (utilise routeMap unifiée)
   const handleNav = (page: string) => {
-    let target = page;
-
-    const routeMap: Record<string, string> = {
-      dashboard: '/app/dashboard',
-      finance: '/app/finance',
-      agriculture: '/app/agriculture',
-      'agriculture?plots': '/app/agriculture/plots',
-      'agriculture?campaigns': '/app/agriculture/campaigns',
-      'agriculture?operations': '/app/agriculture/operations',
-      'agriculture?harvests': '/app/agriculture/harvests',
-      livestock: '/app/livestock',
-      'exploitation/lots': '/app/exploitation/lots',
-      'exploitation/animaux': '/app/exploitation/animaux',
-      'livestock/events': '/app/livestock/events',
-      projects: '/app/projects',
-      inventory: '/app/inventory',
-      suppliers: '/app/suppliers',
-      media: '/app/media',
-      monitoring: '/app/monitoring',
-      surveillance: '/app/surveillance',
-      users: '/app/users',
-      configuration: '/app/configuration',
-      'config-general': '/app/configuration',
-      bailleurs: '/app/configuration/bailleurs',
-      clients: '/app/configuration/clients',
-      sites: '/app/configuration/sites',
-    };
-
-    target = routeMap[page] || `/app/${page}`;
+    let target = routeMap[page] || `/app/${page}`;
     navigate(target);
     onCloseMobile();
   };
 
-  // Fonction utilitaire pour mapper un id de child vers son path
-  function handleChildPath(id: string): string {
-    const routeMap: Record<string, string> = {
-      'config-general': '/app/configuration',
-      'users': '/app/users',
-      'bailleurs': '/app/configuration/bailleurs',
-      'clients': '/app/configuration/clients',
-      'sites': '/app/configuration/sites',
-      'monitoring': '/app/monitoring',
-      'surveillance': '/app/surveillance',
-      'agriculture?plots': '/app/exploitation/parcelles',
-      'agriculture?campaigns': '/app/exploitation/campagnes',
-      'agriculture?operations': '/app/exploitation/operations',
-      'agriculture?harvests': '/app/exploitation/recoltes',
-      'exploitation/lots': '/app/exploitation/lots',
-      'exploitation/animaux': '/app/exploitation/animaux',
-      'livestock/events': '/app/livestock/events',
-      'finance?tab=fundings': '/app/finance?tab=fundings',
-      'finance?tab=expenses': '/app/finance?tab=expenses',
-      'finance?tab=treasury': '/app/finance?tab=treasury',
-      'finance?tab=ventes': '/app/finance?tab=ventes',
-    };
-    return routeMap[id] || '/app/' + id;
-  }
+  // Déterminer si un enfant correspond à la route actuelle
+  const getChildActiveState = (childId: string): boolean => {
+    return location.pathname === routeMap[childId];
+  };
 
   useEffect(() => {
     async function fetchAlertCount() {
@@ -188,7 +175,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expandedItems.has(item.id);
             const containsActiveChild = hasChildren && item.children?.some(
-              child => handleChildPath(child.id) === location.pathname
+              child => routeMap[child.id] === location.pathname
             );
 
             return (
@@ -241,7 +228,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                 {hasChildren && isExpanded && (
                   <div className="ml-6 mt-1 space-y-0.5 border-l border-default/10 pl-3">
                     {item.children!.map(child => {
-                      const childActive = location.pathname === handleChildPath(child.id);
+                      const childActive = getChildActiveState(child.id);
                       return (
                         <button
                           key={child.id}

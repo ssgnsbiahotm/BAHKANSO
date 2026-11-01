@@ -148,3 +148,9 @@ Présenter ensuite, brièvement, son organisation et son suivi privé.
   les limites des autorisations de tests navigateur ci-dessus.
 - Rapporter les vérifications réellement effectuées et les blocages.
 - Ne pas déclarer un résultat testé ou fonctionnel sans vérification.
+
+## Design / UI-UX
+- Pour tout travail d'interface, applique le skill ui-ux-pro (.claude/skills/ui-ux-pro/SKILL.md).
+- Tokens : src/styles/tokens.css et src/styles/theme-*.css (theme-app = sombre, theme-editorial = clair). Aucune couleur, rayon ou ombre écrits en dur.
+- Pendant un lot de style, ne pas modifier Header, Sidebar ni AppRoutes.
+- Audit et plans : docs/design/.

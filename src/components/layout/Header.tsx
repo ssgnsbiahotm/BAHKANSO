@@ -68,7 +68,7 @@ export function Header({ onOpenMobile }: HeaderProps) {
               <div className="absolute right-0 top-full mt-2 w-80 bg-surface-deep border border-default/10 z-20 max-h-96 overflow-y-auto">
                 <div className="px-4 py-3 border-b border-default/10 flex items-center justify-between">
                   <h3 className="font-semibold text-primary">Notifications</h3>
-                  <button onClick={() => { navigate('/app/monitoring?alertes'); setShowNotif(false); }} className="text-xs text-accent-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
+                  <button onClick={() => { navigate('/app/surveillance?tab=alertes'); setShowNotif(false); }} className="text-xs text-accent-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
                     Voir les {openAlerts.length} alertes
                   </button>
                 </div>

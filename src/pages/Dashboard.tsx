@@ -548,7 +548,7 @@ export function Dashboard() {
             ) : (
               latestTransactions.slice(0, 3).map((t) => (
                 <div key={t.id} className="operation-card">
-                  <Link to={`/app/finance/transactions/${t.id}`} className="dashboard-op-card-inner">
+                  <Link to={`/app/finance?tab=treasury&transaction=${t.id}`} className="dashboard-op-card-inner">
                     <div className="dashboard-op-header">
                       <span className={`dashboard-op-type ${t.direction === 'entree' ? 'dashboard-op-type-income' : 'dashboard-op-type-outcome'}`}>
                         {t.direction === 'entree' ? 'Entrée' : 'Sortie'}

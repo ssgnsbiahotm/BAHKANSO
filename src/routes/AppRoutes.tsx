@@ -35,9 +35,7 @@ const Suppliers = lazy(() => import('@/pages/Suppliers').then(m => ({ default: m
 const Media = lazy(() => import('@/pages/Media').then(m => ({ default: m.Media })));
 const FinanceModule = lazy(() => import('@/modules/Finance').then(m => ({ default: m.FinanceModule })));
 const AnimalEventManage = lazy(() => import('@/pages/AnimalEventManage').then(m => ({ default: m.AnimalEventManage })));
-const PlotManage = lazy(() => import('@/pages/PlotManage').then(m => ({ default: m.PlotManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
-const SitesPage = lazy(() => import('@/pages/configuration/SitesPage').then(m => ({ default: m.SitesPage })));
 const SitesPageSuspense = createSuspenseWrapper(SitesPage);
 const RecoltesPage = lazy(() => import('@/pages/exploitation/RecoltesPage').then(m => ({ default: m.RecoltesPage })));
 const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
@@ -86,14 +84,13 @@ const SuppliersSuspense = createSuspenseWrapper(Suppliers);
 const MediaSuspense = createSuspenseWrapper(Media);
 const FinanceModuleSuspense = createSuspenseWrapper(FinanceModule);
 const AnimalEventManageSuspense = createSuspenseWrapper(AnimalEventManage);
-const PlotManageSuspense = createSuspenseWrapper(PlotManage);
-const ParcellesPageSuspense = createSuspenseWrapper(ParcellesPage);
 
+// Campagnes page
 const CampagnesPage = lazy(() => import('@/pages/exploitation/CampagnesPage').then(m => ({ default: m.CampagnesPage })));
 const CampagnesPageSuspense = createSuspenseWrapper(CampagnesPage);
 
 const OperationsPage = lazy(() => import('@/pages/exploitation/OperationsPage').then(m => ({ default: m.OperationsPage })));
-const OperationsPageSuspense = createSuspenseWrapper(OperationsPage);
+const ParcellesPageSuspense = createSuspenseWrapper(ParcellesPage);
 
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -174,14 +171,11 @@ export const appRouter = createBrowserRouter([
       { path: 'reports', element: <Navigate to="/app/surveillance?tab=historique" replace /> },
       { path: 'alerts', element: <Navigate to="/app/surveillance?tab=alertes" replace /> },
       { path: 'audit', element: <Navigate to="/app/surveillance?tab=historique" replace /> },
-      {
-        path: 'monitoring',
-        element: (
-          <RequireModule module="monitoring" action="read">
-            <MonitoringSuspense />
-          </RequireModule>
-        ),
-      },
+      { path: 'monitoring', element: (
+        <RequireModule module="monitoring" action="read">
+          <MonitoringSuspense />
+        </RequireModule>
+      )},
       {
         path: 'surveillance',
         element: (
@@ -200,11 +194,11 @@ export const appRouter = createBrowserRouter([
       },
       {
         path: 'agriculture/plots',
-        element: (
-          <RequireModule module="agriculture" action="read">
-            <PlotManageSuspense />
-          </RequireModule>
-        ),
+        element: <Navigate to="/app/exploitation/parcelles" replace />,
+      },
+      {
+        path: 'agriculture/campaigns',
+        element: <Navigate to="/app/exploitation/campagnes" replace />,
       },
       {
         path: 'exploitation/parcelles',
@@ -281,14 +275,6 @@ export const appRouter = createBrowserRouter([
             <LivestockSuspense />
           </RequireModule>
         ),
-      },
-      {
-        path: 'livestock/lots',
-        element: <PreservingRedirect to="/app/exploitation/lots" />,
-      },
-      {
-        path: 'livestock/animals',
-        element: <PreservingRedirect to="/app/exploitation/animaux" />,
       },
       {
         path: 'livestock/events',
