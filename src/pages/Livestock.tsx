@@ -9,7 +9,7 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import { Plus, Eye, Pencil, Trash2, Beef, AlertTriangle, Syringe } from 'lucide-react';
 import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
-import '@/styles/module-theme.css';
+import '@/styles/theme-app.css';
 
 export function Livestock() {
   const { animals, animalLots, animalEvents, refresh } = useData();

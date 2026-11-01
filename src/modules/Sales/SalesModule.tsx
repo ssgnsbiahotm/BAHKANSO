@@ -15,7 +15,7 @@ import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
 import { Modal } from '@/components/ui/Modal';
 
-import '@/styles/module-theme.css';
+import '@/styles/theme-app.css';
 
 const saleSchema = z.object({
   site_id: z.string().min(1, 'Le site est obligatoire'),

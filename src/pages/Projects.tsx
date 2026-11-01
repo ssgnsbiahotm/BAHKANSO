@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import '@/styles/module-theme.css';
+import '@/styles/theme-app.css';
 import { HardHat, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';

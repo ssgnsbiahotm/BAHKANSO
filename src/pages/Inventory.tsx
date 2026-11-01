@@ -11,7 +11,7 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import * as z from 'zod';
 import type { InventoryItem } from '@/lib/types';
 
-import '@/styles/module-theme.css';
+import '@/styles/theme-app.css';
 
 const itemSchema = z.object({
   name: z.string().min(1, 'Le nom est obligatoire'),

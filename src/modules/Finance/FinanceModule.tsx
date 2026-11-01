@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import '@/styles/module-theme.css';
+import '@/styles/theme-app.css';
 import { RequireModule } from '@/routes/authGuard';
 import { useFundings } from '@/modules/Finance/hooks/useFinanceData';
 import { useExpenses } from '@/modules/Finance/hooks/useFinanceData';
