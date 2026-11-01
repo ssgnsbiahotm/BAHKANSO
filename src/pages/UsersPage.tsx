@@ -229,36 +229,36 @@ export function UsersPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {users.map(u => (
-          <div key={u.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+          <div key={u.id} className="bg-surface rounded-xl border border-default p-5 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">
                   {u.name.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900">{u.name}</h3>
-                  <p className="text-xs text-slate-500">{ROLE_LABELS[u.role] || u.role}</p>
+                  <h3 className="font-semibold text-primary">{u.name}</h3>
+                  <p className="text-xs text-muted">{ROLE_LABELS[u.role] || u.role}</p>
                 </div>
               </div>
               <SimpleBadge color={u.active ? 'green' : 'gray'}>{u.active ? 'Actif' : 'Inactif'}</SimpleBadge>
             </div>
             <div className="space-y-2 text-sm">
-              {u.email && <div className="flex items-center gap-2 text-slate-600"><Mail size={14} className="text-slate-400" /> {u.email}</div>}
-              {u.phone && <div className="flex items-center gap-2 text-slate-600"><Phone size={14} className="text-slate-400" /> {u.phone}</div>}
-              <div className="flex items-center gap-2 text-slate-500 text-xs">Créé le {formatDate(u.created_at)}</div>
+              {u.email && <div className="flex items-center gap-2 text-secondary"><Mail size={14} className="text-muted" /> {u.email}</div>}
+              {u.phone && <div className="flex items-center gap-2 text-secondary"><Phone size={14} className="text-muted" /> {u.phone}</div>}
+              <div className="flex items-center gap-2 text-muted text-xs">Créé le {formatDate(u.created_at)}</div>
             </div>
             <div className="flex items-center gap-2 mt-4">
               <button
                 onClick={() => openEdit(u)}
                 disabled={!canManageUsers}
-                className="flex-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-3 py-1.5 text-xs border border-default rounded-lg hover:bg-surface-hover text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Modifier
               </button>
               <button
                 onClick={() => toggleActive(u)}
                 disabled={!canManageUsers || u.id === appUser?.id}
-                className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 text-xs border border-default rounded-lg hover:bg-surface-hover text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 title={u.id === appUser?.id ? 'Impossible de se désactiver soi-même' : undefined}
               >
                 {u.active ? 'Désactiver' : 'Activer'}
@@ -276,16 +276,16 @@ export function UsersPage() {
         ))}
       </div>
 
-      <div className="mt-8 bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2"><Shield size={18} /> Rôles et permissions</h3>
-        <p className="text-xs text-slate-500 mb-3">
+      <div className="mt-8 bg-surface rounded-xl border border-default p-5">
+        <h3 className="font-semibold text-primary mb-3 flex items-center gap-2"><Shield size={18} /> Rôles et permissions</h3>
+        <p className="text-xs text-muted mb-3">
           Seuls les rôles <strong>Administrateur</strong> et <strong>Propriétaire / Direction</strong> peuvent gérer les utilisateurs.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {ROLES.map(r => (
-            <div key={r.value} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg text-sm">
+            <div key={r.value} className="flex items-center gap-2 p-2 bg-surface-hover rounded-lg text-sm">
               <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="font-medium text-slate-700">{r.label}</span>
+              <span className="font-medium text-secondary">{r.label}</span>
             </div>
           ))}
         </div>
@@ -298,7 +298,7 @@ export function UsersPage() {
         size="md"
         footer={
           <>
-            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
+            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">Annuler</button>
             <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
               {saving ? 'Enregistrement...' : editUser ? 'Modifier' : 'Créer'}
             </button>
@@ -307,23 +307,23 @@ export function UsersPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Nom complet *</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Nom complet *</label>
             <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="form-input" placeholder="Kouadio Mensah" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Email *</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Email *</label>
             <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="form-input" placeholder="user@ferme.ci" />
           </div>
           {!editUser && (
             <>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Mot de passe *</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Mot de passe *</label>
                 <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="form-input" placeholder="••••••••" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Confirmer le mot de passe *</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Confirmer le mot de passe *</label>
                 <input type="password" value={form.confirmPassword} onChange={e => setForm({...form, confirmPassword: e.target.value})} className="form-input" placeholder="••••••••" />
-                <p className="text-xs text-slate-400 mt-1">Minimum 8 caractères</p>
+                <p className="text-xs text-muted mt-1">Minimum 8 caractères</p>
               </div>
             </>
           )}
@@ -334,13 +334,13 @@ export function UsersPage() {
             </div>
           )}
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Rôle</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Rôle</label>
             <select value={form.role} onChange={e => setForm({...form, role: e.target.value})} className="form-input">
               {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Téléphone</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Téléphone</label>
             <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="form-input" placeholder="+225 07 00 00 00 00" />
           </div>
         </div>
@@ -353,12 +353,12 @@ export function UsersPage() {
         size="sm"
         footer={
           <>
-            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
+            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">Annuler</button>
             <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Supprimer</button>
           </>
         }
       >
-        <p className="text-sm text-slate-600">Voulez-vous vraiment supprimer l'utilisateur « {confirmDelete?.name} » ? Cette action est irréversible.</p>
+        <p className="text-sm text-secondary">Voulez-vous vraiment supprimer l'utilisateur « {confirmDelete?.name} » ? Cette action est irréversible.</p>
       </Modal>
     </div>
   );

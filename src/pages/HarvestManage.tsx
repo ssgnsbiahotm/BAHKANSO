@@ -258,7 +258,7 @@ export function HarvestManage() {
                     </button>
                     <button
                       onClick={() => { setEditHarvest(h); setModalOpen(true); }}
-                      className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium"
+                      className="w-full px-4 py-2 bg-surface-hover text-secondary rounded-lg hover:bg-slate-200 text-sm font-medium"
                     >
                       Modifier
                     </button>
@@ -281,7 +281,7 @@ export function HarvestManage() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editHarvest ? 'Modifier la récolte' : 'Nouvelle récolte'} size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Date *</label>
             <input
               type="date"
               value={form.date}
@@ -292,7 +292,7 @@ export function HarvestManage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Campagne</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Campagne</label>
               <select
                 value={form.campaign_id || ''}
                 onChange={(e) => setForm('campaign_id', e.target.value || undefined)}
@@ -307,7 +307,7 @@ export function HarvestManage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Parcelle</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Parcelle</label>
               <select
                 value={form.plot_id || ''}
                 onChange={(e) => setForm('plot_id', e.target.value || undefined)}
@@ -323,7 +323,7 @@ export function HarvestManage() {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Quantité *</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Quantité *</label>
             <input
               type="number"
               value={form.quantity}
@@ -334,7 +334,7 @@ export function HarvestManage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Unité</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Unité</label>
               <select
                 value={form.unit || 'kg'}
                 onChange={(e) => setForm('unit', e.target.value)}
@@ -346,7 +346,7 @@ export function HarvestManage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Qualité</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Qualité</label>
               <input
                 type="text"
                 value={form.quality || ''}
@@ -358,7 +358,7 @@ export function HarvestManage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Prix estimé (FCFA/unité)</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Prix estimé (FCFA/unité)</label>
               <input
                 type="number"
                 value={form.estimated_price ?? ''}
@@ -367,7 +367,7 @@ export function HarvestManage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Chiffre d'affaires (FCFA)</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Chiffre d'affaires (FCFA)</label>
               <input
                 type="number"
                 value={form.revenue ?? ''}
@@ -377,7 +377,7 @@ export function HarvestManage() {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Destination</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Destination</label>
             <input
               type="text"
               value={form.destination || ''}
@@ -390,7 +390,7 @@ export function HarvestManage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
@@ -455,7 +455,7 @@ export function HarvestManage() {
             <button
               type="button"
               onClick={() => setDetailHarvest(null)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Fermer
             </button>
@@ -490,14 +490,14 @@ export function HarvestManage() {
         title="Supprimer une récolte"
         size="sm"
       >
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-secondary">
           Voulez-vous vraiment supprimer la récolte du {formatDate(confirmDelete?.date)} ? Cette action est irréversible.
         </p>
         <div className="flex justify-end gap-2 pt-4">
           <button
             type="button"
             onClick={() => setConfirmDelete(null)}
-            className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+            className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
           >
             Annuler
           </button>

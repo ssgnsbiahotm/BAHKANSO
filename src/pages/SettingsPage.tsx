@@ -284,6 +284,164 @@ export function SettingsPage() {
                 </div>
               </div>
             )}
+<<<<<<< Updated upstream
+=======
+
+            {tab === 'static' && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-slate-900 flex items-center gap-2"><FileText size={18} /> Contenu Statique</h3>
+                <p className="text-sm text-slate-500">Gestion du contenu statique du site (textes, configurations, etc.)</p>
+
+                {/* Add new content form */}
+                {canUpdate && (
+                  <div className="bg-slate-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-medium text-slate-900 mb-2">Ajouter du nouveau contenu</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">Clé</label>
+                        <input
+                          type="text"
+                          value={newKey}
+                          onChange={e => setNewKey(e.target.value)}
+                          placeholder="ex: homepage_title"
+                          className="form-input"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 mb-1">Valeur</label>
+                        <input
+                          type="text"
+                          value={newValue}
+                          onChange={e => setNewValue(e.target.value)}
+                          placeholder="ex: Bienvenue sur Bahkanso"
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <button onClick={handleAddNewStatic} disabled={saving} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                          {saving ? 'Ajout en cours...' : 'Ajouter le contenu'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Existing content list */}
+                <div className="mt-4">
+                  <h3 className="font-semibold text-slate-900 mb-3">Contenu existant</h3>
+                  {staticContent.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-8">Aucun contenu statique trouvé</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {staticContent.map((content) => (
+                        <div key={content.id} className="border border-slate-200 rounded-lg overflow-hidden">
+                          {/* Header */}
+                          <div className="flex items-center justify-between p-3 bg-slate-50">
+                            <div className="flex items-center gap-2">
+                              <Edit2 size={16} className="text-slate-600" />
+                              <span className="font-medium text-slate-900">{content.key}</span>
+                            </div>
+                            {canUpdate && (
+                              <div className="flex items-center gap-2">
+                                {editingKey === content.id ? (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        const valueToSave = typeof editValue === 'string'
+                                          ? editValue
+                                          : JSON.stringify(editValue, null, 2);
+                                        handleSaveStaticContent(content.key, valueToSave);
+                                        setEditingKey(null);
+                                      }}
+                                      className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                      disabled={saving}
+                                    >
+                                      {saving ? 'Enregistrement...' : 'Sauvegarder'}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingKey(null);
+                                        setEditValue(content.value);
+                                      }}
+                                      className="px-2 py-1 text-xs text-slate-600 hover:text-slate-700"
+                                    >
+                                      Annuler
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setEditingKey(content.id);
+                                        // Parse the value for editing - if it's a string, use as-is, if it's an object, stringify for textarea
+                                        if (typeof content.value === 'string') {
+                                          setEditValue(content.value);
+                                        } else {
+                                          setEditValue(JSON.stringify(content.value, null, 2));
+                                        }
+                                      }}
+                                      className="px-2 py-1 text-xs text-slate-600 hover:text-slate-700"
+                                    >
+                                      Modifier
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteStaticContent(content.key)}
+                                      className="px-2 py-1 text-xs text-red-600 hover:text-red-700"
+                                    >
+                                      Supprimer
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content editor/viewer */}
+                          <div className="p-4">
+                            {editingKey === content.id && canUpdate ? (
+                              <div className="space-y-2">
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Valeur (texte)</label>
+                                <textarea
+                                  value={editValue}
+                                  onChange={e => setEditValue(e.target.value)}
+                                  className="w-full p-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                                  rows={4}
+                                />
+                                <label className="block text-xs font-medium text-slate-600 mb-1">
+                                  Ou (JSON)
+                                </label>
+                                <textarea
+                                  value={typeof content.value === 'string' ? content.value : JSON.stringify(content.value, null, 2)}
+                                  onChange={e => setEditValue(e.target.value)}
+                                  className="w-full p-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                                  rows={6}
+                                />
+                                <p className="text-xs text-slate-500 mt-2">
+                                  Pour les objets JSON, utilisez le deuxième champ. Les chaînes de caractères simples peuvent être éditées directement.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-slate-700">
+                                {typeof content.value === 'string'
+                                  ? content.value
+                                  : JSON.stringify(content.value, null, 2)}
+                                {typeof content.value !== 'string' && (
+                                  <div className="mt-2 p-3 bg-slate-50 rounded-md text-xs text-slate-600">
+                                    <span className="font-medium">(Objet JSON)</span>
+                                    <p className="mt-1">
+                                      Pour éditer cet objet, cliquez sur "Modifier" et utilisez l'éditeur JSON ci-dessus.
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+>>>>>>> Stashed changes
           </div>
         </div>
       </div>

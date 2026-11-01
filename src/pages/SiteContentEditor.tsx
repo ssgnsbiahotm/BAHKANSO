@@ -462,27 +462,27 @@ export function SiteContentEditor() {
         actions={
           <>
             {!previewMode && hasDrafts && (
-              <button onClick={handleReset} className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+              <button onClick={handleReset} className="flex items-center gap-2 px-3 py-2 text-sm border border-default rounded-lg hover:bg-surface-hover text-secondary">
                 <RotateCcw size={16} /> Annuler
               </button>
             )}
             {!previewMode && hasDrafts && (
-              <button onClick={handlePreview} disabled={saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={handlePreview} disabled={saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover disabled:opacity-50">
                 <Eye size={16} /> {saving ? 'Prévisualisation...' : 'Prévisualiser'}
               </button>
             )}
             {previewMode && (
-              <button onClick={handleExitPreview} disabled={saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-600 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50">
+              <button onClick={handleExitPreview} disabled={saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover disabled:opacity-50">
                 <X size={16} /> {saving ? 'Annulation...' : 'Retourner'}
               </button>
             )}
             {previewMode && (
-              <button onClick={handlePublish} disabled={!hasDrafts || saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+              <button onClick={handlePublish} disabled={!hasDrafts || saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover disabled:opacity-50">
                 <Save size={16} /> {saving ? 'Publication...' : 'Publier'}
               </button>
             )}
             {!previewMode && hasDrafts && (
-              <button onClick={handleSave} disabled={!hasDrafts || saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+              <button onClick={handleSave} disabled={!hasDrafts || saving} className="flex items-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover disabled:opacity-50">
                 <Save size={16} /> {saving ? 'Enregistrement...' : 'Enregistrer'}
               </button>
             )}
@@ -499,11 +499,11 @@ export function SiteContentEditor() {
                 key={s.key}
                 onClick={() => setSection(s.key)}
                 className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-                  section === s.key ? 'bg-green-50 text-green-700' : 'text-slate-600 hover:bg-slate-50'
+                  section === s.key ? 'bg-accent-soft text-accent-primary' : 'text-secondary hover:bg-surface-hover'
                 }`}
               >
                 {s.label}
-                {drafts[s.key] !== undefined && <span className="w-2 h-2 rounded-full bg-amber-400 ml-auto" />}
+                {drafts[s.key] !== undefined && <span className="w-2 h-2 rounded-full bg-accent-primary ml-auto" />}
               </button>
             ))}
           </div>
@@ -511,11 +511,11 @@ export function SiteContentEditor() {
 
         {/* Editor panel */}
         <div className="flex-1 min-w-0">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-surface rounded-xl border border-default p-6">
             {section === 'branding' && (
               <div className="space-y-6">
-                <h3 className="font-semibold text-slate-900 text-lg flex items-center gap-2"><ImageIcon size={18} /> Identité & Logo</h3>
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                <h3 className="font-semibold text-primary text-lg flex items-center gap-2"><ImageIcon size={18} /> Identité & Logo</h3>
+                <div className="flex items-center gap-4 p-4 bg-surface-hover rounded-xl">
                   <Logo
                     icon={branding.logoIcon || 'Sprout'}
                     color={branding.logoColor || '#FFFFFF'}
@@ -523,12 +523,12 @@ export function SiteContentEditor() {
                     size={56}
                   />
                   <div>
-                    <p className="font-bold text-lg text-slate-900">{branding.appName || 'Bahkanso'}</p>
-                    <p className="text-xs text-slate-500">{branding.appTagline || ''}</p>
+                    <p className="font-bold text-lg text-primary">{branding.appName || 'Bahkanso'}</p>
+                    <p className="text-xs text-muted">{branding.appTagline || ''}</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Icône du logo</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Icône du logo</label>
                   <div className="grid grid-cols-8 gap-2">
                     {ICON_CHOICES.map(ic => {
                       const IcComp = getIcon(ic);
@@ -537,7 +537,7 @@ export function SiteContentEditor() {
                           key={ic}
                           onClick={() => updateField('branding', 'logoIcon', ic)}
                           className={`w-10 h-10 rounded-lg flex items-center justify-center border-2 transition-colors ${
-                            (branding.logoIcon || 'Sprout') === ic ? 'border-green-500 bg-green-50 text-green-600' : 'border-slate-200 text-slate-400 hover:border-slate-300'
+                            (branding.logoIcon || 'Sprout') === ic ? 'border-accent-primary bg-accent-soft text-accent-primary' : 'border-default text-muted hover:border-default'
                           }`}
                         >
                           <IcComp size={18} />
@@ -548,25 +548,25 @@ export function SiteContentEditor() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-2">Couleur de l'icône</label>
+                    <label className="block text-xs font-medium text-secondary mb-2">Couleur de l'icône</label>
                     <div className="flex items-center gap-2 flex-wrap">
                       {COLOR_CHOICES.map(c => (
                         <button key={c} onClick={() => updateField('branding', 'logoColor', c)}
-                          className={`w-8 h-8 rounded-lg border-2 ${(branding.logoColor || '#FFFFFF') === c ? 'border-slate-900' : 'border-slate-200'}`}
+                          className={`w-8 h-8 rounded-lg border-2 ${(branding.logoColor || '#FFFFFF') === c ? 'border-accent-primary' : 'border-default'}`}
                           style={{ backgroundColor: c }} />
                       ))}
-                      <input type="color" value={branding.logoColor || '#FFFFFF'} onChange={e => updateField('branding', 'logoColor', e.target.value)} className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer" />
+                      <input type="color" value={branding.logoColor || '#FFFFFF'} onChange={e => updateField('branding', 'logoColor', e.target.value)} className="w-8 h-8 rounded-lg border border-default cursor-pointer" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-2">Couleur de fond du logo</label>
+                    <label className="block text-xs font-medium text-secondary mb-2">Couleur de fond du logo</label>
                     <div className="flex items-center gap-2 flex-wrap">
                       {COLOR_CHOICES.map(c => (
                         <button key={c} onClick={() => updateField('branding', 'logoBgColor', c)}
-                          className={`w-8 h-8 rounded-lg border-2 ${(branding.logoBgColor || '#16A34A') === c ? 'border-slate-900' : 'border-slate-200'}`}
+                          className={`w-8 h-8 rounded-lg border-2 ${(branding.logoBgColor || '#16A34A') === c ? 'border-accent-primary' : 'border-default'}`}
                           style={{ backgroundColor: c }} />
                       ))}
-                      <input type="color" value={branding.logoBgColor || '#16A34A'} onChange={e => updateField('branding', 'logoBgColor', e.target.value)} className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer" />
+                      <input type="color" value={branding.logoBgColor || '#16A34A'} onChange={e => updateField('branding', 'logoBgColor', e.target.value)} className="w-8 h-8 rounded-lg border border-default cursor-pointer" />
                     </div>
                   </div>
                 </div>
@@ -579,7 +579,7 @@ export function SiteContentEditor() {
 
             {section === 'hero' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Section Hero</h3>
+                <h3 className="font-semibold text-primary text-lg">Section Hero</h3>
                 <FormField label="Badge" value={String(hero.badge || '')} onChange={v => updateField('hero', 'badge', v)} />
                 <FormField label="Titre principal" value={String(hero.title || '')} onChange={v => updateField('hero', 'title', v)} />
                 <FormField label="Mot mis en évidence" value={String(hero.highlight || '')} onChange={v => updateField('hero', 'highlight', v)} />
@@ -587,15 +587,15 @@ export function SiteContentEditor() {
                 <FormField label="Bouton principal" value={String(hero.ctaPrimary || '')} onChange={v => updateField('hero', 'ctaPrimary', v)} />
                 <FormField label="Bouton secondaire" value={String(hero.ctaSecondary || '')} onChange={v => updateField('hero', 'ctaSecondary', v)} />
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Badges de confiance</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Badges de confiance</label>
                   <div className="space-y-2">
                     {((hero.trustBadges as string[]) || []).map((badge, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <input type="text" value={badge} onChange={e => { const arr = [...((hero.trustBadges as string[]) || [])]; arr[i] = e.target.value; updateField('hero', 'trustBadges', arr); }} className="form-input" />
-                        <button onClick={() => { const arr = ((hero.trustBadges as string[]) || []).filter((_, idx) => idx !== i); updateField('hero', 'trustBadges', arr); }} className="text-red-500 hover:bg-red-50 p-2 rounded"><X size={16} /></button>
+                        <button onClick={() => { const arr = ((hero.trustBadges as string[]) || []).filter((_, idx) => idx !== i); updateField('hero', 'trustBadges', arr); }} className="text-danger hover:bg-danger-soft p-2 rounded"><X size={16} /></button>
                       </div>
                     ))}
-                    <button onClick={() => updateField('hero', 'trustBadges', [...((hero.trustBadges as string[]) || []), 'Nouveau badge'])} className="flex items-center gap-1 text-sm text-green-600 hover:underline"><Plus size={14} /> Ajouter</button>
+                    <button onClick={() => updateField('hero', 'trustBadges', [...((hero.trustBadges as string[]) || []), 'Nouveau badge'])} className="flex items-center gap-1 text-sm text-accent-primary hover:underline"><Plus size={14} /> Ajouter</button>
                   </div>
                 </div>
               </div>
@@ -603,12 +603,12 @@ export function SiteContentEditor() {
 
             {section === 'heroCard' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Carte Hero (aperçu dashboard)</h3>
+                <h3 className="font-semibold text-primary text-lg">Carte Hero (aperçu dashboard)</h3>
                 <FormField label="Libellé" value={String(heroCard.label || '')} onChange={v => updateField('heroCard', 'label', v)} />
                 <FormField label="Valeur" value={String(heroCard.value || '')} onChange={v => updateField('heroCard', 'value', v)} />
                 <FormField label="Tendance" value={String(heroCard.trend || '')} onChange={v => updateField('heroCard', 'trend', v)} />
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Statistiques (3 colonnes)</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Statistiques (3 colonnes)</label>
                   {((heroCard.items as Record<string, string>[]) || []).map((item, i) => (
                     <div key={i} className="flex items-center gap-2 mb-2">
                       <input type="text" placeholder="Libellé" value={item.label || ''} onChange={e => { const arr = [...((heroCard.items as Record<string, string>[]) || [])]; arr[i] = { ...arr[i], label: e.target.value }; updateField('heroCard', 'items', arr); }} className="form-input" />
@@ -617,7 +617,7 @@ export function SiteContentEditor() {
                   ))}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Lignes affichées</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Lignes affichées</label>
                   {((heroCard.lines as Record<string, string>[]) || []).map((line, i) => (
                     <div key={i} className="flex items-center gap-2 mb-2">
                       <input type="text" placeholder="Texte" value={line.text || ''} onChange={e => { const arr = [...((heroCard.lines as Record<string, string>[]) || [])]; arr[i] = { ...arr[i], text: e.target.value }; updateField('heroCard', 'lines', arr); }} className="form-input" />
@@ -630,23 +630,23 @@ export function SiteContentEditor() {
 
             {section === 'stats' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Statistiques</h3>
+                <h3 className="font-semibold text-primary text-lg">Statistiques</h3>
                 {stats.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                  <div key={i} className="flex items-center gap-2 p-3 bg-surface-hover rounded-lg">
                     <input type="text" placeholder="Valeur" value={s.value || ''} onChange={e => updateListItem('stats', i, 'value', e.target.value)} className="form-input w-28" />
                     <input type="text" placeholder="Libellé" value={s.label || ''} onChange={e => updateListItem('stats', i, 'label', e.target.value)} className="form-input" />
-                    <button onClick={() => removeListItem('stats', i)} className="text-red-500 hover:bg-red-50 p-2 rounded"><X size={16} /></button>
+                    <button onClick={() => removeListItem('stats', i)} className="text-danger hover:bg-danger-soft p-2 rounded"><X size={16} /></button>
                   </div>
                 ))}
-                <button onClick={() => addListItem('stats', { value: '0', label: 'Nouveau' })} className="flex items-center gap-1 text-sm text-green-600 hover:underline"><Plus size={14} /> Ajouter une statistique</button>
+                <button onClick={() => addListItem('stats', { value: '0', label: 'Nouveau' })} className="flex items-center gap-1 text-sm text-accent-primary hover:underline"><Plus size={14} /> Ajouter une statistique</button>
               </div>
             )}
 
             {section === 'features' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Fonctionnalités</h3>
+                <h3 className="font-semibold text-primary text-lg">Fonctionnalités</h3>
                 {features.length === 0 ? (
-                  <div className="p-4 bg-slate-50 rounded-xl text-center text-slate-500">
+                  <div className="p-4 bg-surface-hover rounded-xl text-center text-muted">
                     Aucune fonctionnalité enregistrée. Commencez par ajouter votre première fonctionnalité ci-dessous.
                   </div>
                 ) : (
@@ -658,16 +658,16 @@ export function SiteContentEditor() {
                         : `Fonctionnalité sans titre (élément ${i + 1})`;
 
                       return (
-                        <div key={i} className="p-4 bg-slate-50 rounded-xl space-y-4 border border-slate-200">
+                        <div key={i} className="p-4 bg-surface-hover rounded-xl space-y-4 border border-default">
                           {/* En-tête avec titre et actions */}
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+                              <div className="w-10 h-10 bg-accent-soft text-accent-primary rounded-xl flex items-center justify-center">
                                 <Logo icon={f.icon || 'Sprout'} size={16} />
                               </div>
                               <div>
-                                <h4 className="font-semibold text-slate-900">{displayTitle}</h4>
-                                <p className="text-sm text-slate-500">{f.desc && String(f.desc).trim() !== ''
+                                <h4 className="font-semibold text-primary">{displayTitle}</h4>
+                                <p className="text-sm text-muted">{f.desc && String(f.desc).trim() !== ''
                                   ? String(f.desc).substring(0, 100) + (String(f.desc).length > 100 ? '...' : '')
                                   : 'Aucune description'}</p>
                               </div>
@@ -675,25 +675,25 @@ export function SiteContentEditor() {
                             <div className="flex items-center gap-2">
                               {isEditing ? (
                                 <>
-                                  <button onClick={() => saveFeatureEdit(i)} className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
+                                  <button onClick={() => saveFeatureEdit(i)} className="flex items-center gap-1 px-2 py-1 text-xs bg-accent-primary text-white rounded hover:bg-accent-primary-hover">
                                     <Save size={14} /> Appliquer
                                   </button>
-                                  <button onClick={() => cancelFeatureEdit(i)} className="flex items-center gap-1 px-2 py-1 text-xs text-red-600 hover:text-red-800">
+                                  <button onClick={() => cancelFeatureEdit(i)} className="flex items-center gap-1 px-2 py-1 text-xs text-danger hover:text-danger">
                                     <X size={14} /> Annuler
                                   </button>
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={() => startEditingFeature(i)} className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-800">
+                                  <button onClick={() => startEditingFeature(i)} className="flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-primary">
                                     <FileText size={14} /> Modifier
                                   </button>
-                                  <button onClick={() => moveFeatureUp(i)} disabled={i === 0} className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-800">
+                                  <button onClick={() => moveFeatureUp(i)} disabled={i === 0} className="flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-primary">
                                     <ArrowUp size={14} /> Haut
                                   </button>
-                                  <button onClick={() => moveFeatureDown(i)} disabled={i === features.length - 1} className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-800">
+                                  <button onClick={() => moveFeatureDown(i)} disabled={i === features.length - 1} className="flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-primary">
                                     <ArrowDown size={14} /> Bas
                                   </button>
-                                  <button onClick={() => confirmDeleteFeature(i)} className="flex items-center gap-1 px-2 py-1 text-xs text-red-600 hover:text-red-800">
+                                  <button onClick={() => confirmDeleteFeature(i)} className="flex items-center gap-1 px-2 py-1 text-xs text-danger hover:text-danger">
                                     <Trash size={14} /> Supprimer
                                   </button>
                                 </>
@@ -703,10 +703,10 @@ export function SiteContentEditor() {
 
                           {/* Formulaire d'édition (affiché uniquement en mode édition) */}
                           {isEditing && (
-                            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="mt-4 p-3 bg-accent-soft rounded-lg border border-border-subtle">
                               <div className="space-y-3">
                                 <div>
-                                  <label className="block text-xs font-medium text-slate-600 mb-1">Titre</label>
+                                  <label className="block text-xs font-medium text-secondary mb-1">Titre</label>
                                   <input
                                     type="text"
                                     value={editFeatureTitle}
@@ -716,13 +716,13 @@ export function SiteContentEditor() {
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-medium text-slate-600 mb-1">Icône</label>
+                                  <label className="block text-xs font-medium text-secondary mb-1">Icône</label>
                                   <div className="flex flex-wrap gap-2">
                                     {ICON_CHOICES.map(ic => (
                                       <button
                                         key={ic}
                                         onClick={() => setEditFeatureIcon(ic)}
-                                        className={`w-9 h-9 rounded-lg flex items-center justify-center border-2 ${editFeatureIcon === ic ? 'border-green-500 bg-green-50 text-green-600' : 'border-slate-200 text-slate-400'}`}
+                                        className={`w-9 h-9 rounded-lg flex items-center justify-center border-2 ${editFeatureIcon === ic ? 'border-accent-primary bg-accent-soft text-accent-primary' : 'border-default text-muted'}`}
                                       >
                                         <Logo icon={ic} size={16} />
                                       </button>
@@ -730,7 +730,7 @@ export function SiteContentEditor() {
                                   </div>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+                                  <label className="block text-xs font-medium text-secondary mb-1">Description</label>
                                   <textarea
                                     value={editFeatureDesc}
                                     onChange={e => setEditFeatureDesc(e.target.value)}
@@ -745,13 +745,13 @@ export function SiteContentEditor() {
 
                           {/* Affichage normal (non-édition) */}
                           {!isEditing && (
-                            <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
-                              <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+                            <div className="flex items-center gap-4 p-3 bg-surface-hover rounded-lg">
+                              <div className="w-12 h-12 bg-accent-soft text-accent-primary rounded-xl flex items-center justify-center">
                                 <Logo icon={f.icon || 'Sprout'} size={20} />
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-slate-900">{f.title || '[Sans titre]'}</p>
-                                <p className="text-xs text-slate-500">{f.desc || '[Sans description]'}</p>
+                                <p className="text-sm font-medium text-primary">{f.title || '[Sans titre]'}</p>
+                                <p className="text-xs text-muted">{f.desc || '[Sans description]'}</p>
                               </div>
                             </div>
                           )}
@@ -760,17 +760,17 @@ export function SiteContentEditor() {
                     })}
 
                     {/* Bouton pour ajouter une nouvelle fonctionnalité */}
-                    <div className="pt-4 border-t border-slate-200">
-                      <button onClick={() => startAddingFeature()} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <div className="pt-4 border-t border-default">
+                      <button onClick={() => startAddingFeature()} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover">
                         <Plus size={16} /> Ajouter une fonctionnalité
                       </button>
 
                       {/* Formulaire d'ajout (affiché lorsque l'utilisateur clique sur "Ajouter une fonctionnalité") */}
                       {isAddingFeature && (
-                        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="mt-4 p-4 bg-accent-soft rounded-lg border border-border-subtle">
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-xs font-medium text-slate-600 mb-1">Titre</label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Titre</label>
                               <input
                                 type="text"
                                 value={newFeatureTitle}
@@ -779,18 +779,18 @@ export function SiteContentEditor() {
                                 placeholder="Titre de la fonctionnalité (obligatoire)"
                               />
                               {newFeatureTitleError && (
-                                <p className="text-xs text-red-600 mt-1">{newFeatureTitleError}</p>
+                                <p className="text-xs text-danger mt-1">{newFeatureTitleError}</p>
                               )}
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-slate-600 mb-1">Icône</label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Icône</label>
                               <div className="flex flex-wrap gap-2">
                                 {ICON_CHOICES.map(ic => {
                                   return (
                                     <button
                                       key={ic}
                                       onClick={() => setNewFeatureIcon(ic)}
-                                      className={`w-9 h-9 rounded-lg flex items-center justify-center border-2 ${newFeatureIcon === ic ? 'border-green-500 bg-green-50 text-green-600' : 'border-slate-200 text-slate-400'}`}
+                                      className={`w-9 h-9 rounded-lg flex items-center justify-center border-2 ${newFeatureIcon === ic ? 'border-accent-primary bg-accent-soft text-accent-primary' : 'border-default text-muted'}`}
                                     >
                                       <Logo icon={ic} size={16} />
                                     </button>
@@ -799,7 +799,7 @@ export function SiteContentEditor() {
                               </div>
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Description</label>
                               <textarea
                                 value={newFeatureDesc}
                                 onChange={e => setNewFeatureDesc(e.target.value)}
@@ -809,10 +809,10 @@ export function SiteContentEditor() {
                               />
                             </div>
                             <div className="flex items-center justify-end mt-3">
-                              <button onClick={() => cancelAddFeature()} className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-800">
+                              <button onClick={() => cancelAddFeature()} className="flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-primary">
                                 <X size={14} /> Annuler
                               </button>
-                              <button onClick={() => saveNewFeature()} className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 ml-2">
+                              <button onClick={() => saveNewFeature()} className="flex items-center gap-1 px-2 py-1 text-xs bg-accent-primary text-white rounded hover:bg-accent-primary-hover ml-2">
                                 <Save size={14} /> Enregistrer
                               </button>
                             </div>
@@ -827,7 +827,7 @@ export function SiteContentEditor() {
 
             {section === 'featuresSection' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Titre section fonctionnalités</h3>
+                <h3 className="font-semibold text-primary text-lg">Titre section fonctionnalités</h3>
                 <FormField label="Titre" value={featuresSection.title || ''} onChange={v => updateField('featuresSection', 'title', v)} />
                 <TextAreaField label="Sous-titre" value={featuresSection.subtitle || ''} onChange={v => updateField('featuresSection', 'subtitle', v)} rows={2} />
               </div>
@@ -835,13 +835,13 @@ export function SiteContentEditor() {
 
             {section === 'workflow' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Processus / Chaîne de traçabilité</h3>
+                <h3 className="font-semibold text-primary text-lg">Processus / Chaîne de traçabilité</h3>
                 <FormField label="Titre" value={String(workflow.title || '')} onChange={v => updateField('workflow', 'title', v)} />
                 <TextAreaField label="Sous-titre" value={String(workflow.subtitle || '')} onChange={v => updateField('workflow', 'subtitle', v)} rows={2} />
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Étapes</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Étapes</label>
                   {((workflow.steps as Record<string, string>[]) || []).map((step, i) => (
-                    <div key={i} className="flex items-center gap-2 mb-2 p-2 bg-slate-50 rounded-lg">
+                    <div key={i} className="flex items-center gap-2 mb-2 p-2 bg-surface-hover rounded-lg">
                       <select value={step.icon || ''} onChange={e => { const arr = [...((workflow.steps as Record<string, string>[]) || [])]; arr[i] = { ...arr[i], icon: e.target.value }; updateField('workflow', 'steps', arr); }} className="form-input w-32">
                         {ICON_CHOICES.map(ic => <option key={ic} value={ic}>{ic}</option>)}
                       </select>
@@ -856,11 +856,11 @@ export function SiteContentEditor() {
 
             {section === 'roles' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Section Rôles</h3>
+                <h3 className="font-semibold text-primary text-lg">Section Rôles</h3>
                 <FormField label="Titre" value={String(rolesContent.title || '')} onChange={v => updateField('roles', 'title', v)} />
                 <TextAreaField label="Sous-titre" value={String(rolesContent.subtitle || '')} onChange={v => updateField('roles', 'subtitle', v)} rows={2} />
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Liste des rôles</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Liste des rôles</label>
                   {((rolesContent.list as string[]) || []).map((r, i) => (
                     <div key={i} className="flex items-center gap-2 mb-2">
                       <input type="text" value={r} onChange={e => updateListItemString('roles', i, e.target.value)} className="form-input" />
@@ -874,7 +874,7 @@ export function SiteContentEditor() {
 
             {section === 'cta' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Section CTA (Call to Action)</h3>
+                <h3 className="font-semibold text-primary text-lg">Section CTA (Call to Action)</h3>
                 <FormField label="Titre" value={cta.title || ''} onChange={v => updateField('cta', 'title', v)} />
                 <TextAreaField label="Sous-titre" value={cta.subtitle || ''} onChange={v => updateField('cta', 'subtitle', v)} rows={2} />
                 <FormField label="Bouton principal" value={cta.primary || ''} onChange={v => updateField('cta', 'primary', v)} />
@@ -884,11 +884,11 @@ export function SiteContentEditor() {
 
             {section === 'footer' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Pied de page</h3>
+                <h3 className="font-semibold text-primary text-lg">Pied de page</h3>
                 <TextAreaField label="Description" value={String(footer.description || '')} onChange={v => updateField('footer', 'description', v)} rows={3} />
                 <FormField label="Titre modules" value={String(footer.modulesTitle || '')} onChange={v => updateField('footer', 'modulesTitle', v)} />
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Liste modules</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Liste modules</label>
                   {((footer.modules as string[]) || []).map((m, i) => (
                     <div key={i} className="flex items-center gap-2 mb-2">
                       <input type="text" value={m} onChange={e => { const arr = [...((footer.modules as string[]) || [])]; arr[i] = e.target.value; updateField('footer', 'modules', arr); }} className="form-input" />
@@ -898,9 +898,9 @@ export function SiteContentEditor() {
                 </div>
                 <FormField label="Titre sécurité" value={String(footer.securityTitle || '')} onChange={v => updateField('footer', 'securityTitle', v)} />
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Éléments sécurité</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Éléments sécurité</label>
                   {((footer.security as Record<string, string>[]) || []).map((sec, i) => (
-                    <div key={i} className="flex items-center gap-2 mb-2 p-2 bg-slate-50 rounded-lg">
+                    <div key={i} className="flex items-center gap-2 mb-2 p-2 bg-surface-hover rounded-lg">
                       <select value={sec.icon || ''} onChange={e => { const arr = [...((footer.security as Record<string, string>[]) || [])]; arr[i] = { ...arr[i], icon: e.target.value }; updateField('footer', 'security', arr); }} className="form-input w-32">
                         {ICON_CHOICES.map(ic => <option key={ic} value={ic}>{ic}</option>)}
                       </select>
@@ -915,11 +915,11 @@ export function SiteContentEditor() {
 
             {section === 'login' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-900 text-lg">Page de connexion</h3>
+                <h3 className="font-semibold text-primary text-lg">Page de connexion</h3>
                 <FormField label="Titre" value={String(login.title || '')} onChange={v => updateField('login', 'title', v)} />
                 <TextAreaField label="Sous-titre" value={String(login.subtitle || '')} onChange={v => updateField('login', 'subtitle', v)} rows={3} />
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-2">Avantages</label>
+                  <label className="block text-xs font-medium text-secondary mb-2">Avantages</label>
                   {((login.benefits as string[]) || []).map((b, i) => (
                     <div key={i} className="flex items-center gap-2 mb-2">
                       <input type="text" value={b} onChange={e => { const arr = [...((login.benefits as string[]) || [])]; arr[i] = e.target.value; updateField('login', 'benefits', arr); }} className="form-input" />
@@ -954,7 +954,7 @@ export function SiteContentEditor() {
 function FormField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-secondary mb-1">{label}</label>
       <input type="text" value={value} onChange={e => onChange(e.target.value)} className="form-input" />
     </div>
   );
@@ -963,7 +963,7 @@ function FormField({ label, value, onChange }: { label: string; value: string; o
 function TextAreaField({ label, value, onChange, rows = 3 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-secondary mb-1">{label}</label>
       <textarea value={value} onChange={e => onChange(e.target.value)} className="form-input" rows={rows} />
     </div>
   );

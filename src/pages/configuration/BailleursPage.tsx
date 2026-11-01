@@ -192,26 +192,26 @@ export function BailleursPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {funders.map(f => (
-          <div key={f.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+          <div key={f.id} className="bg-surface rounded-xl border border-default p-5 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center text-white font-semibold">
                   {f.name.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900">{f.name}</h3>
-                  {f.organization && <p className="text-xs text-slate-500">{f.organization}</p>}
+                  <h3 className="font-semibold text-primary">{f.name}</h3>
+                  {f.organization && <p className="text-xs text-muted">{f.organization}</p>}
                 </div>
               </div>
               <SimpleBadge color={f.active !== false ? 'green' : 'gray'}>${f.active !== false ? 'Actif' : 'Inactif'}</SimpleBadge>
             </div>
             <div className="space-y-2 text-sm">
-              {f.email && <div className="flex items-center gap-2 text-slate-600"><Mail size={14} className="text-slate-400" /> {f.email}</div>}
-              {f.phone && <div className="flex items-center gap-2 text-slate-600"><Phone size={14} className="text-slate-400" /> {f.phone}</div>}
-              {f.country && <div className="flex items-center gap-2 text-slate-500 text-xs">Pays: {f.country}</div>}
-              {f.total_sent > 0 && <div className="flex items-center gap-2 text-slate-500 text-xs">Total envoyé: {String(f.total_sent)}</div>}
-              {f.total_received > 0 && <div className="flex items-center gap-2 text-slate-500 text-xs">Total reçu: {String(f.total_received)}</div>}
-              <div className="flex items-center gap-2 text-slate-500 text-xs">Créé le {formatDate(f.created_at)}</div>
+              {f.email && <div className="flex items-center gap-2 text-secondary"><Mail size={14} className="text-muted" /> {f.email}</div>}
+              {f.phone && <div className="flex items-center gap-2 text-secondary"><Phone size={14} className="text-muted" /> {f.phone}</div>}
+              {f.country && <div className="flex items-center gap-2 text-muted text-xs">Pays: {f.country}</div>}
+              {f.total_sent > 0 && <div className="flex items-center gap-2 text-muted text-xs">Total envoyé: {String(f.total_sent)}</div>}
+              {f.total_received > 0 && <div className="flex items-center gap-2 text-muted text-xs">Total reçu: {String(f.total_received)}</div>}
+              <div className="flex items-center gap-2 text-muted text-xs">Créé le {formatDate(f.created_at)}</div>
               {f.user_id && <span className="text-sm text-green-600 font-medium">Compte lié</span>}
             </div>
             <div className="mt-3 flex gap-2">
@@ -237,7 +237,7 @@ export function BailleursPage() {
           </div>
         ))}
         {funders.length === 0 && (
-          <div className="col-span-full p-8 text-center text-slate-500">
+          <div className="col-span-full p-8 text-center text-muted">
             <AlertCircle size={48} className="mb-3 opacity-50" />
             <p>Aucun bailleur de fonds enregistré</p>
           </div>
@@ -260,59 +260,59 @@ export function BailleursPage() {
           />
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nom *</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Nom *</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Nom du bailleur"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Organisation</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Organisation</label>
               <input
                 value={form.organization}
                 onChange={(e) => setForm({ ...form, organization: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Organisation"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email *</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Email *</label>
               <input
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 type="email"
                 required
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="contact@exemple.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Téléphone</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Téléphone</label>
               <input
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="+225 XX XX XX XX"
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Pays</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Pays</label>
               <input
                 value={form.country}
                 onChange={(e) => setForm({ ...form, country: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Côte d'Ivoire"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Compte utilisateur lié</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Compte utilisateur lié</label>
               <select
                 value={form.user_id || ''}
                 onChange={(e) => setForm({ ...form, user_id: e.target.value || '' })}
-                className="w-full border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
               >
                 <option value="">Aucune</option>
                 {usersFinanceur.map(u => (
@@ -333,7 +333,7 @@ export function BailleursPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="flex-1 bg-slate-300 text-slate-900 hover:bg-slate-400"
+              className="flex-1 bg-slate-300 text-primary hover:bg-slate-400"
             >
               Annuler
             </button>

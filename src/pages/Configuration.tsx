@@ -911,7 +911,7 @@ export function Configuration() {
       {/* CONTENU PRINCIPAL */}
       {/* ==================================================================== */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-ivory-deep px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <header className="bg-surface border-b border-ivory-deep px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-ink">
               {activeSection ? activeSection.label : 'Configuration'}
@@ -996,10 +996,10 @@ export function Configuration() {
               {/* Logo upload pour la section appearance */}
               {activeSubsection === 'appearance' && farm && (
                 <>
-                  <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                  <div className="bg-surface p-5 rounded-sm border border-ivory-deep">
                     <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Logo de l'application</h3>
                     <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
-                      <div className="w-20 h-20 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                      <div className="w-20 h-20 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-surface flex-shrink-0">
                         {getEffectiveValue(getDraftPath('exploitation', 'appearance', 'logo_url')) ? (
                           <OptimizedImage src={String(getEffectiveValue(getDraftPath('exploitation', 'appearance', 'logo_url')))} alt="Logo actuel" className="w-full h-full object-cover" />
                         ) : (
@@ -1040,10 +1040,10 @@ export function Configuration() {
                   </div>
 
                   {/* Favicon upload */}
-                  <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                  <div className="bg-surface p-5 rounded-sm border border-ivory-deep">
                     <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Favicon (icône du navigateur)</h3>
                     <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
-                      <div className="w-16 h-16 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                      <div className="w-16 h-16 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-surface flex-shrink-0">
                         {getEffectiveValue(getDraftPath('exploitation', 'appearance', 'favicon_url')) ? (
                           <OptimizedImage src={String(getEffectiveValue(getDraftPath('exploitation', 'appearance', 'favicon_url')))} alt="Favicon actuel" className="w-full h-full object-cover" />
                         ) : (
@@ -1087,10 +1087,10 @@ export function Configuration() {
 
               {/* Upload image hero pour la section hero */}
               {activeSubsection === 'hero' && (
-                <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+                <div className="bg-surface p-5 rounded-sm border border-ivory-deep">
                   <h3 className="font-semibold text-ink flex items-center gap-2 mb-4"><ImageIcon size={18} /> Image du bandeau d’accueil</h3>
                   <div className="flex items-center gap-4 p-4 bg-ivory rounded-sm">
-                    <div className="w-64 h-40 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-white flex-shrink-0">
+                    <div className="w-64 h-40 rounded-sm border-2 border-ivory-deep overflow-hidden flex items-center justify-center bg-surface flex-shrink-0">
                       {getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage')) ? (
                         <img
                           src={String(getEffectiveValue(getDraftPath('contenu', 'hero', 'heroImage')))}
@@ -1136,7 +1136,7 @@ export function Configuration() {
               )}
 
               {/* Description de la section */}
-              <div className="bg-white p-5 rounded-sm border border-ivory-deep">
+              <div className="bg-surface p-5 rounded-sm border border-ivory-deep">
                 <h2 className="text-lg font-bold text-ink mb-2">{activeSection.label}</h2>
                 <p className="text-ink-mut text-sm">
                   Configurez les paramètres de {activeSection.label.toLowerCase()}.
@@ -1153,7 +1153,7 @@ export function Configuration() {
                   const isInvalid = validateField(field, effectiveValue);
 
                   return (
-                    <div key={field.id} className="bg-white p-5 rounded-sm border border-ivory-deep relative group">
+                    <div key={field.id} className="bg-surface p-5 rounded-sm border border-ivory-deep relative group">
                       {isChanged && (
                         <div className="absolute top-3 right-3 bg-gold/20 text-gold text-xs px-2 py-0.5 rounded">
                           <RefreshCw size={12} className="mr-1" /> Modifié
@@ -1245,14 +1245,14 @@ export function Configuration() {
           <div className="absolute top-6 right-6">
             <button
               onClick={() => setPreviewMode(false)}
-              className="bg-white text-ink px-4 py-2 rounded-sm text-sm font-medium hover:bg-ivory-alt transition-colors"
+              className="bg-surface text-ink px-4 py-2 rounded-sm text-sm font-medium hover:bg-ivory-alt transition-colors"
             >
               <X size={18} className="mr-2" /> Fermer l’aperçu
             </button>
           </div>
           <div className="h-full overflow-y-auto p-8">
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-2xl shadow-2xl p-8 border border-ivory-deep">
+              <div className="bg-surface rounded-2xl shadow-2xl p-8 border border-ivory-deep">
                 <div className="text-center mb-8">
                   <div className="flex items-center justify-center gap-3 mb-4">
                     <div className={`w-12 h-12 rounded-sm flex items-center justify-center ${previewBranding.logoBgColor} text-white`}>

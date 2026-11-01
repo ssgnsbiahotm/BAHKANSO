@@ -41,7 +41,7 @@ const STATUS_COLORS: Record<string, string> = {
   planifie: 'bg-blue-100 text-blue-700',
   en_cours: 'bg-amber-100 text-amber-700',
   termine: 'bg-green-100 text-green-700',
-  annule: 'bg-slate-100 text-slate-700',
+  annule: 'bg-surface-hover text-secondary',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -214,11 +214,11 @@ export function EvenementsTab() {
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as typeof filterType)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-default rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Filtrer par type"
           >
             <option value="">Tous les types</option>
@@ -228,11 +228,11 @@ export function EvenementsTab() {
           </select>
         </div>
         <div className="relative flex-1">
-          <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-default rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Filtrer par statut"
           >
             <option value="">Tous les statuts</option>
@@ -245,7 +245,7 @@ export function EvenementsTab() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{ minHeight: '200px' }}>
         {filtered.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-slate-500">
+          <div className="col-span-full text-center py-12 text-muted">
             <Calendar size={48} className="mx-auto mb-4 text-slate-300" />
             <p className="text-lg font-medium">Aucun événement</p>
             <p className="text-sm">Cliquez sur « Nouvel événement » pour commencer</p>
@@ -276,18 +276,18 @@ export function EvenementsTab() {
                       {STATUS_LABELS[event.status]}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center justify-between text-xs text-muted">
                     <div className="flex items-center gap-1">
                       <Calendar size={12} />
                       <span>{formatDate(event.scheduled_at)}</span>
                     </div>
                     {event.cost_amount !== null && event.cost_amount !== undefined && (
-                      <span className="font-medium text-slate-900">{formatCurrency(event.cost_amount)}</span>
+                      <span className="font-medium text-primary">{formatCurrency(event.cost_amount)}</span>
                     )}
                   </div>
 
                   {event.responsible && (
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-xs text-muted">
                       <Wrench size={12} />
                       <span className="truncate">{event.responsible.name}</span>
                     </div>
@@ -296,7 +296,7 @@ export function EvenementsTab() {
                   <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
                     <button
                       onClick={() => {}}
-                      className="pointer-events-auto text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-slate-50 rounded border border-slate-200"
+                      className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
                       aria-label="Voir les détails"
                     >
                       <RotateCw size={12} /> Détail
@@ -304,14 +304,14 @@ export function EvenementsTab() {
                     <div className="flex items-center gap-1 pointer-events-auto">
                       <button
                         onClick={() => handleEdit(event)}
-                        className="text-xs text-slate-500 hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-green-50 rounded border border-slate-200"
+                        className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
                         aria-label="Modifier"
                       >
                         <Edit2 size={12} />
                       </button>
                       <button
                         onClick={() => handleDelete(event)}
-                        className="text-xs text-slate-500 hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-red-50 rounded border border-slate-200"
+                        className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
                         aria-label="Supprimer"
                       >
                         <Trash2 size={12} />
@@ -337,58 +337,58 @@ export function EvenementsTab() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-slate-500">Date planifiée</p>
+                      <p className="text-muted">Date planifiée</p>
                       <p className="font-medium">{formatDateTime(event.scheduled_at)}</p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Statut</p>
+                      <p className="text-muted">Statut</p>
                       <p className="font-medium capitalize">{STATUS_LABELS[event.status]}</p>
                     </div>
                     {event.completed_at && (
                       <div>
-                        <p className="text-slate-500">Date réalisée</p>
+                        <p className="text-muted">Date réalisée</p>
                         <p className="font-medium">{formatDateTime(event.completed_at)}</p>
                       </div>
                     )}
                     {event.cost_amount !== null && event.cost_amount !== undefined && (
                       <div>
-                        <p className="text-slate-500">Coût</p>
-                        <p className="font-bold text-slate-900">{formatCurrency(event.cost_amount)}</p>
+                        <p className="text-muted">Coût</p>
+                        <p className="font-bold text-primary">{formatCurrency(event.cost_amount)}</p>
                       </div>
                     )}
                     {event.responsible && (
                       <div>
-                        <p className="text-slate-500">Responsable</p>
+                        <p className="text-muted">Responsable</p>
                         <p className="font-medium">{event.responsible.name}</p>
                       </div>
                     )}
                     {event.plot && (
                       <div>
-                        <p className="text-slate-500">Parcelle</p>
+                        <p className="text-muted">Parcelle</p>
                         <p className="font-medium">{event.plot.reference ?? event.plot.name}</p>
                       </div>
                     )}
                     {event.campaign && (
                       <div>
-                        <p className="text-slate-500">Campagne</p>
+                        <p className="text-muted">Campagne</p>
                         <p className="font-medium">{event.campaign.crop_name} ({event.campaign.year})</p>
                       </div>
                     )}
                     {event.lot && (
                       <div>
-                        <p className="text-slate-500">Lot</p>
+                        <p className="text-muted">Lot</p>
                         <p className="font-medium">{event.lot.identifier} — {event.lot.species}</p>
                       </div>
                     )}
                     {event.animal && (
                       <div>
-                        <p className="text-slate-500">Animal</p>
+                        <p className="text-muted">Animal</p>
                         <p className="font-medium">{event.animal.identifier ?? event.animal.species}</p>
                       </div>
                     )}
                     {event.project && (
                       <div>
-                        <p className="text-slate-500">Projet</p>
+                        <p className="text-muted">Projet</p>
                         <p className="font-medium">{event.project.name}</p>
                       </div>
                     )}
@@ -396,15 +396,15 @@ export function EvenementsTab() {
 
                   {event.description && (
                     <div>
-                      <p className="text-slate-500 text-sm">Description</p>
+                      <p className="text-muted text-sm">Description</p>
                       <p className="text-sm">{event.description}</p>
                     </div>
                   )}
 
                   {Object.keys(event.details || {}).length > 0 && (
                     <div>
-                      <p className="text-slate-500 text-sm">Détails</p>
-                      <pre className="text-xs bg-slate-50 p-2 rounded overflow-auto max-h-24">
+                      <p className="text-muted text-sm">Détails</p>
+                      <pre className="text-xs bg-surface-hover p-2 rounded overflow-auto max-h-24">
                         {JSON.stringify(event.details, null, 2)}
                       </pre>
                     </div>
@@ -433,7 +433,7 @@ export function EvenementsTab() {
                     </button>
                     <button
                       onClick={() => {}}
-                      className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+                      className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
                     >
                       Retour
                     </button>
@@ -458,7 +458,7 @@ export function EvenementsTab() {
             <select
               value={editingEvent?.type || 'phyto_traitement'}
               onChange={(e) => setEditingEvent(editingEvent ? { ...editingEvent, type: e.target.value } : null)}
-              className="w-full px-3 py-2 bg-white border border-ivory-deep rounded-sm text-ink"
+              className="w-full px-3 py-2 bg-surface border border-ivory-deep rounded-sm text-ink"
             >
               <option value="phyto_traitement">Traitement phytosanitaire</option>
               <option value="equip_panne">Panne équipement</option>
@@ -470,7 +470,7 @@ export function EvenementsTab() {
               type="text"
               value={editingEvent?.label || ''}
               onChange={(e) => setEditingEvent(editingEvent ? { ...editingEvent, label: e.target.value } : null)}
-              className="w-full px-3 py-2 bg-white border border-ivory-deep rounded-sm text-ink"
+              className="w-full px-3 py-2 bg-surface border border-ivory-deep rounded-sm text-ink"
             />
           </div>
           <div>
@@ -479,7 +479,7 @@ export function EvenementsTab() {
               type="datetime-local"
               value={editingEvent?.scheduled_at?.replace(' ', 'T').slice(0, 16) || ''}
               onChange={(e) => setEditingEvent(editingEvent ? { ...editingEvent, scheduled_at: e.target.value } : null)}
-              className="w-full px-3 py-2 bg-white border border-ivory-deep rounded-sm text-ink"
+              className="w-full px-3 py-2 bg-surface border border-ivory-deep rounded-sm text-ink"
             />
           </div>
           <div className="flex justify-end gap-2 pt-4">
@@ -517,8 +517,8 @@ const CreateEventCard = ({ onCreate }: { onCreate: () => void }) => (
           <Plus size={28} className="text-blue-600" />
         </div>
         <div className="text-center">
-          <h4 className="font-semibold text-slate-900">Nouvel événement</h4>
-          <p className="text-sm text-slate-500">Créer un événement de surveillance</p>
+          <h4 className="font-semibold text-primary">Nouvel événement</h4>
+          <p className="text-sm text-muted">Créer un événement de surveillance</p>
         </div>
         <button
           onClick={onCreate}

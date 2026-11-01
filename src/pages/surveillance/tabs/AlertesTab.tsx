@@ -273,19 +273,19 @@ export function AlertesTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Rechercher une alerte..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-500/20"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-default rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-slate-500/20"
           />
         </div>
         <select
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value as 'ouverte' | 'résolue' | '')}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white"
+          className="px-3 py-2 text-sm border border-default rounded-lg bg-surface"
         >
           <option value="">Tous les statuts</option>
           <option value="ouverte">Ouvertes</option>
@@ -294,7 +294,7 @@ export function AlertesTab() {
         <select
           value={filterSeverity}
           onChange={e => setFilterSeverity(e.target.value as 'high' | 'medium' | 'low' | '')}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white"
+          className="px-3 py-2 text-sm border border-default rounded-lg bg-surface"
         >
           <option value="">Toutes les sévérités</option>
           <option value="high">Haute</option>
@@ -305,12 +305,12 @@ export function AlertesTab() {
 
       <div className="space-y-3">
         {filteredAlerts.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-            <p className="text-slate-400">Aucune alerte enregistrée.</p>
+          <div className="bg-surface rounded-xl border border-default p-8 text-center">
+            <p className="text-muted">Aucune alerte enregistrée.</p>
           </div>
         ) : (
           filteredAlerts.map(a => (
-            <div key={a.id} className={`bg-white rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-slate-200' : 'border-slate-100 opacity-60'}`}>
+            <div key={a.id} className={`bg-surface rounded-xl border p-4 ${a.status === 'ouverte' ? 'border-default' : 'border-slate-100 opacity-60'}`}>
               <div className="flex items-start gap-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                   a.severity === 'high' ? 'bg-red-100 text-red-600' : a.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
@@ -319,13 +319,13 @@ export function AlertesTab() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-slate-900">{a.title}</h3>
+                    <h3 className="font-semibold text-primary">{a.title}</h3>
                     <SimpleBadge color={a.severity === 'high' ? 'red' : a.severity === 'medium' ? 'amber' : 'blue'}>{a.severity}</SimpleBadge>
                     <SimpleBadge color="gray">{a.category}</SimpleBadge>
                     {a.status === 'résolue' && <SimpleBadge color="green">Résolue</SimpleBadge>}
                   </div>
-                  <p className="text-sm text-slate-500">{a.description}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                  <p className="text-sm text-muted">{a.description}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-muted">
                     <span>{timeAgo(a.created_at)}</span>
                     {a.assigned_to && <span>· Assignée à {a.assigned_to}</span>}
                   </div>

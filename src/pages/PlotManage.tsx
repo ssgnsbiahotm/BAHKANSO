@@ -177,23 +177,23 @@ export function PlotManage() {
 
   const renderDetailFields = (plot: Plot) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{plot.reference}</h2>
-          <p className="text-sm text-slate-500">{plot.name}</p>
+          <h2 className="text-2xl font-bold text-primary">{plot.reference}</h2>
+          <p className="text-sm text-muted">{plot.name}</p>
         </div>
         <SimpleBadge color={getStatusColor(plot.status)}>
           {plot.status}
         </SimpleBadge>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div><p className="text-xs text-slate-400">Référence</p><p className="text-sm font-medium">{plot.reference}</p></div>
-        <div><p className="text-xs text-slate-400">Nom</p><p className="text-sm font-medium">{plot.name}</p></div>
-        <div><p className="text-xs text-slate-400">Superficie</p><p className="text-sm font-medium">{plot.area_hectares} ha</p></div>
-        <div><p className="text-xs text-slate-400">Localisation</p><p className="text-sm font-medium">{plot.location || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Type de sol</p><p className="text-sm font-medium">{plot.soil_type || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Culture actuelle</p><p className="text-sm font-medium">{plot.current_crop || '—'}</p></div>
-        <div><p className="text-xs text-slate-400">Statut</p><p className="text-sm font-medium">{plot.status}</p></div>
+        <div><p className="text-xs text-muted">Référence</p><p className="text-sm font-medium">{plot.reference}</p></div>
+        <div><p className="text-xs text-muted">Nom</p><p className="text-sm font-medium">{plot.name}</p></div>
+        <div><p className="text-xs text-muted">Superficie</p><p className="text-sm font-medium">{plot.area_hectares} ha</p></div>
+        <div><p className="text-xs text-muted">Localisation</p><p className="text-sm font-medium">{plot.location || '—'}</p></div>
+        <div><p className="text-xs text-muted">Type de sol</p><p className="text-sm font-medium">{plot.soil_type || '—'}</p></div>
+        <div><p className="text-xs text-muted">Culture actuelle</p><p className="text-sm font-medium">{plot.current_crop || '—'}</p></div>
+        <div><p className="text-xs text-muted">Statut</p><p className="text-sm font-medium">{plot.status}</p></div>
       </div>
     </div>
   );
@@ -201,7 +201,7 @@ export function PlotManage() {
   const renderDetailFooter = (plot: Plot) => (
     <>
       <button onClick={() => setConfirmDelete(plot)} className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Supprimer</button>
-      <button onClick={() => openEdit(plot)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Modifier</button>
+      <button onClick={() => openEdit(plot)} className="px-4 py-2 text-sm text-secondary border border-default rounded-lg hover:bg-surface-hover">Modifier</button>
       {plot.status !== 'inactive' && (
         <>
           {plot.status === 'active' && (
@@ -236,18 +236,18 @@ export function PlotManage() {
 
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
         <div className="flex-1 min-w-0">
-          <label className="block text-xs font-medium text-slate-600 mb-1">Rechercher des parcelles</label>
+          <label className="block text-xs font-medium text-secondary mb-1">Rechercher des parcelles</label>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
+            className="w-full px-3 py-2 border border-default rounded-md focus:outline-none focus:ring-2 focus:ring-green-500/20"
             placeholder="Rechercher par référence, nom, localisation, type de sol ou culture..."
           />
         </div>
         <button
           onClick={() => setSearchTerm('')}
-          className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          className="px-3 py-2 text-sm text-secondary hover:bg-surface-hover"
         >
           Réinitialiser
         </button>
@@ -263,13 +263,13 @@ export function PlotManage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPlots.map((plot: Plot) => (
-            <div key={plot.id} className="rotatable-card bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDetailPlot(plot)}>
+            <div key={plot.id} className="rotatable-card bg-surface rounded-xl border border-default p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDetailPlot(plot)}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600"><Sprout size={20} /></div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">{plot.reference}</h3>
-                    <p className="text-xs text-slate-500">{plot.name}</p>
+                    <h3 className="font-semibold text-primary">{plot.reference}</h3>
+                    <p className="text-xs text-muted">{plot.name}</p>
                   </div>
                 </div>
                 <SimpleBadge color={getStatusColor(plot.status)}>
@@ -277,10 +277,10 @@ export function PlotManage() {
                 </SimpleBadge>
               </div>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-500">Superficie</span><span className="font-medium">{plot.area_hectares} ha</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Culture actuelle</span><span className="font-medium">{plot.current_crop || '—'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Type de sol</span><span className="font-medium">{plot.soil_type || '—'}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Localisation</span><span className="font-medium">{plot.location || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Superficie</span><span className="font-medium">{plot.area_hectares} ha</span></div>
+                <div className="flex justify-between"><span className="text-muted">Culture actuelle</span><span className="font-medium">{plot.current_crop || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Type de sol</span><span className="font-medium">{plot.soil_type || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Localisation</span><span className="font-medium">{plot.location || '—'}</span></div>
               </div>
             </div>
           ))}
