@@ -130,7 +130,7 @@ export function BailleursPage() {
     }
   };
 
-  const [, setConfirmDelete] = useState<Funder | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Funder | null>(null);
 
   // Load funders from Supabase if not loaded via DataContext
   useEffect(() => {
@@ -224,7 +224,7 @@ export function BailleursPage() {
                 <div className="mt-auto flex gap-3 pt-4 border-t border-default">
                   {canManageFunders && (
                     <button
-                      onClick={() => openEdit(f)}
+                      onClick={(e) => { e.stopPropagation(); openEdit(f); }}
                       className="flex-1 text-sm text-primary hover:underline"
                     >
                       Modifier
@@ -232,7 +232,7 @@ export function BailleursPage() {
                   )}
                   {canManageFunders && (
                     <button
-                      onClick={() => setConfirmDelete(f)}
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(f); }}
                       className="flex-1 text-sm text-danger hover:underline"
                     >
                       Supprimer
