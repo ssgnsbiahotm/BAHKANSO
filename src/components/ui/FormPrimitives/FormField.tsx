@@ -57,7 +57,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
   ({ error, className = '', ...props }, ref) => (
     <input
       ref={ref}
-      className={`w-full px-3 py-2 bg-surface border rounded-lg text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors ${
+      className={`w-full px-3 py-2 bg-bg-input border rounded-lg text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors ${
         error ? 'border-danger' : 'border-default'
       } ${className}`}
       aria-invalid={error ? 'true' : 'false'}
@@ -77,7 +77,7 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
   ({ error, className = '', ...props }, ref) => (
     <select
       ref={ref}
-      className={`w-full px-3 py-2 bg-surface border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors ${
+      className={`w-full px-3 py-2 bg-bg-input border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors ${
         error ? 'border-danger' : 'border-default'
       } ${className}`}
       aria-invalid={error ? 'true' : 'false'}
@@ -96,7 +96,7 @@ export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
   ({ error, className = '', ...props }, ref) => (
     <textarea
       ref={ref}
-      className={`w-full px-3 py-2 bg-surface border rounded-lg text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors resize-y ${
+      className={`w-full px-3 py-2 bg-bg-input border rounded-lg text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors resize-y ${
         error ? 'border-danger' : 'border-default'
       } ${className}`}
       aria-invalid={error ? 'true' : 'false'}

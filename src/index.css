@@ -90,6 +90,20 @@ body {
   }
 }
 
+/* Inputs natifs — respect des tokens */
+input,
+select,
+textarea {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  color-scheme: dark;
+}
+
+option {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+
 /* Utility: visually hidden but accessible */
 .sr-only {
   position: absolute;
