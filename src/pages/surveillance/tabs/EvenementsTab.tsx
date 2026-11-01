@@ -10,7 +10,7 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { Modal } from '@/components/ui/Modal';
 import { Plus, Edit2, Trash2, CheckCircle, Calendar, Filter, Search, Wrench, AlertTriangle, RotateCw } from 'lucide-react';
-import { logAudit, type SurveillanceEvent, type SurveillanceEventStatus } from '@/lib/types';
+import { logAudit, type SurveillanceEvent, type SurveillanceEventStatus, type SurveillanceEventType } from '@/lib/types';
 
 const TYPE_LABELS: Record<string, string> = {
   phyto_traitement: 'Traitement phytosanitaire',
@@ -457,7 +457,7 @@ export function EvenementsTab() {
             <label className="text-xs uppercase tracking-wider text-ink-mut">Type</label>
             <select
               value={editingEvent?.type || 'phyto_traitement'}
-              onChange={(e) => setEditingEvent(editingEvent ? { ...editingEvent, type: e.target.value } : null)}
+              onChange={(e) => setEditingEvent(editingEvent ? { ...editingEvent, type: e.target.value as SurveillanceEventType } : null)}
               className="w-full px-3 py-2 bg-surface border border-ivory-deep rounded-sm text-ink"
             >
               <option value="phyto_traitement">Traitement phytosanitaire</option>

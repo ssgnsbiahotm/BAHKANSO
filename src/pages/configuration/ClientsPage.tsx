@@ -151,10 +151,11 @@ export function ClientsPage() {
     }
   };
 
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
 
   const handleDelete = async (id: string) => {
-    setConfirmDelete(id);
+    const customer = clients.find(c => c.id === id);
+    setConfirmDelete(customer || null);
     if (!confirmDelete) return;
     if (!canManageClients) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');

@@ -433,8 +433,9 @@ export function Configuration() {
   }, [drafts]);
 
   // --- Valeur effective (brouillon si existe, sinon valeur actuelle) ---
-  const getEffectiveValue = useCallback((path: string) => {
-    return path in draftsMap ? draftsMap[path] : currentValues[path];
+  const getEffectiveValue = useCallback((path: string): string | number | null | undefined => {
+    const value = path in draftsMap ? draftsMap[path] : currentValues[path];
+    return typeof value === 'string' || typeof value === 'number' || value === null || value === undefined ? value : null;
   }, [draftsMap, currentValues]);
 
   // --- Gestion des brouillons ---
@@ -780,9 +781,9 @@ export function Configuration() {
     const primary = getEffectiveValue(getDraftPath('contenu', 'branding', 'primaryColor'));
     const secondary = getEffectiveValue(getDraftPath('contenu', 'branding', 'secondaryColor'));
     const accent = getEffectiveValue(getDraftPath('contenu', 'branding', 'accentColor'));
-    if (primary) document.documentElement.style.setProperty('--color-primary', primary);
-    if (secondary) document.documentElement.style.setProperty('--color-secondary', secondary);
-    if (accent) document.documentElement.style.setProperty('--color-accent', accent);
+    if (primary) document.documentElement.style.setProperty('--color-primary', String(primary));
+    if (secondary) document.documentElement.style.setProperty('--color-secondary', String(secondary));
+    if (accent) document.documentElement.style.setProperty('--color-accent', String(accent));
   }, [getEffectiveValue]);
 
   // Nettoyer le timeout à la destruction
@@ -1266,30 +1267,30 @@ export function Configuration() {
                     {previewBranding.faviconUrl && (
                       <div className="flex items-center justify-center gap-4">
                         <div className="w-12 h-12 rounded-sm flex items-center justify-center border-2 border-ivory-deep overflow-hidden flex-shrink-0">
-                          <img src={previewBranding.faviconUrl} alt="Favicon" className="w-full h-full object-cover" />
+                          <img src={String(previewBranding.faviconUrl)} alt="Favicon" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex items-center gap-4 text-center">
                           <div>
-                            <div className="w-4 h-4 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
-                              <img src={previewBranding.faviconUrl} alt="16x16" className="w-full h-full object-cover" />
+                            <div className="w-4 h-4 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: String(previewBranding.logoBgColor) }}>
+                              <img src={String(previewBranding.faviconUrl)} alt="16x16" className="w-full h-full object-cover" />
                             </div>
                             <p className="text-xs text-ink-dim">16×16 (tab)</p>
                           </div>
                           <div>
-                            <div className="w-6 h-6 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
-                              <img src={previewBranding.faviconUrl} alt="32x32" className="w-full h-full object-cover" />
+                            <div className="w-6 h-6 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: String(previewBranding.logoBgColor) }}>
+                              <img src={String(previewBranding.faviconUrl)} alt="32x32" className="w-full h-full object-cover" />
                             </div>
                             <p className="text-xs text-ink-dim">32×32 (tab HD)</p>
                           </div>
                           <div>
-                            <div className="w-8 h-8 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
-                              <img src={previewBranding.faviconUrl} alt="48x48" className="w-full h-full object-cover" />
+                            <div className="w-8 h-8 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: String(previewBranding.logoBgColor) }}>
+                              <img src={String(previewBranding.faviconUrl)} alt="48x48" className="w-full h-full object-cover" />
                             </div>
                             <p className="text-xs text-ink-dim">48×48 (touch icon)</p>
                           </div>
                           <div>
-                            <div className="w-10 h-10 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: previewBranding.logoBgColor }}>
-                              <img src={previewBranding.faviconUrl} alt="180x180" className="w-full h-full object-cover" />
+                            <div className="w-10 h-10 rounded border border-ivory-deep mx-auto mb-1 overflow-hidden" style={{ backgroundColor: String(previewBranding.logoBgColor) }}>
+                              <img src={String(previewBranding.faviconUrl)} alt="180x180" className="w-full h-full object-cover" />
                             </div>
                             <p className="text-xs text-ink-dim">180×180 (apple-touch-icon)</p>
                           </div>
@@ -1366,7 +1367,7 @@ function ListEditor({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditValues({ ...value[index] });
+    setEditValues({ ...(value[index] as Record<string, unknown>) });
   };
 
   const cancelEdit = () => {
@@ -1376,7 +1377,7 @@ function ListEditor({
 
   const saveEdit = (index: number) => {
     const next = [...value];
-    next[index] = { ...next[index], ...editValues };
+    next[index] = { ...(next[index] as Record<string, unknown>), ...editValues };
     onChange(next);
     setEditingIndex(null);
     setEditValues({});
@@ -1434,7 +1435,7 @@ function ListEditor({
                         <label className="text-xs font-medium text-ink-mut">{f.label}</label>
                         <input
                           type={f.type === 'textarea' ? 'textarea' : 'text'}
-                          value={editValues[f.id] || ''}
+                          value={String(editValues[f.id] || '')}
                           onChange={e => setEditValues({ ...editValues, [f.id]: e.target.value })}
                           disabled={!isAuthorized}
                           className={inputClasses + (f.type === 'textarea' ? ' h-24' : '')}
@@ -1446,7 +1447,7 @@ function ListEditor({
                         className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50">
                         <Save size={14} /> Appliquer
                       </button>
-                      <button onClick={() => cancelEdit(i)}
+                      <button onClick={() => cancelEdit()}
                         className="flex items-center gap-1 px-2 py-1 text-xs text-terra hover:text-red-800">
                         <X size={14} /> Annuler
                       </button>
@@ -1456,16 +1457,16 @@ function ListEditor({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       {itemFields.map(f => {
-                        const val = item[f.id];
+                        const val = (item as Record<string, unknown>)[f.id];
                         if (f.type === 'select') {
                           return (
                             <span key={f.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-signal/10 text-signal text-xs rounded border border-signal/30">
-                              {val || '—'}
+                              {String(val || '—')}
                             </span>
                           );
                         }
                         return (
-                          <span key={f.id} className="text-sm text-ink truncate max-w-[200px]">{val || '—'}</span>
+                          <span key={f.id} className="text-sm text-ink truncate max-w-[200px]">{String(val || '—')}</span>
                         );
                       })}
                     </div>
@@ -1520,6 +1521,8 @@ function renderFieldInput(
     isInvalid ? 'border-red-500 focus:ring-red-500' : 'border-ivory-deep'
   } ${!isAuthorized ? 'bg-ivory text-ink-dim cursor-not-allowed' : ''}`;
 
+  const stringValue = String(value || '');
+
   switch (field.type) {
     case 'color':
       return (
@@ -1529,13 +1532,13 @@ function renderFieldInput(
               key={c}
               onClick={() => onChange(c)}
               disabled={!isAuthorized}
-              className={`w-8 h-8 rounded-sm border-2 ${(value || '#F4F1E8') === c ? 'border-ink ring-2 ring-signal' : 'border-ivory-deep hover:border-ivory-deep'}`}
+              className={`w-8 h-8 rounded-sm border-2 ${stringValue === c ? 'border-ink ring-2 ring-signal' : 'border-ivory-deep hover:border-ivory-deep'}`}
               style={{ backgroundColor: c }}
             />
           ))}
           <input
             type="color"
-            value={value || '#F4F1E8'}
+            value={stringValue || '#F4F1E8'}
             onChange={e => onChange(e.target.value)}
             disabled={!isAuthorized}
             className="w-8 h-8 rounded-sm border border-ivory-deep cursor-pointer bg-transparent"
@@ -1564,7 +1567,7 @@ function renderFieldInput(
     case 'select':
       return (
         <select
-          value={value || ''}
+          value={stringValue}
           onChange={e => onChange(e.target.value)}
           disabled={!isAuthorized}
           className={inputClasses}
@@ -1579,7 +1582,7 @@ function renderFieldInput(
     case 'textarea':
       return (
         <textarea
-          value={value || ''}
+          value={stringValue}
           onChange={e => onChange(e.target.value)}
           rows={field.rows || 3}
           disabled={!isAuthorized}
@@ -1591,7 +1594,7 @@ function renderFieldInput(
       return (
         <input
           type="number"
-          value={value || ''}
+          value={stringValue}
           onChange={e => onChange(e.target.value ? Number(e.target.value) : '')}
           disabled={!isAuthorized}
           className={inputClasses}
@@ -1602,7 +1605,7 @@ function renderFieldInput(
       return (
         <input
           type={field.type === 'url' ? 'url' : field.type === 'email' ? 'email' : 'text'}
-          value={value || ''}
+          value={stringValue}
           onChange={e => onChange(e.target.value)}
           placeholder={field.placeholder}
           disabled={!isAuthorized}

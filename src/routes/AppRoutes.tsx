@@ -36,6 +36,7 @@ const Media = lazy(() => import('@/pages/Media').then(m => ({ default: m.Media }
 const FinanceModule = lazy(() => import('@/modules/Finance').then(m => ({ default: m.FinanceModule })));
 const AnimalEventManage = lazy(() => import('@/pages/AnimalEventManage').then(m => ({ default: m.AnimalEventManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
+const SitesPage = lazy(() => import('@/pages/configuration/SitesPage').then(m => ({ default: m.SitesPage })));
 const SitesPageSuspense = createSuspenseWrapper(SitesPage);
 const RecoltesPage = lazy(() => import('@/pages/exploitation/RecoltesPage').then(m => ({ default: m.RecoltesPage })));
 const RecoltesPageSuspense = createSuspenseWrapper(RecoltesPage);
@@ -90,6 +91,7 @@ const CampagnesPage = lazy(() => import('@/pages/exploitation/CampagnesPage').th
 const CampagnesPageSuspense = createSuspenseWrapper(CampagnesPage);
 
 const OperationsPage = lazy(() => import('@/pages/exploitation/OperationsPage').then(m => ({ default: m.OperationsPage })));
+const OperationsPageSuspense = createSuspenseWrapper(OperationsPage);
 const ParcellesPageSuspense = createSuspenseWrapper(ParcellesPage);
 
 

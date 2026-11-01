@@ -20,6 +20,7 @@ import {
   CheckCircle, Download, Layout, List, FileText,
 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
@@ -68,7 +69,7 @@ const ACTION_COLORS: Record<string, string> = {
    ============================================================================ */
 
 export function Monitoring() {
-  const { auditLogs, alerts, fundings, expenses, projects, harvests, animalLots } = useData();
+  const { auditLogs, alerts, fundings, expenses, projects, harvests, animalLots, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const location = useLocation();

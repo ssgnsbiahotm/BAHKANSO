@@ -299,8 +299,8 @@ export function SiteContentEditor() {
   };
 
   // Fonctions de gestion des fonctionnalités
-  const startEditingFeature = (_index: number) => {
-    const feature = features[_index];
+  const startEditingFeature = (index: number) => {
+    const feature = features[index];
     setEditingFeatureIndex(index);
     setEditFeatureTitle(feature.title || '');
     setEditFeatureIcon(feature.icon || 'Sprout');
@@ -322,9 +322,9 @@ export function SiteContentEditor() {
     }
 
     // Mettre à jour la fonctionnalité en édition
-    updateListItem('features', index, 'title', String(editFeatureTitle).trim());
-    updateListItem('features', index, 'icon', editFeatureIcon);
-    updateListItem('features', index, 'desc', String(editFeatureDesc).trim());
+    updateListItem('features', editingFeatureIndex!, 'title', String(editFeatureTitle).trim());
+    updateListItem('features', editingFeatureIndex!, 'icon', editFeatureIcon);
+    updateListItem('features', editingFeatureIndex!, 'desc', String(editFeatureDesc).trim());
 
     // Quitter le mode édition
     setEditingFeatureIndex(null);
@@ -675,10 +675,10 @@ export function SiteContentEditor() {
                             <div className="flex items-center gap-2">
                               {isEditing ? (
                                 <>
-                                  <button onClick={() => saveFeatureEdit(i)} className="flex items-center gap-1 px-2 py-1 text-xs bg-accent-primary text-white rounded hover:bg-accent-primary-hover">
+                                  <button onClick={saveFeatureEdit} className="flex items-center gap-1 px-2 py-1 text-xs bg-accent-primary text-white rounded hover:bg-accent-primary-hover">
                                     <Save size={14} /> Appliquer
                                   </button>
-                                  <button onClick={() => cancelFeatureEdit(i)} className="flex items-center gap-1 px-2 py-1 text-xs text-danger hover:text-danger">
+                                  <button onClick={cancelFeatureEdit} className="flex items-center gap-1 px-2 py-1 text-xs text-danger hover:text-danger">
                                     <X size={14} /> Annuler
                                   </button>
                                 </>

@@ -5,7 +5,7 @@ type TrendValue = number | null | { value: string; positive: boolean };
 
 export interface KpiCardProps {
   label: string;
-  value: string;
+  value: string | number;
   icon: ReactNode;
   trend?: TrendValue;
   trendLabel?: string;

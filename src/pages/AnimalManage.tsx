@@ -218,14 +218,14 @@ export function AnimalManage() {
 
   const openEdit = useCallback((animal: Animal) => {
     setEditAnimal(animal);
-    setForm('identifier', animal.identifier);
+    setForm('identifier', animal.identifier || '');
     setForm('name', animal.name || '');
-    setForm('species', animal.species);
+    setForm('species', animal.species as 'cattle' | 'sheep' | 'goat' | 'poultry' | 'swine');
     setForm('breed', animal.breed || '');
     setForm('date_of_birth', animal.date_of_birth ? new Date(animal.date_of_birth) : undefined);
     setForm('sex', animal.sex as ('male' | 'female') | undefined);
-    setForm('weight_kg', animal.weight_kg);
-    setForm('status', animal.status);
+    setForm('weight_kg', animal.weight_kg ?? undefined);
+    setForm('status', animal.status as 'healthy' | 'sick' | 'recovering' | 'quarantined' | 'sold' | 'deceased' | 'pregnant');
     setForm('location', animal.location || '');
     setForm('mother_id', animal.mother_id || undefined);
     setForm('father_id', animal.father_id || undefined);
@@ -268,7 +268,7 @@ export function AnimalManage() {
       toast.show('Erreur: ' + animalError.message, 'error');
       return;
     }
-    await logAudit(appUser?.name || 'Système', 'UPDATE', 'animal', deathAnimal?.identifier, `Animal ${deathAnimal?.identifier} → décédé`);
+    await logAudit(appUser?.name || 'Système', 'UPDATE', 'animal', deathAnimal?.identifier || '', `Animal ${deathAnimal?.identifier} → décédé`);
     toast.show('Décès enregistré');
     setOpenDeathModal(false);
     refresh();

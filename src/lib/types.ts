@@ -211,6 +211,7 @@ export interface CropOperation {
   id: string;
   campaign_id: string | null;
   plot_id: string | null;
+  plot?: Plot | null;
   type: string;
   date: string;
   responsible: string | null;
@@ -230,6 +231,7 @@ export interface Harvest {
   quantity: number;
   unit: string;
   quality: string | null;
+  notes?: string | null;
   estimated_price: number | null;
   revenue: number | null;
   destination: string | null;
@@ -252,6 +254,8 @@ export interface Animal {
   location: string | null;
   status: string;
   estimated_value: number;
+  mother_id: string | null;
+  father_id: string | null;
 }
 
 export interface AnimalLot {
@@ -462,6 +466,7 @@ export interface Customer {
   site_id: string | null;
   name: string;
   type: string;
+  active?: boolean;
   phone: string | null;
   email: string | null;
   total_purchases: number;

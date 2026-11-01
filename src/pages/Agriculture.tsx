@@ -146,17 +146,18 @@ export function Agriculture() {
     return labels[type] || type;
   };
 
-  const harvestQualityLabel = (quality: string) => {
+  const harvestQualityLabel = (quality: string | null) => {
     const labels: Record<string, string> = {
       excellente: 'Excellente',
       bonne: 'Bonne',
       moyenne: 'Moyenne',
       faible: 'Faible',
     };
+    if (!quality) return '—';
     return labels[quality] || quality;
   };
 
-  const getBadgeClass = (status: string) => {
+  const getBadgeClass = (status: string | null) => {
     if (status === 'actif' || status === 'active') return 'module-badge-green';
     if (status === 'inactive') return 'module-badge-gray';
     if (status === 'en préparation') return 'module-badge-amber';
