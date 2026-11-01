@@ -8,8 +8,8 @@ import { useToast } from '@/lib/Toast';
 import { formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useRef } from 'react';
 
 const isAdminOrOwner = (role: string | undefined) =>
@@ -192,49 +192,56 @@ export function BailleursPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {funders.map(f => (
-          <div key={f.id} className="bg-surface rounded-xl border border-default p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {f.name.charAt(0)}
+          <RotatingCard
+            key={f.id}
+            label={f.name || 'Bailleur'}
+            front={
+              <>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    {f.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-primary">{f.name}</h3>
+                    <p className="text-sm text-secondary">{f.organization || 'Organisation'}</p>
+                  </div>
+                  {f.active !== false && <span className="ml-auto text-xs text-success bg-success-soft px-2 py-1 rounded">Actif</span>}
                 </div>
-                <div>
-                  <h3 className="font-semibold text-primary">{f.name}</h3>
-                  {f.organization && <p className="text-xs text-muted">{f.organization}</p>}
+                <div className="space-y-2 text-sm text-secondary">
+                  {f.email && <p className="flex items-center gap-2"><Mail size={16} /> {f.email}</p>}
+                  {f.phone && <p className="flex items-center gap-2"><Phone size={16} /> {f.phone}</p>}
                 </div>
-              </div>
-              <SimpleBadge color={f.active !== false ? 'green' : 'gray'}>${f.active !== false ? 'Actif' : 'Inactif'}</SimpleBadge>
-            </div>
-            <div className="space-y-2 text-sm">
-              {f.email && <div className="flex items-center gap-2 text-secondary"><Mail size={14} className="text-muted" /> {f.email}</div>}
-              {f.phone && <div className="flex items-center gap-2 text-secondary"><Phone size={14} className="text-muted" /> {f.phone}</div>}
-              {f.country && <div className="flex items-center gap-2 text-muted text-xs">Pays: {f.country}</div>}
-              {f.total_sent > 0 && <div className="flex items-center gap-2 text-muted text-xs">Total envoyé: {String(f.total_sent)}</div>}
-              {f.total_received > 0 && <div className="flex items-center gap-2 text-muted text-xs">Total reçu: {String(f.total_received)}</div>}
-              <div className="flex items-center gap-2 text-muted text-xs">Créé le {formatDate(f.created_at)}</div>
-              {f.user_id && <span className="text-sm text-green-600 font-medium">Compte lié</span>}
-            </div>
-            <div className="mt-3 flex gap-2">
-              {canManageFunders && (
-                <button
-                  onClick={() => openEdit(f)}
-                  className="text-blue-600 hover:text-blue-800 text-sm underline"
-                  title="Modifier"
-                >
-                  Modifier
-                </button>
-              )}
-              {canManageFunders && (
-                <button
-                  onClick={() => setConfirmDelete(f)}
-                  className="text-red-600 hover:text-red-800 text-sm underline"
-                  title="Supprimer"
-                >
-                  Supprimer
-                </button>
-              )}
-            </div>
-          </div>
+              </>
+            }
+            back={
+              <>
+                <div className="space-y-2 text-sm text-secondary mb-6">
+                  <p>Pays: {f.country || '—'}</p>
+                  <p>Total envoyé: {f.total_sent || '—'}</p>
+                  <p>Total reçu: {f.total_received || '—'}</p>
+                  <p>Créé le {formatDate(f.created_at)}</p>
+                </div>
+                <div className="mt-auto flex gap-3 pt-4 border-t border-default">
+                  {canManageFunders && (
+                    <button
+                      onClick={() => openEdit(f)}
+                      className="flex-1 text-sm text-primary hover:underline"
+                    >
+                      Modifier
+                    </button>
+                  )}
+                  {canManageFunders && (
+                    <button
+                      onClick={() => setConfirmDelete(f)}
+                      className="flex-1 text-sm text-danger hover:underline"
+                    >
+                      Supprimer
+                    </button>
+                  )}
+                </div>
+              </>
+            }
+          />
         ))}
         {funders.length === 0 && (
           <div className="col-span-full p-8 text-center text-muted">
