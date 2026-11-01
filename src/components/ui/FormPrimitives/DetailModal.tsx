@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Modal } from '@/components/ui/Modal';
+import { STATUS_CLASS_DANGER } from '@/lib/constants';
 
 interface DetailModalProps<T> {
   entity: T | null;
@@ -43,7 +44,7 @@ export function DetailModal<T>({
             {onDelete && (
               <button
                 onClick={() => onDelete(entity)}
-                className="px-4 py-2 text-sm text-[var(--danger)] border border-default rounded-lg hover:bg-[var(--danger-soft)]"
+                className={`px-4 py-2 text-sm ${STATUS_CLASS_DANGER.split(' ')[1]} border border-default rounded-lg hover:bg-danger-soft`}
               >
                 {deleteLabel}
               </button>

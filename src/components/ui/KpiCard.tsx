@@ -22,16 +22,16 @@ export interface KpiCardProps {
 }
 
 // Color -> tailwind class mapping (existing API, unchanged behavior)
-import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER } from '@/lib/constants';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER, STATUS_CLASS_TERRA, STATUS_CLASS_ACCENT, STATUS_CLASS_MUTED } from '@/lib/constants';
 
 const colorClasses: Record<string, { bg: string; text: string }> = {
-  accent: { bg: 'bg-accent-soft', text: 'text-accent-primary' },
+  accent: { bg: STATUS_CLASS_ACCENT.split(' ')[0], text: STATUS_CLASS_ACCENT.split(' ')[1] },
   success: { bg: STATUS_CLASS_SUCCESS.split(' ')[0], text: STATUS_CLASS_SUCCESS.split(' ')[1] },
   info: { bg: STATUS_CLASS_INFO.split(' ')[0], text: STATUS_CLASS_INFO.split(' ')[1] },
   warning: { bg: STATUS_CLASS_WARNING.split(' ')[0], text: STATUS_CLASS_WARNING.split(' ')[1] },
   danger: { bg: STATUS_CLASS_DANGER.split(' ')[0], text: STATUS_CLASS_DANGER.split(' ')[1] },
-  slate: { bg: 'bg-surface-hover', text: 'text-secondary' },
-  terra: { bg: 'bg-terra-soft', text: 'text-terra-text' },
+  slate: { bg: STATUS_CLASS_MUTED.split(' ')[0], text: STATUS_CLASS_MUTED.split(' ')[1] },
+  terra: { bg: STATUS_CLASS_TERRA.split(' ')[0], text: STATUS_CLASS_TERRA.split(' ')[1] },
 };
 
 // Tone classes using Tailwind arbitrary values — opt-in override
