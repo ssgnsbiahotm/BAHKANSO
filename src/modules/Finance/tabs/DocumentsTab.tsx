@@ -52,7 +52,7 @@ const STATUS_COLORS: Record<string, string> = {
   ajouté: 'text-blue-700 bg-blue-50',
   'à vérifier': 'text-amber-700 bg-amber-50',
   vérifié: 'text-green-700 bg-green-50',
-  rejeté: 'text-slate-700 bg-slate-100',
+  rejeté: 'text-secondary bg-surface-hover',
 };
 
 const getFileIcon = (mimeType: string | null | undefined) => {
@@ -82,26 +82,26 @@ const DocumentCardFront = ({ document, onEdit, onDelete, onView }: {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{document.name}</p>
-          <p className="text-xs text-slate-500 truncate">{document.reference ?? '—'}</p>
+          <p className="text-xs text-muted truncate">{document.reference ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
         </span>
       </div>
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
-        <div className="flex items-center gap-1 text-xs text-slate-500">
+        <div className="flex items-center gap-1 text-xs text-muted">
           <FileIcon size={12} />
           <span>{document.type}</span>
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-slate-700">{formatFileSize(document.file_size)}</p>
-          <p className="text-xs text-slate-500">{formatDate(document.upload_date)}</p>
+          <p className="text-sm font-medium text-secondary">{formatFileSize(document.file_size)}</p>
+          <p className="text-xs text-muted">{formatDate(document.upload_date)}</p>
         </div>
       </div>
       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1 pointer-events-none">
         <button
           onClick={onView}
-          className="pointer-events-auto text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-slate-50 rounded border border-slate-200"
+          className="pointer-events-auto text-xs text-muted hover:text-secondary flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-surface-hover rounded border border-default"
           aria-label="Voir les détails"
         >
           <Eye size={12} /> Détail
@@ -112,7 +112,7 @@ const DocumentCardFront = ({ document, onEdit, onDelete, onView }: {
               href={document.file_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-slate-500 hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-green-50 rounded border border-slate-200"
+              className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
               aria-label="Télécharger"
             >
               <Download size={12} />
@@ -120,14 +120,14 @@ const DocumentCardFront = ({ document, onEdit, onDelete, onView }: {
           )}
           <button
             onClick={onEdit}
-            className="text-xs text-slate-500 hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-green-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-green-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-green-50 rounded border border-default"
             aria-label="Modifier"
           >
             <Edit2 size={12} />
           </button>
           <button
             onClick={onDelete}
-            className="text-xs text-slate-500 hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-white/90 hover:bg-red-50 rounded border border-slate-200"
+            className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
             aria-label="Supprimer"
           >
             <Trash2 size={12} />
@@ -145,7 +145,7 @@ const DocumentCardBack = ({ document, onClose, onEdit, onDelete }: { document: D
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-base font-semibold">{document.name}</h3>
-          <p className="text-xs text-slate-500">{document.reference ?? '—'}</p>
+          <p className="text-xs text-muted">{document.reference ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
@@ -153,43 +153,43 @@ const DocumentCardBack = ({ document, onClose, onEdit, onDelete }: { document: D
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-slate-500">Type</p>
+          <p className="text-muted">Type</p>
           <p className="font-medium capitalize">{document.type}</p>
         </div>
         <div>
-          <p className="text-slate-500">Statut</p>
+          <p className="text-muted">Statut</p>
           <p className="font-medium capitalize">{STATUS_LABELS[status] ?? status}</p>
         </div>
         <div>
-          <p className="text-slate-500">Fichier</p>
+          <p className="text-muted">Fichier</p>
           <p className="font-medium">{document.mime_type ?? '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Taille</p>
+          <p className="text-muted">Taille</p>
           <p className="font-medium">{formatFileSize(document.file_size)}</p>
         </div>
         <div>
-          <p className="text-slate-500">Date upload</p>
+          <p className="text-muted">Date upload</p>
           <p className="font-medium">{formatDate(document.upload_date)}</p>
         </div>
         <div>
-          <p className="text-slate-500">Uploadé par</p>
+          <p className="text-muted">Uploadé par</p>
           <p className="font-medium">{document.uploaded_by ?? '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Objet</p>
+          <p className="text-muted">Objet</p>
           <p className="font-medium">{document.object_type ?? '—'} #{document.object_id ?? '—'}</p>
         </div>
       </div>
       {document.comment && (
         <div>
-          <p className="text-slate-500 text-sm">Commentaire</p>
+          <p className="text-muted text-sm">Commentaire</p>
           <p className="text-sm">{document.comment}</p>
         </div>
       )}
       {document.file_url && (
         <div>
-          <p className="text-slate-500 text-sm">Fichier</p>
+          <p className="text-muted text-sm">Fichier</p>
           <a href={document.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline flex items-center gap-1">
             <ExternalLink size={12} /> Ouvrir le fichier
           </a>
@@ -210,7 +210,7 @@ const DocumentCardBack = ({ document, onClose, onEdit, onDelete }: { document: D
         </button>
         <button
           onClick={onClose}
-          className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+          className="px-3 py-1.5 text-sm text-secondary hover:bg-surface-hover rounded-lg"
         >
           Retour
         </button>
@@ -231,8 +231,8 @@ const CreateDocumentCard = ({ onCreate }: { onCreate: () => void }) => (
           <Plus size={28} className="text-blue-600" />
         </div>
         <div className="text-center">
-          <h4 className="font-semibold text-slate-900">Nouveau document</h4>
-          <p className="text-sm text-slate-500">Ajouter un justificatif ou document</p>
+          <h4 className="font-semibold text-primary">Nouveau document</h4>
+          <p className="text-sm text-muted">Ajouter un justificatif ou document</p>
         </div>
         <button
           onClick={onCreate}
@@ -492,7 +492,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
       </div>
 
       {rows.length === 0 && (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-muted">
           <FileText size={48} className="mx-auto mb-4 text-slate-300" />
           <p className="text-lg font-medium">Aucun document</p>
           <p className="text-sm">Cliquez sur « Nouveau document » pour commencer</p>
@@ -509,7 +509,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
         <form onSubmit={form.handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Référence *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Référence *</label>
               <input
                 type="text"
                 value={form.values.reference}
@@ -520,7 +520,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Type *</label>
               <input
                 type="text"
                 value={form.values.type}
@@ -532,7 +532,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Nom *</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Nom *</label>
             <input
               type="text"
               value={form.values.name}
@@ -542,7 +542,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             {form.errors.name && <p className="text-xs text-red-500 mt-1">{form.errors.name}</p>}
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-xs font-medium text-secondary mb-1">
               Fichier (PDF, image) {editingDocument ? '(laisser vide pour conserver)' : '*'}
             </label>
             <input
@@ -553,12 +553,12 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
               disabled={uploading}
             />
            {selectedFile && (
-             <p className="text-xs text-slate-500 mt-1">
+             <p className="text-xs text-muted mt-1">
                {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} Ko)
              </p>
            )}
            {editingDocument && !selectedFile && editingDocument.file_url && (
-             <p className="text-xs text-slate-500 mt-1">Fichier actuel conservé</p>
+             <p className="text-xs text-muted mt-1">Fichier actuel conservé</p>
            )}
            {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
            {uploading && (
@@ -567,7 +567,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Statut *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Statut *</label>
               <select
                 value={form.values.status}
                 onChange={(e) => form.setFieldValue('status', e.target.value as DocumentFormValues['status'])}
@@ -582,7 +582,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
               {form.errors.status && <p className="text-xs text-red-500 mt-1">{form.errors.status}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Date d'upload *</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Date d'upload *</label>
               <input
                 type="datetime-local"
                 value={form.values.upload_date}
@@ -593,18 +593,18 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Uploadé par</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Uploadé par</label>
             <input
               type="text"
               value={currentUploader}
               readOnly
               disabled
-              className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+              className="form-input w-full bg-surface-hover cursor-not-allowed text-secondary"
               title="Déterminé automatiquement depuis votre session"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Site</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Site</label>
             {isAuthorized ? (
               <input
                 type="text"
@@ -619,13 +619,13 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
                 value={form.values.site_id ?? ''}
                 readOnly
                 disabled
-                className="form-input w-full bg-slate-100 cursor-not-allowed text-slate-600"
+                className="form-input w-full bg-surface-hover cursor-not-allowed text-secondary"
                 title="Site déterminé automatiquement depuis votre session"
               />
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Commentaire</label>
+            <label className="block text-xs font-medium text-secondary mb-1">Commentaire</label>
             <input
               type="text"
               value={form.values.comment ?? ''}
@@ -637,7 +637,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
             <button
               type="button"
               onClick={() => { setModalOpen(false); setEditingDocument(null); setSelectedFile(null); setUploadError(null); }}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
@@ -660,13 +660,13 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
           title="Confirmer la suppression"
           size="sm"
         >
-          <p className="text-sm text-slate-600 mb-4">
+          <p className="text-sm text-secondary mb-4">
             Supprimer le document <strong>{deletingDocument.name}</strong> ({deletingDocument.reference ?? '—'}) ?
           </p>
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setDeletingDocument(null)}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg"
             >
               Annuler
             </button>
