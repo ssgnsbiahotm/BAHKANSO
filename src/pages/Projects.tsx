@@ -435,7 +435,7 @@ export function Projects() {
                         className="flex items-center gap-3 w-full rounded-xl border border-default p-3 text-left hover:bg-surface-hover transition-colors"
                       >
                         <span className="w-10 h-10 rounded-lg flex items-center justify-center"
-                          style={{ background: 'var(--mdn-sky-soft, #e8f5fb)', color: 'var(--mdn-sky, #3985a8)' }}>
+                          style={{ background: 'var(--info-soft)', color: 'var(--info)' }}>
                           <HardHat size={18} />
                         </span>
                         <span>

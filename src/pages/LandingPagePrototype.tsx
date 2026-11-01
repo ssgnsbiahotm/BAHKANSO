@@ -18,7 +18,7 @@ export default function LandingPagePrototype() {
       title: 'Cultures',
       desc: 'Suivi des semis à la récolte, parcelle par parcelle, avec saisie terrain en temps réel.',
       link: 'Voir le suivi des cultures',
-      href: '/app/agriculture',
+      href: '/app/exploitation',
       icon: '🌱',
       color: 'var(--color-grass)',
     },

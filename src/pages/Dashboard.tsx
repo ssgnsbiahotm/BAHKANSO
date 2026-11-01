@@ -311,7 +311,7 @@ export function Dashboard() {
       detail: 'Campagnes actives',
       icon: <Sprout size={24} />,
       color: COLORS.grass,
-      to: '/app/agriculture/campaigns',
+      to: '/app/exploitation/campagnes',
       toLabel: 'Voir les campagnes',
     },
     {
