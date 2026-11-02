@@ -1,3 +1,4 @@
+import { Shield, ScrollText, Users, Bell, Check } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { useData } from '@/lib/DataContext';
 import '@/styles/components.css';
@@ -685,7 +686,13 @@ export default function LandingPage() {
                 {footerSecurity?.length ? (
                   footerSecurity.map((sec, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <span aria-hidden="true" className="text-signal">{sec.icon || '✓'}</span>
+                      <span aria-hidden="true" className="text-signal">
+                      {sec.icon === 'Shield' ? <Shield size={16} /> :
+                       sec.icon === 'ScrollText' ? <ScrollText size={16} /> :
+                       sec.icon === 'Users' ? <Users size={16} /> :
+                       sec.icon === 'Bell' ? <Bell size={16} /> :
+                       <Check size={16} />}
+                    </span>
                       <span className="hover:text-ivory transition-colors underline underline-offset-2 text-ivory">{sec.text}</span>
                     </li>
                   ))
@@ -699,6 +706,35 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
+          <nav
+            aria-label="Informations légales"
+            className="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-6 text-sm text-ivory"
+          >
+            <a
+              href="/mentions-legales"
+              className="underline underline-offset-4 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+            >
+              Mentions légales
+            </a>
+            <a
+              href="/confidentialite"
+              className="underline underline-offset-4 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+            >
+              Confidentialité
+            </a>
+            <a
+              href="/confidentialite#cookies"
+              className="underline underline-offset-4 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+            >
+              Cookies et stockage
+            </a>
+            <a
+              href="/confidentialite#securite"
+              className="underline underline-offset-4 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+            >
+              Sécurité
+            </a>
+          </nav>
           <div className="border-t pt-8 text-center text-xs text-night-dim border-night-10">
             {footerCopyright || '© 2026 BAHKANSO — Projet agro-pastoral'}
           </div>

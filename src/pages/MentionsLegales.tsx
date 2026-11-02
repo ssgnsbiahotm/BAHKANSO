@@ -18,20 +18,60 @@ export function MentionsLegales() {
           <div className="bg-surface border border-default rounded-xl p-6">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-primary mb-2">Mentions légales</h1>
-              <p className="text-secondary">Éditeur du site : BAHKANSO — Projet agro-pastoral.</p>
+              <p className="text-secondary">Éditeur du site : Soma Souleymane — BAHKANSO.</p>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-primary">Éditeur</h3>
               <p className="text-muted">
-                BAHKANSO — Exploitation agro-pastorale, région du Bélier, Département de Dimbokro, Côte d'Ivoire.
+                Soma Souleymane, particulier, éditeur et responsable de la publication.
+                Localisation : Sikensi, Côte d’Ivoire.
+                Adresse postale complète : à renseigner avant publication.
               </p>
               <h3 className="text-lg font-semibold text-primary mt-4">Hébergement</h3>
               <p className="text-muted">
-                Ce site est hébergé sur une plateforme de déploiement statique (Vite / Vercel-like). Aucune donnée personnelle n'est collectée sur cette page publique.
+                Le site bahkanso.surge.sh est publié au moyen du service Surge (surge.sh).
+                L’identité juridique et l’adresse de l’hébergeur restent à renseigner.
+                L’application utilise également Supabase pour des services
+                de données et d’authentification.
+              </p>
+              <h3 className="text-lg font-semibold text-primary mt-4">Objet du service</h3>
+              <p className="text-muted">
+                Bahkanso permet de présenter le projet agro-pastoral et de
+                suivre les opérations enregistrées dans son espace de gestion.
+                Une dépense saisie ou un justificatif déposé ne constitue pas,
+                à lui seul, une certification de son authenticité ou une
+                vérification indépendante de sa réalisation sur le terrain.
+              </p>
+              <h3 className="text-lg font-semibold text-primary mt-4">Contenus et utilisation</h3>
+              <p className="text-muted">
+                Les contenus du site appartiennent à leurs titulaires respectifs.
+                Leur réutilisation doit respecter les droits applicables.
+                Les utilisateurs doivent uniquement transmettre des documents
+                qu’ils sont autorisés à utiliser et respecter les permissions
+                de leur compte.
+              </p>
+              <h3 className="text-lg font-semibold text-primary mt-4">Disponibilité et informations</h3>
+              <p className="text-muted">
+                Le service peut être interrompu pour maintenance, incident
+                technique ou difficulté de connexion. Les informations affichées
+                dépendent des données enregistrées et de leur mise à jour.
+                Les décisions importantes nécessitent des vérifications auprès
+                des responsables et des documents de terrain.
+                Ces indications n’excluent pas les responsabilités qui ne
+                peuvent être écartées en vertu du droit applicable.
+              </p>
+              <p className="text-muted">
+                Consultez également la{' '}
+                <Link to="/confidentialite" className="underline underline-offset-4">
+                  politique de confidentialité
+                </Link>.
               </p>
               <h3 className="text-lg font-semibold text-primary mt-4">Contact</h3>
               <p className="text-muted">
-                Pour toute question, utilisez la page de contact ou l'espace de gestion accessible depuis l'accueil.
+                Pour toute question :
+                {' '}<a href="mailto:ssgnabia@gmail.com" className="underline">ssgnabia@gmail.com</a>.
+                Téléphone :
+                {' '}<a href="tel:+2250707381563" className="underline">+225 07 07 38 15 63</a>.
               </p>
             </div>
           </div>

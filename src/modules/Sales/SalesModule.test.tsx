@@ -34,9 +34,13 @@ const mockUseSite = useSite as ReturnType<typeof vi.fn>;
 const mockLogAudit = logAudit as ReturnType<typeof vi.fn>;
 const mockFrom = vi.mocked(supabase.from);
 
-const insertMock = vi.fn().mockReturnThis();
-const deleteMock = vi.fn().mockReturnThis();
-const updateMock = vi.fn().mockReturnThis();
+// Espions distincts par table/opération : aucune valeur de retour partagée
+// entre sales et sale_items, afin d'assert finement chaque appel Supabase.
+const salesUpdateSpy = vi.fn();
+const salesEqSpy = vi.fn();
+const saleItemsDeleteSpy = vi.fn();
+const saleItemsDeleteEqSpy = vi.fn();
+const saleItemsInsertSpy = vi.fn();
 
 const sale = {
   id: 'sale-1',
@@ -55,31 +59,43 @@ const sale = {
   ],
 };
 
-function buildChain(eqResult: { error: any } = { error: null }) {
+function salesChain(eqResult: { error: any } = { error: null }) {
   const chain: any = {
     select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockResolvedValue(eqResult),
+    eq: salesEqSpy.mockResolvedValue(eqResult),
     single: vi.fn().mockResolvedValue({ data: null, error: null }),
   };
-  chain.insert = insertMock.mockReturnValue(chain);
-  chain.update = updateMock.mockReturnValue(chain);
-  chain.delete = deleteMock.mockReturnValue(chain);
+  chain.update = salesUpdateSpy.mockReturnValue(chain);
+  return chain;
+}
+
+function saleItemsChain(deleteEqResult: { error: any } = { error: null }) {
+  const chain: any = {
+    select: vi.fn().mockReturnThis(),
+    eq: saleItemsDeleteEqSpy.mockResolvedValue(deleteEqResult),
+    single: vi.fn().mockResolvedValue({ data: null, error: null }),
+  };
+  chain.delete = saleItemsDeleteSpy.mockReturnValue(chain);
+  // insert n'est pas chaîné avec .eq dans le code : il se résout directement.
+  chain.insert = saleItemsInsertSpy.mockResolvedValue({ error: null });
   return chain;
 }
 
 function setupSupabase({ saleItemsDeleteError }: { saleItemsDeleteError?: any } = {}) {
-  mockFrom.mockImplementation((() => {
-    const chains = new Map<string, ReturnType<typeof buildChain>>();
-    return (table: string) => {
-      if (!chains.has(table)) {
-        chains.set(table, table === 'sale_items' ? buildChain({ error: saleItemsDeleteError }) : buildChain({ error: null }));
-      }
-      return chains.get(table)!;
-    };
-  })() as any);
+  mockFrom.mockImplementation(((table: string) => {
+    if (table === 'sales') return salesChain({ error: null });
+    if (table === 'sale_items') return saleItemsChain({ error: saleItemsDeleteError });
+    return salesChain({ error: null });
+  }) as any);
 }
 
-function renderSales(overrides: { sales?: any[]; customers?: any[]; loading?: boolean; saleItemsDeleteError?: any; availableSites?: any[] } = {}) {
+function renderSales(overrides: {
+  sales?: any[];
+  customers?: any[];
+  loading?: boolean;
+  saleItemsDeleteError?: any;
+  availableSites?: any[];
+} = {}) {
   setupSupabase({ saleItemsDeleteError: overrides.saleItemsDeleteError });
   mockUseSalesData.mockReturnValue({
     sales: overrides.sales ?? [sale],
@@ -101,13 +117,16 @@ function renderSales(overrides: { sales?: any[]; customers?: any[]; loading?: bo
 }
 
 beforeEach(() => {
+  toastMock.show.mockClear();
   toastMock.success.mockClear();
   toastMock.error.mockClear();
   toastMock.info.mockClear();
   mockLogAudit.mockClear();
-  insertMock.mockClear();
-  deleteMock.mockClear();
-  updateMock.mockClear();
+  salesUpdateSpy.mockClear();
+  salesEqSpy.mockClear();
+  saleItemsDeleteSpy.mockClear();
+  saleItemsDeleteEqSpy.mockClear();
+  saleItemsInsertSpy.mockClear();
   mockFrom.mockClear();
 });
 
@@ -143,16 +162,30 @@ describe('SalesModule — régression (Éditer la vente)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Enregistrer/ }));
 
-    await waitFor(() => expect(deleteMock).toHaveBeenCalled());
+    await waitFor(() => expect(saleItemsDeleteSpy).toHaveBeenCalled());
     await waitFor(() => expect(toastMock.show).toHaveBeenCalled());
 
-    // Aucun nouvel article inséré
-    expect(insertMock).not.toHaveBeenCalled();
-    // Pas de log d audit ni de toast de succès
+    // L update de sales précède encore les opérations sur ses articles :
+    // le risque d écritures partielles n est pas masqué.
+    expect(salesUpdateSpy).toHaveBeenCalled();
+    expect(salesEqSpy).toHaveBeenCalledWith('id', sale.id);
+
+    // Suppression des anciens articles tentée sur le bon sale_id.
+    expect(saleItemsDeleteSpy).toHaveBeenCalled();
+    expect(saleItemsDeleteEqSpy).toHaveBeenCalledWith('sale_id', sale.id);
+
+    // Aucun nouvel article inséré en cas d échec du delete.
+    expect(saleItemsInsertSpy).not.toHaveBeenCalled();
+
+    // Pas de log d audit ni de toast de succès.
     expect(mockLogAudit).not.toHaveBeenCalled();
     expect(toastMock.show.mock.calls.some(([msg]) => String(msg).includes('Vente modifiée'))).toBe(false);
-    // Le toast d erreur du formulaire a bien été levé
+
+    // Le toast d erreur du formulaire a bien été levé (onError).
     expect(toastMock.show.mock.calls.some(([msg]) => String(msg).includes('Erreur:'))).toBe(true);
+
+    // La fenêtre reste ouverte après l erreur.
+    expect(screen.getByText('Éditer la vente')).toBeInTheDocument();
   });
 
   it('modification réussie : anciens articles supprimés, nouveaux insérés, audit et toast de succès', async () => {
@@ -166,10 +199,23 @@ describe('SalesModule — régression (Éditer la vente)', () => {
 
     await waitFor(() => expect(mockLogAudit).toHaveBeenCalled());
 
-    expect(updateMock).toHaveBeenCalled();
-    expect(deleteMock).toHaveBeenCalled();
-    expect(insertMock).toHaveBeenCalled();
+    // Update de la vente sur l identifiant attendu.
+    expect(salesUpdateSpy).toHaveBeenCalled();
+    expect(salesEqSpy).toHaveBeenCalledWith('id', sale.id);
 
+    // Suppression des anciens articles sur le sale_id attendu.
+    expect(saleItemsDeleteSpy).toHaveBeenCalled();
+    expect(saleItemsDeleteEqSpy).toHaveBeenCalledWith('sale_id', sale.id);
+
+    // Insertion des nouveaux articles avec leurs données.
+    expect(saleItemsInsertSpy).toHaveBeenCalled();
+    const inserted = saleItemsInsertSpy.mock.calls[0][0];
+    expect(Array.isArray(inserted)).toBe(true);
+    expect(inserted.every((item: any) => item.sale_id === sale.id)).toBe(true);
+    expect(inserted.map((item: any) => item.description).sort()).toEqual(['Maïs', 'Riz']);
+    expect(inserted.map((item: any) => item.total).sort((a: number, b: number) => a - b)).toEqual([5000, 10000]);
+
+    // Audit et toast de succès.
     expect(mockLogAudit).toHaveBeenCalledWith(
       'Test User',
       'UPDATE',
@@ -179,7 +225,7 @@ describe('SalesModule — régression (Éditer la vente)', () => {
     );
     expect(toastMock.show).toHaveBeenCalledWith('Vente modifiée');
 
-    // La modale se ferme après succès
+    // La modale se ferme après succès.
     expect(screen.queryByText('Éditer la vente')).not.toBeInTheDocument();
   });
 });
