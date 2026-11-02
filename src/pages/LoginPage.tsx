@@ -230,7 +230,7 @@ function QuoteSection({ quote, author }: { quote: string; author: string }) {
 export function LoginPage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signIn, signUp, resetPassword, appUser } = useAuth();
+  const { signIn, signUp, resetPassword, appUser, refreshAppUser } = useAuth();
   const { siteContent, farm } = useData();
 
   const branding = useMemo(() => (siteContent.branding?.value as Record<string, string>) || {}, [siteContent]);
@@ -313,13 +313,13 @@ export function LoginPage() {
           toast.show('Email ou mot de passe incorrect', 'error');
        } else {
          toast.show('Connexion réussie');
-          // Attendre que appUser soit chargé pour éviter que RequireAuth ne redirige vers /login
-          // (race condition : onAuthStateCharge est asynchrone après signIn)
+          // S'assurer que appUser est chargé avant de naviguer vers /app
+          // afin que RequireAuth puisse autoriser l'accès sans boucle de redirection.
+          await refreshAppUser();
           if (appUser) {
             navigate('/app');
           } else {
-            await new Promise((resolve) => setTimeout(resolve, 400));
-            navigate('/app');
+            toast.show('Profil applicatif introuvable. Contactez l\'administrateur.', 'error');
           }
        }
       } else if (mode === 'signup') {

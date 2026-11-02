@@ -30,8 +30,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [appUserLoading, setAppUserLoading] = useState(false);
 
-  const loadAppUser = useCallback(async (uid: string) => {
+  const loadAppUser = useCallback(async (uid: string): Promise<AppUser | null> => {
     const { data, error } = await supabase
       .from('app_users')
       .select('*')
@@ -39,49 +40,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .maybeSingle();
     if (error) {
       console.error('Error loading app user:', error);
-      return;
+      return null;
     }
-    if (data) {
-      setAppUser(data as AppUser);
-    }
+    setAppUser(data as AppUser);
+    return data as AppUser;
   }, []);
 
+  const resolveAppUser = useCallback(async (uid: string) => {
+    setAppUserLoading(true);
+    const user = await loadAppUser(uid);
+    if (!user) setAppUser(null);
+    setAppUserLoading(false);
+    return user;
+  }, [loadAppUser]);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    let cancelled = false;
+
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
       setSession(data.session);
       setAuthUser(data.session?.user ?? null);
       if (data.session?.user) {
-        loadAppUser(data.session.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
+        await resolveAppUser(data.session.user.id);
       }
-    });
+      if (!cancelled) setLoading(false);
+    })();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (cancelled) return;
       setSession(newSession);
       setAuthUser(newSession?.user ?? null);
       if (newSession?.user) {
-        (async () => {
-          await loadAppUser(newSession.user.id);
-          await supabase.from('app_users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('auth_id', newSession.user.id);
-        })();
+        await resolveAppUser(newSession.user.id);
+        await supabase.from('app_users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('auth_id', newSession.user.id);
       } else {
         setAppUser(null);
+        setAppUserLoading(false);
       }
     });
 
     return () => {
+      cancelled = true;
       authListener.subscription.unsubscribe();
     };
-  }, [loadAppUser]);
+  }, [resolveAppUser]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
+    // Recharger appUser immédiatement après le login pour que RequireAuth
+    // puisse autoriser l'accès sans dépendre d'un setTimeout artificiel.
+    const newUser = data?.user ?? null;
+    setAuthUser(newUser);
+    if (newUser) await resolveAppUser(newUser.id);
     return { error: null };
-  }, []);
+  }, [resolveAppUser]);
 
   const signUp = useCallback(async (email: string, password: string, name: string) => {
     const { data, error } = await supabase.auth.signUp({
