@@ -71,3 +71,38 @@ REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated, pu
 GRANT EXECUTE ON FUNCTION public.handle_new_user() TO service_role;
 
 SET LOCAL session_replication_role = DEFAULT;
+
+-- ============================================================================
+-- CORRECTION : auth_id n'était jamais rempli
+-- ============================================================================
+-- Cause racine : auth_id est la colonne utilisée par AuthContext.tsx
+-- (`.eq('auth_id', uid)`), mais elle restait NULL. Le backfill résout les
+-- users existants, et le trigger corrigé remplit auth_id pour les futurs.
+
+UPDATE public.app_users 
+SET auth_id = id 
+WHERE auth_id IS NULL;
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.app_users (id, auth_id, email, name, role, active)
+  VALUES (
+    NEW.id,
+    NEW.id,
+    LOWER(NEW.email),
+    COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+    COALESCE(NEW.raw_user_meta_data->>'role', 'gestionnaire'),
+    true
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    auth_id = EXCLUDED.auth_id,
+    email = EXCLUDED.email,
+    name = COALESCE(EXCLUDED.name, app_users.name);
+  RETURN NEW;
+END;
+$$;
