@@ -93,8 +93,9 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-ui': ['lucide-react'],
-          'vendor-data': ['@tanstack/react-query', 'zod', 'date-fns'],
+          'vendor-data': ['@tanstack/react-query', 'zod'],
           'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-animation': ['gsap', 'lenis'],
           'vendor-utils': ['clsx'],
         },
       },
