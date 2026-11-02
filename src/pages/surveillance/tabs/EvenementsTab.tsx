@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Plus, Edit2, Trash2, Calendar, Filter, Search, Wrench, AlertTriangle } from 'lucide-react';
 import { logAudit, type SurveillanceEvent, type SurveillanceEventStatus, type SurveillanceEventType } from '@/lib/types';
 import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_NEUTRAL, STATUS_CLASS_DANGER } from '@/lib/constants';
+import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 
 const TYPE_LABELS: Record<string, string> = {
   phyto_traitement: 'Traitement phytosanitaire',
@@ -105,6 +106,7 @@ export function EvenementsTab() {
   // Modal création/édition
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<SurveillanceEvent | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<SurveillanceEvent | null>(null);
 
   const handleNewEvent = () => {
     setEditingEvent(null);
@@ -116,16 +118,15 @@ export function EvenementsTab() {
     setModalOpen(true);
   };
 
-  const handleDelete = async (event: SurveillanceEvent) => {
-    if (!window.confirm('Supprimer cet événement ?')) return;
-    const { error } = await supabase.from('surveillance_events').delete().eq('id', event.id);
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    const { error } = await supabase.from('surveillance_events').delete().eq('id', confirmDelete.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'surveillance_event', event.id, `Événement ${event.label} supprimé`);
+      await logAudit(appUser?.name || 'Système', 'DELETE', 'surveillance_event', confirmDelete.id, `Événement ${confirmDelete.label} supprimé`);
       toast.show('Événement supprimé');
-      setEditingEvent(null);
-      setModalOpen(false);
+      setConfirmDelete(null);
       refetch();
     }
   };
@@ -304,7 +305,7 @@ export function EvenementsTab() {
                         <Edit2 size={12} />
                       </button>
                       <button
-                        onClick={() => handleDelete(event)}
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(event); }}
                         className="text-xs text-muted hover:text-red-700 flex items-center gap-1 px-2 py-1 bg-surface/90 hover:bg-red-50 rounded border border-default"
                         aria-label="Supprimer"
                       >
@@ -412,7 +413,7 @@ export function EvenementsTab() {
                       <Edit2 size={14} /> Modifier
                     </button>
                     <button
-                      onClick={() => handleDelete(event)}
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(event); }}
                       className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1"
                     >
                       <Trash2 size={14} /> Supprimer
