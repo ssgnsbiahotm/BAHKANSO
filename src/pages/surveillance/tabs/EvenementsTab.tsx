@@ -432,6 +432,16 @@ export function EvenementsTab() {
         </button>
       </div>
 
+      {confirmDelete && (
+        <ConfirmDeleteModal
+          entity={confirmDelete}
+          getEntityName={(e) => e.label}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={handleConfirmDelete}
+          title="Supprimer cet événement ?"
+        />
+      )}
+
       {/* Modal création/édition */}
       <Modal
         open={modalOpen}

@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 
 const isAdminOrOwner = (role: string | undefined) =>
   role === 'administrateur' || role === 'propriétaire';
@@ -346,20 +347,15 @@ export function UsersPage() {
         </div>
       </Modal>
 
-      <Modal
-        open={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        title="Confirmer la suppression"
-        size="sm"
-        footer={
-          <>
-            <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">Annuler</button>
-            <button onClick={handleDelete} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Supprimer</button>
-          </>
-        }
-      >
-        <p className="text-sm text-secondary">Voulez-vous vraiment supprimer l'utilisateur « {confirmDelete?.name} » ? Cette action est irréversible.</p>
-      </Modal>
+      {confirmDelete && (
+        <ConfirmDeleteModal
+          entity={confirmDelete}
+          getEntityName={(u) => u.name}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={handleDelete}
+          title="Supprimer cet utilisateur ?"
+        />
+      )}
     </div>
   );
 }

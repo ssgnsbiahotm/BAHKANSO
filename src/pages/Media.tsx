@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 
 const TYPE_STATUS_CLASS: Record<string, string> = {
   image: STATUS_CLASS_INFO,
@@ -43,6 +44,7 @@ export function Media() {
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [modalOpen, setModalOpen] = useState(false);
   const [detailMedia, setDetailMedia] = useState<Media | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Media | null>(null);
   const [editMedia, setEditMedia] = useState<Media | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -148,14 +150,15 @@ export function Media() {
     setSaving(false);
   };
 
-  const handleDelete = async () => {
-    if (!detailMedia) return;
-    const { error } = await supabase.from('media').delete().eq('id', detailMedia.id);
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    const { error } = await supabase.from('media').delete().eq('id', confirmDelete.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'media', detailMedia.id, `Média "${detailMedia.title}" supprimé`);
+      await logAudit(appUser?.name || 'Système', 'DELETE', 'media', confirmDelete.id, `Média "${confirmDelete.title}" supprimé`);
       toast.show('Média supprimé');
+      setConfirmDelete(null);
       setDetailMedia(null);
       refresh();
     }
@@ -265,7 +268,7 @@ export function Media() {
           detailMedia ? (
             <>
               <button onClick={() => setEditMedia(detailMedia)} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success">Modifier</button>
-              <button onClick={handleDelete} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
+              <button onClick={() => setConfirmDelete(detailMedia)} className="px-4 py-2 text-sm text-danger border border-default rounded-lg hover:bg-danger-soft">Supprimer</button>
             </>
           ) : undefined
         }
@@ -294,6 +297,16 @@ export function Media() {
           </div>
         )}
       </Modal>
+
+      {confirmDelete && (
+        <ConfirmDeleteModal
+          entity={confirmDelete}
+          getEntityName={(m) => m.title}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={handleConfirmDelete}
+          title="Supprimer ce média ?"
+        />
+      )}
 
       {/* Create/Edit modal */}
       <Modal
