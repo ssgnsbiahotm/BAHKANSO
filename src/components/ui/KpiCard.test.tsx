@@ -30,7 +30,7 @@ describe('KpiCard', () => {
   it('applique color slate avec classes tailwind', () => {
     renderCard({ color: 'slate' });
     expect(iconWrapper()).toHaveClass('bg-surface-hover');
-    expect(iconWrapper()).toHaveClass('text-secondary');
+    expect(iconWrapper()).toHaveClass('text-muted');
   });
 
   it('applique tone success avec variables CSS', () => {
