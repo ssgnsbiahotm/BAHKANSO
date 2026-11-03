@@ -55,6 +55,57 @@ Autorisés (Playwright/MCP) dans le périmètre demandé. Ne permettent PAS :
 
 ---
 
+## Rapports et livrables
+
+Tout rapport d'inspection, d'audit, de diagnostic ou de synthèse DOIT être
+écrit dans un fichier Markdown sous `docs/reports/`, jamais collé dans le
+terminal.
+
+### Convention de nommage
+
+docs/reports/YYYY-MM-DD-HHMM-<sujet>.md
+
+Exemples :
+- docs/reports/2026-11-03-1830-rls-schema-inspection.md
+- docs/reports/2026-11-03-1915-fix-login-verification.md
+- docs/reports/2026-11-03-2045-backfill-auth-id-derogation.md
+
+### Contenu minimal d'un rapport
+
+# <Titre>
+Date : YYYY-MM-DD HH:MM
+Branche : <branche courante>
+Commit : <SHA court>
+Auteur : Claude Code (agent) + validation humaine
+
+## Contexte
+<2-3 lignes>
+
+## Constats
+<liste avec preuves : fichier:ligne, ou sortie de commande, ou requête SQL>
+
+## Conclusion
+<réponse claire à la question posée>
+
+## Décisions humaines requises
+<liste des points à trancher, s'il y en a>
+
+## Fichiers modifiés
+<liste, ou "aucun">
+
+## Prochaine étape
+<une phrase>
+
+### Dans le terminal, ne reste qu'un résumé
+
+À la fin de chaque rapport, l'agent affiche dans le terminal UNIQUEMENT :
+
+  Rapport écrit : docs/reports/<nom>.md
+  Résumé : <une ligne>
+  Décisions requises : <une ligne ou "aucune">
+
+Jamais le corps du rapport.
+
 ## 3. STOP CONDITION — VALIDATION TECHNIQUE
 
 **Cause racine des sessions perdues** : les agents écrivaient "passed" alors que `npm run typecheck` retournait des dizaines d'erreurs. Le pipe `| tee` masque l'exit code réel.
