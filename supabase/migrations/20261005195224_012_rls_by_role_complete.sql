@@ -182,29 +182,39 @@ USING (current_user_has_role(ARRAY['administrateur']));
 -- Rôles read: tous (8)
 -- Rôles write: admin, gestionnaire, resp_agri, resp_élevage (4)
 -- Rôles delete: admin (1)
+-- La table media n'est pas encore créée à ce stade : les policies
+-- sont appliquées de manière conditionnelle pour ne pas bloquer
+-- `supabase start` si la table est absente.
 -- ============================================================
 
--- media
-DROP POLICY IF EXISTS auth_select_media ON media;
-DROP POLICY IF EXISTS staff_select_media ON media;
-CREATE POLICY "role_select_media" ON media FOR SELECT TO authenticated
-USING (current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire','comptable','responsable_agricole','responsable_élevage','auditeur']));
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'media' AND table_schema = 'public') THEN
 
-DROP POLICY IF EXISTS auth_insert_media ON media;
-DROP POLICY IF EXISTS staff_insert_media ON media;
-CREATE POLICY "role_insert_media" ON media FOR INSERT TO authenticated
-WITH CHECK (current_user_has_role(ARRAY['administrateur','gestionnaire','responsable_agricole','responsable_élevage']));
+    -- media
+    DROP POLICY IF EXISTS auth_select_media ON media;
+    DROP POLICY IF EXISTS staff_select_media ON media;
+    CREATE POLICY "role_select_media" ON media FOR SELECT TO authenticated
+    USING (current_user_has_role(ARRAY['administrateur','propriétaire','financeur','gestionnaire','comptable','responsable_agricole','responsable_élevage','auditeur']));
 
-DROP POLICY IF EXISTS auth_update_media ON media;
-DROP POLICY IF EXISTS staff_update_media ON media;
-CREATE POLICY "role_update_media" ON media FOR UPDATE TO authenticated
-USING (current_user_has_role(ARRAY['administrateur','gestionnaire','responsable_agricole','responsable_élevage']))
-WITH CHECK (current_user_has_role(ARRAY['administrateur','gestionnaire','responsable_agricole','responsable_élevage']));
+    DROP POLICY IF EXISTS auth_insert_media ON media;
+    DROP POLICY IF EXISTS staff_insert_media ON media;
+    CREATE POLICY "role_insert_media" ON media FOR INSERT TO authenticated
+    WITH CHECK (current_user_has_role(ARRAY['administrateur','gestionnaire','responsable_agricole','responsable_élevage']));
 
-DROP POLICY IF EXISTS auth_delete_media ON media;
-DROP POLICY IF EXISTS staff_delete_media ON media;
-CREATE POLICY "role_delete_media" ON media FOR DELETE TO authenticated
-USING (current_user_has_role(ARRAY['administrateur']));
+    DROP POLICY IF EXISTS auth_update_media ON media;
+    DROP POLICY IF EXISTS staff_update_media ON media;
+    CREATE POLICY "role_update_media" ON media FOR UPDATE TO authenticated
+    USING (current_user_has_role(ARRAY['administrateur','gestionnaire','responsable_agricole','responsable_élevage']))
+    WITH CHECK (current_user_has_role(ARRAY['administrateur','gestionnaire','responsable_agricole','responsable_élevage']));
+
+    DROP POLICY IF EXISTS auth_delete_media ON media;
+    DROP POLICY IF EXISTS staff_delete_media ON media;
+    CREATE POLICY "role_delete_media" ON media FOR DELETE TO authenticated
+    USING (current_user_has_role(ARRAY['administrateur']));
+
+  END IF;
+END $$;
 
 -- ============================================================
 -- MONITORING (module monitoring)

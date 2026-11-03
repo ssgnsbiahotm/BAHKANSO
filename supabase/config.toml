@@ -1,0 +1,18 @@
+[global]
+  project_id = "bahkanso-local"
+
+[api]
+  ports = ["54321:54321"]
+
+[db]
+  ports = ["54322:54322"]
+  major_version = 17
+
+[studio]
+  ports = ["54323:54323"]
+
+[inbucket]
+  ports = ["54324:54324"]
+
+[auth]
+  enabled = true
