@@ -118,6 +118,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     profile: { read: true, write: true, delete: false, admin: false },
   },
 
+  // NOTE: le financeur voit uniquement les fundings de son propre funder.
+  // Cette restriction est portée par la politique RLS (funder_id ->
+  // funders.user_id), car elle est par ressource et non par module.
+  // La matrice front ne peut pas l'encoder : finance.read/write reste
+  // au niveau module.
   financeur: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: true, delete: false, admin: false }, // Ses financements uniquement
@@ -154,7 +159,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
 
   comptable: {
     dashboard: { read: true, write: false, delete: false, admin: false },
-    finance: { read: true, write: true, delete: true, admin: false }, // Complet: dépenses, trésorerie, docs
+    finance: { read: true, write: false, delete: false, admin: false }, // Lecture seule sur finance (dépenses en RLS)
     ventes: { read: true, write: true, delete: true, admin: false }, // Complet: ventes, clients, facturation
     agriculture: { read: true, write: false, delete: false, admin: false }, // Coûts seulement
     livestock: { read: true, write: false, delete: false, admin: false }, // Coûts seulement
