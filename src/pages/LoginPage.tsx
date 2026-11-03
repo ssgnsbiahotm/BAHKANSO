@@ -230,7 +230,7 @@ function QuoteSection({ quote, author }: { quote: string; author: string }) {
 export function LoginPage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signIn, signUp, resetPassword, appUser, refreshAppUser } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const { siteContent, farm } = useData();
 
   const branding = useMemo(() => (siteContent.branding?.value as Record<string, string>) || {}, [siteContent]);
@@ -311,17 +311,12 @@ export function LoginPage() {
         const { error } = await signIn(email, password);
         if (error) {
           toast.show('Email ou mot de passe incorrect', 'error');
-       } else {
-         toast.show('Connexion réussie');
-          // S'assurer que appUser est chargé avant de naviguer vers /app
-          // afin que RequireAuth puisse autoriser l'accès sans boucle de redirection.
-          await refreshAppUser();
-          if (appUser) {
-            navigate('/app');
-          } else {
-            toast.show('Profil applicatif introuvable. Contactez l\'administrateur.', 'error');
-          }
-       }
+        } else {
+          toast.show('Connexion réussie');
+          // signIn recharge déjà appUser ; RequireAuth peut donc autoriser
+          // la navigation sans dépendre d'un state React potentiellement périmé.
+          navigate('/app', { replace: true });
+        }
       } else if (mode === 'signup') {
         const { error, emailRequiresConfirmation } = await signUp(email, password, name.trim());
         if (error) {
