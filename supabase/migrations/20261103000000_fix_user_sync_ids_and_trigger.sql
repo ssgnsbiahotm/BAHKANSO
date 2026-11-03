@@ -79,9 +79,13 @@ SET LOCAL session_replication_role = DEFAULT;
 -- (`.eq('auth_id', uid)`), mais elle restait NULL. Le backfill résout les
 -- users existants, et le trigger corrigé remplit auth_id pour les futurs.
 
-UPDATE public.app_users 
-SET auth_id = id 
-WHERE auth_id IS NULL;
+-- DÉROGATION 2026-11-03 : filtre sur auth.users existants pour éviter
+-- la violation FK sur les app_users orphelins. Voir docs/migrations/
+-- 20261103-derogation-backfill-auth-id.md
+UPDATE public.app_users
+SET auth_id = id
+WHERE auth_id IS NULL
+  AND id IN (SELECT id FROM auth.users);
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
