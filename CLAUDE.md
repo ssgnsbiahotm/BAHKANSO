@@ -43,6 +43,7 @@ Ces actions font **échouer la mission automatiquement**, sans exception.
 - ❌ Migration Tailwind, ajout de CDN, changement de version majeure
 - ❌ Refactorisation non demandée
 - ❌ Modification de code sans demande explicite
+- ⚠️ Modifier `.mcp.json` : interdit par défaut, autorisé uniquement sur demande explicite de l'utilisateur (dernière décision : ajout du serveur MCP Perplexity, 2026-11-03)
 
 ### Tests navigateur
 Autorisés (Playwright/MCP) dans le périmètre demandé. Ne permettent PAS :
@@ -95,6 +96,66 @@ Auteur : Claude Code (agent) + validation humaine
 
 ## Prochaine étape
 <une phrase>
+
+## RLS — Règles non négociables pour ce projet
+
+1. Toute nouvelle table exposée via l'API Supabase DOIT avoir
+   `ENABLE ROW LEVEL SECURITY` ET `FORCE ROW LEVEL SECURITY`.
+   `FORCE` est indispensable pour que pgTAP teste la RLS réelle
+   (sinon le propriétaire postgres contourne la RLS silencieusement,
+   et les tests passent sans rien tester).
+
+2. Avant d'écrire une politique, TOUJOURS lister les politiques
+   existantes :
+     SELECT polname, polcmd FROM pg_policy
+     WHERE polrelid = 'public.<table>'::regclass;
+   Les politiques se combinent en OR. Ajouter une politique
+   restrictive ne retire pas les permissives existantes — il faut
+   les DROPPER nommément.
+
+3. Les politiques doivent filtrer par les colonnes RÉELLES du schéma
+   (`site_id`, `funder_id`, `created_by`), vérifiées via
+   information_schema. Ne jamais supposer un nom de colonne depuis
+   les types TypeScript.
+
+4. Les tests pgTAP doivent vérifier le SQLSTATE, pas le message
+   (`throws_ok(..., '42501', NULL, ...)`). Le message peut changer
+   entre versions PostgreSQL ; le code est stable.
+
+5. Les helpers SECURITY DEFINER qui lisent app_users/funders doivent
+   rester hors du périmètre FORCE RLS, ou inclure
+   `SET LOCAL row_security = off` dans leur définition. Sinon
+   récursion infinie.
+
+6. Ne JAMAIS modifier une migration appliquée. Ajouter une nouvelle
+   migration corrective (timestamp postérieur) ou réordonner.
+   Exception documentée : dérogation unique, tracée dans
+   docs/migrations/.
+
+   ## Tests pgTAP et auth.uid()
+
+pgTAP ne simule pas correctement un JWT de production. La variable
+`request.jwt.claim.sub` positionnée par SET LOCAL n'est pas équivalente
+à un vrai JWT signé par Supabase Auth.
+
+Conséquences :
+- Les helpers `current_*` (qui utilisent `auth.uid()`) ne sont PAS
+  testables en pgTAP de manière fiable.
+- Les politiques RLS qui les utilisent peuvent être testées (via des
+  assertions sur le résultat : « le financeur voit 1 ligne »), mais
+  pas les helpers eux-mêmes.
+
+Stratégie de test retenue :
+1. **Tests d'intégration avec un vrai Supabase local et un vrai JWT**
+   (via supabase-js + auth.signIn) pour les helpers et les politiques.
+2. **Tests pgTAP** réservés aux invariants qui ne dépendent PAS de
+   auth.uid() (par exemple, la présence de FORCE RLS, l'absence de
+   USING (true), la présence des DROP POLICY).
+
+Les tests pgTAP actuels sur fundings/expenses restent valides pour les
+assertions qui ne dépendent pas des helpers (FORCE RLS, absence de
+USING (true)). Les assertions qui dépendent de current_user_role() sont
+marquées comme "à valider en test d'intégration".
 
 ### Dans le terminal, ne reste qu'un résumé
 
