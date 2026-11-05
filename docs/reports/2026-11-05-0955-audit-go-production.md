@@ -15,6 +15,7 @@ La branche `rls/fundings-expenses` contient des modifications en cours (non comm
 - Node/npm : projet npm, scripts `dev`, `build`, `lint`, `typecheck`, `test`
 - Base : Supabase local (config.toml), migrations SQL jusqu'à `20261103000001_create_media_table.sql`
 - Variables d'environnement requises : `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (`.env` untracké, non modifié)
+- Observation : 4 fichiers de migration `.sql` non trackés dans `supabase/migrations/` (`20261005195219_pre_013_functions.sql`, `20261005195220_surveillance_events_pre012.sql`, `20261020160002_restore_surveillance_events.sql`, `20261031000001_create_media_table.sql`). Ce sont des fichiers nouveaux non trackés, pas des modifications de migrations appliquées — la règle RLS (ne jamais modifier une migration appliquée) est respectée.
 
 ## Constats
 
@@ -35,7 +36,7 @@ Les 3 fichiers d'intégration RLS sous `tests/integration/` échouent car `SUPAB
 ### 3. Lint — `npm run lint`
 
 Projet entier : **42 erreurs, 19 warnings**, tous **préexistants** (aucun dans les fichiers modifiés par cette session).
-Ciblé sur les fichiers modifiés (`AuthContext.tsx`, `UsersPage.tsx`, `authGuard.tsx`, `UsersPage.test.tsx`, `authGuard.test.tsx`) : 6 erreurs `@typescript-eslint/no-explicit-any` dans les 2 fichiers de test **nouveaux** (`UsersPage.test.tsx`: 5, `authGuard.test.tsx`: 1), plus des vars inutilisées préexistantes dans `AuthContext.tsx`. Ces `any` sont des régressions mineures introduites par cette session (fichiers de test uniquement, non bloquantes) — à nettoyer avant production.
+Ciblé sur les fichiers modifiés (`AuthContext.tsx`, `UsersPage.tsx`, `authGuard.tsx`, `UsersPage.test.tsx`, `authGuard.test.tsx`) : 7 erreurs `@typescript-eslint/no-explicit-any` dans les 2 fichiers de test **nouveaux** (`UsersPage.test.tsx`: 6, `authGuard.test.tsx`: 1), plus des vars inutilisées préexistantes dans `AuthContext.tsx`. Ces `any` sont des régressions mineures introduites par cette session (fichiers de test uniquement, non bloquantes) — à nettoyer avant production.
 
 ### 4. Authentification et garde de route
 
