@@ -9,6 +9,7 @@ interface AuthContextType {
   authUser: User | null;
   appUser: AppUser | null;
   loading: boolean;
+  appUserLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null; emailRequiresConfirmation?: boolean }>;
   signOut: () => Promise<void>;
@@ -57,26 +58,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    // Charger la session initiale de manière synchrone pour éviter tout
+    // deadlock dans le callback onAuthStateChange (Supabase docs :
+    // https://supabase.com/kb/troubleshooting/why-is-my-supabase-api-call-not-returning-PGzXw0)
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
       setSession(data.session);
       setAuthUser(data.session?.user ?? null);
       if (data.session?.user) {
-        await resolveAppUser(data.session.user.id);
+        setAppUserLoading(true);
+        const user = await loadAppUser(data.session.user.id);
+        if (!user) setAppUser(null);
+        setAppUserLoading(false);
       }
       if (!cancelled) setLoading(false);
     })();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (cancelled) return;
+
       setSession(newSession);
       setAuthUser(newSession?.user ?? null);
+
       if (newSession?.user) {
-        await resolveAppUser(newSession.user.id);
-        await supabase.from('app_users')
+        // Événement de connexion authentique : charger le profil métier et
+        // mettre à jour last_login hors du callback, sans bloquer la connexion.
+        setAppUserLoading(true);
+        loadAppUser(newSession.user.id).then((user) => {
+          if (cancelled) return;
+          if (!user) setAppUser(null);
+          setAppUserLoading(false);
+        });
+        supabase.from('app_users')
           .update({ last_login: new Date().toISOString() })
-          .eq('auth_id', newSession.user.id);
+          .eq('auth_id', newSession.user.id)
+          .then(
+            () => {},
+            () => {
+              // L'échec de la mise à jour de last_login ne doit jamais bloquer la connexion.
+            }
+          );
       } else {
         setAppUser(null);
         setAppUserLoading(false);
@@ -87,18 +109,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       authListener.subscription.unsubscribe();
     };
-  }, [resolveAppUser]);
+  }, [loadAppUser]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
-    // Recharger appUser immédiatement après le login pour que RequireAuth
-    // puisse autoriser l'accès sans dépendre d'un setTimeout artificiel.
-    const newUser = data?.user ?? null;
-    setAuthUser(newUser);
-    if (newUser) await resolveAppUser(newUser.id);
+    // Le profil métier est rechargé par le callback onAuthStateChange
+    // (événement SIGNED_IN). Pas de double chargement ici.
     return { error: null };
-  }, [resolveAppUser]);
+  }, []);
 
   const signUp = useCallback(async (email: string, password: string, name: string) => {
     const { data, error } = await supabase.auth.signUp({
@@ -159,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      session, authUser, appUser, loading,
+      session, authUser, appUser, loading, appUserLoading,
       signIn, signUp, signOut, resetPassword, updatePassword, refreshAppUser,
     }}>
       {children}

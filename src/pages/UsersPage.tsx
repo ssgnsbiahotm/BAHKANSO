@@ -12,6 +12,7 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
+import { FormSelect } from '@/components/ui/FormPrimitives';
 
 const isAdminOrOwner = (role: string | undefined) =>
   role === 'administrateur' || role === 'propriétaire';
@@ -19,12 +20,15 @@ const isAdminOrOwner = (role: string | undefined) =>
 const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
 export function UsersPage() {
-  const { users, refresh } = useData();
+  const { users, refresh, sites } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editUser, setEditUser] = useState<AppUser | null>(null);
   const [saving, setSaving] = useState(false);
+  const [sitesLoading, setSitesLoading] = useState(false);
+  const [sitesError, setSitesError] = useState<string | null>(null);
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -32,6 +36,7 @@ export function UsersPage() {
     confirmPassword: '',
     role: 'gestionnaire',
     phone: '',
+    site_id: '',
   });
 
   const kpis = useMemo(() => {
@@ -42,13 +47,16 @@ export function UsersPage() {
 
   const canManageUsers = useMemo(() => isAdminOrOwner(appUser?.role), [appUser?.role]);
 
-  const openCreate = () => {
+  const openCreate = async () => {
     if (!canManageUsers) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
       return;
     }
     setEditUser(null);
-    setForm({ name: '', email: '', password: '', confirmPassword: '', role: 'gestionnaire', phone: '' });
+    setForm({ name: '', email: '', password: '', confirmPassword: '', role: 'gestionnaire', phone: '', site_id: '' });
+    setSitesError(null);
+    setFormSubmitted(false);
+    setSitesLoading(false);
     setModalOpen(true);
   };
 
@@ -58,7 +66,8 @@ export function UsersPage() {
       return;
     }
     setEditUser(u);
-    setForm({ name: u.name, email: u.email || '', password: '', confirmPassword: '', role: u.role, phone: u.phone || '' });
+    setFormSubmitted(false);
+    setForm({ name: u.name, email: u.email || '', password: '', confirmPassword: '', role: u.role, phone: u.phone || '', site_id: u.site_id || '' });
     setModalOpen(true);
   };
 
@@ -131,10 +140,16 @@ export function UsersPage() {
 
       if (data.user) {
         // Le trigger handle_new_user() a créé la ligne app_users avec role='gestionnaire' par défaut.
-        // On met à jour avec le rôle et le téléphone choisis.
+        // On met à jour avec le rôle, le téléphone et le site de rattachement choisis.
+        setFormSubmitted(true);
+        if (!form.site_id) {
+          toast.show('Veuillez sélectionner un site de rattachement.', 'error');
+          setSaving(false);
+          return;
+        }
         try {
           await supabase.from('app_users')
-            .update({ role: form.role, phone: form.phone || null })
+            .update({ role: form.role, phone: form.phone || null, site_id: form.site_id })
             .eq('auth_id', data.user.id);
         } catch {
           // Ignore si RLS bloque (email non confirmé) — l'admin corrigera plus tard
@@ -300,7 +315,15 @@ export function UsersPage() {
         footer={
           <>
             <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-secondary hover:bg-surface-hover rounded-lg">Annuler</button>
-            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success disabled:opacity-50">
+            <button
+              onClick={handleSubmit}
+              disabled={
+                saving ||
+                sitesLoading ||
+                (!editUser && !form.site_id)
+              }
+              className="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success disabled:opacity-50"
+            >
               {saving ? 'Enregistrement...' : editUser ? 'Modifier' : 'Créer'}
             </button>
           </>
@@ -340,6 +363,43 @@ export function UsersPage() {
               {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
           </div>
+          {!editUser && (
+            <div>
+              <label className="block text-xs font-medium text-secondary mb-1 flex items-center gap-1">
+                Site de rattachement <span className="text-danger">*</span>
+              </label>
+              {sitesLoading ? (
+                <div className="flex items-center gap-2 text-xs text-muted">
+                  Chargement des sites…
+                </div>
+              ) : sitesError ? (
+                <div className="p-2 bg-danger-soft border border-danger rounded-lg text-xs text-danger">
+                  {sitesError}
+                </div>
+              ) : (
+                <>
+                  <FormSelect
+                    value={form.site_id}
+                    onChange={e => setForm({...form, site_id: e.target.value})}
+                    error={!form.site_id && formSubmitted ? 'Veuillez sélectionner un site de rattachement.' : undefined}
+                  >
+                    <option value="">Sélectionner un site</option>
+                    {sites.map((site) => (
+                      <option key={site.id} value={site.id}>{site.name}</option>
+                    ))}
+                  </FormSelect>
+                  {!form.site_id && formSubmitted && (
+                    <p className="text-xs text-danger mt-1">Veuillez sélectionner un site de rattachement.</p>
+                  )}
+                  {sites.length === 0 && !sitesError && !sitesLoading && (
+                    <p className="text-xs text-danger mt-1">
+                      Aucun site accessible pour la création d'un utilisateur. Contactez votre administrateur.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Téléphone</label>
             <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="form-input" placeholder="+225 07 00 00 00 00" />

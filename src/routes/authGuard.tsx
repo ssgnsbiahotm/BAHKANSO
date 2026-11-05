@@ -3,16 +3,20 @@ import { useAuth } from '@/lib/AuthContext';
 import { hasPermission, getAccessibleModules, type ModuleKey, type PermissionAction, type UserRole } from '@/lib/rbac';
 
  
+function AuthLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-600 border-t-transparent" />
+    </div>
+  );
+}
+
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { appUser, authUser, loading } = useAuth();
+  const { appUser, authUser, loading, appUserLoading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-600 border-t-transparent" />
-      </div>
-    );
+  if (loading || appUserLoading) {
+    return <AuthLoading />;
   }
 
   // Vérifier si l'utilisateur est authentifié
@@ -29,15 +33,11 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 // Composant pour protéger les routes nécessitant un module spécifique
  
 export function RequireModule({ module, action = 'read', children }: { module: ModuleKey; action?: PermissionAction; children: React.ReactNode }) {
-  const { appUser, authUser, loading } = useAuth();
+  const { appUser, authUser, loading, appUserLoading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-600 border-t-transparent" />
-      </div>
-    );
+  if (loading || appUserLoading) {
+    return <AuthLoading />;
   }
 
   // Vérifier si l'utilisateur est authentifié
@@ -83,7 +83,11 @@ export function RequireModule({ module, action = 'read', children }: { module: M
 // Composant pour protéger les routes nécessitant un rôle spécifique (legacy)
  
 export function RequireRole({ role, children }: { role: string; children: React.ReactNode }) {
-  const { appUser } = useAuth();
+  const { appUser, appUserLoading } = useAuth();
+
+  if (appUserLoading) {
+    return <AuthLoading />;
+  }
 
   // Vérifier si l'utilisateur a le rôle requis
   const hasRole = appUser?.role === role;
