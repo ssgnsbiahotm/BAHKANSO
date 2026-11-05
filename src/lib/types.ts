@@ -504,6 +504,33 @@ export interface SaleItem {
   created_at: string;
 }
 
+export type SourceModule = 'culture' | 'elevage' | 'chantier' | 'finance';
+
+export type EventType =
+  | 'campagne_ouverte' | 'semis' | 'intrant_applique' | 'traitement' | 'recolte' | 'campagne_cloturee'
+  | 'animal_achete' | 'animal_ne' | 'animal_vendu' | 'animal_mort' | 'soin_applique' | 'aliment_distribue' | 'production'
+  | 'chantier_ouvert' | 'tache_terminee' | 'chantier_receptionne'
+  | 'depense' | 'recette' | 'financement_recu' | 'remboursement';
+
+export interface JournalEvent {
+  id: string;
+  farm_id: string;
+  occurred_at: string;
+  recorded_at: string;
+  event_type: EventType;
+  entity_type: string;
+  entity_id: string;
+  actor_id: string | null;
+  amount: number | null;
+  quantity: number | null;
+  unit: string | null;
+  currency: string;
+  source_module: SourceModule;
+  context: Record<string, unknown>;
+  reverses_event_id: string | null;
+  created_at: string;
+}
+
 export async function logAudit(
   user_name: string,
   action: string,
