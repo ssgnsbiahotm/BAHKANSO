@@ -52,7 +52,12 @@ function setup({
   mockFrom.mockImplementation((table: string) => {
     if (table === 'app_users') {
       return {
-        update: mockAppUsersUpdate.mockResolvedValue({ data: [], error: null }),
+        update: (payload: any) => ({
+          eq: () => {
+            mockAppUsersUpdate(payload);
+            return Promise.resolve({ data: [], error: null });
+          },
+        }),
       } as any;
     }
     if (table === 'sites') {

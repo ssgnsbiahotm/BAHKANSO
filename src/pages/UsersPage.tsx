@@ -122,17 +122,28 @@ export function UsersPage() {
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: { data: { name: form.name, role: form.role } },
-      });
+      let data: any;
+      let signUpError: any = null;
+      try {
+        const result = await supabase.auth.signUp({
+          email: form.email,
+          password: form.password,
+          options: { data: { name: form.name, role: form.role } },
+        });
+        data = result.data;
+        signUpError = result.error;
+      } catch (err) {
+        signUpError = err;
+        toast.show('Erreur lors de la création du compte', 'error');
+        setSaving(false);
+        return;
+      }
 
-      if (error) {
-        if (error.message.includes('already')) {
+      if (signUpError) {
+        if (signUpError.message.includes('already')) {
           toast.show('Un compte existe déjà avec cet email', 'error');
         } else {
-          toast.show('Erreur: ' + error.message, 'error');
+          toast.show('Erreur: ' + signUpError.message, 'error');
         }
         setSaving(false);
         return;
@@ -147,12 +158,18 @@ export function UsersPage() {
           setSaving(false);
           return;
         }
+        let updateError: any = null;
         try {
           await supabase.from('app_users')
             .update({ role: form.role, phone: form.phone || null, site_id: form.site_id })
             .eq('auth_id', data.user.id);
-        } catch {
-          // Ignore si RLS bloque (email non confirmé) — l'admin corrigera plus tard
+        } catch (err) {
+          updateError = err;
+        }
+
+        if (updateError) {
+          // RLS peut bloquer si l'email n'est pas confirmé — l'admin rattachera le site plus tard
+          toast.show('Compte créé. Le rattachement au site n\'a pas pu être enregistré.', 'warning');
         }
 
         const emailConfirmed = !!data.user.email_confirmed_at;
