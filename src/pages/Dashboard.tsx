@@ -14,7 +14,15 @@ import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
-import { calculateYield, calculateProjectProgress, calculateGrossMargin, calculateCostPerUnit } from '@/lib/kpi';
+import {
+  calculateYield,
+  calculateProjectProgress,
+  calculateGrossMargin,
+  calculateCostPerUnit,
+  calculateMortalityRate,
+  calculateAverageDailyGain,
+  calculateCampaignMargin,
+} from '@/lib/kpi';
 
 // Activités — couleurs d'icône (mappées aux tokens sémantiques)
 const ACTIVITY_COLORS: Record<string, 'signal' | 'warning' | 'info'> = {
@@ -239,6 +247,12 @@ export function Dashboard() {
   const [costPerUnitValue, setCostPerUnitValue] = useState<number | null>(null);
   const [grossMarginLoading, setGrossMarginLoading] = useState(false);
   const [costPerUnitLoading, setCostPerUnitLoading] = useState(false);
+  const [mortalityRateValue, setMortalityRateValue] = useState<number | null>(null);
+  const [adgValue, setAdgValue] = useState<number | null>(null);
+  const [mortalityLoading, setMortalityLoading] = useState(false);
+  const [adgLoading, setAdgLoading] = useState(false);
+  const [campaignMarginValue, setCampaignMarginValue] = useState<number | null>(null);
+  const [campaignMarginLoading, setCampaignMarginLoading] = useState(false);
 
   // Charger la liste des campagnes pour le sélecteur de rendement
   useEffect(() => {
@@ -350,6 +364,55 @@ export function Dashboard() {
     computeFinanceKPIs();
     return () => { mounted = false; };
   }, [farmId]);
+
+  // Calculer le taux de mortalite et le GMQ quand la ferme selectionnee change
+  useEffect(() => {
+    let mounted = true;
+    const computeLivestockKPIs = async () => {
+      if (!farmId) {
+        if (mounted) {
+          setMortalityRateValue(null);
+          setAdgValue(null);
+        }
+        return;
+      }
+      setMortalityLoading(true);
+      setAdgLoading(true);
+      try {
+        const [mortality, adg] = await Promise.all([
+          calculateMortalityRate(farmId),
+          calculateAverageDailyGain(farmId),
+        ]);
+        if (mounted) setMortalityRateValue(mortality);
+        if (mounted) setAdgValue(adg);
+      } finally {
+        if (mounted) setMortalityLoading(false);
+        if (mounted) setAdgLoading(false);
+      }
+    };
+    computeLivestockKPIs();
+    return () => { mounted = false; };
+  }, [farmId]);
+
+  // Calculer la marge de campagne quand la campagne selectionnee change
+  useEffect(() => {
+    let mounted = true;
+    const computeCampaignMargin = async () => {
+      if (!campaignId) {
+        if (mounted) setCampaignMarginValue(null);
+        return;
+      }
+      setCampaignMarginLoading(true);
+      try {
+        const value = await calculateCampaignMargin(campaignId);
+        if (mounted) setCampaignMarginValue(value);
+      } finally {
+        if (mounted) setCampaignMarginLoading(false);
+      }
+    };
+    computeCampaignMargin();
+    return () => { mounted = false; };
+  }, [campaignId]);
 
   // Recherche de l'image de couverture configurée
   // Priorité : siteContent['hero-cover']?.mediaId -> premier media de type 'image' avec catégorie 'cover' -> premier media de type 'image'
@@ -711,6 +774,99 @@ export function Dashboard() {
               sub={farmId ? 'Dépenses ÷ quantité produite (campagne)' : 'Sélectionnez une ferme'}
               icon={<Beef size={20} />}
               color="info"
+            />
+          </div>
+        </section>
+
+        {/* ========== BIS3. KPIS ÉLEVAGE ========== */}
+        <section className="dashboard-section livestock-kpis-dashboard-section" aria-labelledby="livestock-kpis-title">
+          <SectionHeader
+            id="livestock-kpis-title"
+            title="Indicateurs d'élevage"
+            description="Taux de mortalité, gain moyen quotidien (GMQ) et marge de campagne calculés à partir du journal d'événements de la ferme."
+          />
+          <div className="dashboard-yield-selector">
+            <label htmlFor="livestock-farm-select">Ferme</label>
+            <select
+              id="livestock-farm-select"
+              value={farmId ?? ''}
+              onChange={(e) => setFarmId(e.target.value || null)}
+              className="dashboard-select"
+              disabled={mortalityLoading || adgLoading}
+            >
+              <option value="">Sélectionner une ferme</option>
+              {farms.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="dashboard-kpi-grid">
+            <KpiCard
+              label="Taux de mortalité"
+              value={
+                mortalityLoading
+                  ? 'Chargement…'
+                  : mortalityRateValue !== null
+                  ? `${mortalityRateValue.toFixed(1)}%`
+                  : '—'
+              }
+              sub={farmId ? 'Morts / (naissances + morts)' : 'Sélectionnez une ferme'}
+              icon={<AlertTriangle size={20} />}
+              color="warning"
+            />
+            <KpiCard
+              label="GMQ (kg/jour)"
+              value={
+                adgLoading
+                  ? 'Chargement…'
+                  : adgValue !== null
+                  ? `${adgValue.toFixed(2)} kg/j`
+                  : '—'
+              }
+              sub={farmId ? 'Poids ÷ jours depuis la naissance' : 'Sélectionnez une ferme'}
+              icon={<TrendingUp size={20} />}
+              color="info"
+            />
+          </div>
+        </section>
+
+        {/* ========== BIS4. MARGE DE CAMPAGNE ========== */}
+        <section className="dashboard-section campaign-margin-dashboard-section" aria-labelledby="campaign-margin-title">
+          <SectionHeader
+            id="campaign-margin-title"
+            title="Marge de campagne"
+            description="Recettes de récoltes moins dépenses d'opérations culturales pour la campagne sélectionnée."
+          />
+          <div className="dashboard-yield-selector">
+            <label htmlFor="campaign-margin-select">Campagne</label>
+            <select
+              id="campaign-margin-select"
+              value={campaignId ?? ''}
+              onChange={(e) => setCampaignId(e.target.value || null)}
+              className="dashboard-select"
+              disabled={campaignMarginLoading}
+            >
+              <option value="">Sélectionner une campagne</option>
+              {campaigns.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.crop_name} ({c.year})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="dashboard-kpi-grid">
+            <KpiCard
+              label="Marge de campagne"
+              value={
+                campaignMarginLoading
+                  ? 'Chargement…'
+                  : campaignMarginValue !== null
+                  ? `${campaignMarginValue.toFixed(0)} XOF`
+                  : '—'
+              }
+              sub={campaignId ? 'Recettes de récoltes − dépenses culturales' : 'Sélectionnez une campagne'}
+              icon={<DollarSign size={20} />}
+              color="signal"
             />
           </div>
         </section>
