@@ -13,6 +13,8 @@ import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { supabase } from '@/lib/supabase';
+import { calculateYield } from '@/lib/kpi';
 
 // Activités — couleurs d'icône (mappées aux tokens sémantiques)
 const ACTIVITY_COLORS: Record<string, 'signal' | 'warning' | 'info'> = {
@@ -223,6 +225,44 @@ export function Dashboard() {
 
   const showFinance = !isFinanceSensitive(appUser?.role);
   const [helpExpanded, setHelpExpanded] = useState(false);
+  const [campaigns, setCampaigns] = useState<{ id: string; year: number; crop_name: string }[]>([]);
+  const [campaignId, setCampaignId] = useState<string | null>(null);
+  const [yieldValue, setYieldValue] = useState<number | null>(null);
+  const [yieldLoading, setYieldLoading] = useState(false);
+
+  // Charger la liste des campagnes pour le sélecteur de rendement
+  useEffect(() => {
+    let mounted = true;
+    const fetchCampaigns = async () => {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('id, year, crop_name')
+        .order('year', { ascending: false });
+      if (!error && mounted) setCampaigns(data || []);
+    };
+    fetchCampaigns();
+    return () => { mounted = false; };
+  }, []);
+
+  // Calculer le rendement quand la campagne sélectionnée change
+  useEffect(() => {
+    let mounted = true;
+    const computeYield = async () => {
+      if (!campaignId) {
+        if (mounted) setYieldValue(null);
+        return;
+      }
+      setYieldLoading(true);
+      try {
+        const value = await calculateYield(campaignId);
+        if (mounted) setYieldValue(value);
+      } finally {
+        if (mounted) setYieldLoading(false);
+      }
+    };
+    computeYield();
+    return () => { mounted = false; };
+  }, [campaignId]);
 
   // Recherche de l'image de couverture configurée
   // Priorité : siteContent['hero-cover']?.mediaId -> premier media de type 'image' avec catégorie 'cover' -> premier media de type 'image'
@@ -462,7 +502,42 @@ export function Dashboard() {
           )}
         </section>
 
-        {/* ========== B. PRIORITÉS ET ACTIONS ========== */}
+        {/* ========== B. RENDEMENT DE CAMPAGNE ========== */}
+        <section className="dashboard-section yield-dashboard-section" aria-labelledby="yield-title">
+          <SectionHeader
+            id="yield-title"
+            title="Rendement de campagne"
+            description="Somme des quantités récoltées divisée par la surface de la parcelle (kg/ha)."
+          />
+          <div className="dashboard-yield-selector">
+            <label htmlFor="yield-campaign-select">Campagne</label>
+            <select
+              id="yield-campaign-select"
+              value={campaignId ?? ''}
+              onChange={(e) => setCampaignId(e.target.value || null)}
+              className="dashboard-select"
+              disabled={yieldLoading}
+            >
+              <option value="">Sélectionner une campagne</option>
+              {campaigns.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.crop_name} ({c.year})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="dashboard-kpi-grid">
+            <KpiCard
+              label="Rendement (kg/ha)"
+              value={yieldLoading ? 'Chargement…' : yieldValue !== null ? `${yieldValue.toFixed(0)} kg/ha` : '—'}
+              sub={campaignId ? 'Quantité récoltée ÷ surface de la parcelle' : 'Sélectionnez une campagne'}
+              icon={<Sprout size={20} />}
+              color="info"
+            />
+          </div>
+        </section>
+
+        {/* ========== C. PRIORITÉS ET ACTIONS ========== */}
         <section className="dashboard-section priorities-dashboard-section" aria-labelledby="priorities-title">
           <SectionHeader
             id="priorities-title"
