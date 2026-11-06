@@ -255,7 +255,7 @@ export function AnimalManage() {
 
   const handleDeathSubmit = async () => {
     const { error: eventError } = await supabase.from('animal_events').insert({
-      type: 'mortalité',
+      type: 'mort',
       date: new Date().toISOString().split('T')[0],
       animal_id: deathAnimal?.id || null,
       cost: 0,

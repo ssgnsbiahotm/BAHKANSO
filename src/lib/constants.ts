@@ -192,7 +192,7 @@ export const ANIMAL_EVENT_TYPES = [
   'pesée',
   'transfert',
   'reproduction',
-  'mortalité',
+  'mort',
 ];
 
 export const INVENTORY_MOVEMENT_TYPES = [
@@ -283,11 +283,11 @@ export const CAMPAIGN_STATUS_COLORS: Record<string, string> = {
   annulé: STATUS_CLASS_DANGER,
 };
 
-export const ANIMAL_STATUSES = ['actif', 'vendu', 'décédé', 'transféré'] as const;
+export const ANIMAL_STATUSES = ['actif', 'vendu', 'deceased', 'transféré'] as const;
 export const ANIMAL_STATUS_COLORS: Record<string, string> = {
   actif: STATUS_CLASS_SUCCESS,
   vendu: STATUS_CLASS_INFO,
-  décédé: STATUS_CLASS_DANGER,
+  deceased: STATUS_CLASS_DANGER,
   transféré: STATUS_CLASS_WARNING,
 };
 

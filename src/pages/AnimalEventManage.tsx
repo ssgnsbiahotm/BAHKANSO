@@ -58,6 +58,7 @@ const TYPE_OPTIONS = [
   { value: 'naissance', label: 'Naissance' },
   { value: 'vente', label: 'Vente' },
   { value: 'achat', label: 'Achat' },
+  { value: 'mort', label: 'Mort' },
   { value: 'autre', label: 'Autre' },
 ] as const;
 
