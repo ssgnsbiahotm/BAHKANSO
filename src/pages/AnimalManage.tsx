@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Beef, Heart, Scale, Activity, Plus } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
+import { useSite } from '@/lib/SiteContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
@@ -43,6 +44,7 @@ const animalSchema = z.object({
   location: z.string().optional(),
   mother_id: z.string().uuid().optional(),
   father_id: z.string().uuid().optional(),
+  site_id: z.string().uuid({ message: 'Sélectionnez un site' }),
 });
 
 type AnimalFormValues = z.infer<typeof animalSchema>;
@@ -59,6 +61,7 @@ const DEFAULT_VALUES: AnimalFormValues = {
   location: '',
   mother_id: undefined,
   father_id: undefined,
+  site_id: currentSiteId ?? '',
 };
 
 const SPECIES_OPTIONS = [
@@ -105,8 +108,9 @@ function getStatusBadgeColor(status: string): 'green' | 'red' | 'amber' | 'yello
 }
 
 export function AnimalManage() {
-  const { animals, animalLots, animalEvents, refresh } = useData();
+  const { animals, animalLots, animalEvents, sites, refresh } = useData();
   const { appUser } = useAuth();
+  const { currentSiteId } = useSite();
   const toast = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -160,6 +164,7 @@ export function AnimalManage() {
         location: values.location || null,
         mother_id: values.mother_id || null,
         father_id: values.father_id || null,
+        site_id: values.site_id || null,
       };
 
       if (editAnimal) {
@@ -216,6 +221,7 @@ export function AnimalManage() {
     setForm('location', '');
     setForm('mother_id', undefined);
     setForm('father_id', undefined);
+    setForm('site_id', currentSiteId ?? '');
     setModalOpen(true);
   }, [setForm]);
 
@@ -232,6 +238,7 @@ export function AnimalManage() {
     setForm('location', animal.location || '');
     setForm('mother_id', animal.mother_id || undefined);
     setForm('father_id', animal.father_id || undefined);
+    setForm('site_id', animal.site_id ?? '');
     setModalOpen(true);
   }, [setForm]);
 
@@ -543,6 +550,17 @@ export function AnimalManage() {
                   onChange={e => setForm('species', e.target.value as AnimalFormValues['species'])}
                 >
                   {SPECIES_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </FormSelect>
+              </FormField>
+              <FormField label="Site" required error={errors.site_id}>
+                <FormSelect
+                  value={form.site_id}
+                  onChange={e => setForm('site_id', e.target.value)}
+                >
+                  <option value="">— Choisir un site —</option>
+                  {sites.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
                 </FormSelect>
               </FormField>
             </div>

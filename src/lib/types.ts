@@ -256,6 +256,7 @@ export interface Animal {
   estimated_value: number;
   mother_id: string | null;
   father_id: string | null;
+  site_id: string | null;
 }
 
 export interface AnimalLot {
