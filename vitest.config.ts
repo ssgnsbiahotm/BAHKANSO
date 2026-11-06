@@ -10,6 +10,12 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}', 'tests/integration/*.test.{mjs,js,ts}'],
     globals: true,
     fileParallelism: false,
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
+    testTimeout: 30000,
   },
   resolve: {
     alias: {
