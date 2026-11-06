@@ -95,6 +95,10 @@ test('la récolte alimente le journal après création', async () => {
 });
 
 test('la vente alimente le journal après création', async () => {
+  // Nettoyer les ventes seedées (migration 018) pour éviter un conflit
+  // de référence avec la séquence sale_ref_seq (migration 019).
+  await adminClient.from('sales').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
   const { data: sale, error: sErr } = await adminClient
     .from('sales')
     .insert({
@@ -121,6 +125,51 @@ test('la vente alimente le journal après création', async () => {
   expect(recetteEvents[0].entity_id).toBe(sale.id);
   expect(recetteEvents[0].source_module).toBe('finance');
   expect(recetteEvents[0].amount).toBe(2500);
+});
+
+test('l\'événement d\'élevage alimente le journal après création', async () => {
+  // Créer un animal lié au site de test
+  const { data: animal, error: aErr } = await adminClient
+    .from('animals')
+    .insert({
+      identifier: `ANIM-JOURNAL-${Date.now()}`,
+      species: 'bovin',
+      breed: 'zebu',
+      sex: 'femelle',
+      birth_date: new Date().toISOString().split('T')[0],
+      site_id: fx.site.id,
+      status: 'actif'
+    })
+    .select()
+    .single();
+  expect(aErr).toBeNull();
+
+  // Créer un événement de vie (naissance)
+  const { data: event, error: eErr } = await adminClient
+    .from('animal_events')
+    .insert({
+      animal_id: animal.id,
+      type: 'naissance',
+      date: new Date().toISOString().split('T')[0],
+      description: 'Naissance d\'un veau',
+      cost: 0
+    })
+    .select()
+    .single();
+  expect(eErr).toBeNull();
+
+  const { data: journal, error: jErr } = await adminClient
+    .from('event_journal')
+    .select('*')
+    .eq('farm_id', fx.farm.id);
+
+  expect(jErr).toBeNull();
+
+  const naissanceEvents = journal.filter((e) => e.event_type === 'naissance');
+  expect(naissanceEvents.length).toBeGreaterThanOrEqual(1);
+  expect(naissanceEvents[0].entity_type).toBe('animal');
+  expect(naissanceEvents[0].entity_id).toBe(animal.id);
+  expect(naissanceEvents[0].source_module).toBe('elevage');
 });
 
 afterAll(async () => {
