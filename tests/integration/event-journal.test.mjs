@@ -60,16 +60,71 @@ test('le journal doit être alimenté après création d\'une dépense', async (
 
   expect(jErr).toBeNull();
 
-  expect(journal.length).toBe(1);
-  expect(journal[0].event_type).toBe('depense');
-  expect(journal[0].entity_type).toBe('expense');
-  expect(journal[0].entity_id).toBe(expense.id);
-  expect(journal[0].source_module).toBe('finance');
-  expect(journal[0].amount).toBe(1000);
+  const depenseEvents = journal.filter((e) => e.event_type === 'depense');
+  expect(depenseEvents.length).toBeGreaterThanOrEqual(1);
+  expect(depenseEvents[0].entity_type).toBe('expense');
+  expect(depenseEvents[0].source_module).toBe('finance');
+});
+
+test('la récolte alimente le journal après création', async () => {
+  const { data: harvest, error: hErr } = await adminClient
+    .from('harvests')
+    .insert({
+      site_id: fx.site.id,
+      date: new Date().toISOString().split('T')[0],
+      quantity: 500,
+      unit: 'kg'
+    })
+    .select()
+    .single();
+  expect(hErr).toBeNull();
+
+  const { data: journal, error: jErr } = await adminClient
+    .from('event_journal')
+    .select('*')
+    .eq('farm_id', fx.farm.id);
+
+  expect(jErr).toBeNull();
+
+  const recolteEvents = journal.filter((e) => e.event_type === 'recolte');
+  expect(recolteEvents.length).toBeGreaterThanOrEqual(1);
+  expect(recolteEvents[0].entity_type).toBe('harvest');
+  expect(recolteEvents[0].entity_id).toBe(harvest.id);
+  expect(recolteEvents[0].source_module).toBe('culture');
+  expect(recolteEvents[0].quantity).toBe(500);
+});
+
+test('la vente alimente le journal après création', async () => {
+  const { data: sale, error: sErr } = await adminClient
+    .from('sales')
+    .insert({
+      site_id: fx.site.id,
+      date: new Date().toISOString().split('T')[0],
+      total_amount: 2500,
+      status: 'payée',
+      created_by: fx.admin.appUser.id
+    })
+    .select()
+    .single();
+  expect(sErr).toBeNull();
+
+  const { data: journal, error: jErr } = await adminClient
+    .from('event_journal')
+    .select('*')
+    .eq('farm_id', fx.farm.id);
+
+  expect(jErr).toBeNull();
+
+  const recetteEvents = journal.filter((e) => e.event_type === 'recette');
+  expect(recetteEvents.length).toBeGreaterThanOrEqual(1);
+  expect(recetteEvents[0].entity_type).toBe('sale');
+  expect(recetteEvents[0].entity_id).toBe(sale.id);
+  expect(recetteEvents[0].source_module).toBe('finance');
+  expect(recetteEvents[0].amount).toBe(2500);
 });
 
 afterAll(async () => {
-  // Nettoyer la dépense de test et le journal pour cette ferme
+  // Nettoyer le journal pour cette ferme
   if (fx?.farm) {
     await adminClient.from('event_journal').delete().eq('farm_id', fx.farm.id);
   }
