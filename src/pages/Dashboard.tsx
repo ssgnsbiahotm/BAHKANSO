@@ -14,7 +14,7 @@ import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
-import { calculateYield, calculateProjectProgress } from '@/lib/kpi';
+import { calculateYield, calculateProjectProgress, calculateGrossMargin, calculateCostPerUnit } from '@/lib/kpi';
 
 // Activités — couleurs d'icône (mappées aux tokens sémantiques)
 const ACTIVITY_COLORS: Record<string, 'signal' | 'warning' | 'info'> = {
@@ -233,6 +233,12 @@ export function Dashboard() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [progressValue, setProgressValue] = useState<number | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
+  const [farms, setFarms] = useState<{ id: string; name: string }[]>([]);
+  const [farmId, setFarmId] = useState<string | null>(null);
+  const [grossMarginValue, setGrossMarginValue] = useState<number | null>(null);
+  const [costPerUnitValue, setCostPerUnitValue] = useState<number | null>(null);
+  const [grossMarginLoading, setGrossMarginLoading] = useState(false);
+  const [costPerUnitLoading, setCostPerUnitLoading] = useState(false);
 
   // Charger la liste des campagnes pour le sélecteur de rendement
   useEffect(() => {
@@ -301,6 +307,49 @@ export function Dashboard() {
     computeProgress();
     return () => { mounted = false; };
   }, [projectId]);
+
+  // Charger la liste des fermes pour le sélecteur des KPIs finance
+  useEffect(() => {
+    let mounted = true;
+    const fetchFarms = async () => {
+      const { data, error } = await supabase
+        .from('farms')
+        .select('id, name')
+        .order('name', { ascending: true });
+      if (!error && mounted) setFarms(data || []);
+    };
+    fetchFarms();
+    return () => { mounted = false; };
+  }, []);
+
+  // Calculer la marge brute et le coût de revient quand la ferme sélectionnée change
+  useEffect(() => {
+    let mounted = true;
+    const computeFinanceKPIs = async () => {
+      if (!farmId) {
+        if (mounted) {
+          setGrossMarginValue(null);
+          setCostPerUnitValue(null);
+        }
+        return;
+      }
+      setGrossMarginLoading(true);
+      setCostPerUnitLoading(true);
+      try {
+        const [margin, cost] = await Promise.all([
+          calculateGrossMargin(farmId),
+          calculateCostPerUnit(farmId),
+        ]);
+        if (mounted) setGrossMarginValue(margin);
+        if (mounted) setCostPerUnitValue(cost);
+      } finally {
+        if (mounted) setGrossMarginLoading(false);
+        if (mounted) setCostPerUnitLoading(false);
+      }
+    };
+    computeFinanceKPIs();
+    return () => { mounted = false; };
+  }, [farmId]);
 
   // Recherche de l'image de couverture configurée
   // Priorité : siteContent['hero-cover']?.mediaId -> premier media de type 'image' avec catégorie 'cover' -> premier media de type 'image'
@@ -610,6 +659,58 @@ export function Dashboard() {
               sub={projectId ? 'Étapes terminées / total des étapes' : 'Sélectionnez un chantier'}
               icon={<Target size={20} />}
               color="warning"
+            />
+          </div>
+        </section>
+
+        {/* ========== BIS2. KPIS FINANCE ========== */}
+        <section className="dashboard-section finance-kpis-dashboard-section" aria-labelledby="finance-kpis-title">
+          <SectionHeader
+            id="finance-kpis-title"
+            title="Indicateurs financiers"
+            description="Marge brute et coût de revient calculés à partir du journal d'événements de la ferme."
+          />
+          <div className="dashboard-yield-selector">
+            <label htmlFor="finance-farm-select">Ferme</label>
+            <select
+              id="finance-farm-select"
+              value={farmId ?? ''}
+              onChange={(e) => setFarmId(e.target.value || null)}
+              className="dashboard-select"
+              disabled={grossMarginLoading || costPerUnitLoading}
+            >
+              <option value="">Sélectionner une ferme</option>
+              {farms.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="dashboard-kpi-grid">
+            <KpiCard
+              label="Marge brute"
+              value={
+                grossMarginLoading
+                  ? 'Chargement…'
+                  : grossMarginValue !== null
+                  ? `${grossMarginValue.toFixed(0)} XOF`
+                  : '—'
+              }
+              sub={farmId ? 'Recettes − dépenses (journal)' : 'Sélectionnez une ferme'}
+              icon={<DollarSign size={20} />}
+              color="signal"
+            />
+            <KpiCard
+              label="Coût de revient unitaire"
+              value={
+                costPerUnitLoading
+                  ? 'Chargement…'
+                  : costPerUnitValue !== null
+                  ? `${costPerUnitValue.toFixed(0)} XOF/unité`
+                  : '—'
+              }
+              sub={farmId ? 'Dépenses ÷ quantité produite (campagne)' : 'Sélectionnez une ferme'}
+              icon={<Beef size={20} />}
+              color="info"
             />
           </div>
         </section>

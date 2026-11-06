@@ -59,3 +59,77 @@ export async function calculateProjectProgress(
 
   return Math.round((doneSteps / totalSteps) * 100);
 }
+
+export async function calculateGrossMargin(
+  farmId: string,
+  startDate?: string,
+  endDate?: string,
+  client = supabase
+): Promise<number> {
+  const buildQuery = (eventType: string) => {
+    let q = client
+      .from('event_journal')
+      .select('amount')
+      .eq('farm_id', farmId)
+      .eq('event_type', eventType);
+    if (startDate) q = q.gte('occurred_at', startDate);
+    if (endDate) q = q.lte('occurred_at', endDate);
+    return q;
+  };
+
+  const { data: recettesRows, error: recettesError } = await buildQuery(
+    'recette'
+  );
+  const { data: depensesRows, error: depensesError } = await buildQuery(
+    'depense'
+  );
+
+  if (recettesError || depensesError) return 0;
+
+  const recettes = recettesRows?.reduce(
+    (sum, e) => sum + Number(e.amount || 0),
+    0
+  );
+  const depenses = depensesRows?.reduce(
+    (sum, e) => sum + Number(e.amount || 0),
+    0
+  );
+
+  return recettes - depenses;
+}
+
+export async function calculateCostPerUnit(
+  farmId: string,
+  campaignId?: string,
+  client = supabase
+): Promise<number | null> {
+  // 1. Dépenses
+  const { data: depenses } = await client
+    .from('event_journal')
+    .select('amount, context')
+    .eq('farm_id', farmId)
+    .eq('event_type', 'depense');
+
+  const totalDepenses = depenses?.reduce((sum, e) => {
+    const ctxCampaign = (e.context as { campaign_id?: string })?.campaign_id;
+    if (campaignId && ctxCampaign !== campaignId) return sum;
+    return sum + Number(e.amount || 0);
+  }, 0);
+
+  // 2. Quantité produite (récoltes)
+  const { data: recoltes } = await client
+    .from('event_journal')
+    .select('quantity, context')
+    .eq('farm_id', farmId)
+    .eq('event_type', 'recolte');
+
+  const totalQuantity = recoltes?.reduce((sum, e) => {
+    const ctxCampaign = (e.context as { campaign_id?: string })?.campaign_id;
+    if (campaignId && ctxCampaign !== campaignId) return sum;
+    return sum + Number(e.quantity || 0);
+  }, 0);
+
+  if (!totalQuantity || totalQuantity <= 0) return null;
+
+  return totalDepenses! / totalQuantity;
+}
