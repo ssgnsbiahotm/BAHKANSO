@@ -20,6 +20,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import type { Animal } from '@/lib/types';
+import { generateAnimalIdentifier } from '@/lib/animal-ids';
 import * as z from 'zod';
 import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
@@ -152,8 +153,12 @@ export function AnimalManage() {
     schema: animalSchema,
     defaultValues: DEFAULT_VALUES,
     onSubmit: async (values) => {
+      let finalIdentifier = values.identifier.trim();
+      if (!finalIdentifier) {
+        finalIdentifier = await generateAnimalIdentifier(values.species, supabase);
+      }
       const payload = {
-        identifier: values.identifier,
+        identifier: finalIdentifier,
         name: values.name || null,
         species: values.species,
         breed: values.breed || null,
@@ -208,22 +213,21 @@ export function AnimalManage() {
     return { totalAnimals, totalValue: totalValue + individualValue, events, vaccinations };
   }, [animals, animalLots, animalEvents]);
 
-  const openCreate = useCallback(() => {
+  const openCreate = async () => {
     setEditAnimal(null);
-    setForm('identifier', '');
-    setForm('name', '');
-    setForm('species', 'cattle');
-    setForm('breed', '');
-    setForm('date_of_birth', undefined);
-    setForm('sex', undefined);
-    setForm('weight_kg', undefined);
-    setForm('status', 'healthy');
-    setForm('location', '');
-    setForm('mother_id', undefined);
-    setForm('father_id', undefined);
-    setForm('site_id', currentSiteId ?? '');
+    let previewId = '';
+    try {
+      previewId = await generateAnimalIdentifier('cattle', supabase);
+    } catch {
+      previewId = '';
+    }
+    setForm({
+      ...DEFAULT_VALUES,
+      site_id: currentSiteId ?? '',
+      identifier: previewId,
+    });
     setModalOpen(true);
-  }, [setForm]);
+  };
 
   const openEdit = useCallback((animal: Animal) => {
     setEditAnimal(animal);
@@ -349,7 +353,7 @@ export function AnimalManage() {
         subtitle="Suivi individuel des animaux d'élevage"
         actions={
           <>
-            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
+            <button onClick={() => void openCreate()} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">
               <Plus size={18} /> Nouvel animal
             </button>
             <button
@@ -393,7 +397,7 @@ export function AnimalManage() {
           icon={null}
           title={searchTerm ? "Aucun résultat" : "Aucun animal"}
           message={searchTerm ? "Aucun animal ne correspond à votre recherche" : "Aucun animal enregistré"}
-          action={searchTerm ? undefined : <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">Créer un animal</button>}
+          action={searchTerm ? undefined : <button onClick={() => void openCreate()} className="flex items-center gap-2 px-4 py-2 bg-success text-white rounded-lg hover:bg-success text-sm font-medium">Créer un animal</button>}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -537,17 +541,29 @@ export function AnimalManage() {
         <form onSubmit={handleFormSubmit} className="space-y-6">
           <FormSection title="Informations essentielles">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Identificateur" required error={errors.identifier}>
+              <FormField label="Identificateur" hint="Généré automatiquement" required error={errors.identifier}>
                 <FormInput
                   value={form.identifier}
-                  onChange={e => setForm('identifier', e.target.value)}
-                  placeholder="ANI-001 ou bouclerole"
+                  readOnly
+                  className="bg-bg-input/50 cursor-not-allowed"
+                  placeholder="Sélectionnez d'abord une espèce"
                 />
               </FormField>
               <FormField label="Espèce" required error={errors.species}>
                 <FormSelect
                   value={form.species}
-                  onChange={e => setForm('species', e.target.value as AnimalFormValues['species'])}
+                  onChange={async (e) => {
+                    const newSpecies = e.target.value as AnimalFormValues['species'];
+                    setForm('species', newSpecies);
+                    if (!editAnimal) {
+                      try {
+                        const newId = await generateAnimalIdentifier(newSpecies, supabase);
+                        setForm('identifier', newId);
+                      } catch {
+                        // garde l'identifiant actuel si erreur
+                      }
+                    }
+                  }}
                 >
                   {SPECIES_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </FormSelect>
