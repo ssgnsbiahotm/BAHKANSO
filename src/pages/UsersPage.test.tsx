@@ -4,6 +4,7 @@ import { UsersPage } from './UsersPage';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { AppUser } from '@/lib/types';
 
 vi.mock('@/lib/DataContext', () => ({
   useData: vi.fn(),
@@ -37,7 +38,7 @@ function setup({
   role = 'administrateur',
 }: {
   sites: { id: string; name: string }[];
-  users: any[];
+  users: AppUser[];
   role?: string;
 }) {
   mockUseData.mockReturnValue({
@@ -52,27 +53,27 @@ function setup({
   mockFrom.mockImplementation((table: string) => {
     if (table === 'app_users') {
       return {
-        update: (payload: any) => ({
+        update: (payload: Record<string, unknown>) => ({
           eq: () => {
             mockAppUsersUpdate(payload);
             return Promise.resolve({ data: [], error: null });
           },
         }),
-      } as any;
+      } as never;
     }
     if (table === 'sites') {
       return {
         select: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: sites, error: null }),
-      } as any;
+      } as never;
     }
-    return { insert: vi.fn().mockResolvedValue({ data: null, error: null }) } as any;
+    return { insert: vi.fn().mockResolvedValue({ data: null, error: null }) } as never;
   });
 
   mockSignUp.mockResolvedValue({
     data: { user: { id: 'auth-1', email_confirmed_at: '2026-01-01' } },
     error: null,
-  } as any);
+  } as never);
 }
 
 function fillForm() {

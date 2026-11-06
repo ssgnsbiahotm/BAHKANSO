@@ -74,15 +74,21 @@ export function RotatingCard({
         {/* Face avant */}
         <div className="rc-face rc-face--front" data-rc-face="front" aria-hidden={flipped}>
           <div
-            className="absolute top-3 right-3 text-muted/40 group-hover:text-accent-primary transition-colors"
+            className="absolute top-3 right-3 flex flex-col items-end gap-1 text-muted/40 group-hover:text-accent-primary transition-colors"
             aria-hidden="true"
           >
             <RotateCw size={14} />
+            {flipLabel && <span className="rc-flip-label text-xs">{flipLabel}</span>}
           </div>
           <div className="rc-content">{front}</div>
         </div>
         {/* Face arrière */}
         <div className="rc-face rc-face--back" data-rc-face="back" aria-hidden={!flipped}>
+          {backLabel && (
+            <div className="absolute top-3 right-3 text-muted/40 group-hover:text-accent-primary transition-colors">
+              <span className="rc-flip-label text-xs">{backLabel}</span>
+            </div>
+          )}
           <div className="rc-content">{back}</div>
         </div>
       </div>

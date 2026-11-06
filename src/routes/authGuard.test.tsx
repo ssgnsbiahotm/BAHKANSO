@@ -20,7 +20,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 const mockUseAuth = useAuth as ReturnType<typeof vi.fn>;
 
 function renderGuard(
-  element: React.ComponentType<any>,
+  element: React.ComponentType<{ children: React.ReactNode }>,
   children: React.ReactNode,
   overrides: {
     loading?: boolean;
@@ -36,7 +36,12 @@ function renderGuard(
     appUser: overrides.appUser,
   } as never);
 
-  return render(React.createElement(element, { module: 'surveillance', children }));
+  return render(
+    React.createElement(
+      element as React.ComponentType<{ module?: string; children: React.ReactNode }>,
+      { module: 'surveillance', children }
+    )
+  );
 }
 
 describe('RequireAuth', () => {
@@ -100,7 +105,7 @@ describe('RequireAuth', () => {
 describe('RequireModule', () => {
   it('affiche un etat de chargement pendant le chargement du profil', () => {
     renderGuard(
-      RequireModule,
+      RequireModule as React.ComponentType<{ children: React.ReactNode }>,
       <div data-testid="children">Contenu module</div>,
       { loading: false, appUserLoading: true, authUser: { id: 'u1', email: 'a@b.fr' }, appUser: null }
     );

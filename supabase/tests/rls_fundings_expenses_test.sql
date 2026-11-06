@@ -12,7 +12,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(7);
+select plan(10);
 
 -- 1-2. FORCE ROW LEVEL SECURITY active
 select is(
@@ -48,7 +48,34 @@ select is(
   'aucune politique permissive sur expenses'
 );
 
--- 5-6. Les politiques *_scoped existent
+-- 5-6. Aucune politique USING (true) ou WITH CHECK (true) sur event_journal
+select is(
+  (select count(*) from pg_policy
+   where polrelid = 'public.event_journal'::regclass
+     and (pg_get_expr(polqual, polrelid) = 'true'
+          or pg_get_expr(polwithcheck, polrelid) = 'true')),
+  0::bigint,
+  'aucune politique permissive sur event_journal'
+);
+
+-- 7-8. FORCE ROW LEVEL SECURITY active sur event_journal
+select is(
+  (select relforcerowsecurity from pg_class
+   where relname = 'event_journal' and relkind = 'r'),
+  true,
+  'event_journal a FORCE ROW LEVEL SECURITY'
+);
+
+-- 9. La politique event_journal_select_scoped existe
+select is(
+  (select count(*) from pg_policy
+   where polrelid = 'public.event_journal'::regclass
+     and polname = 'event_journal_select_scoped'),
+  1::bigint,
+  'politique event_journal_select_scoped presente'
+);
+
+-- 10-11. Les politiques *_scoped existent sur fundings et expenses
 select is(
   (select count(*) from pg_policy
    where polrelid = 'public.fundings'::regclass

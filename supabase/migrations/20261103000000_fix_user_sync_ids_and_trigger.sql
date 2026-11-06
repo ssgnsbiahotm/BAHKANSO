@@ -24,7 +24,9 @@ BEGIN
     UPDATE public.media SET uploaded_by = rec.correct_id WHERE uploaded_by = rec.wrong_id;
     UPDATE public.notifications SET user_id = rec.correct_id WHERE user_id = rec.wrong_id;
     UPDATE public.sales SET created_by = rec.correct_id WHERE created_by = rec.wrong_id;
-    UPDATE public.surveillance_events SET responsible_id = rec.correct_id WHERE responsible_id = rec.wrong_id;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'surveillance_events') THEN
+      UPDATE public.surveillance_events SET responsible_id = rec.correct_id WHERE responsible_id = rec.wrong_id;
+    END IF;
     UPDATE public.app_users SET id = rec.correct_id WHERE id = rec.wrong_id;
   END LOOP;
 END $$;

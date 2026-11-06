@@ -64,6 +64,13 @@
   max-height: 500px;
 }
 
+/* Libellé de retournement (flipLabel / backLabel) affiché sur chaque face */
+.rc-flip-label {
+  display: block;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
 /* Icône flip */
 .rc-flip-icon {
   position: absolute;

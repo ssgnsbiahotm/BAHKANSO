@@ -63,6 +63,33 @@ describe('RotatingCard', () => {
     expect(screen.getByText('Recto')).toBeVisible();
   });
 
+  it('affiche flipLabel sur la face avant et backLabel sur la face arrière', () => {
+    render(
+      <RotatingCard
+        front={<div>Recto</div>}
+        back={<div>Verso</div>}
+        flipLabel="Détails"
+        backLabel="Retour"
+      />,
+    );
+
+    const card = screen.getByRole('button', { name: 'Ouvrir les détails de Carte' });
+    const face = (name: 'front' | 'back') =>
+      screen.getByText(name === 'front' ? 'Recto' : 'Verso').closest(`[data-rc-face="${name}"]`)!;
+
+    // Face avant : flipLabel sur la face avant (pas cachée), backLabel sur la face arrière (cachée)
+    expect(screen.getByText('Détails')).toBeInTheDocument();
+    expect(face('front')).toHaveAttribute('aria-hidden', 'false');
+    expect(face('back')).toHaveAttribute('aria-hidden', 'true');
+
+    fireEvent.click(card);
+
+    // Face arrière affichée : backLabel désormais sur la face visible
+    expect(face('front')).toHaveAttribute('aria-hidden', 'true');
+    expect(face('back')).toHaveAttribute('aria-hidden', 'false');
+    expect(screen.getByText('Retour')).toBeInTheDocument();
+  });
+
   it('ne bascule pas quand on clique sur un élément interactif interne', () => {
     const { container } = render(
       <RotatingCard

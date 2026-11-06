@@ -11,8 +11,12 @@
 [studio]
   ports = ["54323:54323"]
 
-[inbucket]
+[local_smtp]
   ports = ["54324:54324"]
 
 [auth]
   enabled = true
+  # Contournement local : force l'algorithme HS256 pour que les tests d'intégration fonctionnent avec l'ancien format de clé.
+  jwt_secret = "super-secret-jwt-token-with-at-least-32-characters-long"
+  # On peut aussi forcer le site_url pour éviter les erreurs de redirection locales
+  site_url = "http://localhost:3000"
