@@ -64,11 +64,15 @@ const TYPE_OPTIONS = [
 
 const TYPE_FILTERS = [
   { id: 'all', label: 'Tous' },
+  { id: 'naissance', label: 'Naissances' },
   { id: 'vaccination', label: 'Vaccinations' },
   { id: 'traitement', label: 'Traitements' },
   { id: 'maladie', label: 'Maladies' },
+  { id: 'mort', label: 'Morts' },
+  { id: 'vente', label: 'Ventes' },
+  { id: 'achat', label: 'Achats' },
   { id: 'autre', label: 'Autres' },
-];
+] as const;
 
 export function AnimalEventManage() {
   const { animalEvents, animals, animalLots, refresh } = useData();
