@@ -15,7 +15,7 @@ La branche `rls/fundings-expenses` contient des modifications en cours (non comm
 - Node/npm : projet npm, scripts `dev`, `build`, `lint`, `typecheck`, `test`
 - Base : Supabase local (config.toml), migrations SQL jusqu'à `20261103000001_create_media_table.sql`
 - Variables d'environnement requises : `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (`.env` untracké, non modifié)
-- Observation : 4 fichiers de migration `.sql` non trackés dans `supabase/migrations/` (`20261005195219_pre_013_functions.sql`, `20261005195220_surveillance_events_pre012.sql`, `20261020160002_restore_surveillance_events.sql`, `20261031000001_create_media_table.sql`). Ce sont des fichiers nouveaux non trackés, pas des modifications de migrations appliquées — la règle RLS (ne jamais modifier une migration appliquée) est respectée.
+- Observation : 3 fichiers de migration `.sql` nouveaux non trackés dans `supabase/migrations/` (`20261005195219_pre_012_surveillance_events.sql`, `20261005195219_pre_013_functions.sql`, `20261105000000_create_event_journal.sql`). Ce sont des fichiers nouveaux non trackés, pas des modifications de migrations appliquées — la règle RLS (ne jamais modifier une migration appliquée) est respectée. Ils seront documentés dans le rapport dédié `docs/reports/<migration-audit>.md`.
 
 ## Constats
 
@@ -35,8 +35,8 @@ Les 3 fichiers d'intégration RLS sous `tests/integration/` échouent car `SUPAB
 
 ### 3. Lint — `npm run lint`
 
-Projet entier : **42 erreurs, 19 warnings**, tous **préexistants** (aucun dans les fichiers modifiés par cette session).
-Ciblé sur les fichiers modifiés (`AuthContext.tsx`, `UsersPage.tsx`, `authGuard.tsx`, `UsersPage.test.tsx`, `authGuard.test.tsx`) : 7 erreurs `@typescript-eslint/no-explicit-any` dans les 2 fichiers de test **nouveaux** (`UsersPage.test.tsx`: 6, `authGuard.test.tsx`: 1), plus des vars inutilisées préexistantes dans `AuthContext.tsx`. Ces `any` sont des régressions mineures introduites par cette session (fichiers de test uniquement, non bloquantes) — à nettoyer avant production.
+Projet entier : **42 erreurs, 19 warnings**, tous **préexistants** sauf 7 erreurs `@typescript-eslint/no-explicit-any` introduites par cette session dans les 2 nouveaux fichiers de test (`UsersPage.test.tsx`: 6, `authGuard.test.tsx`: 1), depuis corrigées (0 `any`/`as any` restants, eslint exit 0 sur les deux fichiers).
+Ciblé sur les fichiers modifiés (`AuthContext.tsx`, `UsersPage.tsx`, `authGuard.tsx`, `UsersPage.test.tsx`, `authGuard.test.tsx`) : 7 erreurs `@typescript-eslint/no-explicit-any` corrigées par cette session dans les fichiers de test (toutes résolues, exit 0), plus des vars inutilisées préexistantes dans `AuthContext.tsx`. Aucun défaut nouveau ne subsiste.
 
 ### 4. Authentification et garde de route
 
@@ -71,7 +71,7 @@ Le formulaire de création depuis l'administration impose désormais `site_id` :
 ### 7. Contraintes respectées (zéro violation)
 
 - ✅ Aucune modification RLS.
-- ✅ Aucune migration SQL.
+- ✅ Aucune migration SQL existante modifiée (3 migrations non trackées ajoutées : `pre_012_surveillance_events.sql`, `pre_013_functions.sql`, `create_event_journal.sql` — voir le rapport d'audit dédié `docs/reports/2026-11-05-1605-audit-migration-pre-013-fonctions.md`).
 - ✅ Aucune modification de structure de base de données.
 - ✅ Aucune modification de `.env`, `.mcp.json`, `src/lib/supabase.ts`.
 - ✅ Aucun commit, aucun push.
@@ -92,12 +92,14 @@ Le formulaire de création depuis l'administration impose désormais `site_id` :
 - `src/routes/authGuard.tsx`
 - `src/pages/UsersPage.test.tsx` (nouveau)
 - `src/routes/authGuard.test.tsx` (nouveau)
+- `src/lib/types.ts` (modifié — ajout des types `SourceModule`, `EventType`, `JournalEvent` pour le journal d'événements)
 - `docs/audit/CSS_AUDIT.md` (modifié — changement préexistant, non lié à cette session d'audit auth/utilisateurs)
 - `docs/audit/css-audit.json` (modifié — changement préexistant, non lié à cette session d'audit auth/utilisateurs)
 - `docs/design/scripts/audit-erreurs.sh` (modifié — préexistant, non listé dans le rapport initial)
 - `docs/reports/USER_SITE_ASSIGNMENT_REPORT.md` (nouveau — rapport de la fonctionnalité "site obligatoire", préexistant à cette session d'audit)
+- `docs/reports/2026-11-05-1605-audit-migration-pre-013-fonctions.md` (nouveau — rapport dédié à la migration pre-013)
 
-Fichiers **non** modifiés : aucune migration, aucune RLS, `.env`, `src/lib/supabase.ts`, `src/lib/rbac.ts`, `src/lib/types.ts`.
+Fichiers **non** modifiés : aucune migration existante, aucune RLS, `.env`, `src/lib/supabase.ts`, `src/lib/rbac.ts`. (3 nouveaux fichiers de migration non trackés listés en Contexte : `20261005195219_pre_012_surveillance_events.sql`, `20261005195219_pre_013_functions.sql`, `20261105000000_create_event_journal.sql`.)
 
 ## Résultat des portes de validation
 
