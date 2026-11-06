@@ -35,23 +35,24 @@ afterAll(async () => {
   await teardownFixtures(fx);
 });
 
-test.fails('le journal doit être alimenté après création d\'une dépense', async () => {
+test('le journal doit être alimenté après création d\'une dépense', async () => {
   const token = await signInAs('admin-helpers@test.local', 'Test1234!');
   const client = await authedClient(token);
 
-  // 1. Créer une dépense
-  const { error: expErr } = await client.from('expenses').insert({
-    reference: 'DEP-JOURNAL-TEST',
+  // 1. Créer une dépense (référence unique pour éviter les conflits entre runs parallèles)
+  const reference = `DEP-JOURNAL-${Date.now()}`;
+  const { error: expErr, data: expense } = await client.from('expenses').insert({
+    reference,
     date: new Date().toISOString().split('T')[0],
     amount: 1000,
     currency: 'XOF',
     status: 'brouillon',
     site_id: fx.site.id,
     created_by: fx.admin.appUser.id
-  });
+  }).select().single();
   expect(expErr).toBeNull();
 
-  // 2. Vérifier que le journal est alimenté (ce qui va échouer : pas de trigger encore)
+  // 2. Vérifier que le journal est alimenté par le trigger
   const { data: journal, error: jErr } = await adminClient
     .from('event_journal')
     .select('*')
@@ -59,9 +60,18 @@ test.fails('le journal doit être alimenté après création d\'une dépense', a
 
   expect(jErr).toBeNull();
 
-  // On s'attend à avoir 1 événement 'depense' — ÉCHEC attendu (journal vide)
   expect(journal.length).toBe(1);
   expect(journal[0].event_type).toBe('depense');
+  expect(journal[0].entity_type).toBe('expense');
+  expect(journal[0].entity_id).toBe(expense.id);
   expect(journal[0].source_module).toBe('finance');
   expect(journal[0].amount).toBe(1000);
+});
+
+afterAll(async () => {
+  // Nettoyer la dépense de test et le journal pour cette ferme
+  if (fx?.farm) {
+    await adminClient.from('event_journal').delete().eq('farm_id', fx.farm.id);
+  }
+  await teardownFixtures(fx);
 });
