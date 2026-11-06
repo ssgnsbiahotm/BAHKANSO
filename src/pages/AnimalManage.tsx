@@ -61,7 +61,7 @@ const DEFAULT_VALUES: AnimalFormValues = {
   location: '',
   mother_id: undefined,
   father_id: undefined,
-  site_id: currentSiteId ?? '',
+  site_id: '',
 };
 
 const SPECIES_OPTIONS = [
