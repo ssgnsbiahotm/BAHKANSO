@@ -32,3 +32,30 @@ export async function calculateYield(
   // 3. Rendement = quantité totale / surface (kg par hectare)
   return totalQuantity / surface;
 }
+
+export async function calculateProjectProgress(
+  projectId: string,
+  client = supabase
+): Promise<number | null> {
+  // Nombre total d'étapes du projet
+  const { data: totalRows, error: totalError } = await client
+    .from('project_steps')
+    .select('id')
+    .eq('project_id', projectId);
+
+  if (totalError) return null;
+  const totalSteps = totalRows.length;
+  if (totalSteps === 0) return 0;
+
+  // Nombre d'étapes terminées
+  const { data: doneRows, error: doneError } = await client
+    .from('project_steps')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('status', 'terminé');
+
+  if (doneError) return null;
+  const doneSteps = doneRows.length;
+
+  return Math.round((doneSteps / totalSteps) * 100);
+}

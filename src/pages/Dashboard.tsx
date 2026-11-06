@@ -7,14 +7,14 @@ import { useData } from '@/lib/DataContext';
 import {
   TrendingUp, AlertTriangle, Package,
   Beef, Sprout, HardHat, ArrowRight, Clock, CheckCircle2,
-  AlertCircle, Info, DollarSign, Lock, FileText
+  AlertCircle, Info, DollarSign, Lock, FileText, Target
 } from 'lucide-react';
 import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
-import { calculateYield } from '@/lib/kpi';
+import { calculateYield, calculateProjectProgress } from '@/lib/kpi';
 
 // Activités — couleurs d'icône (mappées aux tokens sémantiques)
 const ACTIVITY_COLORS: Record<string, 'signal' | 'warning' | 'info'> = {
@@ -229,6 +229,10 @@ export function Dashboard() {
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [yieldValue, setYieldValue] = useState<number | null>(null);
   const [yieldLoading, setYieldLoading] = useState(false);
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [progressValue, setProgressValue] = useState<number | null>(null);
+  const [progressLoading, setProgressLoading] = useState(false);
 
   // Charger la liste des campagnes pour le sélecteur de rendement
   useEffect(() => {
@@ -263,6 +267,40 @@ export function Dashboard() {
     computeYield();
     return () => { mounted = false; };
   }, [campaignId]);
+
+  // Charger la liste des chantiers (projets) pour le sélecteur d'avancement
+  useEffect(() => {
+    let mounted = true;
+    const fetchProjects = async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .order('name', { ascending: true });
+      if (!error && mounted) setProjects(data || []);
+    };
+    fetchProjects();
+    return () => { mounted = false; };
+  }, []);
+
+  // Calculer l'avancement quand le chantier sélectionné change
+  useEffect(() => {
+    let mounted = true;
+    const computeProgress = async () => {
+      if (!projectId) {
+        if (mounted) setProgressValue(null);
+        return;
+      }
+      setProgressLoading(true);
+      try {
+        const value = await calculateProjectProgress(projectId);
+        if (mounted) setProgressValue(value);
+      } finally {
+        if (mounted) setProgressLoading(false);
+      }
+    };
+    computeProgress();
+    return () => { mounted = false; };
+  }, [projectId]);
 
   // Recherche de l'image de couverture configurée
   // Priorité : siteContent['hero-cover']?.mediaId -> premier media de type 'image' avec catégorie 'cover' -> premier media de type 'image'
@@ -533,6 +571,45 @@ export function Dashboard() {
               sub={campaignId ? 'Quantité récoltée ÷ surface de la parcelle' : 'Sélectionnez une campagne'}
               icon={<Sprout size={20} />}
               color="info"
+            />
+          </div>
+        </section>
+
+        {/* ========== BIS. AVANCEMENT DU CHANTIER ========== */}
+        <section className="dashboard-section progress-dashboard-section" aria-labelledby="progress-title">
+          <SectionHeader
+            id="progress-title"
+            title="Avancement du chantier"
+            description="Part des étapes terminées par rapport au nombre total d'étapes du chantier."
+          />
+          <div className="dashboard-yield-selector">
+            <label htmlFor="progress-project-select">Chantier</label>
+            <select
+              id="progress-project-select"
+              value={projectId ?? ''}
+              onChange={(e) => setProjectId(e.target.value || null)}
+              className="dashboard-select"
+              disabled={progressLoading}
+            >
+              <option value="">Sélectionner un chantier</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="dashboard-kpi-grid">
+            <KpiCard
+              label="Avancement"
+              value={
+                progressLoading
+                  ? 'Chargement…'
+                  : progressValue !== null
+                  ? `${progressValue}%`
+                  : '—'
+              }
+              sub={projectId ? 'Étapes terminées / total des étapes' : 'Sélectionnez un chantier'}
+              icon={<Target size={20} />}
+              color="warning"
             />
           </div>
         </section>
