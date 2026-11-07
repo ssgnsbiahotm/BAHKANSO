@@ -9,7 +9,7 @@ import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import * as z from 'zod';
-import type { InventoryItem } from '@/lib/types';
+import type { InventoryItem, Site } from '@/lib/types';
 import { STATUS_CLASS_SUCCESS, STATUS_CLASS_DANGER } from '@/lib/constants';
 
 import '@/styles/theme-app.css';
@@ -22,6 +22,7 @@ const itemSchema = z.object({
   current_stock: z.number().min(0, 'Le stock actuel doit être positif'),
   location: z.string().optional(),
   unit_cost: z.number().min(0, 'Le coût unitaire doit être positif'),
+  site_id: z.string().min(1, 'Le site est obligatoire'),
 });
 
 type ItemFormValues = z.infer<typeof itemSchema>;
@@ -34,11 +35,12 @@ const DEFAULT_VALUES: ItemFormValues = {
   current_stock: 0,
   location: '',
   unit_cost: 0,
+  site_id: '',
 };
 
 export function Inventory() {
   const navigate = useNavigate();
-  const { inventoryItems, inventoryMovements, refresh } = useData();
+  const { inventoryItems, inventoryMovements, sites, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
 
@@ -95,6 +97,7 @@ export function Inventory() {
         current_stock: values.current_stock,
         location: values.location || null,
         unit_cost: values.unit_cost,
+        site_id: values.site_id || null,
       };
 
       if (editItem) {
@@ -142,6 +145,7 @@ export function Inventory() {
     setForm('current_stock', item.current_stock);
     setForm('location', item.location ?? '');
     setForm('unit_cost', item.unit_cost);
+    setForm('site_id', item.site_id || '');
     setModalOpen(true);
   }, []);
 
@@ -516,6 +520,17 @@ export function Inventory() {
                 onChange={e => setForm('location', e.target.value)}
               />
             </FormField>
+            <FormField label="Site" required error={errors.site_id}>
+              <FormSelect
+                value={form.site_id}
+                onChange={e => setForm('site_id', e.target.value)}
+              >
+                <option value="">— Choisir un site —</option>
+                {(sites as Site[]).map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </FormSelect>
+            </FormField>
           </FormSection>
           <FormActions onSubmit={handleFormSubmit} onCancel={() => { resetForm(); setModalOpen(false); setEditItem(null); }} isSubmitting={isSubmitting} />
         </form>
@@ -532,6 +547,6 @@ export function Inventory() {
 }
 
 // Import form primitives
-import { FormField, FormInput, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
+import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { Modal } from '@/components/ui/Modal';
