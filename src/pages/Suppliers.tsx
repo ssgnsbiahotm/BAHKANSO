@@ -25,6 +25,7 @@ const supplierSchema = z.object({
   address: z.string().optional(),
   contact_person: z.string().optional(),
   rating: z.coerce.number().min(0).max(5).default(3),
+  site_id: z.string().min(1, 'Le site est obligatoire'),
 });
 
 type SupplierFormValues = z.infer<typeof supplierSchema>;
@@ -37,10 +38,11 @@ const DEFAULT_VALUES: SupplierFormValues = {
   address: '',
   contact_person: '',
   rating: 3,
+  site_id: '',
 };
 
 export function Suppliers() {
-  const { suppliers, expenses, refresh } = useData();
+  const { suppliers, expenses, sites, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
@@ -77,6 +79,7 @@ export function Suppliers() {
         address: values.address || null,
         contact_person: values.contact_person || null,
         rating: values.rating,
+        site_id: values.site_id || null,
       };
 
       if (editSupplier) {
@@ -111,6 +114,7 @@ export function Suppliers() {
     setForm('address', s.address || '');
     setForm('contact_person', s.contact_person || '');
     setForm('rating', s.rating);
+    setForm('site_id', s.site_id || '');
     setModalOpen(true);
   };
 
@@ -251,6 +255,14 @@ export function Suppliers() {
           </FormField>
           <FormField label="Adresse" error={errors.address}>
             <FormTextarea value={form.address} onChange={e => setForm('address', e.target.value)} placeholder="Bouaké, Côte d'Ivoire" rows={2} />
+          </FormField>
+          <FormField label="Site" required error={errors.site_id}>
+            <FormSelect value={form.site_id} onChange={e => setForm('site_id', e.target.value)}>
+              <option value="">— Choisir un site —</option>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </FormSelect>
           </FormField>
           <FormField label="Note (0-5)" error={errors.rating}>
             <FormSelect value={form.rating} onChange={e => setForm('rating', parseInt(e.target.value) || 3)}>
