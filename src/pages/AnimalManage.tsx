@@ -149,7 +149,7 @@ export function AnimalManage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { values: form, setFieldValue: setForm, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
+  const { values: form, setFieldValue: setForm, setFieldValues, errors, isSubmitting, handleSubmit: handleFormSubmit } = useValidatedForm({
     schema: animalSchema,
     defaultValues: DEFAULT_VALUES,
     onSubmit: async (values) => {
@@ -221,7 +221,7 @@ export function AnimalManage() {
     } catch {
       previewId = '';
     }
-    setForm({
+    setFieldValues({
       ...DEFAULT_VALUES,
       site_id: currentSiteId ?? '',
       identifier: previewId,
