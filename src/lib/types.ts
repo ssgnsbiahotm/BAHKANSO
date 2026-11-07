@@ -211,6 +211,7 @@ export interface CropOperation {
   id: string;
   campaign_id: string | null;
   plot_id: string | null;
+  site_id: string | null;
   plot?: Plot | null;
   type: string;
   date: string;
