@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
+import { generateEntityIdentifier } from '@/lib/entity-ids';
 import { useAuth } from '@/lib/AuthContext';
 import { z } from 'zod';
 import type { Document } from '@/lib/types';
@@ -139,6 +140,10 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
       site_id: appUser?.site_id ?? null,
     },
     onSubmit: async (values) => {
+      let finalReference = values.reference?.trim();
+      if (!finalReference) {
+        finalReference = await generateEntityIdentifier('DOC', 'documents', 'reference', supabase);
+      }
       await executeAction(async () => {
         let fileUrl: string | null = null;
         let fileSize: number | null = null;
@@ -154,7 +159,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
         }
 
         const documentData = {
-          reference: values.reference,
+          reference: finalReference,
           type: values.type,
           name: values.name,
           file_url: fileUrl,
@@ -209,12 +214,16 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
     },
   });
 
-  const handleNewDocument = () => {
+  const handleNewDocument = async () => {
     if (!isAuthorized) return;
     form.resetForm();
     setEditingDocument(null);
     setSelectedFile(null);
     setUploadError(null);
+    try {
+      const preview = await generateEntityIdentifier('DOC', 'documents', 'reference', supabase);
+      form.setFieldValue('reference', preview);
+    } catch {}
     setModalOpen(true);
   };
 
@@ -481,8 +490,9 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
                 type="text"
                 value={form.values.reference}
                 onChange={(e) => form.setFieldValue('reference', e.target.value)}
-                className="form-input w-full"
-                placeholder="DOC-2024-0001"
+                className="form-input w-full bg-surface-hover cursor-not-allowed"
+                readOnly
+                placeholder="Généré automatiquement (DOC-NNN)"
               />
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
