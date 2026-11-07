@@ -7,7 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac';
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
-  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase,
+  LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Truck,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -25,6 +25,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'exploitation', label: 'Exploitation', icon: <Sprout size={20} />, module: 'agriculture', route: '/app/exploitation' },
   { id: 'elevage', label: 'Élevage', icon: <Beef size={20} />, module: 'livestock', route: '/app/elevage' },
   { id: 'finance', label: 'Gestion financière', icon: <Briefcase size={20} />, module: 'finance', route: '/app/finance' },
+  { id: 'suppliers', label: 'Fournisseurs', icon: <Truck size={20} />, module: 'suppliers', route: '/app/suppliers' },
   { id: 'surveillance', label: 'Surveillance', icon: <ShieldAlert size={20} />, module: 'surveillance', route: '/app/surveillance' },
   { id: 'media', label: 'Médiathèque', icon: <Image size={20} />, module: 'media', route: '/app/media' },
   { id: 'configuration', label: 'Configuration', icon: <Settings size={20} />, module: 'configuration', route: '/app/configuration' },
