@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, DollarSign, FileText, Trash2, Edit2, Eye } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
 import { generateEntityIdentifier } from '@/lib/entity-ids';
+import { hasPermission } from '@/lib/rbac';
 import { useAuth } from '@/lib/AuthContext';
 import { z } from 'zod';
 import type { Funding } from '@/lib/types';
@@ -193,11 +194,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
   const { executeAction, loading: actionLoading } = useAsyncAction();
   const { appUser } = useAuth();
 
-  const isAuthorized = useMemo(() => {
-    if (!appUser) return false;
-    const role = appUser.role;
-    return role === 'administrateur' || role === 'propriétaire' || role === 'proprietaire' || role === 'admin' || role === 'owner';
-  }, [appUser]);
+  const isAuthorized = hasPermission(appUser?.role as import('@/lib/rbac').UserRole, 'finance', 'write');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFunding, setEditingFunding] = useState<Funding | null>(null);

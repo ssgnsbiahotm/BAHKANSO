@@ -1,10 +1,11 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { List, CreditCard, Plus, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
+import { hasPermission } from '@/lib/rbac';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
 import { z } from 'zod';
@@ -95,11 +96,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
   const { data, loading, error, refetch } = expensesData;
   const { authUser, appUser } = useAuth();
   const { suppliers } = useData();
-  const isAuthorized = useMemo(() => {
-    if (!appUser) return false;
-    const role = appUser.role;
-    return role === 'administrateur' || role === 'propriétaire' || role === 'proprietaire' || role === 'admin' || role === 'owner';
-  }, [appUser]);
+  const isAuthorized = hasPermission(appUser?.role as import('@/lib/rbac').UserRole, 'finance', 'write');
   const { executeAction, loading: actionLoading } = useAsyncAction();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
