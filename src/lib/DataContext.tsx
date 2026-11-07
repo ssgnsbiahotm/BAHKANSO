@@ -101,9 +101,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [cropOperations, setCropOperations] = useState<CropOperation[]>([]);
   const [harvests, setHarvests] = useState<Harvest[]>([]);
   const [animals, setAnimals] = useState<Animal[]>([]);
-  const [animaux, setAnimaux] = useState<Animal[]>([]);
+  const [, setAnimaux] = useState<Animal[]>([]);
   const [animalLots, setAnimalLots] = useState<AnimalLot[]>([]);
-  const [lots, setLots] = useState<AnimalLot[]>([]);
+  const [, setLots] = useState<AnimalLot[]>([]);
   const [animalEvents, setAnimalEvents] = useState<AnimalEvent[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectSteps, setProjectSteps] = useState<ProjectStep[]>([]);

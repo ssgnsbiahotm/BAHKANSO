@@ -9,7 +9,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
-import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER } from '@/lib/constants';
+import { STATUS_CLASS_DANGER } from '@/lib/constants';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
@@ -49,6 +49,7 @@ const TYPE_LABELS: Record<string, string> = {
   vente: 'Vente',
   achat: 'Achat',
   autre: 'Autre',
+  animal_mort: 'Mort',
 };
 
 const TYPE_OPTIONS = [
@@ -58,7 +59,7 @@ const TYPE_OPTIONS = [
   { value: 'naissance', label: 'Naissance' },
   { value: 'vente', label: 'Vente' },
   { value: 'achat', label: 'Achat' },
-  { value: 'mort', label: 'Mort' },
+  { value: 'animal_mort', label: 'Mort' },
   { value: 'autre', label: 'Autre' },
 ] as const;
 
@@ -68,7 +69,7 @@ const TYPE_FILTERS = [
   { id: 'vaccination', label: 'Vaccinations' },
   { id: 'traitement', label: 'Traitements' },
   { id: 'maladie', label: 'Maladies' },
-  { id: 'mort', label: 'Morts' },
+  { id: 'animal_mort', label: 'Morts' },
   { id: 'vente', label: 'Ventes' },
   { id: 'achat', label: 'Achats' },
   { id: 'autre', label: 'Autres' },

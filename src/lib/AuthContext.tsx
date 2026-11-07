@@ -47,14 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data as AppUser;
   }, []);
 
-  const resolveAppUser = useCallback(async (uid: string) => {
-    setAppUserLoading(true);
-    const user = await loadAppUser(uid);
-    if (!user) setAppUser(null);
-    setAppUserLoading(false);
-    return user;
-  }, [loadAppUser]);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -112,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadAppUser]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     // Le profil métier est rechargé par le callback onAuthStateChange
     // (événement SIGNED_IN). Pas de double chargement ici.

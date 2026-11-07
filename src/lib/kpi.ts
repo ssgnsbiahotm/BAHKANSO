@@ -12,7 +12,7 @@ export async function calculateYield(
     .single();
 
   if (campError || !campaign) return null;
-  const surface = (campaign as any).plots?.area_hectares;
+  const surface = (campaign as { plots?: { area_hectares: number }[] | null }).plots?.[0]?.area_hectares;
   if (!surface || surface <= 0) return null;
 
   // 2. Somme des quantités récoltées dans le journal pour cette campagne
@@ -152,10 +152,10 @@ export async function calculateMortalityRate(
   if (error || !data) return 0;
 
   const relevant = data.filter(
-    (e) => e.event_type === 'naissance' || e.event_type === 'mort'
+    (e) => e.event_type === 'animal_ne' || e.event_type === 'animal_mort'
   );
-  const births = relevant.filter((e) => e.event_type === 'naissance').length;
-  const deaths = relevant.filter((e) => e.event_type === 'mort').length;
+  const births = relevant.filter((e) => e.event_type === 'animal_ne').length;
+  const deaths = relevant.filter((e) => e.event_type === 'animal_mort').length;
   const total = births + deaths;
 
   if (total === 0) return 0;

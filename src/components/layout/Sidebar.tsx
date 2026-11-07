@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -96,10 +96,6 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const isItemActive = (item: NavItem): boolean => {
     if (!item.route) return false;
     return isPathActive(item.route);
-  };
-
-  const isChildActive = (parent: NavItem): boolean => {
-    return parent.children?.some(child => isItemActive(child)) ?? false;
   };
 
   // État d'expansion des items avec children

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/supabase';
 
 // Types génériques pour la pagination
-interface PaginatedQueryOptions<T = unknown> {
+interface PaginatedQueryOptions {
   table: keyof Database['public']['Tables'];
   columns?: string;
   filters?: Array<{
@@ -33,7 +33,7 @@ interface PaginatedResult<T> {
  * Hook personnalisé pour la pagination des données avec Supabase et react-query
  */
 export function usePaginatedQuery<T = unknown>(
-  options: PaginatedQueryOptions<T>,
+  options: PaginatedQueryOptions,
   enabled = true
 ) {
   const {

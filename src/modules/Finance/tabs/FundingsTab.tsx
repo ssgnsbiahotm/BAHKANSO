@@ -13,7 +13,7 @@ import { useFundings } from '@/modules/Finance/hooks/useFinanceData';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { EntityLinkPicker, type EntityLink } from '@/components/ui/EntityLinkPicker';
-import { EntityPicker, type EntityType } from '@/components/ui/EntityPicker';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { SiteField } from '@/components/ui/SiteField';
 
@@ -202,8 +202,6 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFunding, setEditingFunding] = useState<Funding | null>(null);
   const [deletingFunding, setDeletingFunding] = useState<Funding | null>(null);
-  const [funders, setFunders] = useState<{ id: string; name: string }[]>([]);
-  const [sites, setSites] = useState<{ id: string; name: string }[]>([]);
   const [links, setLinks] = useState<EntityLink[]>([]);
 
   const persistFundingLinks = useCallback(
@@ -241,24 +239,22 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
       .from('funders')
       .select('id, name')
       .order('name', { ascending: true })
-      .then(({ data, error }) => {
+      .then(({ error }) => {
         if (error) {
           console.error('Erreur chargement bailleurs:', error);
           return;
         }
-        setFunders((data ?? []).map(f => ({ id: f.id, name: f.name })));
       });
 
     supabase
       .from('sites')
       .select('id, name')
       .order('name', { ascending: true })
-      .then(({ data, error }) => {
+      .then(({ error }) => {
         if (error) {
           console.error('Erreur chargement sites:', error);
           return;
         }
-        setSites((data ?? []).map(s => ({ id: s.id, name: s.name })));
       });
   }, []);
 

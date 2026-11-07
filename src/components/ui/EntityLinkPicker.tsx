@@ -50,7 +50,6 @@ export function EntityLinkPicker({
   const diff = totalAmount - totalAllocated;
   const isBalanced = totalAmount > 0 && Math.abs(diff) < 0.01;
   const isOver = totalAmount > 0 && diff < -0.01;
-  const isUnder = totalAmount > 0 && diff > 0.01;
 
   const handleAdd = () => {
     if (allowedTypes.length === 0) return;

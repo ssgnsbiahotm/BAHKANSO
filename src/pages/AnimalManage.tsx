@@ -11,7 +11,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import {
-  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+  STATUS_CLASS_DANGER,
 } from '@/lib/constants';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -266,7 +266,7 @@ export function AnimalManage() {
 
   const handleDeathSubmit = async () => {
     const { error: eventError } = await supabase.from('animal_events').insert({
-      type: 'mort',
+      type: 'animal_mort',
       date: new Date().toISOString().split('T')[0],
       animal_id: deathAnimal?.id || null,
       cost: 0,

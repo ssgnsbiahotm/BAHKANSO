@@ -15,7 +15,7 @@ import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
 import { Modal } from '@/components/ui/Modal';
 import { EntityLinkPicker, type EntityLink } from '@/components/ui/EntityLinkPicker';
-import { EntityPicker, type EntityType } from '@/components/ui/EntityPicker';
+import { EntityPicker } from '@/components/ui/EntityPicker';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { SiteField } from '@/components/ui/SiteField';
 

@@ -1,5 +1,5 @@
 import { Shield, ScrollText, Users, Bell, Check } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useData } from '@/lib/DataContext';
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
@@ -127,14 +127,7 @@ function KPICard({ id, title, desc }: KPICardProps) {
    ============================================================================ */
 
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
   const { farm, siteContent } = useData();
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // --- Configuration-driven content ---
   const heroContent = useMemo(() => siteContent['hero']?.value as Record<string, unknown> || {}, [siteContent]);

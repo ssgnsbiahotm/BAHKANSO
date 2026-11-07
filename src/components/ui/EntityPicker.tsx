@@ -205,16 +205,6 @@ export function EntityPicker({
     [close],
   );
 
-  const handleMouseDown = useCallback(
-    (e: ReactMouseEvent) => {
-      if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
-        setIsOpen(!isOpen);
-        if (!isOpen) inputRef.current.focus();
-      }
-    },
-    [isOpen],
-  );
-
   // Click outside to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
