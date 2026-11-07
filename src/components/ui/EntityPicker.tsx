@@ -255,7 +255,7 @@ export function EntityPicker({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           onFocus={() => {
-            if (!disabled && query.trim().length > 0) setIsOpen(true);
+            if (!disabled) setIsOpen(true);
           }}
           disabled={disabled}
           className={`w-full px-3 py-2 bg-bg-input border rounded-lg text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary transition-colors ${
