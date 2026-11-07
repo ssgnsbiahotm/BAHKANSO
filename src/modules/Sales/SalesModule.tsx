@@ -797,23 +797,21 @@ export function SalesModule() {
         <form onSubmit={handleFormSubmit} className="space-y-6">
           <FormSection title="Essentiel">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField label="Site" required error={errors.site_id}>
-                <SiteField
-                  value={form.site_id || null}
-                  onChange={(id) => setForm('site_id', id || '')}
-                  error={errors.site_id}
-                />
-              </FormField>
-              <FormField label="Client" required error={errors.customer_id}>
-                <EntityPicker
-                  label="Client"
-                  entityType="customer"
-                  value={form.customer_id || null}
-                  onChange={(id) => setForm('customer_id', id || '')}
-                  placeholder="Sélectionner un client"
-                  error={errors.customer_id}
-                />
-              </FormField>
+              <SiteField
+                label="Site"
+                value={form.site_id || null}
+                onChange={(id) => setForm('site_id', id || '')}
+                error={errors.site_id}
+              />
+              <EntityPicker
+                label="Client"
+                entityType="customer"
+                value={form.customer_id || null}
+                onChange={(id) => setForm('customer_id', id || '')}
+                placeholder="Sélectionner un client"
+                error={errors.customer_id}
+                required
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Date" required error={errors.date}>
@@ -910,7 +908,6 @@ export function SalesModule() {
           </FormSection>
 
           <div className="space-y-2">
-            <label className="block text-xs font-medium text-secondary mb-1">Répartition financière</label>
             <EntityLinkPicker
               links={links}
               onChange={setLinks}

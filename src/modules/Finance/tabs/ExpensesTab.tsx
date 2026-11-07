@@ -605,18 +605,15 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Fournisseur</label>
-              <EntityPicker
-                label="Fournisseur"
-                entityType="supplier"
-                value={form.values.supplier_id ?? null}
-                onChange={(id) => form.setFieldValue('supplier_id', id)}
-                placeholder="Sélectionner un fournisseur…"
-                className="w-full"
-              />
-              {form.errors.supplier_id && <p className="text-xs text-red-500 mt-1">{form.errors.supplier_id}</p>}
-            </div>
+            <EntityPicker
+              label="Fournisseur"
+              entityType="supplier"
+              value={form.values.supplier_id ?? null}
+              onChange={(id) => form.setFieldValue('supplier_id', id)}
+              placeholder="Sélectionner un fournisseur…"
+              className="w-full"
+            />
+            {form.errors.supplier_id && <p className="text-xs text-red-500 mt-1">{form.errors.supplier_id}</p>}
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Responsable</label>
               <input
@@ -637,22 +634,19 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             />
             {form.errors.payment_method && <p className="text-xs text-red-500 mt-1">{form.errors.payment_method}</p>}
           </div>
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Dates</label>
-            <DatePicker
-              mode="engagement-payment"
-              engagementDate={form.values.date}
-              paymentDate={form.values.date_paid}
-              onEngagementChange={(v) => form.setFieldValue('date', v || '')}
-              onPaymentChange={(v) => form.setFieldValue('date_paid', v || '')}
-              status={form.values.status}
-              error={form.errors.date ?? form.errors.date_paid ?? undefined}
-            />
-            {form.errors.date && <p className="text-xs text-red-500 mt-1">{form.errors.date}</p>}
-            {form.errors.date_paid && (
-              <p className="text-xs text-red-500 mt-1">{form.errors.date_paid}</p>
-            )}
-          </div>
+          <DatePicker
+            mode="engagement-payment"
+            engagementDate={form.values.date}
+            paymentDate={form.values.date_paid}
+            onEngagementChange={(v) => form.setFieldValue('date', v || '')}
+            onPaymentChange={(v) => form.setFieldValue('date_paid', v || '')}
+            status={form.values.status}
+            error={form.errors.date ?? form.errors.date_paid ?? undefined}
+          />
+          {form.errors.date && <p className="text-xs text-red-500 mt-1">{form.errors.date}</p>}
+          {form.errors.date_paid && (
+            <p className="text-xs text-red-500 mt-1">{form.errors.date_paid}</p>
+          )}
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Description</label>
             <textarea
@@ -663,14 +657,12 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               placeholder="ex: Achat de carburant pour le tracteur"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Site</label>
-            <SiteField
-              value={form.values.site_id ?? null}
-              onChange={(id) => form.setFieldValue('site_id', id)}
-            />
-            {form.errors.site_id && <p className="text-xs text-red-500 mt-1">{form.errors.site_id}</p>}
-          </div>
+          <SiteField
+            label="Site"
+            value={form.values.site_id ?? null}
+            onChange={(id) => form.setFieldValue('site_id', id)}
+          />
+          {form.errors.site_id && <p className="text-xs text-red-500 mt-1">{form.errors.site_id}</p>}
 
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Répartition (liens métier)</label>

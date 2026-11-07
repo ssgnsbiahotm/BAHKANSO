@@ -559,18 +559,15 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               />
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Bailleur de fonds</label>
-              <EntityPicker
-                label="Bailleur de fonds"
-                entityType="funder"
-                value={form.values.funder_id ?? null}
-                onChange={(id) => form.setFieldValue('funder_id', id)}
-                placeholder="Sélectionner un bailleur…"
-                error={form.errors.funder_id}
-              />
-              {form.errors.funder_id && <p className="text-xs text-red-500 mt-1">{form.errors.funder_id}</p>}
-            </div>
+            <EntityPicker
+              label="Bailleur de fonds"
+              entityType="funder"
+              value={form.values.funder_id ?? null}
+              onChange={(id) => form.setFieldValue('funder_id', id)}
+              placeholder="Sélectionner un bailleur…"
+              error={form.errors.funder_id}
+            />
+            {form.errors.funder_id && <p className="text-xs text-red-500 mt-1">{form.errors.funder_id}</p>}
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Montant envoyé *</label>
               <input
@@ -645,39 +642,24 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
                 <option value="annulé">Annulé</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Dates</label>
-              <DatePicker
-                mode="engagement-payment"
-                engagementDate={form.values.date_sent}
-                paymentDate={form.values.date_received}
-                onEngagementChange={(v) => form.setFieldValue('date_sent', v || '')}
-                onPaymentChange={(v) => form.setFieldValue('date_received', v || null)}
-                status={form.values.status}
-                error={form.errors.date_sent ?? form.errors.date_received ?? undefined}
-              />
-              {form.errors.date_sent && <p className="text-xs text-red-500 mt-1">{form.errors.date_sent}</p>}
-              {form.errors.date_received && <p className="text-xs text-red-500 mt-1">{form.errors.date_received}</p>}
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Commentaire</label>
-            <textarea
-              value={form.values.comment ?? ''}
-              onChange={(e) => form.setFieldValue('comment', e.target.value || null)}
-              className="form-input w-full"
-              rows={3}
-              placeholder="Commentaire sur le financement"
+            <DatePicker
+              mode="engagement-payment"
+              engagementDate={form.values.date_sent}
+              paymentDate={form.values.date_received}
+              onEngagementChange={(v) => form.setFieldValue('date_sent', v || '')}
+              onPaymentChange={(v) => form.setFieldValue('date_received', v || null)}
+              status={form.values.status}
+              error={form.errors.date_sent ?? form.errors.date_received ?? undefined}
             />
+            {form.errors.date_sent && <p className="text-xs text-red-500 mt-1">{form.errors.date_sent}</p>}
+            {form.errors.date_received && <p className="text-xs text-red-500 mt-1">{form.errors.date_received}</p>}
           </div>
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Site</label>
-            <SiteField
-              value={form.values.site_id ?? null}
-              onChange={(id) => form.setFieldValue('site_id', id)}
-              error={form.errors.site_id}
-            />
-          </div>
+          <SiteField
+            label="Site"
+            value={form.values.site_id ?? null}
+            onChange={(id) => form.setFieldValue('site_id', id)}
+            error={form.errors.site_id}
+          />
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Répartition financière</label>
             <EntityLinkPicker
