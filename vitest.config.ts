@@ -9,10 +9,10 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.tsx'],
     include: ['src/**/*.test.{ts,tsx}', 'tests/integration/*.test.{mjs,js,ts}'],
     globals: true,
-    fileParallelism: false,
+    fileParallelism: true,
     poolOptions: {
       forks: {
-        singleFork: true,
+        singleFork: false,
       },
     },
     testTimeout: 30000,
