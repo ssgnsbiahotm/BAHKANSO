@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Plus, DollarSign, FileText, Trash2, Edit2, Eye } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
@@ -12,6 +12,10 @@ import { logAudit } from '@/lib/types';
 import { useFundings } from '@/modules/Finance/hooks/useFinanceData';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { EntityLinkPicker, type EntityLink } from '@/components/ui/EntityLinkPicker';
+import { EntityPicker, type EntityType } from '@/components/ui/EntityPicker';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { SiteField } from '@/components/ui/SiteField';
 
 interface FundingsTabProps {
   fundingsData: ReturnType<typeof useFundings>;
@@ -200,6 +204,37 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
   const [deletingFunding, setDeletingFunding] = useState<Funding | null>(null);
   const [funders, setFunders] = useState<{ id: string; name: string }[]>([]);
   const [sites, setSites] = useState<{ id: string; name: string }[]>([]);
+  const [links, setLinks] = useState<EntityLink[]>([]);
+
+  const persistFundingLinks = useCallback(
+    async (transactionId: string, amount: number, currency: string, linksState: EntityLink[]) => {
+      await supabase
+        .from('financial_links')
+        .delete()
+        .eq('transaction_type', 'funding')
+        .eq('transaction_id', transactionId);
+
+      const rows = linksState
+        .filter((l) => l.entity_id)
+        .map((l) => ({
+          transaction_type: 'funding',
+          transaction_id: transactionId,
+          entity_type: l.entity_type,
+          entity_id: l.entity_id,
+          amount_allocated: l.amount_allocated ?? null,
+          percent_allocated: l.percent_allocated ?? null,
+          currency: currency,
+          note: l.note ?? null,
+          created_by: appUser?.id ?? null,
+        }));
+
+      if (rows.length > 0) {
+        const { error: insertError } = await supabase.from('financial_links').insert(rows);
+        if (insertError) throw insertError;
+      }
+    },
+    [appUser?.id],
+  );
 
   useEffect(() => {
     supabase
@@ -289,6 +324,12 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           createdId = (inserted as { id: string })?.id ?? null;
         }
 
+        try {
+          await persistFundingLinks(createdId, Number(values.amount_sent) || 0, values.currency_sent, links);
+        } catch (linkError) {
+          console.error('Erreur liens financiers:', linkError);
+        }
+
         await logAudit(
           appUser?.name || 'Système',
           editingFunding ? 'UPDATE' : 'CREATE',
@@ -321,9 +362,10 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
       form.setFieldValue('reference', preview);
     } catch {}
     setModalOpen(true);
+    setLinks([]);
   };
 
-  const handleEdit = (funding: Funding) => {
+  const handleEdit = async (funding: Funding) => {
     if (!isAuthorized) {
       return;
     }
@@ -343,6 +385,21 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
     });
     setEditingFunding(funding);
     setModalOpen(true);
+
+    try {
+      const { data: linked } = await supabase
+        .from('financial_links')
+        .select('*')
+        .eq('transaction_type', 'funding')
+        .eq('transaction_id', funding.id);
+      setLinks((linked ?? []).map((l) => ({
+        entity_type: l.entity_type,
+        entity_id: l.entity_id,
+        amount_allocated: l.amount_allocated ?? undefined,
+        percent_allocated: l.percent_allocated ?? undefined,
+        note: l.note ?? undefined,
+      })));
+    } catch {}
   };
 
   const handleDelete = (funding: Funding) => {
@@ -504,18 +561,14 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
             </div>
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Bailleur de fonds</label>
-              <select
-                value={form.values.funder_id ?? ''}
-                onChange={(e) => form.setFieldValue('funder_id', e.target.value || null)}
-                className="form-input w-full"
-              >
-                <option value="">Sélectionner un bailleur…</option>
-                {funders.map(funder => (
-                  <option key={funder.id} value={funder.id}>
-                    {funder.name}
-                  </option>
-                ))}
-              </select>
+              <EntityPicker
+                label="Bailleur de fonds"
+                entityType="funder"
+                value={form.values.funder_id ?? null}
+                onChange={(id) => form.setFieldValue('funder_id', id)}
+                placeholder="Sélectionner un bailleur…"
+                error={form.errors.funder_id}
+              />
               {form.errors.funder_id && <p className="text-xs text-red-500 mt-1">{form.errors.funder_id}</p>}
             </div>
             <div>
@@ -593,25 +646,18 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Date d'envoi *</label>
-              <input
-                type="date"
-                value={form.values.date_sent}
-                onChange={(e) => form.setFieldValue('date_sent', e.target.value)}
-                className="form-input w-full"
+              <label className="block text-xs font-medium text-secondary mb-1">Dates</label>
+              <DatePicker
+                mode="engagement-payment"
+                engagementDate={form.values.date_sent}
+                paymentDate={form.values.date_received}
+                onEngagementChange={(v) => form.setFieldValue('date_sent', v || '')}
+                onPaymentChange={(v) => form.setFieldValue('date_received', v || null)}
+                status={form.values.status}
+                error={form.errors.date_sent ?? form.errors.date_received ?? undefined}
               />
               {form.errors.date_sent && <p className="text-xs text-red-500 mt-1">{form.errors.date_sent}</p>}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Date de réception</label>
-              <input
-                type="date"
-                value={form.values.date_received ?? ''}
-                onChange={(e) => form.setFieldValue('date_received', e.target.value || null)}
-                className="form-input w-full"
-              />
+              {form.errors.date_received && <p className="text-xs text-red-500 mt-1">{form.errors.date_received}</p>}
             </div>
           </div>
           <div>
@@ -626,27 +672,21 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           </div>
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Site</label>
-            {isAuthorized ? (
-              <select
-                value={form.values.site_id ?? ''}
-                onChange={(e) => form.setFieldValue('site_id', e.target.value || null)}
-                className="form-input w-full"
-              >
-                <option value="">Sélectionner un site</option>
-                {sites.map(site => (
-                  <option key={site.id} value={site.id}>{site.name}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type="text"
-                value={form.values.site_id ?? ''}
-                readOnly
-                disabled
-                className="form-input w-full bg-surface-hover cursor-not-allowed text-secondary"
-                title="Site déterminé automatiquement depuis votre session"
-              />
-            )}
+            <SiteField
+              value={form.values.site_id ?? null}
+              onChange={(id) => form.setFieldValue('site_id', id)}
+              error={form.errors.site_id}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-secondary mb-1">Répartition financière</label>
+            <EntityLinkPicker
+              links={links}
+              onChange={setLinks}
+              totalAmount={form.values.amount_sent}
+              currency={form.values.currency_sent}
+              allowedTypes={['supplier', 'customer', 'project', 'plot', 'campaign', 'animal', 'animal_lot', 'site', 'funder']}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button

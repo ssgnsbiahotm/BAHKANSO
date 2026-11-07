@@ -14,6 +14,10 @@ import * as z from 'zod';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
 import { Modal } from '@/components/ui/Modal';
+import { EntityLinkPicker, type EntityLink } from '@/components/ui/EntityLinkPicker';
+import { EntityPicker, type EntityType } from '@/components/ui/EntityPicker';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { SiteField } from '@/components/ui/SiteField';
 
 import '@/styles/theme-app.css';
 
@@ -73,11 +77,42 @@ export function SalesModule() {
   const [editSale, setEditSale] = useState<SaleWithRelations | null>(null);
   const [detailSale, setDetailSale] = useState<SaleWithRelations | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<SaleWithRelations | null>(null);
+  const [links, setLinks] = useState<EntityLink[]>([]);
   const [activeTab, setActiveTab] = useState<'ventes' | 'clients' | 'par_mois'>('ventes');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Use currentSiteId from useSite for filtering
   const effectiveSiteId = useMemo(() => currentSiteId, [currentSiteId]);
+
+  const persistSaleLinks = useCallback(
+    async (transactionId: string, amount: number, currency: string, linksState: EntityLink[]) => {
+      await supabase
+        .from('financial_links')
+        .delete()
+        .eq('transaction_type', 'sale')
+        .eq('transaction_id', transactionId);
+
+      const rows = linksState
+        .filter((l) => l.entity_id)
+        .map((l) => ({
+          transaction_type: 'sale',
+          transaction_id: transactionId,
+          entity_type: l.entity_type,
+          entity_id: l.entity_id,
+          amount_allocated: l.amount_allocated ?? null,
+          percent_allocated: l.percent_allocated ?? null,
+          currency: currency,
+          note: l.note ?? null,
+          created_by: appUser?.id ?? null,
+        }));
+
+      if (rows.length > 0) {
+        const { error: insertError } = await supabase.from('financial_links').insert(rows);
+        if (insertError) throw insertError;
+      }
+    },
+    [appUser?.id],
+  );
 
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
@@ -171,6 +206,12 @@ export function SalesModule() {
           if (itemsError) throw itemsError;
         }
 
+        try {
+          await persistSaleLinks(editSale.id, totalAmount, 'XOF', links);
+        } catch (linkError) {
+          console.error('Erreur liens financiers:', linkError);
+        }
+
         await logAudit(
           appUser?.name || 'Système',
           'UPDATE',
@@ -198,6 +239,12 @@ export function SalesModule() {
             itemsWithTotals.map(item => ({ ...item, sale_id: saleData.id }))
           );
           if (itemsError) throw itemsError;
+        }
+
+        try {
+          await persistSaleLinks(saleData.id, totalAmount, 'XOF', links);
+        } catch (linkError) {
+          console.error('Erreur liens financiers:', linkError);
         }
 
         await logAudit(
@@ -228,10 +275,11 @@ export function SalesModule() {
   const openCreate = useCallback(() => {
     resetForm();
     setEditSale(null);
+    setLinks([]);
     setModalOpen(true);
   }, [resetForm]);
 
-  const openEdit = useCallback((sale: SaleWithRelations) => {
+  const openEdit = useCallback(async (sale: SaleWithRelations) => {
     setEditSale(sale);
     setForm('site_id', sale.site_id || '');
     setForm('customer_id', sale.customer_id || '');
@@ -246,6 +294,21 @@ export function SalesModule() {
     }));
     setForm('items', items.length > 0 ? items : DEFAULT_VALUES.items);
     setModalOpen(true);
+
+    try {
+      const { data: linked } = await supabase
+        .from('financial_links')
+        .select('*')
+        .eq('transaction_type', 'sale')
+        .eq('transaction_id', sale.id);
+      setLinks((linked ?? []).map((l) => ({
+        entity_type: l.entity_type,
+        entity_id: l.entity_id,
+        amount_allocated: l.amount_allocated ?? undefined,
+        percent_allocated: l.percent_allocated ?? undefined,
+        note: l.note ?? undefined,
+      })));
+    } catch {}
   }, [setForm]);
 
   const openDetail = useCallback((sale: SaleWithRelations) => {
@@ -735,34 +798,30 @@ export function SalesModule() {
           <FormSection title="Essentiel">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Site" required error={errors.site_id}>
-                <FormSelect
-                  value={form.site_id}
-                  onChange={e => setForm('site_id', e.target.value)}
-                >
-                  <option value="">Sélectionner un site</option>
-                  {availableSites.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} {s.code ? `(${s.code})` : ''}</option>
-                  ))}
-                </FormSelect>
+                <SiteField
+                  value={form.site_id || null}
+                  onChange={(id) => setForm('site_id', id || '')}
+                  error={errors.site_id}
+                />
               </FormField>
               <FormField label="Client" required error={errors.customer_id}>
-                <FormSelect
-                  value={form.customer_id}
-                  onChange={e => setForm('customer_id', e.target.value)}
-                >
-                  <option value="">Sélectionner un client</option>
-                  {customers.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} {c.type ? `(${c.type})` : ''}</option>
-                  ))}
-                </FormSelect>
+                <EntityPicker
+                  label="Client"
+                  entityType="customer"
+                  value={form.customer_id || null}
+                  onChange={(id) => setForm('customer_id', id || '')}
+                  placeholder="Sélectionner un client"
+                  error={errors.customer_id}
+                />
               </FormField>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Date" required error={errors.date}>
-                <FormInput
-                  type="date"
-                  value={form.date}
-                  onChange={e => setForm('date', e.target.value)}
+                <DatePicker
+                  mode="single"
+                  value={form.date || null}
+                  onChange={(v) => setForm('date', v || '')}
+                  error={errors.date}
                 />
               </FormField>
               <FormField label="Mode de paiement" required error={errors.payment_method}>
@@ -849,6 +908,17 @@ export function SalesModule() {
               </button>
             </div>
           </FormSection>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-secondary mb-1">Répartition financière</label>
+            <EntityLinkPicker
+              links={links}
+              onChange={setLinks}
+              totalAmount={form.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)}
+              currency="XOF"
+              allowedTypes={['supplier', 'customer', 'project', 'plot', 'campaign', 'animal', 'animal_lot', 'site', 'funder']}
+            />
+          </div>
 
           <FormActions onSubmit={handleFormSubmit} onCancel={() => { resetForm(); setModalOpen(false); setEditSale(null); }} isSubmitting={isSubmitting} />
         </form>

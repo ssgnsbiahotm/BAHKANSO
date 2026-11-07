@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { List, CreditCard, Plus, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -13,6 +13,10 @@ import { useExpenses } from '@/modules/Finance/hooks/useFinanceData';
 import { generateEntityIdentifier } from '@/lib/entity-ids';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { EntityLinkPicker, type EntityLink } from '@/components/ui/EntityLinkPicker';
+import { EntityPicker, type EntityType } from '@/components/ui/EntityPicker';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { SiteField } from '@/components/ui/SiteField';
 
 interface ExpensesTabProps {
   expensesData: ReturnType<typeof useExpenses>;
@@ -98,29 +102,45 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const [links, setLinks] = useState<EntityLink[]>([]);
 
   const currentUser = appUser?.name ?? authUser?.email ?? 'Utilisateur inconnu';
 
-  const [siteName, setSiteName] = useState<string | null>(null);
+  const persistExpenseLinks = useCallback(
+    async (
+      transactionId: string,
+      amount: number,
+      currency: string,
+      expenseLinks: EntityLink[],
+    ) => {
+      // Supprime les anciens liens avant d'insérer les nouveaux (idempotent à l'édition)
+      await supabase
+        .from('financial_links')
+        .delete()
+        .eq('transaction_type', 'expense')
+        .eq('transaction_id', transactionId);
 
-  useEffect(() => {
-    if (!appUser?.site_id) {
-      setSiteName(null);
-      return;
-    }
-    supabase
-      .from('sites')
-      .select('name')
-      .eq('id', appUser.site_id)
-      .single()
-      .then(({ data, error }) => {
-        if (error || !data) {
-          setSiteName(null);
-          return;
-        }
-        setSiteName((data as { name: string }).name ?? null);
-      });
-  }, [appUser?.site_id]);
+      const rows = expenseLinks
+        .filter((l) => l.entity_id && l.entity_id.trim().length > 0)
+        .map((l) => ({
+          transaction_type: 'expense' as const,
+          transaction_id: transactionId,
+          entity_type: l.entity_type,
+          entity_id: l.entity_id,
+          amount_allocated: Number(l.amount_allocated) || 0,
+          currency,
+          percent_allocated: l.percent_allocated ?? null,
+          note: l.note ?? null,
+          created_by: appUser?.id ?? null,
+        }));
+
+      if (rows.length > 0) {
+        const { error } = await supabase.from('financial_links').insert(rows);
+        if (error) throw error;
+      }
+    },
+    [appUser?.id, supabase],
+  );
 
   const form = ValidatedForm<ExpenseFormValues>({
     schema: expenseSchema,
@@ -201,6 +221,11 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           createdId = (inserted as { id: string })?.id ?? null;
         }
 
+        // Persist les liens financial_links (répartition de la dépense sur N entités)
+        if (createdId) {
+          await persistExpenseLinks(createdId, values.amount, values.currency, links);
+        }
+
         await logAudit(
           currentUser,
           editingExpense ? 'UPDATE' : 'CREATE',
@@ -226,6 +251,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
     if (!isAuthorized) return;
     form.resetForm();
     setEditingExpense(null);
+    setLinks([]);
     let preview = '';
     try {
       preview = await generateEntityIdentifier('EXP', 'expenses', 'reference', supabase);
@@ -264,6 +290,27 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
     });
     setEditingExpense(expense);
     setModalOpen(true);
+
+    supabase
+      .from('financial_links')
+      .select('*')
+      .eq('transaction_type', 'expense')
+      .eq('transaction_id', expense.id)
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setLinks([]);
+          return;
+        }
+        setLinks(
+          (data as EntityLink[]).map((l) => ({
+            entity_type: l.entity_type as EntityType,
+            entity_id: l.entity_id,
+            amount_allocated: l.amount_allocated,
+            percent_allocated: l.percent_allocated,
+            note: l.note,
+          })),
+        );
+      });
   };
 
   const handleDelete = (expense: Expense) => {
@@ -564,13 +611,15 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Fournisseur</label>
-              <input
-                type="text"
-                value={form.values.supplier_id ?? ''}
-                onChange={(e) => form.setFieldValue('supplier_id', e.target.value || null)}
-                className="form-input w-full"
-                placeholder="ID du fournisseur"
+              <EntityPicker
+                label="Fournisseur"
+                entityType="supplier"
+                value={form.values.supplier_id ?? null}
+                onChange={(id) => form.setFieldValue('supplier_id', id)}
+                placeholder="Sélectionner un fournisseur…"
+                className="w-full"
               />
+              {form.errors.supplier_id && <p className="text-xs text-red-500 mt-1">{form.errors.supplier_id}</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Responsable</label>
@@ -592,25 +641,21 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             />
             {form.errors.payment_method && <p className="text-xs text-red-500 mt-1">{form.errors.payment_method}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Date *</label>
-              <input
-                type="date"
-                value={form.values.date}
-                onChange={(e) => form.setFieldValue('date', e.target.value)}
-                className="form-input w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Date paiement</label>
-              <input
-                type="date"
-                value={form.values.date_paid ?? ''}
-                onChange={(e) => form.setFieldValue('date_paid', e.target.value || null)}
-                className="form-input w-full"
-              />
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-secondary mb-1">Dates</label>
+            <DatePicker
+              mode="engagement-payment"
+              engagementDate={form.values.date}
+              paymentDate={form.values.date_paid}
+              onEngagementChange={(v) => form.setFieldValue('date', v || '')}
+              onPaymentChange={(v) => form.setFieldValue('date_paid', v || '')}
+              status={form.values.status}
+              error={form.errors.date ?? form.errors.date_paid ?? undefined}
+            />
+            {form.errors.date && <p className="text-xs text-red-500 mt-1">{form.errors.date}</p>}
+            {form.errors.date_paid && (
+              <p className="text-xs text-red-500 mt-1">{form.errors.date_paid}</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Description</label>
@@ -632,20 +677,34 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           </div>
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Site</label>
-            <input
-              type="text"
-              value={siteName ?? form.values.site_id ?? ''}
-              readOnly
-              disabled
-              className="form-input w-full bg-surface-hover cursor-not-allowed text-secondary"
-              title="Site déterminé automatiquement depuis votre session"
+            <SiteField
+              value={form.values.site_id ?? null}
+              onChange={(id) => form.setFieldValue('site_id', id)}
             />
-            <input
-              type="hidden"
-              value={form.values.site_id ?? appUser?.site_id ?? ''}
-              onChange={(e) => form.setFieldValue('site_id', e.target.value || null)}
+            {form.errors.site_id && <p className="text-xs text-red-500 mt-1">{form.errors.site_id}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-secondary mb-1">Répartition (liens métier)</label>
+            <EntityLinkPicker
+              links={links}
+              onChange={setLinks}
+              totalAmount={form.values.amount}
+              currency={form.values.currency || 'XOF'}
+              allowedTypes={[
+                'supplier',
+                'customer',
+                'project',
+                'plot',
+                'campaign',
+                'animal',
+                'animal_lot',
+                'site',
+                'funder',
+              ]}
             />
           </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
