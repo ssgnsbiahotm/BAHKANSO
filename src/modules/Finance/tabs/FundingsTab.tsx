@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
+import { generateEntityIdentifier } from '@/lib/entity-ids';
 import { useAuth } from '@/lib/AuthContext';
 import { z } from 'zod';
 import type { Funding } from '@/lib/types';
@@ -243,6 +244,10 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
       site_id: appUser?.site_id ?? null,
     },
     onSubmit: async (values) => {
+      let finalReference = values.reference?.trim();
+      if (!finalReference) {
+        finalReference = await generateEntityIdentifier('FND', 'fundings', 'reference', supabase);
+      }
       await executeAction(async () => {
         const payload = {
           funder_id: values.funder_id ?? null,
@@ -260,7 +265,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
 
         const fundingData = {
           ...payload,
-          reference: values.reference,
+          reference: finalReference,
         };
 
         console.log('PAYLOAD UPDATE:', payload);
@@ -289,7 +294,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           editingFunding ? 'UPDATE' : 'CREATE',
           'funding',
           createdId,
-          `${editingFunding ? 'Modification' : 'Création'} du financement "${values.reference}"`,
+          `${editingFunding ? 'Modification' : 'Création'} du financement "${finalReference}"`,
           editingFunding ? { ...editingFunding } : null,
           editingFunding ? payload : fundingData,
         );
@@ -305,12 +310,16 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
     },
   });
 
-  const handleNewFunding = () => {
+  const handleNewFunding = async () => {
     if (!isAuthorized) {
       return;
     }
     form.resetForm();
     setEditingFunding(null);
+    try {
+      const preview = await generateEntityIdentifier('FND', 'fundings', 'reference', supabase);
+      form.setFieldValue('reference', preview);
+    } catch {}
     setModalOpen(true);
   };
 
@@ -487,8 +496,9 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
                 type="text"
                 value={form.values.reference}
                 onChange={(e) => form.setFieldValue('reference', e.target.value)}
-                className="form-input w-full"
-                placeholder="FIN-2024-0001"
+                className="form-input w-full bg-surface-hover cursor-not-allowed"
+                readOnly
+                placeholder="Généré automatiquement (FND-NNN)"
               />
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
