@@ -115,6 +115,7 @@ export interface Supplier {
   contact_person: string | null;
   total_purchases: number;
   rating: number;
+  site_id: string | null;
 }
 
 export interface Expense {
@@ -322,6 +323,7 @@ export interface InventoryItem {
   current_stock: number;
   location: string | null;
   unit_cost: number;
+  site_id: string | null;
 }
 
 export interface InventoryMovement {
@@ -412,6 +414,7 @@ export interface SurveillanceEvent {
   id: string;
   farm_id: string;
   type: SurveillanceEventType;
+  site_id: string | null;
   plot_id: string | null;
   campaign_id: string | null;
   lot_id: string | null;

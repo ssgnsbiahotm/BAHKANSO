@@ -44,6 +44,7 @@ const createMockEvent = (overrides: Partial<SurveillanceEvent> = {}): Surveillan
   id: 'evt-1',
   farm_id: 'test-farm-id',
   type: 'phyto_traitement',
+  site_id: null,
   label: 'Test',
   description: null,
   scheduled_at: new Date().toISOString(),

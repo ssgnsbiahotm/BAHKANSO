@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSurveillance } from '@/hooks/useSurveillance';
 import { useAuth } from '@/lib/AuthContext';
+import { useData } from '@/lib/DataContext';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
 import { formatDate, formatDateTime, formatCurrency } from '@/lib/format';
@@ -56,6 +57,7 @@ const STATUS_LABELS: Record<string, string> = {
 export function EvenementsTab() {
   const location = useLocation();
   const { appUser } = useAuth();
+  const { sites } = useData();
   const toast = useToast();
 
   // Détecter l'onglet actif depuis l'URL (?tab=) ET le mettre à jour
@@ -138,6 +140,7 @@ export function EvenementsTab() {
         .from('surveillance_events')
         .update({
           type: values.type,
+          site_id: values.site_id,
           plot_id: values.plot_id,
           campaign_id: values.campaign_id,
           lot_id: values.lot_id,
@@ -166,6 +169,7 @@ export function EvenementsTab() {
       // Création d'un nouvel événement
       const payload = {
         type: values.type,
+        site_id: values.site_id,
         plot_id: values.plot_id,
         campaign_id: values.campaign_id,
         lot_id: values.lot_id,
@@ -458,6 +462,19 @@ export function EvenementsTab() {
             >
               <option value="phyto_traitement">Traitement phytosanitaire</option>
               <option value="equip_panne">Panne équipement</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-wider text-ink-mut">Site</label>
+            <select
+              value={editingEvent?.site_id || ''}
+              onChange={(e) => setEditingEvent(editingEvent ? { ...editingEvent, site_id: e.target.value || null } : null)}
+              className="w-full px-3 py-2 bg-surface border border-ivory-deep rounded-sm text-ink"
+            >
+              <option value="">— Choisir un site —</option>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
             </select>
           </div>
           <div>
