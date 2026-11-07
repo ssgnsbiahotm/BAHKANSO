@@ -6,7 +6,7 @@ import type {
   Supplier, Expense, Document, Site, Plot, Campaign, CropOperation, Harvest,
   Animal, AnimalLot, AnimalEvent, Project, ProjectStep, InventoryItem,
   InventoryMovement, InventoryCount, Budget, Alert, Notification, AuditLog,
-  SiteContent, Media,
+  SiteContent, Media, Customer,
 } from './types';
 
 export type DashboardSource =
@@ -36,6 +36,7 @@ interface DataContextType {
   farm: Farm | null;
   users: AppUser[];
   funders: Funder[];
+  customers: Customer[];
   fundings: Funding[];
   bankAccounts: BankAccount[];
   cashAccounts: CashAccount[];
@@ -86,6 +87,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [farm, setFarm] = useState<Farm | null>(null);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [funders, setFunders] = useState<Funder[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [fundings, setFundings] = useState<Funding[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [cashAccounts, setCashAccounts] = useState<CashAccount[]>([]);
@@ -143,6 +145,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       safeRequest(supabase.from('farms').select('*').limit(1).maybeSingle()),
       safeRequest(supabase.from('app_users').select('*').order('name')),
       safeRequest(supabase.from('funders').select('*').order('name')),
+      safeRequest(supabase.from('customers').select('*').order('name')),
       safeRequest(supabase.from('fundings').select('*, funder:funders(*)').order('date_sent', { ascending: false })),
       safeRequest(supabase.from('bank_accounts').select('*').order('name')),
       safeRequest(supabase.from('cash_accounts').select('*').order('name')),
@@ -172,7 +175,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ]);
 
     const [
-      farmRes, usersRes, fundersRes, fundingsRes, bankRes, cashRes,
+      farmRes, usersRes, fundersRes, customersRes, fundingsRes, bankRes, cashRes,
       txnRes, suppliersRes, expensesRes, docsRes, sitesRes, plotsRes,
       campaignsRes, cropOpsRes, harvestsRes, animalsRes, lotsRes,
       animalEventsRes, projectsRes, stepsRes, invItemsRes, invMovRes,
@@ -191,6 +194,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setUsers(usersRes.data || []);
     if (fundersRes.error) fail(fundersRes.error?.message || 'Erreur de chargement');
     setFunders(fundersRes.data || []);
+    if (customersRes.error) fail(customersRes.error?.message || 'Erreur de chargement');
+    setCustomers(customersRes.data || []);
     if (fundingsRes.error) fail(fundingsRes.error?.message || 'Erreur de chargement');
     setFundings(fundingsRes.data || []);
     if (bankRes.error) fail(bankRes.error?.message || 'Erreur de chargement');
@@ -320,7 +325,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      farm, users, funders, fundings, bankAccounts, cashAccounts, transactions,
+      farm, users, funders, customers, fundings, bankAccounts, cashAccounts, transactions,
       suppliers, expenses, documents, sites, plots, campaigns, cropOperations,
       harvests, animals, animaux: animals, animauxSetter: setAnimaux, animalLots, lots: animalLots, lotsSetter: setLots, animalEvents, projects, projectSteps,
       inventoryItems, inventoryMovements, inventoryCounts, budgets, alerts,
