@@ -228,6 +228,7 @@ export interface Harvest {
   id: string;
   campaign_id: string | null;
   plot_id: string | null;
+  site_id: string | null;
   date: string;
   quantity: number;
   unit: string;
