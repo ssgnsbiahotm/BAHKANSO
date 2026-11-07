@@ -10,6 +10,7 @@ import { z } from 'zod';
 import type { Expense } from '@/lib/types';
 import { logAudit } from '@/lib/types';
 import { useExpenses } from '@/modules/Finance/hooks/useFinanceData';
+import { generateEntityIdentifier } from '@/lib/entity-ids';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { formatCurrency, formatDate } from '@/lib/format';
 
@@ -150,9 +151,13 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       date: new Date().toISOString().slice(0, 10),
     },
     onSubmit: async (values) => {
+      let finalReference = values.reference?.trim();
+      if (!finalReference) {
+        finalReference = await generateEntityIdentifier('EXP', 'expenses', 'reference', supabase);
+      }
       await executeAction(async () => {
         const expenseData = {
-          reference: values.reference,
+          reference: finalReference,
           label: values.label,
           amount: values.amount,
           currency: values.currency,
@@ -217,10 +222,15 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
     },
   });
 
-  const handleNewExpense = () => {
+  const handleNewExpense = async () => {
     if (!isAuthorized) return;
     form.resetForm();
     setEditingExpense(null);
+    let preview = '';
+    try {
+      preview = await generateEntityIdentifier('EXP', 'expenses', 'reference', supabase);
+    } catch {}
+    form.setFieldValue('reference', preview);
     setModalOpen(true);
   };
 
@@ -313,7 +323,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
 
       <div className="flex justify-end">
         <button
-          onClick={handleNewExpense}
+          onClick={() => void handleNewExpense()}
           disabled={actionLoading || form.isSubmitting || !isAuthorized}
           className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
         >
@@ -457,7 +467,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           );
         })}
         <button
-          onClick={handleNewExpense}
+          onClick={() => void handleNewExpense()}
           className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
         >
           <Plus size={16} /> Nouvelle dépense
@@ -486,9 +496,9 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               <input
                 type="text"
                 value={form.values.reference}
-                onChange={(e) => form.setFieldValue('reference', e.target.value)}
-                className="form-input w-full"
-                placeholder="DEP-2024-0001"
+                readOnly
+                className="form-input w-full bg-surface-hover cursor-not-allowed"
+                placeholder="Généré automatiquement"
               />
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
