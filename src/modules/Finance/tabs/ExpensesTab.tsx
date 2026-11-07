@@ -6,6 +6,7 @@ import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
+import { useData } from '@/lib/DataContext';
 import { z } from 'zod';
 import type { Expense } from '@/lib/types';
 import { logAudit } from '@/lib/types';
@@ -24,7 +25,7 @@ interface ExpensesTabProps {
 
 const expenseSchema = z.object({
   reference: z.string().min(1, 'Référence obligatoire'),
-  label: z.string().min(1, 'Libellé obligatoire'),
+  label: z.string().optional().default(''),
   amount: z.number().positive('Montant doit être positif'),
   currency: z.string().min(1, 'Devise obligatoire'),
   category: z.string().nullable(),
@@ -93,6 +94,7 @@ const STATUS_COLORS: Record<string, string> = {
 export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
   const { data, loading, error, refetch } = expensesData;
   const { authUser, appUser } = useAuth();
+  const { suppliers } = useData();
   const isAuthorized = useMemo(() => {
     if (!appUser) return false;
     const role = appUser.role;
@@ -176,9 +178,13 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
         finalReference = await generateEntityIdentifier('EXP', 'expenses', 'reference', supabase);
       }
       await executeAction(async () => {
+        const supplierObj = suppliers.find((s) => s.id === values.supplier_id);
+        const computedLabel = [values.category || 'Dépense', supplierObj?.name]
+          .filter(Boolean)
+          .join(' - ');
         const expenseData = {
           reference: finalReference,
-          label: values.label,
+          label: computedLabel || values.reference,
           amount: values.amount,
           currency: values.currency,
           category: values.category,
@@ -195,7 +201,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           status: values.status,
           has_justificatif: values.has_justificatif,
           justificatif_url: values.justificatif_url,
-          comment: values.comment,
+          comment: null,
           amount_paid: values.amount_paid,
           date_paid: values.date_paid,
           payment_method_detail: values.payment_method_detail,
@@ -231,7 +237,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           editingExpense ? 'UPDATE' : 'CREATE',
           'expense',
           createdId,
-          `${editingExpense ? 'Modification' : 'Création'} de la dépense "${values.label}"`,
+          `${editingExpense ? 'Modification' : 'Création'} de la dépense "${computedLabel || values.reference}"`,
           editingExpense ? { ...editingExpense } : null,
           expenseData,
         );
@@ -549,16 +555,6 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
               />
               {form.errors.reference && <p className="text-xs text-red-500 mt-1">{form.errors.reference}</p>}
             </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Libellé *</label>
-              <input
-                type="text"
-                value={form.values.label}
-                onChange={(e) => form.setFieldValue('label', e.target.value)}
-                className="form-input w-full"
-              />
-              {form.errors.label && <p className="text-xs text-red-500 mt-1">{form.errors.label}</p>}
-            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -659,20 +655,12 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           </div>
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Description</label>
-            <input
-              type="text"
+            <textarea
               value={form.values.description ?? ''}
               onChange={(e) => form.setFieldValue('description', e.target.value || null)}
               className="form-input w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Commentaire</label>
-            <input
-              type="text"
-              value={form.values.comment ?? ''}
-              onChange={(e) => form.setFieldValue('comment', e.target.value || null)}
-              className="form-input w-full"
+              rows={4}
+              placeholder="ex: Achat de carburant pour le tracteur"
             />
           </div>
           <div>
