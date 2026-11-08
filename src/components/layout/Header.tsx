@@ -21,7 +21,6 @@ export function Header({ onOpenMobile, pageTitle }: HeaderProps) {
   const [showNotif, setShowNotif] = useState(false);
   const [showUser, setShowUser] = useState(false);
 
-  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   const openAlerts = useMemo(() => alerts.filter(a => a.status === 'ouverte'), [alerts]);
 
   const handleSignOut = async () => {
@@ -66,9 +65,9 @@ export function Header({ onOpenMobile, pageTitle }: HeaderProps) {
             aria-haspopup="true"
           >
             <Bell size={20} className="text-primary/70" />
-            {unreadCount > 0 && (
+            {openAlerts.length > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-terra text-slate text-[10px] font-bold rounded-full flex items-center justify-center">
-                {unreadCount}
+                {openAlerts.length}
               </span>
             )}
           </button>

@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useSurveillance } from '@/hooks/useSurveillance';
+import { useSurveillance, useSurveillanceMutations, isOverdue } from '@/hooks/useSurveillance';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
 import { supabase } from '@/lib/supabase';
@@ -79,6 +79,7 @@ export function EvenementsTab() {
     1,
     100
   );
+  const { softDelete } = useSurveillanceMutations();
   const loading = events.isLoading;
   const refetch = events.refetch;
 
@@ -89,7 +90,7 @@ export function EvenementsTab() {
       total: data.length,
       planifies: data.filter((e: SurveillanceEvent) => e.status === 'planifie').length,
       enCours: data.filter((e: SurveillanceEvent) => e.status === 'en_cours').length,
-      enRetard: data.filter((e: SurveillanceEvent) => e.status === 'planifie' && new Date(e.scheduled_at) < new Date()).length,
+      enRetard: data.filter((e: SurveillanceEvent) => isOverdue(e)).length,
     };
   }, [events.data?.data]);
 
@@ -122,14 +123,14 @@ export function EvenementsTab() {
 
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
-    const { error } = await supabase.from('surveillance_events').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
+    try {
+      await softDelete(confirmDelete.id);
       await logAudit(appUser?.name || 'Système', 'DELETE', 'surveillance_event', confirmDelete.id, `Événement ${confirmDelete.label} supprimé`);
-      toast.show('Événement supprimé');
-      setConfirmDelete(null);
       refetch();
+    } catch {
+      // softDelete affiche déjà le toast d'erreur via useAsyncAction (executeAction)
+    } finally {
+      setConfirmDelete(null);
     }
   };
 
@@ -442,7 +443,12 @@ export function EvenementsTab() {
           getEntityName={(e) => e.label}
           onClose={() => setConfirmDelete(null)}
           onConfirm={handleConfirmDelete}
-          title="Supprimer cet événement ?"
+          title="Archiver cet événement ?"
+          description={
+            <p className="text-sm text-secondary">
+              Voulez-vous vraiment archiver « {confirmDelete.label} » ? L'événement sera archivé.
+            </p>
+          }
         />
       )}
 
