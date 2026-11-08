@@ -19,6 +19,7 @@ import { EntityLinkPicker, type EntityLink } from '@/components/ui/EntityLinkPic
 import { EntityPicker, type EntityType } from '@/components/ui/EntityPicker';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { SiteField } from '@/components/ui/SiteField';
+import { Accordion } from '@/components/ui/Accordion';
 
 interface ExpensesTabProps {
   expensesData: ReturnType<typeof useExpenses>;
@@ -45,7 +46,6 @@ const expenseSchema = z.object({
   justificatif_url: z.string().nullable(),
   comment: z.string().nullable(),
   amount_paid: z.number().nonnegative().default(0),
-  date_paid: z.string().nullable(),
   payment_method_detail: z.string().nullable(),
   payment_reference: z.string().nullable(),
   date: z.string().min(1, 'Date obligatoire'),
@@ -72,7 +72,6 @@ interface ExpenseFormValues {
   justificatif_url: string | null;
   comment: string | null;
   amount_paid: number;
-  date_paid: string | null;
   payment_method_detail: string | null;
   payment_reference: string | null;
   date: string;
@@ -164,7 +163,6 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       justificatif_url: null,
       comment: null,
       amount_paid: 0,
-      date_paid: null,
       payment_method_detail: null,
       payment_reference: null,
       date: new Date().toISOString().slice(0, 10),
@@ -200,7 +198,6 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           justificatif_url: values.justificatif_url,
           comment: null,
           amount_paid: values.amount_paid,
-          date_paid: values.date_paid,
           payment_method_detail: values.payment_method_detail,
           payment_reference: values.payment_reference,
           date: values.date,
@@ -286,7 +283,6 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       justificatif_url: expense.justificatif_url,
       comment: expense.comment,
       amount_paid: expense.amount_paid,
-      date_paid: expense.date_paid,
       payment_method_detail: expense.payment_method_detail,
       payment_reference: expense.payment_reference,
       date: expense.date,
@@ -632,18 +628,13 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
             {form.errors.payment_method && <p className="text-xs text-red-500 mt-1">{form.errors.payment_method}</p>}
           </div>
           <DatePicker
-            mode="engagement-payment"
-            engagementDate={form.values.date}
-            paymentDate={form.values.date_paid}
-            onEngagementChange={(v) => form.setFieldValue('date', v || '')}
-            onPaymentChange={(v) => form.setFieldValue('date_paid', v || '')}
-            status={form.values.status}
-            error={form.errors.date ?? form.errors.date_paid ?? undefined}
+            mode="single"
+            value={form.values.date}
+            onChange={(v) => form.setFieldValue('date', v || '')}
+            label="Date de la dépense"
+            error={form.errors.date}
           />
           {form.errors.date && <p className="text-xs text-red-500 mt-1">{form.errors.date}</p>}
-          {form.errors.date_paid && (
-            <p className="text-xs text-red-500 mt-1">{form.errors.date_paid}</p>
-          )}
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Description</label>
             <textarea
@@ -661,8 +652,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           />
           {form.errors.site_id && <p className="text-xs text-red-500 mt-1">{form.errors.site_id}</p>}
 
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Répartition (liens métier)</label>
+          <Accordion title="Répartition (optionnel)" defaultOpen={false}>
             <EntityLinkPicker
               links={links}
               onChange={setLinks}
@@ -680,7 +670,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
                 'funder',
               ]}
             />
-          </div>
+          </Accordion>
 
           <div className="flex justify-end gap-2 pt-2">
             <button
