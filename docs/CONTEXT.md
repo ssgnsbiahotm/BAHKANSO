@@ -42,6 +42,7 @@
 - [ ] Corriger les 23 warnings ESLint (non bloquants).
 - [ ] Polish UX D1/D2 (formulaires financiers).
 - [ ] Ajouter des KPIs (trésorerie, graphiques).
+- [ ] TODO Vague 3 : écran de restauration (corbeille) des événements archivés (surveillance_events.deleted_at)
 
 ## Commandes utiles
 

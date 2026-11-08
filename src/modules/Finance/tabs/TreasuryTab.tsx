@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { z } from 'zod';
 import type { Transaction } from '@/lib/types';
+import { logAudit } from '@/lib/types';
 import { useTreasuryTransactions } from '@/modules/Finance/hooks/useFinanceData';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { formatCurrency, formatDate } from '@/lib/format';
@@ -269,20 +270,31 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
 
   const confirmDelete = async () => {
     if (!deletingTransaction) return;
-    await executeAction(async () => {
-      const { error: deleteError } = await supabase
-        .from('transactions')
-        .delete()
-        .eq('id', deletingTransaction.id);
-      if (deleteError) throw deleteError;
-    }, {
-      successMessage: 'Opération supprimée',
-      errorMessage: 'Échec de la suppression',
-      onSuccess: () => {
-        setDeletingTransaction(null);
-        refetch();
-      },
-    });
+    try {
+      await executeAction(async () => {
+        const { error: deleteError } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('id', deletingTransaction.id);
+        if (deleteError) throw deleteError;
+
+        await logAudit(
+          appUser?.name || 'Système',
+          'DELETE',
+          'transaction',
+          deletingTransaction.id,
+          `Suppression de la transaction "${deletingTransaction.description || deletingTransaction.reference}"`,
+        );
+      }, {
+        successMessage: 'Opération supprimée',
+        errorMessage: 'Échec de la suppression',
+        onSuccess: () => {
+          refetch();
+        },
+      });
+    } finally {
+      setDeletingTransaction(null);
+    }
   };
 
   if (loading) return <div className="text-center py-10">Chargement...</div>;
