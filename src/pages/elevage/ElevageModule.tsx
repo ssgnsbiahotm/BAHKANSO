@@ -14,10 +14,9 @@
  * Identique au pattern ExploitationModule.
  */
 
-import { useMemo, KeyboardEvent } from 'react';
+import { useMemo, KeyboardEvent, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '@/lib/DataContext';
-import { useToast } from '@/lib/Toast';
 import { Building, Users, Calendar } from 'lucide-react';
 
 import '@/styles/components.css';
@@ -41,8 +40,11 @@ const TAB_PATHS: Record<ElevageTab, string> = {
 };
 
 export function ElevageModule() {
-  const { lots, animaux, animalEvents } = useData();
-  const toast = useToast();
+  const { lots, animaux, animalEvents, loadModule } = useData();
+
+  useEffect(() => {
+    loadModule('elevage');
+  }, [loadModule]);
   const navigate = useNavigate();
   const location = useLocation();
 

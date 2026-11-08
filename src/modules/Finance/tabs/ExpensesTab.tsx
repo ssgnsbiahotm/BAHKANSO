@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { List, CreditCard, Plus, Trash2, Edit2, Eye, ExternalLink } from 'lucide-react';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -94,7 +94,11 @@ const STATUS_COLORS: Record<string, string> = {
 export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
   const { data, loading, error, refetch } = expensesData;
   const { authUser, appUser } = useAuth();
-  const { suppliers } = useData();
+  const { suppliers, refresh, loadModule } = useData();
+
+  useEffect(() => {
+    loadModule('finance');
+  }, [loadModule]);
   const isAuthorized = hasPermission(appUser?.role as import('@/lib/rbac').UserRole, 'finance', 'write');
   const { executeAction, loading: actionLoading } = useAsyncAction();
   const [modalOpen, setModalOpen] = useState(false);
@@ -242,6 +246,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
           setModalOpen(false);
           setEditingExpense(null);
           refetch();
+          refresh(); // Invalide le cache DataContext pour que les KPIs du Dashboard se mettent à jour
         },
       });
     },
@@ -345,6 +350,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       onSuccess: () => {
         setDeletingExpense(null);
         refetch();
+        refresh(); // Invalide le cache DataContext pour que les KPIs du Dashboard se mettent à jour
       },
     });
   };

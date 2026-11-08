@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useData } from '@/lib/DataContext';
 import type { Transaction } from '@/lib/types';
 
@@ -52,7 +52,13 @@ export function useDashboardStats() {
     error,
     sourceStatus,
     sourceError,
+    loadModule,
   } = useData();
+
+  // S'assurer que les sources du module dashboard sont chargées
+  useEffect(() => {
+    loadModule('dashboard');
+  }, [loadModule]);
 
   const stats = useMemo(() => {
     const current = currentPeriodBounds();

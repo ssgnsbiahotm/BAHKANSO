@@ -210,7 +210,7 @@ const SectionHeader = ({ id, title, description, action }: {
 
 export function Dashboard() {
   const { appUser } = useAuth();
-  const { media, siteContent, sourceStatus } = useData();
+  const { media, siteContent, sourceStatus, loadModule } = useData();
   const {
     netTreasury,
     periodNetResult,
@@ -253,6 +253,11 @@ export function Dashboard() {
   const [adgLoading, setAdgLoading] = useState(false);
   const [campaignMarginValue, setCampaignMarginValue] = useState<number | null>(null);
   const [campaignMarginLoading, setCampaignMarginLoading] = useState(false);
+
+  // S'assurer que les sources du module dashboard sont chargées
+  useEffect(() => {
+    loadModule('dashboard');
+  }, [loadModule]);
 
   // Charger la liste des campagnes pour le sélecteur de rendement
   useEffect(() => {

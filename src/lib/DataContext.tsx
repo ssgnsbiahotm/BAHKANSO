@@ -32,6 +32,29 @@ const DASHBOARD_SOURCES: DashboardSource[] = [
   'campaigns',
 ];
 
+// Sources chargées en priorité par le layout global (Header, Sidebar, SiteProvider…).
+// Toujours présentes au mount, quel que soit le module demandé.
+const GLOBAL_SOURCES: string[] = [
+  'farm',
+  'users',
+  'funders',
+  'customers',
+  'siteContent',
+  'media',
+  'notifications',
+  'alerts',
+];
+
+// Registre des sources par module. Chaque module déclare les sources dont il a besoin.
+// Les sources globales sont ajoutées automatiquement par loadModule.
+const MODULE_SOURCES: Record<string, string[]> = {
+  dashboard: DASHBOARD_SOURCES as string[],
+  exploitation: ['plots', 'sites', 'campaigns', 'cropOperations', 'harvests'],
+  finance: ['suppliers', 'documents', 'fundings', 'bankAccounts', 'cashAccounts'],
+  elevage: ['animals', 'animalLots', 'animalEvents'],
+  ventes: ['customers'],
+};
+
 interface DataContextType {
   farm: Farm | null;
   users: AppUser[];
@@ -72,6 +95,9 @@ interface DataContextType {
   sourceStatus: Record<string, SourceStatus>;
   sourceError: Record<string, string | null>;
   refresh: () => void;
+  loadModule: (moduleName: string) => void;
+  loadedModules: Set<string>;
+  currentModule: string;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -120,6 +146,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [sourceStatus, setSourceStatus] = useState<Record<string, SourceStatus>>({});
   const [sourceError, setSourceError] = useState<Record<string, string | null>>({});
+  const [loadedModules, setLoadedModules] = useState<Set<string>>(new Set());
+  const [currentModule, setCurrentModule] = useState<string>('dashboard');
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -135,11 +163,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
     setSourceStatus({ ...nextStatus });
     setSourceError({ ...nextSourceError });
-
-    // Une requête qui échoue ne doit pas annuler les autres : on encapsule
-    // chaque appel pour qu'il ne rejette jamais le Promise.all.
-    const safeRequest = <T,>(p: PromiseLike<{ data: T | null; error: unknown }>) =>
-      Promise.resolve(p).then((r) => r as { data: T | null; error: unknown }).catch((err) => ({ data: null, error: err }));
 
     const results = await Promise.all([
       safeRequest(supabase.from('farms').select('*').limit(1).maybeSingle()),
@@ -315,13 +338,148 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const safeRequest = <T,>(p: PromiseLike<{ data: T | null; error: unknown }>) =>
+    Promise.resolve(p).then((r) => r as { data: T | null; error: unknown }).catch((err) => ({ data: null, error: err }));
+
+  const loadModule = useCallback(async (moduleName: string) => {
+    const sources = [...GLOBAL_SOURCES, ...(MODULE_SOURCES[moduleName] || [])];
+    const toLoad = sources.filter((s) => !loadedModules.has(s));
+    if (toLoad.length === 0) {
+      setCurrentModule(moduleName);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const nextStatus: Record<string, SourceStatus> = {};
+    const nextSourceError: Record<string, string | null> = {};
+    for (const source of toLoad) {
+      nextStatus[source] = 'loading';
+      nextSourceError[source] = null;
+    }
+    setSourceStatus((prev) => ({ ...prev, ...nextStatus }));
+    setSourceError((prev) => ({ ...prev, ...nextSourceError }));
+
+    const sourceToQuery: Record<string, Promise<{ data: unknown; error: unknown }>> = {
+      farm: safeRequest(supabase.from('farms').select('*').limit(1).maybeSingle()),
+      users: safeRequest(supabase.from('app_users').select('*').order('name')),
+      funders: safeRequest(supabase.from('funders').select('*').order('name')),
+      customers: safeRequest(supabase.from('customers').select('*').order('name')),
+      fundings: safeRequest(supabase.from('fundings').select('*, funder:funders(*)').order('date_sent', { ascending: false })),
+      bankAccounts: safeRequest(supabase.from('bank_accounts').select('*').order('name')),
+      cashAccounts: safeRequest(supabase.from('cash_accounts').select('*').order('name')),
+      transactions: safeRequest(supabase.from('transactions').select('*').order('transaction_date', { ascending: false })),
+      suppliers: safeRequest(supabase.from('suppliers').select('*').order('name')),
+      expenses: safeRequest(supabase.from("expenses").select("*, supplier:suppliers(*), funding:fundings(*)").order("date", { ascending: false })),
+      documents: safeRequest(supabase.from('documents').select('*').order('upload_date', { ascending: false })),
+      sites: safeRequest(supabase.from('sites').select('*').order('name')),
+      plots: safeRequest(supabase.from('plots').select('*').order('name')),
+      campaigns: safeRequest(supabase.from('campaigns').select('*, plot:plots(*)').order('year', { ascending: false })),
+      cropOperations: safeRequest(supabase.from('crop_operations').select('*').order('date', { ascending: false })),
+      harvests: safeRequest(supabase.from('harvests').select('*').order('date', { ascending: false })),
+      animals: safeRequest(supabase.from('animals').select('*').order('identifier')),
+      animalLots: safeRequest(supabase.from('animal_lots').select('*').order('identifier')),
+      animalEvents: safeRequest(supabase.from('animal_events').select('*').order('date', { ascending: false })),
+      projects: safeRequest(supabase.from('projects').select('*').order('name')),
+      projectSteps: safeRequest(supabase.from('project_steps').select('*').order('name')),
+      inventoryItems: safeRequest(supabase.from('inventory_items').select('*').order('name')),
+      inventoryMovements: safeRequest(supabase.from('inventory_movements').select('*, item:inventory_items(*)').order('date', { ascending: false })),
+      inventoryCounts: safeRequest(supabase.from('inventory_counts').select('*, item:inventory_items(*)').order('count_date', { ascending: false })),
+      budgets: safeRequest(supabase.from('budgets').select('*').order('object_name')),
+      alerts: safeRequest(supabase.from('alerts').select('*').order('created_at', { ascending: false })),
+      notifications: safeRequest(supabase.from('notifications').select('*').order('created_at', { ascending: false })),
+      auditLogs: safeRequest(supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100)),
+      siteContent: safeRequest(supabase.from('site_content').select('*')),
+      media: safeRequest(supabase.from('media').select('*').order('created_at', { ascending: false })),
+    };
+
+    let globalError: string | null = null;
+    const fail = (message: string) => { if (!globalError) globalError = message; };
+
+    const results: Record<string, { data: unknown; error: unknown }> = {};
+    for (const source of toLoad) {
+      results[source] = await sourceToQuery[source];
+    }
+
+    const applySource = (source: string, res: { data: unknown; error: unknown }) => {
+      if (res.error) {
+        fail(res.error?.message || 'Erreur de chargement');
+        nextStatus[source] = 'error';
+        nextSourceError[source] = res.error?.message || 'Erreur de chargement';
+        return;
+      }
+      nextStatus[source] = 'success';
+      nextSourceError[source] = null;
+
+      switch (source) {
+        case 'farm': setFarm(res.data as Farm | null); break;
+        case 'users': setUsers(res.data as AppUser[] || []); break;
+        case 'funders': setFunders(res.data as Funder[] || []); break;
+        case 'customers': setCustomers(res.data as Customer[] || []); break;
+        case 'fundings': setFundings(res.data as Funding[] || []); break;
+        case 'bankAccounts': setBankAccounts(res.data as BankAccount[] || []); break;
+        case 'cashAccounts': setCashAccounts(res.data as CashAccount[] || []); break;
+        case 'transactions': setTransactions(res.data as Transaction[] || []); break;
+        case 'suppliers': setSuppliers(res.data as Supplier[] || []); break;
+        case 'expenses': setExpenses(res.data as Expense[] || []); break;
+        case 'documents': setDocuments(res.data as Document[] || []); break;
+        case 'sites': setSites(res.data as Site[] || []); break;
+        case 'plots': setPlots(res.data as Plot[] || []); break;
+        case 'campaigns': setCampaigns(res.data as Campaign[] || []); break;
+        case 'cropOperations': setCropOperations(res.data as CropOperation[] || []); break;
+        case 'harvests': setHarvests(res.data as Harvest[] || []); break;
+        case 'animals': {
+          setAnimals(res.data as Animal[] || []);
+          setAnimaux(res.data as Animal[] || []);
+          break;
+        }
+        case 'animalLots': {
+          setAnimalLots(res.data as AnimalLot[] || []);
+          setLots(res.data as AnimalLot[] || []);
+          break;
+        }
+        case 'animalEvents': setAnimalEvents(res.data as AnimalEvent[] || []); break;
+        case 'projects': setProjects(res.data as Project[] || []); break;
+        case 'projectSteps': setProjectSteps(res.data as ProjectStep[] || []); break;
+        case 'inventoryItems': setInventoryItems(res.data as InventoryItem[] || []); break;
+        case 'inventoryMovements': setInventoryMovements(res.data as InventoryMovement[] || []); break;
+        case 'inventoryCounts': setInventoryCounts(res.data as InventoryCount[] || []); break;
+        case 'budgets': setBudgets(res.data as Budget[] || []); break;
+        case 'alerts': setAlerts(res.data as Alert[] || []); break;
+        case 'notifications': setNotifications(res.data as Notification[] || []); break;
+        case 'auditLogs': setAuditLogs(res.data as AuditLog[] || []); break;
+        case 'siteContent': {
+          const contentMap: Record<string, SiteContent> = {};
+          for (const row of (res.data as SiteContent[] || [])) {
+            contentMap[row.key] = row as SiteContent;
+          }
+          setSiteContent(contentMap);
+          break;
+        }
+        case 'media': setMedia((res.data as Media[]) || []); break;
+      }
+    };
+
+    for (const source of toLoad) {
+      applySource(source, results[source]);
+    }
+
+    setSourceStatus((prev) => ({ ...prev, ...nextStatus }));
+    setSourceError((prev) => ({ ...prev, ...nextSourceError }));
+    setError(globalError);
+    setLoading(false);
+    setLoadedModules((prev) => new Set([...prev, ...toLoad]));
+    setCurrentModule(moduleName);
+  }, [loadedModules]);
+
   useEffect(() => {
     if (authUser) {
-      loadAll();
+      loadModule('dashboard');
     } else {
       setLoading(false);
     }
-  }, [authUser, loadAll]);
+  }, [authUser, loadModule]);
 
   return (
     <DataContext.Provider value={{
@@ -330,7 +488,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       harvests, animals, animaux: animals, animauxSetter: setAnimaux, animalLots, lots: animalLots, lotsSetter: setLots, animalEvents, projects, projectSteps,
       inventoryItems, inventoryMovements, inventoryCounts, budgets, alerts,
       notifications, auditLogs, siteContent, media,
-      loading, error, sourceStatus, sourceError, refresh: loadAll,
+      loading, error, sourceStatus, sourceError, refresh: loadAll, loadModule, loadedModules, currentModule,
     }}>
       {children}
     </DataContext.Provider>
