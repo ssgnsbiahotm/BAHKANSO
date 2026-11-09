@@ -44,6 +44,7 @@ function setup(overrides: {
     error: overrides.error ?? null,
     sourceStatus: status,
     sourceError,
+    loadModule: vi.fn(),
   });
   return renderHook(() => useDashboardStats());
 }

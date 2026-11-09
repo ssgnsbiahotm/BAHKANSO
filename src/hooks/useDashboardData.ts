@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { parsePeriod } from '@/lib/format';
 import { useData } from '@/lib/DataContext';
 import { useSite } from '@/lib/SiteContext';
 import { useDashboardScope } from './useDashboardScope';
@@ -43,28 +44,23 @@ export function useDashboardData() {
     if (siteId === 'all' || !siteId) {
       return (sites || [])
         .map((s) => s.farm_id)
-        .filter(Boolean);
+        .filter((f): f is string => Boolean(f));
     }
     const site = (sites || []).find((s) => s.id === siteId);
     return site && site.farm_id ? [site.farm_id] : [];
   }, [siteId, sites]);
 
   // Période : 'YYYY-MM' => bornes du mois.
-  const { periodStart, periodEnd } = useMemo(() => {
-    const [y, m] = period.split('-').map(Number);
-    const start = new Date(y, m - 1, 1);
-    const end = new Date(y, m, 0);
-    return {
-      periodStart: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`,
-      periodEnd: `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`,
-    };
-  }, [period]);
+  // Une période mal formée (URL non sanitisée) bascule sur une valeur sûre (no_data) au lieu de propager des dates invalides.
+  const parsed = useMemo(() => parsePeriod(period), [period]);
+  const periodStart = parsed?.periodStart ?? '';
+  const periodEnd = parsed?.periodEnd ?? '';
 
   // Campagne active du site sélectionné (résolution auto si campaignId null).
   const activeCampaign = useMemo(() => {
     if (siteId === 'all' || !siteId) return null;
     const site = (sites || []).find((s) => s.id === siteId);
-    return resolveActiveCampaign(campaigns || [], site);
+    return resolveActiveCampaign(campaigns || [], site ?? null);
   }, [siteId, sites, campaigns]);
 
   // Données brutes depuis la source (un aller-retour par scope).
@@ -78,7 +74,7 @@ export function useDashboardData() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (farmIds.length === 0) {
+    if (farmIds.length === 0 || periodStart === '' || periodEnd === '') {
       setRaw({ entrees: 0, sorties: 0, recoltes: [], alertesOuvertes: 0 });
       return;
     }
@@ -88,7 +84,7 @@ export function useDashboardData() {
       const kpis = await clientDataSource.getKpis(farmIds, periodStart, periodEnd);
       setRaw(kpis);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de chargement');
+      setError((err as { message?: string } | null)?.message ?? 'Erreur de chargement');
       setRaw(null);
     } finally {
       setLoading(false);

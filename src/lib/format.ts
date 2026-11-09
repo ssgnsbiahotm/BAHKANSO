@@ -58,3 +58,30 @@ export function percentage(value: number, total: number): number {
   if (!total) return 0;
   return Math.round((value / total) * 100);
 }
+
+/**
+ * Valide et parse une période 'YYYY-MM' en bornes de mois.
+ * Retourne null si la période est mal formée (URL non sanitisée).
+ * Règle : aucune période valide => bornes vides (no_data), jamais de date invalide propagée.
+ */
+export function parsePeriod(period: string): { periodStart: string; periodEnd: string } | null {
+  const parts = period.split('-');
+  if (parts.length !== 2 || parts[0].length !== 4 || parts[1].length !== 2) {
+    return null;
+  }
+  if (parts.some((p) => Number.isNaN(Number(p)))) {
+    return null;
+  }
+  const [y, m] = parts as [string, string];
+  const year = Number(y);
+  const month = Number(m);
+  if (month < 1 || month > 12) {
+    return null;
+  }
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0);
+  return {
+    periodStart: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`,
+    periodEnd: `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`,
+  };
+}

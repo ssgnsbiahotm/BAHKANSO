@@ -192,7 +192,7 @@ export const ANIMAL_EVENT_TYPES = [
   'pesée',
   'transfert',
   'reproduction',
-  'mort',
+  'animal_mort',
 ];
 
 export const INVENTORY_MOVEMENT_TYPES = [

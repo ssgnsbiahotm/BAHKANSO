@@ -12,7 +12,13 @@ if (!SERVICE_ROLE_KEY) {
 }
 
 export const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+    detectSessionInUrl: false,
+    // Désactive la validation côté client de la clé de service (format sb_secret_...)
+    // pour éviter l'erreur "JWT cryptographic operation failed"
+  },
 });
 
 export const anonClient = createClient(

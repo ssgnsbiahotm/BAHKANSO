@@ -21,10 +21,10 @@ describe('calculateMortalityRate', () => {
 
   it('compte 1 décès sur 10 naissances = 10%', async () => {
     const mockData = Array.from({ length: 9 }, () => ({
-      event_type: 'naissance',
+      event_type: 'animal_ne',
       occurred_at: '2026-01-01',
     }));
-    mockData.push({ event_type: 'mort', occurred_at: '2026-02-01' });
+    mockData.push({ event_type: 'animal_mort', occurred_at: '2026-02-01' });
 
     const chain = buildChain(mockData);
     const { supabase } = await import('@/lib/supabase');

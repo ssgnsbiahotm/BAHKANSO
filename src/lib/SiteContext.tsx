@@ -17,7 +17,7 @@ interface SiteContextType {
   isGlobalView: boolean;
 }
 
-const SiteContext = createContext<SiteContextType | null>(null);
+export const SiteContext = createContext<SiteContextType | null>(null);
 
 export function useSite() {
   const ctx = useContext(SiteContext);

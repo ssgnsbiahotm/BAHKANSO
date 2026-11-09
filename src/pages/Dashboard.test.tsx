@@ -57,6 +57,7 @@ function renderDash(overrides: {
     sourceError,
     siteContent: {},
     media: [],
+    loadModule: vi.fn(),
   });
   mockUseAuth.mockReturnValue({
     appUser: { id: 'u1', name: 'Test', auth_id: 'a1', farm_id: 'f1', role: overrides.role ?? 'administrateur' },

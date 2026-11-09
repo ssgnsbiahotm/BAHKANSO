@@ -2,14 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SalesModule } from './SalesModule';
 import { useSalesData } from '@/modules/Sales/hooks/useSalesData';
-import { useSite } from '@/lib/SiteContext';
+import { SiteContext } from '@/lib/SiteContext';
 import { useToast } from '@/lib/Toast';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { BrowserRouter } from 'react-router-dom';
 
-vi.mock('@/modules/Sales/hooks/useSalesData');
-vi.mock('@/lib/SiteContext');
+vi.mock('@/modules/Sales/hooks/useSalesData', () => ({
+  useSalesData: vi.fn(() => ({
+    sales: [],
+    customers: [],
+    loading: false,
+    refresh: vi.fn(),
+    stats: null,
+    error: null,
+    deleteSale: vi.fn(),
+  })),
+}));
 vi.mock('@/lib/Toast', () => ({
   useToast: () => toastMock,
 }));
@@ -22,6 +31,25 @@ vi.mock('lucide-react', async (importOriginal) => {
   return actual;
 });
 
+// useData doit retourner les clients pour qu'EntityPicker (customer) puisse
+// pré-remplir le champ Client lors de l'édition d'une vente.
+vi.mock('@/lib/DataContext', () => ({
+  useData: () => ({
+    siteContent: { branding: { value: {} } },
+    farm: { id: 'test-farm-id', name: 'Test Farm' },
+    animaux: [],
+    lots: [],
+    animalEvents: [],
+    projects: [],
+    sites: [{ id: 'site-1', name: 'Site A', code: 'SA' }],
+    users: [],
+    fundings: [],
+    expenses: [],
+    customers: [{ id: 'cust-1', name: 'Client Test', type: 'particulier' }],
+    refresh: vi.fn(),
+  }),
+}));
+
 const toastMock = {
   show: vi.fn(),
   success: vi.fn(),
@@ -30,7 +58,6 @@ const toastMock = {
 };
 
 const mockUseSalesData = useSalesData as ReturnType<typeof vi.fn>;
-const mockUseSite = useSite as ReturnType<typeof vi.fn>;
 const mockLogAudit = logAudit as ReturnType<typeof vi.fn>;
 const mockFrom = vi.mocked(supabase.from);
 
@@ -106,14 +133,24 @@ function renderSales(overrides: {
     error: null,
     deleteSale: vi.fn(),
   });
-  mockUseSite.mockReturnValue({
+  const siteValue = {
     currentSiteId: null,
-    availableSites: overrides.availableSites ?? [{ id: 'site-1', name: 'Site A', code: 'SA' }],
-    isGlobalView: true,
     setCurrentSiteId: vi.fn(),
+    availableSites: (overrides.availableSites ?? [{ id: 'site-1', name: 'Site A', code: 'SA' }]).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      code: s.code ?? null,
+    })),
     currentSite: null,
-  });
-  return render(<BrowserRouter><SalesModule /></BrowserRouter>);
+    isGlobalView: true,
+  };
+  return render(
+    <BrowserRouter>
+      <SiteContext.Provider value={siteValue}>
+        <SalesModule />
+      </SiteContext.Provider>
+    </BrowserRouter>
+  );
 }
 
 beforeEach(() => {
@@ -143,9 +180,9 @@ describe('SalesModule — régression (Éditer la vente)', () => {
 
     expect(screen.getByText('Éditer la vente')).toBeInTheDocument();
 
-    expect((screen.getByLabelText(/Site/) as HTMLSelectElement).value).toBe('site-1');
-    expect((screen.getByLabelText(/Client/) as HTMLSelectElement).value).toBe('cust-1');
-    expect((screen.getByLabelText(/Date/) as HTMLInputElement).value).toBe('2026-10-10');
+    expect((screen.getByLabelText(/Site/) as HTMLInputElement).value).toBe('Site A');
+    expect((screen.getByLabelText(/Client/) as HTMLInputElement).value).toBe('Client Test');
+    expect((screen.getByDisplayValue('2026-10-10') as HTMLInputElement).value).toBe('2026-10-10');
 
     const descriptions = screen.getAllByLabelText(/Description/);
     expect(descriptions[0]).toHaveValue('Maïs');

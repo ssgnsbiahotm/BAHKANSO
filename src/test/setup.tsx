@@ -20,6 +20,7 @@ vi.mock('@/lib/supabase', () => ({
       order: vi.fn().mockReturnThis(),
       range: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      delete: vi.fn().mockReturnThis(),
     })),
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
@@ -66,6 +67,39 @@ vi.mock('@/lib/DataContext', () => ({
   useData: () => ({
     siteContent: { branding: { value: {} } },
     farm: { id: 'test-farm-id', name: 'Test Farm' },
+    animaux: [],
+    lots: [],
+    animalEvents: [],
+    projects: [],
+    sites: [],
+    users: [],
+    fundings: [],
+    expenses: [],
+    transactions: [],
+    inventoryItems: [],
+    alerts: [],
+    animals: [],
+    animalLots: [],
+    campaigns: [],
+    loading: false,
+    error: null,
+    sourceStatus: {},
+    sourceError: {},
+    refresh: vi.fn(),
+    loadModule: vi.fn(),
+  }),
+}));
+
+// Mock useSalesData
+vi.mock('@/modules/Sales/hooks/useSalesData', () => ({
+  useSalesData: () => ({
+    sales: [],
+    customers: [],
+    loading: false,
+    refresh: vi.fn(),
+    stats: null,
+    error: null,
+    deleteSale: vi.fn(),
   }),
 }));
 

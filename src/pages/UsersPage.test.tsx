@@ -12,6 +12,17 @@ vi.mock('@/lib/DataContext', () => ({
 vi.mock('@/lib/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
+// useSite doit retourner un objet valide même si le mock de SalesModule.test
+// a fuité (singleFork). Sinon SalesModule.tsx:72 plante en détruisant currentSiteId.
+vi.mock('@/lib/SiteContext', () => ({
+  useSite: vi.fn(() => ({
+    currentSiteId: null,
+    availableSites: [],
+    isGlobalView: true,
+    setCurrentSiteId: vi.fn(),
+    currentSite: null,
+  })),
+}));
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: { signUp: vi.fn() },
