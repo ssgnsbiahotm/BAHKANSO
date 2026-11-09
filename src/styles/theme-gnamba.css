@@ -1,0 +1,120 @@
+/* ==========================================================================
+   GNAMBA SERVICES — Design Tokens & Thèmes
+   Palette adaptée à la marque "Gnamba Services" (services professionnels)
+   Structure identique à BAHKANSO, teintes déplacées vers le bleu service.
+   ========================================================================== */
+
+/* ── Color Primitives Gnamba ── */
+:root {
+  --gn-color-primary: #1D4ED8;
+  --gn-color-primary-hover: #1E40AF;
+  --gn-color-primary-soft: #DBEAFE;
+  --gn-color-secondary: #0F766E;
+  --gn-color-secondary-soft: #CCFBF1;
+  --gn-color-ink: #0F172A;
+  --gn-color-ink-mut: #475569;
+  --gn-color-ink-dim: #94A3B8;
+  --gn-color-ivory: #F8FAFC;
+  --gn-color-ivory-alt: #F1F5F9;
+  --gn-color-night: #020617;
+  --gn-color-slate: #0F172A;
+  --gn-color-slate-hover: #1E293B;
+  --gn-color-alert: #DC2626;
+  --gn-color-success: #059669;
+
+  /* Sémantique dérivée */
+  --gn-success: var(--gn-color-success);
+  --gn-success-soft: rgba(5, 150, 105, 0.12);
+  --gn-warning: #D97706;
+  --gn-warning-soft: rgba(217, 119, 6, 0.12);
+  --gn-danger: var(--gn-color-alert);
+  --gn-danger-soft: rgba(220, 38, 38, 0.12);
+  --gn-info: var(--gn-color-primary);
+  --gn-info-soft: var(--gn-color-primary-soft);
+}
+
+/* ── Thème Editorial Gnamba (LIGHT, pages publiques) ── */
+[data-theme="gnamba-editorial"] {
+  /* Surfaces */
+  --bg-page:            var(--gn-color-ivory);
+  --bg-surface:         #FFFFFF;
+  --bg-surface-hover:   var(--gn-color-ivory-alt);
+  --bg-surface-raised:  #FFFFFF;
+  --bg-input:           #FFFFFF;
+
+  /* Textes */
+  --text-primary:       var(--gn-color-ink);
+  --text-secondary:     var(--gn-color-ink-mut);
+  --text-muted:         var(--gn-color-ink-dim);
+  --text-on-accent:     var(--gn-color-night);
+
+  /* Bordures */
+  --border-subtle:      var(--gn-color-ivory-alt);
+  --border-default:     var(--gn-color-ivory-alt);
+  --border-focus:       var(--gn-color-primary);
+
+  /* Accent */
+  --accent-primary:       var(--gn-color-primary);
+  --accent-primary-hover: var(--gn-color-primary-hover);
+  --accent-soft:          var(--gn-color-primary-soft);
+
+  /* Sémantique */
+  --success:       var(--gn-success);
+  --success-soft:  var(--gn-success-soft);
+  --warning:       var(--gn-warning);
+  --warning-soft:  var(--gn-warning-soft);
+  --danger:        var(--gn-danger);
+  --danger-soft:   var(--gn-danger-soft);
+  --info:          var(--gn-info);
+  --info-soft:     var(--gn-info-soft);
+
+  /* Terra */
+  --terra:         var(--gn-color-secondary);
+  --terra-soft:    var(--gn-color-secondary-soft);
+}
+
+/* ── Thème App Gnamba (DARK, application de gestion) ── */
+[data-theme="gnamba-app"] {
+  /* Surfaces */
+  --bg-page:            var(--gn-color-night);
+  --bg-surface:         var(--gn-color-slate);
+  --bg-surface-hover:   var(--gn-color-slate-hover);
+  --bg-surface-raised:  var(--gn-color-slate);
+  --bg-input:           var(--gn-color-slate-hover);
+
+  /* Textes */
+  --text-primary:       var(--gn-color-ivory);
+  --text-secondary:     var(--gn-color-ink-mut);
+  --text-muted:         var(--gn-color-ink-dim);
+  --text-on-accent:     var(--gn-color-night);
+
+  /* Bordures */
+  --border-subtle:      rgba(29, 78, 216, 0.09);
+  --border-default:     rgba(29, 78, 216, 0.22);
+  --border-focus:       var(--gn-color-primary);
+
+  /* Accent */
+  --accent-primary:       var(--gn-color-primary);
+  --accent-primary-hover: var(--gn-color-primary-hover);
+  --accent-soft:          var(--gn-color-primary-soft);
+
+  /* Sémantique */
+  --success:       var(--gn-success);
+  --success-soft:  var(--gn-success-soft);
+  --warning:       var(--gn-warning);
+  --warning-soft:  var(--gn-warning-soft);
+  --danger:        var(--gn-danger);
+  --danger-soft:   var(--gn-danger-soft);
+  --info:          var(--gn-info);
+  --info-soft:     var(--gn-info-soft);
+
+  /* Terra */
+  --terra:         var(--gn-color-secondary);
+  --terra-soft:    var(--gn-color-secondary-soft);
+  --terra-text:    var(--gn-color-secondary);
+
+  /* Marque */
+  --brand-primary:   var(--gn-color-primary);
+  --brand-primary-hover: var(--gn-color-primary-hover);
+  --brand-primary-soft: var(--gn-color-primary-soft);
+}
