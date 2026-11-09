@@ -201,6 +201,7 @@ export interface Campaign {
   crop_name: string;
   start_date: string | null;
   expected_harvest_date: string | null;
+  harvest_cycle: 'mensuel' | 'trimestriel' | 'annuel' | null;
   budget: number;
   responsible: string | null;
   status: string;
