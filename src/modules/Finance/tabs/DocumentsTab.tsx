@@ -256,30 +256,33 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
       setDeletingDocument(null);
       return;
     }
-    await executeAction(async () => {
-      const { error: deleteError } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', deletingDocument.id);
-      if (deleteError) throw deleteError;
+    try {
+      await executeAction(async () => {
+        const { error: deleteError } = await supabase
+          .from('documents')
+          .delete()
+          .eq('id', deletingDocument.id);
+        if (deleteError) throw deleteError;
 
-      await logAudit(
-        appUser?.name || 'Système',
-        'DELETE',
-        'document',
-        deletingDocument.id,
-        `Suppression du document "${deletingDocument.name}"`,
-        { ...deletingDocument },
-        null,
-      );
-    }, {
-      successMessage: 'Document supprimé',
-      errorMessage: 'Échec de la suppression',
-      onSuccess: () => {
-        setDeletingDocument(null);
-        refetch();
-      },
-    });
+        await logAudit(
+          appUser?.name || 'Système',
+          'DELETE',
+          'document',
+          deletingDocument.id,
+          `Suppression du document "${deletingDocument.name}"`,
+          { ...deletingDocument },
+          null,
+        );
+      }, {
+        successMessage: 'Document supprimé',
+        errorMessage: 'Échec de la suppression',
+        onSuccess: () => {
+          refetch();
+        },
+      });
+    } finally {
+      setDeletingDocument(null);
+    }
   };
 
   if (loading) return <div className="text-center py-10">Chargement...</div>;

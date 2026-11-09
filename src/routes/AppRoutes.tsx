@@ -25,7 +25,6 @@ const Suppliers = lazy(() => import('@/pages/Suppliers').then(m => ({ default: m
 const Media = lazy(() => import('@/pages/Media').then(m => ({ default: m.Media })));
 const FinanceModule = lazy(() => import('@/modules/Finance').then(m => ({ default: m.FinanceModule })));
 const AnimalEventManage = lazy(() => import('@/pages/AnimalEventManage').then(m => ({ default: m.AnimalEventManage })));
-const AnimalManage = lazy(() => import('@/pages/AnimalManage').then(m => ({ default: m.AnimalManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
 const SitesPage = lazy(() => import('@/pages/configuration/SitesPage').then(m => ({ default: m.SitesPage })));
 const SitesPageSuspense = createSuspenseWrapper(SitesPage);
@@ -37,6 +36,8 @@ const JournalCulturePageSuspense = createSuspenseWrapper(JournalCulturePage);
 
 const LotsPage = lazy(() => import('@/pages/exploitation/LotsPage').then(m => ({ default: m.LotsPage })));
 const LotsPageSuspense = createSuspenseWrapper(LotsPage);
+const AnimauxPage = lazy(() => import('@/pages/exploitation/AnimauxPage').then(m => ({ default: m.AnimauxPage })));
+const AnimauxPageSuspense = createSuspenseWrapper(AnimauxPage);
 const BailleursPage = lazy(() => import('@/pages/configuration/BailleursPage').then(m => ({ default: m.BailleursPage })));
 const BailleursPageSuspense = createSuspenseWrapper(BailleursPage);
 
@@ -74,7 +75,6 @@ const SuppliersSuspense = createSuspenseWrapper(Suppliers);
 const MediaSuspense = createSuspenseWrapper(Media);
 const FinanceModuleSuspense = createSuspenseWrapper(FinanceModule);
 const AnimalEventManageSuspense = createSuspenseWrapper(AnimalEventManage);
-const AnimalManageSuspense = createSuspenseWrapper(AnimalManage);
 
 // Campagnes page
 const CampagnesPage = lazy(() => import('@/pages/exploitation/CampagnesPage').then(m => ({ default: m.CampagnesPage })));
@@ -254,7 +254,7 @@ export const appRouter = createBrowserRouter([
             path: 'animaux',
             element: (
               <RequireModule module="livestock" action="read">
-                <AnimalManageSuspense />
+                <AnimauxPageSuspense />
               </RequireModule>
             ),
           },

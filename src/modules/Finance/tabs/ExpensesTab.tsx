@@ -328,31 +328,34 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       setDeletingExpense(null);
       return;
     }
-    await executeAction(async () => {
-      const { error: deleteError } = await supabase
-        .from('expenses')
-        .delete()
-        .eq('id', deletingExpense.id);
-      if (deleteError) throw deleteError;
+    try {
+      await executeAction(async () => {
+        const { error: deleteError } = await supabase
+          .from('expenses')
+          .delete()
+          .eq('id', deletingExpense.id);
+        if (deleteError) throw deleteError;
 
-      await logAudit(
-        currentUser,
-        'DELETE',
-        'expense',
-        deletingExpense.id,
-        `Suppression de la dépense "${deletingExpense.label}"`,
-        { ...deletingExpense },
-        null,
-      );
-    }, {
-      successMessage: 'Dépense supprimée',
-      errorMessage: 'Échec de la suppression',
-      onSuccess: () => {
-        setDeletingExpense(null);
-        refetch();
-        refresh(); // Invalide le cache DataContext pour que les KPIs du Dashboard se mettent à jour
-      },
-    });
+        await logAudit(
+          currentUser,
+          'DELETE',
+          'expense',
+          deletingExpense.id,
+          `Suppression de la dépense "${deletingExpense.label}"`,
+          { ...deletingExpense },
+          null,
+        );
+      }, {
+        successMessage: 'Dépense supprimée',
+        errorMessage: 'Échec de la suppression',
+        onSuccess: () => {
+          refetch();
+          refresh(); // Invalide le cache DataContext pour que les KPIs du Dashboard se mettent à jour
+        },
+      });
+    } finally {
+      setDeletingExpense(null);
+    }
   };
 
   if (loading) return <div className="text-center py-10">Chargement...</div>;

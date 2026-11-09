@@ -122,18 +122,19 @@ export function UsersPage() {
         return;
       }
 
-      let data: any;
-      let signUpError: any = null;
+      type SignUpData = { user: { id: string; email_confirmed_at: string | null } | null } | null;
+      let data: SignUpData = null;
+      let signUpError: { message: string } | null = null;
       try {
         const result = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
           options: { data: { name: form.name, role: form.role } },
         });
-        data = result.data;
-        signUpError = result.error;
+        data = result.data as SignUpData;
+        signUpError = result.error as { message: string };
       } catch (err) {
-        signUpError = err;
+        signUpError = err as { message: string };
         toast.show('Erreur lors de la création du compte', 'error');
         setSaving(false);
         return;
@@ -149,7 +150,7 @@ export function UsersPage() {
         return;
       }
 
-      if (data.user) {
+      if (data?.user) {
         // Le trigger handle_new_user() a créé la ligne app_users avec role='gestionnaire' par défaut.
         // On met à jour avec le rôle, le téléphone et le site de rattachement choisis.
         setFormSubmitted(true);
@@ -158,7 +159,7 @@ export function UsersPage() {
           setSaving(false);
           return;
         }
-        let updateError: any = null;
+        let updateError: unknown = null;
         try {
           await supabase.from('app_users')
             .update({ role: form.role, phone: form.phone || null, site_id: form.site_id })
@@ -219,14 +220,17 @@ export function UsersPage() {
       setConfirmDelete(null);
       return;
     }
-    const { error } = await supabase.from('app_users').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'user', confirmDelete.id, `Utilisateur ${confirmDelete.name} supprimé`);
-      toast.show('Utilisateur supprimé');
+    try {
+      const { error } = await supabase.from('app_users').delete().eq('id', confirmDelete.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'user', confirmDelete.id, `Utilisateur ${confirmDelete.name} supprimé`);
+        toast.show('Utilisateur supprimé');
+        refresh();
+      }
+    } finally {
       setConfirmDelete(null);
-      refresh();
     }
   };
 

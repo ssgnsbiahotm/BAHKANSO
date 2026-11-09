@@ -406,30 +406,33 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
       setDeletingFunding(null);
       return;
     }
-    await executeAction(async () => {
-      const { error: deleteError } = await supabase
-        .from('fundings')
-        .delete()
-        .eq('id', deletingFunding.id);
-      if (deleteError) throw deleteError;
+    try {
+      await executeAction(async () => {
+        const { error: deleteError } = await supabase
+          .from('fundings')
+          .delete()
+          .eq('id', deletingFunding.id);
+        if (deleteError) throw deleteError;
 
-      await logAudit(
-        appUser?.name || 'Système',
-        'DELETE',
-        'funding',
-        deletingFunding.id,
-        `Suppression du financement "${deletingFunding.reference}"`,
-        { ...deletingFunding },
-        null,
-      );
-    }, {
-      successMessage: 'Financement supprimé',
-      errorMessage: 'Échec de la suppression',
-      onSuccess: () => {
-        setDeletingFunding(null);
-        refetch();
-      },
-    });
+        await logAudit(
+          appUser?.name || 'Système',
+          'DELETE',
+          'funding',
+          deletingFunding.id,
+          `Suppression du financement "${deletingFunding.reference}"`,
+          { ...deletingFunding },
+          null,
+        );
+      }, {
+        successMessage: 'Financement supprimé',
+        errorMessage: 'Échec de la suppression',
+        onSuccess: () => {
+          refetch();
+        },
+      });
+    } finally {
+      setDeletingFunding(null);
+    }
   };
 
   if (loading) return <div className="text-center py-10">Chargement...</div>;

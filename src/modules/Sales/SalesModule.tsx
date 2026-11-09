@@ -323,20 +323,24 @@ export function SalesModule() {
   );
 
   const handleDeleteConfirmed = useCallback(async (sale: SaleWithRelations) => {
-    const { error } = await supabase.from('sales').delete().eq('id', sale.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(
-        appUser?.name || 'Système',
-        'DELETE',
-        'sale',
-        sale.reference || '',
-        `Vente ${sale.reference} supprimée`,
-      );
-      toast.show('Vente supprimée');
-      setDetailSale(null);
-      refresh();
+    try {
+      const { error } = await supabase.from('sales').delete().eq('id', sale.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(
+          appUser?.name || 'Système',
+          'DELETE',
+          'sale',
+          sale.reference || '',
+          `Vente ${sale.reference} supprimée`,
+        );
+        toast.show('Vente supprimée');
+        setDetailSale(null);
+        refresh();
+      }
+    } finally {
+      setConfirmDelete(null);
     }
   }, [appUser, refresh, toast]);
 

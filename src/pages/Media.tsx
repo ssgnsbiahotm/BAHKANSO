@@ -152,15 +152,18 @@ export function Media() {
 
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
-    const { error } = await supabase.from('media').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'media', confirmDelete.id, `Média "${confirmDelete.title}" supprimé`);
-      toast.show('Média supprimé');
+    try {
+      const { error } = await supabase.from('media').delete().eq('id', confirmDelete.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'media', confirmDelete.id, `Média "${confirmDelete.title}" supprimé`);
+        toast.show('Média supprimé');
+        setDetailMedia(null);
+        refresh();
+      }
+    } finally {
       setConfirmDelete(null);
-      setDetailMedia(null);
-      refresh();
     }
   };
 

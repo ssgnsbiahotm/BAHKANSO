@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import {
-  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_DANGER,
 } from '@/lib/constants';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -120,15 +120,18 @@ export function Suppliers() {
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
-    const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'supplier', confirmDelete.id, `Fournisseur "${confirmDelete.name}" supprimé`);
-      toast.show('Fournisseur supprimé');
+    try {
+      const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'supplier', confirmDelete.id, `Fournisseur "${confirmDelete.name}" supprimé`);
+        toast.show('Fournisseur supprimé');
+        setDetailSupplier(null);
+        refresh();
+      }
+    } finally {
       setConfirmDelete(null);
-      setDetailSupplier(null);
-      refresh();
     }
   };
 

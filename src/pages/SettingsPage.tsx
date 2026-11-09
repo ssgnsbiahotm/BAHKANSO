@@ -8,7 +8,7 @@ import { useToast } from '@/lib/Toast';
 import { logAudit } from '@/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
 import {
-  STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING, STATUS_CLASS_DANGER,
+  STATUS_CLASS_SUCCESS, STATUS_CLASS_DANGER,
 } from '@/lib/constants';
 
 export function SettingsPage() {

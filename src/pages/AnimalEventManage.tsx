@@ -208,15 +208,18 @@ export function AnimalEventManage() {
 
   const handleDelete = useCallback(async () => {
     if (!confirmDelete) return;
-    const { error } = await supabase.from('animal_events').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'animal_event', confirmDelete.id, `Événement ${confirmDelete.id} supprimé`);
-      toast.show('Événement supprimé');
+    try {
+      const { error } = await supabase.from('animal_events').delete().eq('id', confirmDelete.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'animal_event', confirmDelete.id, `Événement ${confirmDelete.id} supprimé`);
+        toast.show('Événement supprimé');
+        setDetailEvent(null);
+        refresh();
+      }
+    } finally {
       setConfirmDelete(null);
-      setDetailEvent(null);
-      refresh();
     }
   }, [confirmDelete, appUser, refresh, toast]);
 

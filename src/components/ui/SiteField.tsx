@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { Lock } from 'lucide-react';
 import { useSite } from '@/lib/SiteContext';
 
@@ -23,6 +23,7 @@ export function SiteField({
   hint,
   className = '',
 }: SiteFieldProps) {
+  const fieldId = useId();
   const { availableSites: sites, currentSiteId } = useSite();
 
   useEffect(() => {
@@ -37,8 +38,9 @@ export function SiteField({
   if (sites.length === 0) {
     return (
       <div className={className}>
-        <label className="block text-xs font-medium text-secondary mb-1">{label}</label>
+        <label htmlFor={fieldId} className="block text-xs font-medium text-secondary mb-1">{label}</label>
         <input
+          id={fieldId}
           disabled
           value=""
           placeholder="Aucun site disponible"
@@ -55,11 +57,12 @@ export function SiteField({
   if (sites.length === 1) {
     return (
       <div className={className}>
-        <label className="block text-xs font-medium text-secondary mb-1 flex items-center gap-1">
+        <label htmlFor={fieldId} className="block text-xs font-medium text-secondary mb-1 flex items-center gap-1">
           {label}
           <Lock size={12} className="text-muted" />
         </label>
         <input
+          id={fieldId}
           readOnly
           value={sites[0].name}
           className="w-full px-3 py-2 bg-bg-input/50 border border-default rounded-lg text-primary cursor-not-allowed"
@@ -74,11 +77,12 @@ export function SiteField({
   // Cas B + C : select multi
   return (
     <div className={className}>
-      <label className="block text-xs font-medium text-secondary mb-1">
+      <label htmlFor={fieldId} className="block text-xs font-medium text-secondary mb-1">
         {label}
         {required && <span className="text-danger">*</span>}
       </label>
       <select
+        id={fieldId}
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value || null)}
         disabled={disabled}

@@ -166,14 +166,17 @@ export function ClientsPage() {
       setConfirmDelete(null);
       return;
     }
-    const { error } = await supabase.from('customers').delete().eq('id', confirmDelete.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'customer', confirmDelete.id, `Client ${confirmDelete.name} supprimé`);
-      toast.show('Client supprimé');
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', confirmDelete.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'customer', confirmDelete.id, `Client ${confirmDelete.name} supprimé`);
+        toast.show('Client supprimé');
+        refresh();
+      }
+    } finally {
       setConfirmDelete(null);
-      refresh();
     }
   };
 

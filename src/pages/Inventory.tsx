@@ -150,20 +150,24 @@ export function Inventory() {
   }, []);
 
   const handleDeleteConfirmed = useCallback(async (item: InventoryItem) => {
-    const { error } = await supabase.from('inventory_items').delete().eq('id', item.id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
-    } else {
-      await logAudit(
-        appUser?.name || 'Système',
-        'DELETE',
-        'inventory_item',
-        item.name,
-        `Article ${item.name} supprimé`,
-      );
-      toast.show('Article supprimé');
-      setDetailItem(null);
-      refresh();
+    try {
+      const { error } = await supabase.from('inventory_items').delete().eq('id', item.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(
+          appUser?.name || 'Système',
+          'DELETE',
+          'inventory_item',
+          item.name,
+          `Article ${item.name} supprimé`,
+        );
+        toast.show('Article supprimé');
+        setDetailItem(null);
+        refresh();
+      }
+    } finally {
+      setConfirmDelete(null);
     }
   }, [appUser, refresh, toast]);
 

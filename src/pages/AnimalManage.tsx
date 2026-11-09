@@ -720,10 +720,11 @@ export function AnimalManage() {
                 }
               } catch (error) {
                 toast.show('Erreur inattendue: ' + (error as Error).message, 'error');
+              } finally {
+                setConfirmDelete(null);
               }
             };
             void run();
-            setConfirmDelete(null);
           }
         }}
         onClose={() => setConfirmDelete(null)}
