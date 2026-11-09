@@ -2,6 +2,7 @@
 @import './styles/tokens.css';
 @import './styles/theme-editorial.css';
 @import './styles/theme-app.css';
+@import './styles/theme-gnamba.css';
 @import './styles/components.css';
 
 /* 3. Tailwind (APRÈS les imports) */

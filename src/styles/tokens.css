@@ -36,6 +36,29 @@
   --color-slate-hover: #243430;
   --color-slate-raised: #202824;
 
+  /* ── Gnamba Services Adapted Primitives ── */
+  --gn-color-primary: #1D4ED8;
+  --gn-color-primary-hover: #1E40AF;
+  --gn-color-primary-soft: #DBEAFE;
+  --gn-color-secondary: #0F766E;
+  --gn-color-secondary-soft: #CCFBF1;
+  --gn-color-ink: #0F172A;
+  --gn-color-ink-mut: #475569;
+  --gn-color-ink-dim: #94A3B8;
+  --gn-color-ivory: #F8FAFC;
+  --gn-color-ivory-alt: #F1F5F9;
+  --gn-color-night: #020617;
+  --gn-color-slate: #0F172A;
+  --gn-color-slate-hover: #1E293B;
+  --gn-color-alert: #DC2626;
+  --gn-color-success: #059669;
+  --gn-warning: #D97706;
+  --gn-warning-soft: rgba(217, 119, 6, 0.12);
+  --gn-danger: #DC2626;
+  --gn-danger-soft: rgba(220, 38, 38, 0.12);
+  --gn-info: #1D4ED8;
+  --gn-info-soft: rgba(29, 78, 216, 0.12);
+
   /* ── Spacing Scale ── */
   --space-0: 0;
   --space-0-5: 0.125rem;

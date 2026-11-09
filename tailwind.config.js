@@ -117,6 +117,23 @@ export default {
         'accent-primary': 'var(--accent-primary)',
         'accent-primary-hover': 'var(--accent-primary-hover)',
         'accent-soft': 'var(--accent-soft)',
+        /* Gnamba Services — palette services professionnels */
+        gnamba: {
+          DEFAULT: 'var(--gn-color-primary)',
+          primary: 'var(--gn-color-primary)',
+          primaryHover: 'var(--gn-color-primary-hover)',
+          primarySoft: 'var(--gn-color-primary-soft)',
+          secondary: 'var(--gn-color-secondary)',
+          secondarySoft: 'var(--gn-color-secondary-soft)',
+          ink: 'var(--gn-color-ink)',
+          inkMut: 'var(--gn-color-ink-mut)',
+          inkDim: 'var(--gn-color-ink-dim)',
+          ivory: 'var(--gn-color-ivory)',
+          night: 'var(--gn-color-night)',
+          slate: 'var(--gn-color-slate)',
+          alert: 'var(--gn-color-alert)',
+          success: 'var(--gn-color-success)',
+        },
       },
       fontFamily: {
         sans: ['var(--font-sans)'],

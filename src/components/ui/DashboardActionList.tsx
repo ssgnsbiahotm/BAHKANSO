@@ -1,5 +1,6 @@
 import { AlertTriangle, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/lib/format';
+import { COLORS } from '@/lib/constants';
 import type { Alert } from '@/lib/types';
 
 export interface DashboardActionListProps {
@@ -71,13 +72,13 @@ export function DashboardActionList({
 }
 
 function severityIconClass(severity: string): string {
-  if (severity === 'high') return 'text-terra';
-  if (severity === 'medium') return 'text-[#C87551]';
-  return 'text-[#0277BD]';
+  if (severity === 'high') return `text-[${COLORS.red}]`;
+  if (severity === 'medium') return `text-[${COLORS.orange}]`;
+  return `text-[${COLORS.blue}]`;
 }
 
 function severityTextClass(severity: string): string {
-  if (severity === 'high') return 'text-terra';
-  if (severity === 'medium') return 'text-[#C87551]';
-  return 'text-[#0277BD]';
+  if (severity === 'high') return `text-[${COLORS.red}]`;
+  if (severity === 'medium') return `text-[${COLORS.orange}]`;
+  return `text-[${COLORS.blue}]`;
 }

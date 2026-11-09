@@ -188,7 +188,7 @@ export default function LandingPage() {
   ], []);
 
   return (
-    <div className="min-h-screen landing-root text-ink">
+    <div data-theme="gnamba-editorial" className="min-h-screen landing-root text-ink">
       {/* ========================================================================
          HEADER — Prototype behavior: light surface → blur on scroll
          ======================================================================== */}

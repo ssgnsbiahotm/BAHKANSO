@@ -1,8 +1,8 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
-**Date de mise à jour** : 2026-11-07
-**Branche de référence** : `main`
-**Dernier commit** : `5293c68` (commit précédent)
+**Date de mise à jour** : 2026-11-09
+**Branche de référence** : `feat/dashboard-v2`
+**Dernier commit** : `ae328fe` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## Ce qui a été fait (résumé)
@@ -41,9 +41,16 @@
    - 4 KPIs héros sourcés depuis `event_journal` (adaptateur `src/lib/dashboard/dashboard-data-source.ts`, pas de lecture de `farms`).
    - États de donnée explicites : loading / no_data / ok / warn / crit.
    - Composants UI : `DashboardKpiCard`, `DashboardTrendChart` (SVG pur), `DashboardActionList`.
-   - Hooks : `useDashboardData`, mappers purs `src/lib/dashboard/dashboard-mappers.ts` (14 tests unitaires).
+   - Hooks : `useDashboardData`, `useDashboardTrend`, mappers purs `src/lib/dashboard/dashboard-mappers.ts` (14 tests unitaires).
    - Route `/app/dashboard-v2` dans `src/routes/AppRoutes.tsx` (ancien `/app/dashboard` intact).
    - Ancien dashboard inchangé avec le flag OFF.
+   - **Corrections appliquées** (fichiers non commités) :
+     - `src/pages/DashboardV2.tsx:192` : remplacement du `!` non-null (interdit CLAUDE.md §4) par un narrowing explicite sans `!`.
+     - `src/hooks/useDashboardData.ts` : garde `periodStart === '' || periodEnd === ''` → no_data, remplacement `instanceof Error` par objet `{message}`.
+     - `src/lib/format.ts` : nouvel export `parsePeriod` (lignes 62-87).
+     - `src/components/ui/DashboardKpiCard.tsx` : guard `{isClickable && href && ...}` sur `<Link to>`.
+     - `src/components/ui/DashboardTrendChart.tsx` : `hasData = data.length > 0`, sommes `data.reduce` sur toute la période.
+     - Nouveaux tests : `src/lib/parsePeriod.test.ts` (9 tests), `src/hooks/useDashboardData.test.ts` (4 tests).
 
 ## Ce qui reste à faire (P1/P2)
 

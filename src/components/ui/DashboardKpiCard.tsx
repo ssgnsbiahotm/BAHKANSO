@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCurrency, formatNumber } from '@/lib/format';
-import { STATUS_CLASS_SUCCESS, STATUS_CLASS_WARNING, STATUS_CLASS_NEUTRAL } from '@/lib/constants';
+import { STATUS_CLASS_SUCCESS, STATUS_CLASS_WARNING, STATUS_CLASS_NEUTRAL, STATUS_CLASS_DANGER } from '@/lib/constants';
 import { ChevronRight } from 'lucide-react';
 
 export interface DashboardKpiCardProps {
@@ -34,7 +34,7 @@ export function DashboardKpiCard({
   else if (status === 'no_data') { statusClass = STATUS_CLASS_WARNING; statusLabel = 'Aucune donnée'; }
   else if (status === 'ok') { statusClass = STATUS_CLASS_SUCCESS; statusLabel = 'OK'; }
   else if (status === 'warn') { statusClass = STATUS_CLASS_WARNING; statusLabel = 'Attention'; }
-  else if (status === 'crit') { statusClass = STATUS_CLASS_WARNING; statusLabel = 'Critique'; }
+  else if (status === 'crit') { statusClass = STATUS_CLASS_DANGER; statusLabel = 'Critique'; }
 
   const displayValue = showSkeleton || isEmpty ? '—' : formatCurrency(value, unit);
   // Pour les unités non-monétaires, afficher le nombre brut.
@@ -73,7 +73,7 @@ export function DashboardKpiCard({
 
         <p className="text-xs text-primary/60 leading-relaxed">{hint}</p>
 
-        {isClickable && (
+        {isClickable && href && (
           <Link
             to={href}
             className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"

@@ -1,4 +1,5 @@
 import { formatCurrency } from '@/lib/format';
+import { COLORS } from '@/lib/constants';
 
 export interface TrendPoint {
   month: string; // 'YYYY-MM'
@@ -23,7 +24,7 @@ export function DashboardTrendChart({
   data,
   height = 220,
 }: DashboardTrendChartProps) {
-  const hasData = data.length > 0 && data.some((d) => d.entrees > 0 || d.sorties > 0);
+  const hasData = data.length > 0;
 
   if (!hasData) {
     return (
@@ -52,24 +53,26 @@ export function DashboardTrendChart({
           const sortiesH = Math.round((point.sorties / maxValue) * chartHeight);
           const x = pad + i * xStep;
           return (
-            <React.Fragment key={point.month}>
+            <>
               <rect
+                key={`${point.month}-entrees`}
                 x={x - 10}
                 y={chartHeight - entreesH}
                 width={9}
                 height={entreesH}
-                fill="#B9D86B"
+                fill={COLORS.signal}
                 className="opacity-90 rounded-t-[3px]"
               />
               <rect
+                key={`${point.month}-sorties`}
                 x={x - 1}
                 y={chartHeight - sortiesH}
                 width={9}
                 height={sortiesH}
-                fill="#C87551"
+                fill={COLORS.terra}
                 className="opacity-90 rounded-t-[3px]"
               />
-            </React.Fragment>
+            </>
           );
         })}
       </div>
@@ -82,12 +85,12 @@ export function DashboardTrendChart({
       </div>
       <div className="flex justify-between mt-3 text-xs text-primary/60">
         <span>
-          <span className="font-semibold text-[#B9D86B]">▮</span> Recettes{' '}
-          {formatCurrency(data[data.length - 1].entrees, 'FCFA')}
+          <span className={`font-semibold text-[${COLORS.signal}]`}>▮</span> Recettes{' '}
+          {formatCurrency(data.reduce((acc, d) => acc + d.entrees, 0), 'FCFA')}
         </span>
         <span>
-          <span className="font-semibold text-[#C87551]">▮</span> Dépenses{' '}
-          {formatCurrency(data[data.length - 1].sorties, 'FCFA')}
+          <span className={`font-semibold text-[${COLORS.terra}]`}>▮</span> Dépenses{' '}
+          {formatCurrency(data.reduce((acc, d) => acc + d.sorties, 0), 'FCFA')}
         </span>
       </div>
     </div>

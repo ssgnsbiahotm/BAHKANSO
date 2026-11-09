@@ -5,7 +5,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { DashboardKpiCard } from '@/components/ui/DashboardKpiCard';
 import { DashboardTrendChart } from '@/components/ui/DashboardTrendChart';
 import { DashboardActionList } from '@/components/ui/DashboardActionList';
-import { formatDate } from '@/lib/format';
+import { formatDate, parsePeriod } from '@/lib/format';
 import { useSite } from '@/lib/SiteContext';
 import { useData } from '@/lib/DataContext';
 
@@ -98,56 +98,60 @@ export function DashboardV2() {
       )}
 
       {/* Grille des 4 KPIs héros */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardKpiCard
-          label="Résultat net"
-          value={kpiNetResult.value}
-          unit={kpiNetResult.unit}
-          status={kpiNetResult.status}
-          hint={kpiNetResult.hint}
-          href={hrefFinance}
-        />
-        <DashboardKpiCard
-          label="Marge brute"
-          value={kpiGrossMargin.value}
-          unit={kpiGrossMargin.unit}
-          status={kpiGrossMargin.status}
-          hint={kpiGrossMargin.hint}
-          href={hrefFinance}
-        />
-        <DashboardKpiCard
-          label="Rendement"
-          value={kpiYield.value}
-          unit={kpiYield.unit}
-          status={kpiYield.status}
-          hint={kpiYield.hint}
-          href={hrefCampagnes}
-        />
-        <DashboardKpiCard
-          label="Alertes ouvertes"
-          value={kpiOpenAlerts.value}
-          unit={kpiOpenAlerts.unit}
-          status={kpiOpenAlerts.status}
-          hint={kpiOpenAlerts.hint}
-          href={hrefAlertes}
-        />
-      </div>
+      <section className="rounded-xl border border-default bg-surface p-5">
+        <h2 className="text-sm font-semibold text-primary mb-4">Synthèse</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <DashboardKpiCard
+            label="Résultat net"
+            value={kpiNetResult.value}
+            unit={kpiNetResult.unit}
+            status={kpiNetResult.status}
+            hint={kpiNetResult.hint}
+            href={hrefFinance}
+          />
+          <DashboardKpiCard
+            label="Marge brute"
+            value={kpiGrossMargin.value}
+            unit={kpiGrossMargin.unit}
+            status={kpiGrossMargin.status}
+            hint={kpiGrossMargin.hint}
+            href={hrefFinance}
+          />
+          <DashboardKpiCard
+            label="Rendement"
+            value={kpiYield.value}
+            unit={kpiYield.unit}
+            status={kpiYield.status}
+            hint={kpiYield.hint}
+            href={hrefCampagnes}
+          />
+          <DashboardKpiCard
+            label="Alertes ouvertes"
+            value={kpiOpenAlerts.value}
+            unit={kpiOpenAlerts.unit}
+            status={kpiOpenAlerts.status}
+            hint={kpiOpenAlerts.hint}
+            href={hrefAlertes}
+          />
+        </div>
+      </section>
 
       {/* Ligne tendance + actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
+        <section className="lg:col-span-2 rounded-xl border border-default bg-surface p-5">
+          <h2 className="text-sm font-semibold text-primary mb-4">Tendance (6 mois)</h2>
           <DashboardTrendChart
-            title="Recettes vs dépenses (6 mois)"
+            title="Recettes vs dépenses"
             data={trendData}
             height={300}
           />
-        </div>
-        <div>
+        </section>
+        <section className="rounded-xl border border-default bg-surface p-5">
           <DashboardActionList
             alerts={alerts}
             onViewAll={() => navigate(hrefAlertes)}
           />
-        </div>
+        </section>
       </div>
 
       {/* Pied : contexte affiché (pas de sélecteur local ici, c'est dans le header) */}
@@ -164,12 +168,29 @@ export function DashboardV2() {
 }
 
 function formatDateRange(period: string): string {
-  const [y, m] = period.split('-').map(Number);
-  const start = new Date(y, m - 1, 1);
-  const end = new Date(y, m, 0);
-  const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
-  const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+  const parsed = parsePeriod(period);
+  if (!parsed) {
+    return period;
+  }
+  const startStr = `${parsed.periodStart}`;
+  const endStr = `${parsed.periodEnd}`;
   return `${formatDate(startStr)} – ${formatDate(endStr)}`;
+}
+
+type JournalEvent = {
+  event_type: string;
+  amount: number;
+  occurred_at: string;
+};
+
+function isJournalEvent(value: unknown): value is JournalEvent {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.event_type === 'string' &&
+    typeof obj.amount === 'number' &&
+    typeof obj.occurred_at === 'string'
+  );
 }
 
 /**
@@ -186,9 +207,13 @@ function useDashboardTrend(
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const farmIds = siteId === 'all' || !siteId
-      ? (sites || []).map((s) => s.farm_id).filter(Boolean)
-      : ((sites || []).find((s) => s.id === siteId)?.farm_id ? [(sites || []).find((s) => s.id === siteId)!.farm_id] : []);
+    let farmIds: string[] = [];
+    if (siteId === 'all' || !siteId) {
+      farmIds = (sites || []).map((s) => s.farm_id).filter((f): f is string => Boolean(f));
+    } else {
+      const site = (sites || []).find((s) => s.id === siteId);
+      farmIds = site && site.farm_id ? [site.farm_id] : [];
+    }
 
     if (farmIds.length === 0) {
       setTrendData([]);
@@ -196,9 +221,17 @@ function useDashboardTrend(
     }
 
     setLoading(true);
-    const [y, m] = period.split('-').map(Number);
-    const start = new Date(y, m - 5, 1); // 6 mois dont le mois courant
-    const periodStart = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
+    const parsed = parsePeriod(period);
+    if (!parsed) {
+      setTrendData([]);
+      setLoading(false);
+      return;
+    }
+    const startYear = Number(parsed.periodStart.slice(0, 4));
+    const startMonth = Number(parsed.periodStart.slice(5, 7));
+    // 6 mois dont le mois courant, avec arithmétique mois robuste (pas d'underflow en janvier)
+    const trendStart = new Date(startYear, startMonth - 1 - 5, 1);
+    const periodStart = `${trendStart.getFullYear()}-${String(trendStart.getMonth() + 1).padStart(2, '0')}-01`;
 
     supabase
       .from('event_journal')
@@ -213,7 +246,7 @@ function useDashboardTrend(
           return;
         }
         const byMonth: Record<string, { entrees: number; sorties: number }> = {};
-        for (const e of data as unknown as { event_type: string; amount: number; occurred_at: string }[]) {
+        for (const e of data.filter(isJournalEvent)) {
           const month = e.occurred_at.slice(0, 7);
           if (!byMonth[month]) byMonth[month] = { entrees: 0, sorties: 0 };
           const amount = Number(e.amount || 0);
