@@ -403,7 +403,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
 
     const applySource = (source: string, res: { data: unknown; error: unknown }) => {
-      const errorMessage = res.error instanceof Error ? res.error.message : String(res.error ?? 'Erreur de chargement');
+      const errorMessage = (typeof res.error === 'object' && res.error !== null && 'message' in res.error && typeof res.error.message === 'string' ? res.error.message : undefined) || 'Erreur de chargement';
       if (res.error) {
         fail(errorMessage);
         nextStatus[source] = 'error';
