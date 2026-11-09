@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-07
 **Branche de référence** : `main`
-**Dernier commit** : `b93b66b` (fix(db): make surveillance_events references idempotent)
+**Dernier commit** : `5293c68` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## Ce qui a été fait (résumé)
@@ -27,13 +27,23 @@
    - Marge par culture (XOF)
 
 4. **Tests** :
-   - 86/86 tests unitaires (Vitest, fork isolation).
+   - 101/101 tests unitaires (Vitest, fork isolation).
    - 3 tests RLS sales.
    - Tests d'intégration RLS (pgTAP + vitest).
 
 5. **Infrastructure** :
    - `supabase db reset` 100% reproductible.
    - Déploiement Surge (`npx surge dist/ bahkanso.surge.sh`).
+
+6. **Dashboard v2** (en cours, non commité) :
+   - Nouvelle page `src/pages/DashboardV2.tsx` derrière le flag `dashboard_v2` (localStorage `bahkanso.dashboard_v2`).
+   - Contexte global unique (site/période/campagne) via `src/hooks/useDashboardScope.ts`, synchronisé URL.
+   - 4 KPIs héros sourcés depuis `event_journal` (adaptateur `src/lib/dashboard/dashboard-data-source.ts`, pas de lecture de `farms`).
+   - États de donnée explicites : loading / no_data / ok / warn / crit.
+   - Composants UI : `DashboardKpiCard`, `DashboardTrendChart` (SVG pur), `DashboardActionList`.
+   - Hooks : `useDashboardData`, mappers purs `src/lib/dashboard/dashboard-mappers.ts` (14 tests unitaires).
+   - Route `/app/dashboard-v2` dans `src/routes/AppRoutes.tsx` (ancien `/app/dashboard` intact).
+   - Ancien dashboard inchangé avec le flag OFF.
 
 ## Ce qui reste à faire (P1/P2)
 
@@ -43,6 +53,8 @@
 - [ ] Polish UX D1/D2 (formulaires financiers).
 - [ ] Ajouter des KPIs (trésorerie, graphiques).
 - [ ] TODO Vague 3 : écran de restauration (corbeille) des événements archivés (surveillance_events.deleted_at)
+- [ ] Dashboard v2 : vérification manuelle du flag on/off et persistance du scope (rechargement navigateur).
+- [ ] Dashboard v2 : valider le comportement RLS de event_journal sur l'instance locale (garde-fou A).
 
 ## Commandes utiles
 

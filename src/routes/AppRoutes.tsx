@@ -1,19 +1,9 @@
-import { RouterProvider, createBrowserRouter, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { lazy, useEffect } from 'react';
+import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
+import { lazy } from 'react';
 import { RequireAuth, RequireModule } from './authGuard';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { Suspense, type ComponentType } from 'react';
-
-// Redirect component preserving search params and hash
-function PreservingRedirect({ to }: { to: string }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  useEffect(() => {
-    navigate(to + location.search + location.hash, { replace: true });
-  }, [navigate, to, location.search, location.hash]);
-  return null;
-}
 
 // Lazy load all pages
 const LandingPage = lazy(() => import('@/pages/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -22,6 +12,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage').then(m => ({ default: m
 const MentionsLegales = lazy(() => import('@/pages/MentionsLegales').then(m => ({ default: m.MentionsLegales })));
 const Confidentialite = lazy(() => import('@/pages/Confidentialite').then(m => ({ default: m.Confidentialite })));
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const DashboardV2 = lazy(() => import('@/pages/DashboardV2').then(m => ({ default: m.DashboardV2 })));
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const Configuration = lazy(() => import('@/pages/Configuration').then(m => ({ default: m.Configuration })));
 const UsersPage = lazy(() => import('@/pages/UsersPage').then(m => ({ default: m.UsersPage })));
@@ -70,6 +61,7 @@ const LoginPageSuspense = createSuspenseWrapper(LoginPage);
 const MentionsLegalesSuspense = createSuspenseWrapper(MentionsLegales);
 const ConfidentialiteSuspense = createSuspenseWrapper(Confidentialite);
 const DashboardSuspense = createSuspenseWrapper(Dashboard);
+const DashboardV2Suspense = createSuspenseWrapper(DashboardV2);
 const ProfilePageSuspense = createSuspenseWrapper(ProfilePage);
 const ConfigurationSuspense = createSuspenseWrapper(Configuration);
 const UsersPageSuspense = createSuspenseWrapper(UsersPage);
@@ -92,6 +84,8 @@ const OperationsPage = lazy(() => import('@/pages/exploitation/OperationsPage').
 const OperationsPageSuspense = createSuspenseWrapper(OperationsPage);
 const ParcellesPageSuspense = createSuspenseWrapper(ParcellesPage);
 
+
+const dashboardV2Enabled = localStorage.getItem('bahkanso.dashboard_v2') === 'true';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const appRouter = createBrowserRouter([
@@ -125,6 +119,14 @@ export const appRouter = createBrowserRouter([
     children: [
       { index: true, element: <DashboardSuspense /> },
       { path: 'dashboard', element: <DashboardSuspense /> },
+      ...(dashboardV2Enabled
+        ? [
+            {
+              path: 'dashboard-v2',
+              element: <DashboardV2Suspense />,
+            },
+          ]
+        : []),
       { path: 'profile', element: <ProfilePageSuspense /> },
       { path: 'settings', element: <Navigate to="/app/configuration" replace /> },
       { path: 'site-content', element: <Navigate to="/app/configuration" replace /> },
