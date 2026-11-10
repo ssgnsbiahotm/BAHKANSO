@@ -36,7 +36,7 @@ const isAdminOrOwner = (role: string | undefined) =>
   role === 'administrateur' || role === 'propriétaire';
 
 export function SitesPage() {
-  const { sites, users, refresh } = useData();
+  const { sites, users, plots, animals, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,6 +48,7 @@ export function SitesPage() {
     location: '',
     area_hectares: 0,
     responsableId: null as string | null,
+    status: 'actif' as string | null,
   });
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -60,6 +61,12 @@ export function SitesPage() {
 
   const canManageSites = useMemo(() => isAdminOrOwner(appUser?.role), [appUser?.role]);
 
+  const getResponsibleName = (responsibleId: string | null): string => {
+    if (!responsibleId) return '';
+    const user = users?.find((u) => u.id === responsibleId);
+    return user ? user.name : responsibleId;
+  };
+
   const openCreate = async () => {
     if (!canManageSites) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
@@ -68,7 +75,7 @@ export function SitesPage() {
     setEditSite(null);
     const year = new Date().getFullYear();
     const code = await generateEntityIdentifier(`SIT-${year}`, 'sites', 'code', supabase).catch(() => `SIT-${year}-000`);
-    setForm({ name: '', code, location: '', area_hectares: 0, responsableId: null });
+    setForm({ name: '', code, location: '', area_hectares: 0, responsableId: null, status: 'actif' });
     setModalOpen(true);
     if (formRef.current) formRef.current.reset();
   };
@@ -85,6 +92,7 @@ export function SitesPage() {
       location: s.location || '',
       area_hectares: s.area_hectares || 0,
       responsableId: s.responsible || null,
+      status: s.status || null,
     });
     setModalOpen(true);
     if (formRef.current) formRef.current.reset();
@@ -106,6 +114,7 @@ export function SitesPage() {
           location: form.location || null,
           area_hectares: form.area_hectares || null,
           responsible: form.responsableId || null,
+          status: form.status || null,
         }).eq('id', editSite.id);
         if (error) {
           toast.show('Erreur: ' + error.message, 'error');
@@ -124,7 +133,7 @@ export function SitesPage() {
           location: form.location || null,
           area_hectares: form.area_hectares || 0,
           responsible: form.responsableId || null,
-          status: 'actif',
+          status: form.status || 'actif',
         });
         if (error) {
           toast.show('Erreur: ' + error.message, 'error');
@@ -151,8 +160,15 @@ const handleDelete = async (id: string) => {
       setConfirmSite(null);
       return;
     }
-    if (confirmSite?.id === appUser?.id) {
-      toast.show('Vous ne pouvez pas supprimer votre propre entrée', 'error');
+    const site = confirmSite;
+    if (!site) {
+      setConfirmSite(null);
+      return;
+    }
+    const hasPlots = plots?.some((p) => p.site_id === site.id);
+    const hasAnimals = animals?.some((a) => a.site_id === site.id);
+    if (hasPlots || hasAnimals) {
+      toast.show('Impossible : ce site a des parcelles ou des animaux rattachés', 'error');
       setConfirmSite(null);
       return;
     }
@@ -168,19 +184,7 @@ const handleDelete = async (id: string) => {
     setConfirmSite(null);
   };
 
-  // Load sites from Supabase if not loaded via DataContext
-  useEffect(() => {
-    if (!sites || sites.length === 0) {
-      ;(async () => {
-        const { error } = await supabase.from('sites').select('*');
-        if (error) {
-          console.error('Error fetching sites:', error);
-        } else {
-          refresh?.();
-        }
-      })();
-    }
-  }, [sites, refresh]);
+  // Les sites sont déjà chargés par DataContext ; aucun rechargement redondant ici.
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
@@ -235,7 +239,7 @@ const handleDelete = async (id: string) => {
                 <div className="space-y-2 text-sm">
                   {s.location && <div className="flex items-center gap-2 text-secondary"><MapPin size={12} className="text-muted" /> {s.location}</div>}
                   {s.area_hectares && <div className="flex items-center gap-2 text-muted text-xs">Superficie: {String(s.area_hectares)} ha</div>}
-                  {s.responsible && <div className="flex items-center gap-2 text-muted text-xs">Responsable: {s.responsible}</div>}
+                  {s.responsible && <div className="flex items-center gap-2 text-muted text-xs">Responsable: {getResponsibleName(s.responsible)}</div>}
                 </div>
               </div>
             }
@@ -245,13 +249,13 @@ const handleDelete = async (id: string) => {
                   <h3 className="font-semibold text-primary mb-3">{s.name}</h3>
                   {s.location && <p><span className="text-muted">Localisation :</span> {s.location}</p>}
                   {s.area_hectares && <p><span className="text-muted">Superficie :</span> {String(s.area_hectares)} ha</p>}
-                  {s.responsible && <p><span className="text-muted">Responsable :</span> {s.responsible}</p>}
+                  {s.responsible && <p><span className="text-muted">Responsable :</span> {getResponsibleName(s.responsible)}</p>}
                 </div>
                 <div className="mt-4 pt-3 border-t border-default flex gap-2">
                   {canManageSites && (
                     <button
                       type="button"
-                      onClick={() => { openEdit(s); }} aria-label={`Modifier le site ${s.name}`}
+                      onClick={(e) => { e.stopPropagation(); openEdit(s); }} aria-label={`Modifier le site ${s.name}`}
                       className="flex-1 bg-surface text-info border border-default px-3 py-2 rounded-lg text-sm font-medium hover:bg-info-soft flex items-center justify-center gap-1"
                     >
                       <Pencil size={14} /> Modifier
@@ -260,7 +264,7 @@ const handleDelete = async (id: string) => {
                   {canManageSites && (
                     <button
                       type="button"
-                      onClick={() => { handleDelete(s.id); }} aria-label={`Supprimer le site ${s.name}`}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} aria-label={`Supprimer le site ${s.name}`}
                       className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
                     >
                       <Trash2 size={14} /> Supprimer
@@ -355,6 +359,17 @@ const handleDelete = async (id: string) => {
               <p className="text-xs text-muted mt-1">
                 Utilisateur réel de l’application (app_users)
               </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary mb-1">Statut</label>
+              <select
+                value={form.status ?? 'actif'}
+                onChange={(e) => setForm({ ...form, status: e.target.value || null })}
+                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+              >
+                <option value="actif">Actif</option>
+                <option value="inactif">Inactif</option>
+              </select>
             </div>
           </div>
           <div className="mt-6 flex gap-3">
