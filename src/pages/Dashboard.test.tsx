@@ -77,33 +77,29 @@ describe('Dashboard', () => {
     vi.useRealTimers();
   });
 
-  it('le bouton d explication ouvre/ferme et met a jour ses attributs ARIA', () => {
+  it('l accordion Plus d indicateurs ouvre/ferme et met a jour ses attributs ARIA', () => {
     renderDash({ role: 'administrateur' });
-    const btn = screen.getByRole('button', { name: /Comprendre les chiffres/ });
+    const btn = screen.getByRole('button', { name: /Plus d/ });
     expect(btn).toHaveAttribute('aria-expanded', 'false');
-    expect(btn).toHaveAttribute('aria-controls', 'dashboard-finance-help');
 
     fireEvent.click(btn);
     expect(btn).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText(/Ces indicateurs présentent/)).toBeInTheDocument();
+    expect(screen.getByText(/Avancement chantier/)).toBeInTheDocument();
 
     fireEvent.click(btn);
     expect(btn).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText(/Ces indicateurs présentent/)).not.toBeInTheDocument();
   });
 
   it('les restrictions d affichage financier sont preservees pour les roles non autorises', () => {
     renderDash({ role: 'visiteur' });
-    expect(screen.getByText(/Accès r\u00e9serv/)).toBeInTheDocument();
-    expect(screen.queryByText(/Solde des mouvements/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Entr\u00e9es/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Sorties/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Accès réserv/)).toBeInTheDocument();
+    expect(screen.queryByText(/Marge brute/)).not.toBeInTheDocument();
   });
 
   it("la mention 'Aucune priorite detectee' n apparait pas si une source prioritaire est indisponible", () => {
     renderDash({ sourceStatus: { expenses: 'error' as const }, arrays: { expenses: [], transactions: [] } });
-    expect(screen.queryByText(/Aucune priorit\u00e9 d\u00e9tecte/)).not.toBeInTheDocument();
-    expect(screen.getByText(/Certaines sources de priorit\u00e9 sont indisponibles/)).toBeInTheDocument();
+    expect(screen.queryByText(/Aucune priorité détecte/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Certaines sources de priorité sont indisponibles/)).toBeInTheDocument();
   });
 
   it("l etat vraiment vide affiche 'Aucune priorité détectée' quand toutes les sources sont disponibles", () => {
@@ -114,7 +110,7 @@ describe('Dashboard', () => {
   it("les transactions en erreur n affichent pas 'Aucune operation' mais une indisponibilite explicite", () => {
     renderDash({ sourceStatus: { transactions: 'error' as const }, arrays: { transactions: [] } });
     expect(screen.getByText(/La source des transactions est indisponible/)).toBeInTheDocument();
-    expect(screen.queryByText(/Aucune op\u00e9ration/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Aucune opération/)).not.toBeInTheDocument();
   });
 
   it('annonce la période et utilise des libellés de section accessibles', () => {
@@ -128,7 +124,7 @@ describe('Dashboard', () => {
     });
 
     expect(screen.getByText(/Période : octobre 2026/i)).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Synthèse financière' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Synthèse exploitation — Total exploitation' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'À traiter en priorité' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'La ferme en bref' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Dernières opérations' })).toBeInTheDocument();

@@ -1,9 +1,24 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
-**Date de mise à jour** : 2026-11-09
+**Date de mise à jour** : 2026-11-10
 **Branche de référence** : `feat/dashboard-v2`
-**Dernier commit** : `ae328fe` (commit précédent)
+**Dernier commit de code** : `2e70946` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
+
+## État actuel
+
+- 2026-11-10 — Hero couleurs de police landing (palette slate BAHKANSO) + vitest OOM (single worker, tas 4 Go) — terminée (2 commits : `570b49a`, `2e70946`), non commite dans CONTEXT.md.
+- 2026-11-10 — Dashboard v2 cockpit : sélecteur Site global, réorganisation des KPIs (4 principaux + 4 accordéon au niveau ferme "Total exploitation") — terminée avec vérifications manuelles en attente, non commitee.
+
+### Résumé de la mission — Dashboard v2 cockpit
+
+Refonte de `src/pages/Dashboard.tsx` en cockpit : un seul sélecteur "Site" en haut (alimenté par `useSite`/`SiteContext`) qui filtre uniquement les blocs non-KPI portant `site_id` (campagnes, chantiers, lots, animaux) ; les 4 KPIs principaux (Marge brute, Coût de revient, Rendement, Alertes ouvertes) et les 4 KPIs accordéon (Avancement chantier, Taux de mortalité, GMQ, Marge par culture) restent au niveau ferme (farm_id), labelés "Total exploitation", non affectés par le sélecteur. Suppression des sélecteurs Campagne et Chantier. États loading/error/vide/non-calculable conservés. Grille 1/2/4 colonnes. Libellés français, montants FCFA. Fichiers principaux : `src/pages/Dashboard.tsx`, `src/pages/Dashboard.test.tsx`. Aucun commit, aucune modification de `kpi.ts`, `DataContext.tsx`, `vitest.config.ts`.
+
+### À faire
+
+- [ ] Vérification manuelle du cockpit dans le navigateur (sélecteur Site, bascule KPIs, affichage des sections)
+- [ ] Commit des modifications `src/pages/Dashboard.tsx` et `src/pages/Dashboard.test.tsx` (mission n'en a pas fait la demande explicite — en attente)
+- [ ] Mise à jour de ce fichier (`docs/CONTEXT.md`) à commiter si la mission le demande
 
 ## Ce qui a été fait (résumé)
 
@@ -62,6 +77,7 @@
 - [ ] TODO Vague 3 : écran de restauration (corbeille) des événements archivés (surveillance_events.deleted_at)
 - [ ] Dashboard v2 : vérification manuelle du flag on/off et persistance du scope (rechargement navigateur).
 - [ ] Dashboard v2 : valider le comportement RLS de event_journal sur l'instance locale (garde-fou A).
+- [ ] Optimisation des tests : mocker Supabase pour eviter l'OOM de teardown sur useDashboardData.test.ts (dette technique, acceptee, non corrigee dans cette mission).
 
 ## Commandes utiles
 
