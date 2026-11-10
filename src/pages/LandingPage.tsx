@@ -188,7 +188,7 @@ export default function LandingPage() {
   ], []);
 
   return (
-    <div data-theme="gnamba-editorial" className="min-h-screen landing-root text-ink">
+    <div data-theme="gnamba-editorial" className="min-h-screen landing-root text-primary">
       {/* ========================================================================
          HEADER — Prototype behavior: light surface → blur on scroll
          ======================================================================== */}
@@ -207,7 +207,7 @@ export default function LandingPage() {
                   aria-hidden="true"
                 />
               ) : (
-                <span className="font-editorial text-xl font-bold text-ink">
+                <span className="font-editorial text-xl font-bold text-primary">
                   BAHKANSO
                 </span>
               )}
@@ -268,7 +268,7 @@ export default function LandingPage() {
 
               <h1
                 id="hero-title"
-                className="font-editorial leading-[1.02] mb-6 text-ink font-extrabold tracking-tight max-w-[18ch]"
+                className="font-editorial leading-[1.02] mb-6 text-primary font-extrabold tracking-tight max-w-[18ch]"
                 style={{ fontSize: 'clamp(2.75rem, 5.5vw, 4.5rem)', lineHeight: '1.02', letterSpacing: '-0.025em' }}
               >
                 {heroTitle || 'Pilotez l\'exploitation,'}
@@ -278,7 +278,7 @@ export default function LandingPage() {
                 </span>
               </h1>
 
-              <p className="mb-10 max-w-[50ch] text-ink-mut leading-relaxed font-normal" style={{
+              <p className="mb-10 max-w-[50ch] text-secondary leading-relaxed font-normal" style={{
                 fontSize: 'clamp(1.0625rem, 1.9vw, 1.1875rem)',
               }}>
                 {heroSubtitle || 'BAHKANSO centralise le suivi des financements, des cultures, de l\'élevage et des chantiers. Une information commune, à jour, partagée entre l\'équipe terrain et le responsable à distance.'}

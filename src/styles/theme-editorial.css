@@ -11,10 +11,10 @@
   --bg-surface-raised:  #FFFFFF;
   --bg-input:           #FFFFFF;
 
-  /* Textes */
-  --text-primary:       var(--color-ink);
-  --text-secondary:     var(--color-ink-mut);
-  --text-muted:         var(--color-ink-dim);
+  /* Textes — palette BAHKANSO (slate, lisible sur fond crème/ivoire) */
+  --text-primary:       #1e293b;
+  --text-secondary:     #64748b;
+  --text-muted:         #94a3b8;
   --text-on-accent:     var(--color-night);
 
   /* Bordures */
