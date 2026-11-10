@@ -1,15 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { Users, Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
-export interface Site {
-  id: string;
-  name: string;
-  location: string | null;
-  area_hectares: number | null;
-  responsible: string | null;
-  farm_id: string | null;
-  code: string | null;
-  status: string | null;
-}
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -20,13 +10,33 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { useRef } from 'react';
+import { generateEntityIdentifier } from '@/lib/entity-ids';
+import { FormSelect } from '@/components/ui/FormPrimitives';
+
+export interface Site {
+  id: string;
+  name: string;
+  location: string | null;
+  area_hectares: number | null;
+  responsible: string | null;
+  farm_id: string | null;
+  code: string | null;
+  status: string | null;
+}
+
+const SITE_LOCALISATION_SUGGESTIONS = [
+  'Katadji, Côte d’Ivoire',
+  'Aheremou, Côte d’Ivoire',
+  'Braffoueby, Côte d’Ivoire',
+  'Abidjan, Côte d’Ivoire',
+  'Grand-Bassam, Côte d’Ivoire',
+];
 
 const isAdminOrOwner = (role: string | undefined) =>
   role === 'administrateur' || role === 'propriétaire';
 
 export function SitesPage() {
-  const { sites, refresh } = useData();
+  const { sites, users, refresh } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,8 +47,7 @@ export function SitesPage() {
     code: '',
     location: '',
     area_hectares: 0,
-    responsible: '',
-    status: 'actif',
+    responsableId: null as string | null,
   });
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -51,13 +60,15 @@ export function SitesPage() {
 
   const canManageSites = useMemo(() => isAdminOrOwner(appUser?.role), [appUser?.role]);
 
-  const openCreate = () => {
+  const openCreate = async () => {
     if (!canManageSites) {
       toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
       return;
     }
     setEditSite(null);
-    setForm({ name: '', code: '', location: '', area_hectares: 0, responsible: '', status: 'actif' });
+    const year = new Date().getFullYear();
+    const code = await generateEntityIdentifier(`SIT-${year}`, 'sites', 'code', supabase).catch(() => `SIT-${year}-000`);
+    setForm({ name: '', code, location: '', area_hectares: 0, responsableId: null });
     setModalOpen(true);
     if (formRef.current) formRef.current.reset();
   };
@@ -68,7 +79,13 @@ export function SitesPage() {
       return;
     }
     setEditSite(s);
-    setForm({ name: s.name, code: s.code || '', location: s.location || '', area_hectares: s.area_hectares || 0, responsible: s.responsible || '', status: s.status || 'actif' });
+    setForm({
+      name: s.name,
+      code: s.code || '',
+      location: s.location || '',
+      area_hectares: s.area_hectares || 0,
+      responsableId: s.responsible || null,
+    });
     setModalOpen(true);
     if (formRef.current) formRef.current.reset();
   };
@@ -78,11 +95,6 @@ export function SitesPage() {
       toast.show('Nom obligatoire', 'error');
       return;
     }
-    if (!form.code) {
-      toast.show('Code obligatoire (ex: KAT)', 'error');
-      return;
-    }
-
     setSaving(true);
 
     try {
@@ -93,8 +105,7 @@ export function SitesPage() {
           code: form.code || null,
           location: form.location || null,
           area_hectares: form.area_hectares || null,
-          responsible: form.responsible || null,
-          status: form.status,
+          responsible: form.responsableId || null,
         }).eq('id', editSite.id);
         if (error) {
           toast.show('Erreur: ' + error.message, 'error');
@@ -106,14 +117,14 @@ export function SitesPage() {
         setModalOpen(false);
         refresh();
       } else {
-        // CRÉATION
+        // CRÉATION : le nouveau site est systématiquement actif
         const { error } = await supabase.from('sites').insert({
           name: form.name,
-          code: form.code,
+          code: form.code || null,
           location: form.location || null,
           area_hectares: form.area_hectares || 0,
-          responsible: form.responsible || null,
-          status: form.status,
+          responsible: form.responsableId || null,
+          status: 'actif',
         });
         if (error) {
           toast.show('Erreur: ' + error.message, 'error');
@@ -126,7 +137,7 @@ export function SitesPage() {
         refresh();
       }
     } catch (err) {
-      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
+      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
       setSaving(false);
     }
   };
@@ -170,16 +181,6 @@ const handleDelete = async (id: string) => {
       })();
     }
   }, [sites, refresh]);
-
-  // Fetch users with role for linking
-  useEffect(() => {
-    ;(async () => {
-      const { error } = await supabase.from('app_users').select('*').eq('role', 'responsible');
-      if (error) {
-        console.error('Error fetching responsables:', error);
-      }
-    })();
-  }, []);
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
@@ -304,13 +305,12 @@ const handleDelete = async (id: string) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-secondary mb-1">Code *</label>
+              <label className="block text-sm font-medium text-secondary mb-1">Code</label>
               <input
                 value={form.code}
-                onChange={(e) => setForm({ ...form, code: e.target.value })}
-                required
-                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
-                placeholder="KAT"
+                readOnly
+                className="w-full border rounded-lg px-3 py-2 text-primary bg-surface-hover focus:ring-0 transition-colors"
+                placeholder="Généré automatiquement"
               />
             </div>
             <div>
@@ -318,9 +318,15 @@ const handleDelete = async (id: string) => {
               <input
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
+                list="site-localisation-suggestions"
                 className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
                 placeholder="Localisation du site"
               />
+              <datalist id="site-localisation-suggestions">
+                {SITE_LOCALISATION_SUGGESTIONS.map((suggestion, i) => (
+                  <option key={i} value={suggestion} />
+                ))}
+              </datalist>
             </div>
             <div>
               <label className="block text-sm font-medium text-secondary mb-1">Superficie (ha)</label>
@@ -337,43 +343,18 @@ const handleDelete = async (id: string) => {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-secondary mb-1">Responsable</label>
-              <input
-                value={form.responsible}
-                onChange={(e) => setForm({ ...form, responsible: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
-                placeholder="Nom du responsible"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-secondary mb-1">Statut</label>
-              <div className="space-y-1">
-                <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-default cursor-pointer ${
-                  form.status === 'actif' ? 'bg-success-soft text-success' : 'bg-surface-hover text-secondary'
-                }">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="actif"
-                    checked={form.status === 'actif'}
-                    onChange={() => setForm({ ...form, status: 'actif' })}
-                    className="hidden"
-                  />
-                  Actif
-                </label>
-                <label className="flex items-center gap-2 px-3 py-1.5 rounded border border-default cursor-pointer ${
-                  form.status === 'inactif' ? 'bg-success-soft text-success' : 'bg-surface-hover text-secondary'
-                }">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="inactif"
-                    checked={form.status === 'inactif'}
-                    onChange={() => setForm({ ...form, status: 'inactif' })}
-                    className="hidden"
-                  />
-                  Inactif
-                </label>
-              </div>
+              <FormSelect
+                value={form.responsableId ?? ''}
+                onChange={(e) => setForm({ ...form, responsableId: e.target.value || null })}
+              >
+                <option value="">— Aucun responsable —</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </FormSelect>
+              <p className="text-xs text-muted mt-1">
+                Utilisateur réel de l’application (app_users)
+              </p>
             </div>
           </div>
           <div className="mt-6 flex gap-3">
