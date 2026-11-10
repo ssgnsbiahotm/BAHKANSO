@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Users, Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -250,6 +250,9 @@ const handleDelete = async (id: string) => {
                   {s.location && <p><span className="text-muted">Localisation :</span> {s.location}</p>}
                   {s.area_hectares && <p><span className="text-muted">Superficie :</span> {String(s.area_hectares)} ha</p>}
                   {s.responsible && <p><span className="text-muted">Responsable :</span> {getResponsibleName(s.responsible)}</p>}
+                  <p><span className="text-muted">Parcelles :</span> {plots?.filter((p) => p.site_id === s.id).length}</p>
+                  <p><span className="text-muted">Animaux :</span> {animals?.filter((a) => a.site_id === s.id).length}</p>
+                  {s.farm_id && <p><span className="text-muted">Exploitation :</span> {s.farm_id}</p>}
                 </div>
                 <div className="mt-4 pt-3 border-t border-default flex gap-2">
                   {canManageSites && (
