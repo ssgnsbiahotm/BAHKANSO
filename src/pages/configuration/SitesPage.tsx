@@ -25,6 +25,7 @@ export interface Site {
 }
 
 const SITE_LOCALISATION_SUGGESTIONS = [
+  'Sikensi, Côte d’Ivoire',
   'Katadji, Côte d’Ivoire',
   'Aheremou, Côte d’Ivoire',
   'Braffoueby, Côte d’Ivoire',
