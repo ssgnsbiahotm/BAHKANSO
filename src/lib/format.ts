@@ -54,6 +54,25 @@ export function formatFileSize(bytes: number | null | undefined): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
+/**
+ * Traduit le statut technique d'un animal (valeurs Zod/DB en anglais)
+ * vers son libellé d'affichage en français.
+ * Valeurs : healthy, sick, recovering, quarantined, sold, deceased, pregnant.
+ */
+export function getAnimalStatusLabel(status: string | null | undefined): string {
+  if (!status) return '—';
+  const labels: Record<string, string> = {
+    healthy: 'Actif',
+    sick: 'Malade',
+    recovering: 'En soins',
+    quarantined: 'Quarantaine',
+    sold: 'Vendu',
+    deceased: 'Décédé',
+    pregnant: 'Gestante',
+  };
+  return labels[status] ?? status;
+}
+
 export function percentage(value: number, total: number): number {
   if (!total) return 0;
   return Math.round((value / total) * 100);

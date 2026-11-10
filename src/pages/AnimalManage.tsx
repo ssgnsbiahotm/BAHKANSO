@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatCurrency, formatDate, getAnimalStatusLabel } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import {
@@ -20,7 +20,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, ConfirmDeleteModal, DetailModal, FormSection } from '@/components/ui/FormPrimitives';
 import type { Animal } from '@/lib/types';
-import { generateAnimalIdentifier } from '@/lib/animal-ids';
+import { generateEntityIdentifier } from '@/lib/entity-ids';
 import * as z from 'zod';
 import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 
@@ -28,7 +28,7 @@ import { LIVESTOCK_PATHS } from '@/routes/livestockPaths';
 const animalSchema = z.object({
   identifier: z.string().min(1, 'L identificateur est obligatoire'),
   name: z.string().optional(),
-  species: z.enum(['cattle', 'sheep', 'goat', 'poultry', 'swine']),
+  species: z.enum(['bovin', 'ovin', 'caprin', 'volaille', 'porcin', 'autre']).optional(),
   breed: z.string().optional(),
   date_of_birth: z.date().optional(),
   sex: z.enum(['male', 'female']).optional(),
@@ -46,6 +46,7 @@ const animalSchema = z.object({
   mother_id: z.string().uuid().optional(),
   father_id: z.string().uuid().optional(),
   site_id: z.string().uuid({ message: 'Sélectionnez un site' }),
+  lot_id: z.string().uuid().optional().nullable(),
 });
 
 type AnimalFormValues = z.infer<typeof animalSchema>;
@@ -53,7 +54,7 @@ type AnimalFormValues = z.infer<typeof animalSchema>;
 const DEFAULT_VALUES: AnimalFormValues = {
   identifier: '',
   name: '',
-  species: 'cattle',
+  species: undefined,
   breed: '',
   date_of_birth: undefined,
   sex: undefined,
@@ -63,24 +64,26 @@ const DEFAULT_VALUES: AnimalFormValues = {
   mother_id: undefined,
   father_id: undefined,
   site_id: '',
+  lot_id: '',
 };
 
 const SPECIES_OPTIONS = [
-  { value: 'cattle', label: 'Bovin' },
-  { value: 'sheep', label: 'Ovin' },
-  { value: 'goat', label: 'Caprin' },
-  { value: 'poultry', label: 'Aviaire' },
-  { value: 'swine', label: 'Porcin' },
+  { value: 'bovin', label: 'Bovin' },
+  { value: 'ovin', label: 'Ovin' },
+  { value: 'caprin', label: 'Caprin' },
+  { value: 'volaille', label: 'Volaille' },
+  { value: 'porcin', label: 'Porcin' },
+  { value: 'autre', label: 'Autre' },
 ] as const;
 
 const STATUS_OPTIONS = [
-  { value: 'healthy', label: 'En bonne santé' },
+  { value: 'healthy', label: 'Actif' },
   { value: 'sick', label: 'Malade' },
-  { value: 'recovering', label: 'En rétablissement' },
-  { value: 'quarantined', label: 'En quarantaine' },
+  { value: 'recovering', label: 'En soins' },
+  { value: 'quarantined', label: 'Quarantaine' },
   { value: 'sold', label: 'Vendu' },
   { value: 'deceased', label: 'Décédé' },
-  { value: 'pregnant', label: 'Enceinte' },
+  { value: 'pregnant', label: 'Gestante' },
 ] as const;
 
 const SEX_OPTIONS = [
@@ -153,10 +156,7 @@ export function AnimalManage() {
     schema: animalSchema,
     defaultValues: DEFAULT_VALUES,
     onSubmit: async (values) => {
-      let finalIdentifier = values.identifier.trim();
-      if (!finalIdentifier) {
-        finalIdentifier = await generateAnimalIdentifier(values.species, supabase);
-      }
+      const finalIdentifier = values.identifier.trim() || '';
       const payload = {
         identifier: finalIdentifier,
         name: values.name || null,
@@ -165,11 +165,12 @@ export function AnimalManage() {
         date_of_birth: values.date_of_birth ? (values.date_of_birth as Date).toISOString().split('T')[0] : null,
         sex: values.sex || null,
         weight_kg: values.weight_kg,
-        status: values.status,
+        status: values.status || 'healthy',
         location: values.location || null,
         mother_id: values.mother_id || null,
         father_id: values.father_id || null,
         site_id: values.site_id || null,
+        lot_id: values.lot_id || null,
       };
 
       if (editAnimal) {
@@ -215,9 +216,10 @@ export function AnimalManage() {
 
   const openCreate = async () => {
     setEditAnimal(null);
+    const year = new Date().getFullYear();
     let previewId = '';
     try {
-      previewId = await generateAnimalIdentifier('cattle', supabase);
+      previewId = await generateEntityIdentifier(`ANI-${year}`, 'animals', 'identifier', supabase, 4);
     } catch {
       previewId = '';
     }
@@ -225,6 +227,8 @@ export function AnimalManage() {
       ...DEFAULT_VALUES,
       site_id: currentSiteId ?? '',
       identifier: previewId,
+      species: undefined,
+      lot_id: '',
     });
     setModalOpen(true);
   };
@@ -233,7 +237,7 @@ export function AnimalManage() {
     setEditAnimal(animal);
     setForm('identifier', animal.identifier || '');
     setForm('name', animal.name || '');
-    setForm('species', animal.species as 'cattle' | 'sheep' | 'goat' | 'poultry' | 'swine');
+    setForm('species', animal.species ? ((animal.species as string).toLowerCase() as AnimalFormValues['species']) : undefined);
     setForm('breed', animal.breed || '');
     setForm('date_of_birth', animal.date_of_birth ? new Date(animal.date_of_birth) : undefined);
     setForm('sex', animal.sex as ('male' | 'female') | undefined);
@@ -243,6 +247,7 @@ export function AnimalManage() {
     setForm('mother_id', animal.mother_id || undefined);
     setForm('father_id', animal.father_id || undefined);
     setForm('site_id', animal.site_id ?? '');
+    setForm('lot_id', animal.lot_id ?? '');
     setModalOpen(true);
   }, [setForm]);
 
@@ -309,7 +314,7 @@ export function AnimalManage() {
         <div><p className="text-xs text-muted">Poids (kg)</p><p className="text-sm font-medium">{a.weight_kg ?? '—'}</p></div>
         <div><p className="text-xs text-muted">Valeur estimée</p><p className="text-sm font-medium">{a.estimated_value !== null ? formatCurrency(a.estimated_value) : '—'}</p></div>
         <div><p className="text-xs text-muted">Localisation</p><p className="text-sm font-medium">{a.location || '—'}</p></div>
-        <div><p className="text-xs text-muted">Statut</p><p className="text-sm font-medium">{a.status}</p></div>
+        <div><p className="text-xs text-muted">Statut</p><p className="text-sm font-medium">{getAnimalStatusLabel(a.status)}</p></div>
         <div><p className="text-xs text-muted">Mère</p><p className="text-sm font-medium">{a.mother_id || '—'}</p></div>
         <div><p className="text-xs text-muted">Père</p><p className="text-sm font-medium">{a.father_id || '—'}</p></div>
       </div>
@@ -409,7 +414,7 @@ export function AnimalManage() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-primary">{animal.identifier ?? 'Non renseigné'}</h3>
                     <SimpleBadge color={getStatusColor(animal.status)}>
-                      {animal.status}
+                      {getAnimalStatusLabel(animal.status)}
                     </SimpleBadge>
                   </div>
                   {animal.species && (
@@ -539,138 +544,176 @@ export function AnimalManage() {
         size="lg"
       >
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          <FormSection title="Informations essentielles">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Identificateur" hint="Généré automatiquement" required error={errors.identifier}>
-                <FormInput
-                  value={form.identifier}
-                  readOnly
-                  className="bg-bg-input/50 cursor-not-allowed"
-                  placeholder="Sélectionnez d'abord une espèce"
-                />
-              </FormField>
-              <FormField label="Espèce" required error={errors.species}>
-                <FormSelect
-                  value={form.species}
-                  onChange={async (e) => {
-                    const newSpecies = e.target.value as AnimalFormValues['species'];
-                    setForm('species', newSpecies);
-                    if (!editAnimal) {
-                      try {
-                        const newId = await generateAnimalIdentifier(newSpecies, supabase);
-                        setForm('identifier', newId);
-                      } catch {
-                        // garde l'identifiant actuel si erreur
-                      }
-                    }
-                  }}
-                >
-                  {SPECIES_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </FormSelect>
-              </FormField>
-              <FormField label="Site" required error={errors.site_id}>
-                <FormSelect
-                  value={form.site_id}
-                  onChange={e => setForm('site_id', e.target.value)}
-                >
-                  <option value="">— Choisir un site —</option>
-                  {sites.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </FormSelect>
-              </FormField>
-            </div>
-          </FormSection>
+          {(() => {
+            const selectedLot = animalLots.find((l) => l.id === form.lot_id);
+            const speciesInherited = !!selectedLot;
+            return (
+              <>
+                <FormSection title="Informations essentielles">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField label="Identificateur" hint="Généré automatiquement" required error={errors.identifier}>
+                      <FormInput
+                        value={form.identifier}
+                        readOnly
+                        className="bg-bg-input/50 cursor-not-allowed"
+                        placeholder="Généré à l'ouverture"
+                      />
+                    </FormField>
+                    <FormField label="Lot" error={errors.lot_id}>
+                      <FormSelect
+                        value={form.lot_id ?? ''}
+                        onChange={(e) => {
+                          const lotId = e.target.value;
+                          setForm('lot_id', lotId);
+                          const lot = animalLots.find((l) => l.id === lotId);
+                          if (lot) {
+                            setForm('species', (lot.species || '').toLowerCase() as AnimalFormValues['species']);
+                          } else {
+                            setForm('species', undefined);
+                          }
+                        }}
+                      >
+                        <option value="">— Choisir un lot —</option>
+                        {animalLots.map((l) => (
+                          <option key={l.id} value={l.id}>{l.identifier || l.id}</option>
+                        ))}
+                      </FormSelect>
+                      {animalLots.length === 0 && (
+                        <p className="text-xs text-muted mt-1">Aucun lot disponible</p>
+                      )}
+                    </FormField>
+                    <FormField label="Espèce" required error={errors.species}>
+                      {speciesInherited && form.species ? (
+                        <FormInput
+                          value={SPECIES_OPTIONS.find((s) => s.value === form.species)?.label || form.species}
+                          readOnly
+                          className="bg-bg-input/50 cursor-not-allowed"
+                          placeholder="Héritée du lot"
+                        />
+                      ) : (
+                        <FormSelect
+                          value={form.species}
+                          onChange={(e) => setForm('species', (e.target.value || undefined) as AnimalFormValues['species'])}
+                        >
+                          <option value="">— Choisir une espèce —</option>
+                          {SPECIES_OPTIONS.map((s) => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                          ))}
+                        </FormSelect>
+                      )}
+                    </FormField>
+                    <FormField label="Site" required error={errors.site_id}>
+                      <FormSelect
+                        value={form.site_id}
+                        onChange={e => setForm('site_id', e.target.value)}
+                      >
+                        <option value="">— Choisir un site —</option>
+                        {sites.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </FormSelect>
+                    </FormField>
+                  </div>
+                </FormSection>
 
-          <FormSection title="Informations complémentaires" defaultOpen={true}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Nom" error={errors.name}>
-                <FormInput
-                  value={form.name}
-                  onChange={e => setForm('name', e.target.value)}
-                  placeholder="Boucle d'or (optionnel)"
-                />
-              </FormField>
-              <FormField label="Race" error={errors.breed}>
-                <FormInput
-                  value={form.breed}
-                  onChange={e => setForm('breed', e.target.value)}
-                  placeholder="Holstein, Mérinos, etc."
-                />
-              </FormField>
-              <FormField label="Date de naissance" error={errors.date_of_birth}>
-                <FormInput
-                  type="date"
-                  value={form.date_of_birth ? form.date_of_birth.toISOString().split('T')[0] : ''}
-                  onChange={e => setForm('date_of_birth', e.target.value ? new Date(e.target.value) : undefined)}
-                />
-              </FormField>
-              <FormField label="Sexe" error={errors.sex}>
-                <FormSelect
-                  value={form.sex ?? ''}
-                  onChange={e => setForm('sex', e.target.value ? e.target.value as 'male' | 'female' : undefined)}
-                >
-                  <option value="">Non spécifié</option>
-                  {SEX_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </FormSelect>
-              </FormField>
-              <FormField label="Poids (kg)" error={errors.weight_kg}>
-                <FormInput
-                  type="number"
-                  min="0"
-                  value={form.weight_kg ?? ''}
-                  onChange={e => setForm('weight_kg', e.target.value ? parseFloat(e.target.value) : undefined)}
-                />
-              </FormField>
-              <FormField label="Statut" error={errors.status}>
-                <FormSelect
-                  value={form.status}
-                  onChange={e => setForm('status', e.target.value as AnimalFormValues['status'])}
-                >
-                  {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </FormSelect>
-              </FormField>
-            </div>
-          </FormSection>
+                <FormSection title="Informations complémentaires" defaultOpen={true}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField label="Nom" error={errors.name}>
+                      <FormInput
+                        value={form.name}
+                        onChange={e => setForm('name', e.target.value)}
+                        placeholder="Boucle d'or (optionnel)"
+                      />
+                    </FormField>
+                    <FormField label="Race" error={errors.breed}>
+                      <FormInput
+                        value={form.breed}
+                        onChange={e => setForm('breed', e.target.value)}
+                        placeholder="Holstein, Mérinos, etc."
+                      />
+                    </FormField>
+                    <FormField label="Date de naissance" error={errors.date_of_birth}>
+                      <FormInput
+                        type="date"
+                        value={form.date_of_birth ? form.date_of_birth.toISOString().split('T')[0] : ''}
+                        onChange={e => setForm('date_of_birth', e.target.value ? new Date(e.target.value) : undefined)}
+                      />
+                    </FormField>
+                    <FormField label="Sexe" error={errors.sex}>
+                      <FormSelect
+                        value={form.sex ?? ''}
+                        onChange={e => setForm('sex', e.target.value ? e.target.value as 'male' | 'female' : undefined)}
+                      >
+                        <option value="">Non spécifié</option>
+                        {SEX_OPTIONS.map((s) => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </FormSelect>
+                    </FormField>
+                    <FormField label="Poids (kg)" error={errors.weight_kg}>
+                      <FormInput
+                        type="number"
+                        min="0"
+                        value={form.weight_kg ?? ''}
+                        onChange={e => setForm('weight_kg', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      />
+                    </FormField>
+                    {editAnimal && (
+                      <FormField label="Statut" error={errors.status}>
+                        <FormSelect
+                          value={form.status}
+                          onChange={e => setForm('status', e.target.value as AnimalFormValues['status'])}
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                          ))}
+                        </FormSelect>
+                      </FormField>
+                    )}
+                  </div>
+                </FormSection>
 
-          <FormSection title="Informations avancées" defaultOpen={false}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Localisation" error={errors.location}>
-                <FormInput
-                  value={form.location}
-                  onChange={e => setForm('location', e.target.value)}
-                />
-              </FormField>
-              <FormField label="ID de la mère" error={errors.mother_id}>
-                <FormInput
-                  value={form.mother_id ?? ''}
-                  onChange={e => setForm('mother_id', e.target.value || undefined)}
-                />
-              </FormField>
-              <FormField label="ID du père" error={errors.father_id}>
-                <FormInput
-                  value={form.father_id ?? ''}
-                  onChange={e => setForm('father_id', e.target.value || undefined)}
-                />
-              </FormField>
-              <FormField label="Raison du décès">
-                <FormInput
-                  value={deathReason}
-                  onChange={e => setDeathReason(e.target.value)}
-                />
-              </FormField>
-              <FormField label="Coût du décès (FCFA)">
-                <FormInput
-                  type="number"
-                  min="0"
-                  value={deathCost}
-                  onChange={e => setDeathCost(e.target.value ? parseFloat(e.target.value) : 0)}
-                />
-              </FormField>
-            </div>
-          </FormSection>
+                <FormSection title="Informations avancées" defaultOpen={false}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField label="Localisation" error={errors.location}>
+                      <FormInput
+                        value={form.location}
+                        onChange={e => setForm('location', e.target.value)}
+                      />
+                    </FormField>
+                    <FormField label="ID de la mère" error={errors.mother_id}>
+                      <FormInput
+                        value={form.mother_id ?? ''}
+                        onChange={e => setForm('mother_id', e.target.value || undefined)}
+                      />
+                    </FormField>
+                    <FormField label="ID du père" error={errors.father_id}>
+                      <FormInput
+                        value={form.father_id ?? ''}
+                        onChange={e => setForm('father_id', e.target.value || undefined)}
+                      />
+                    </FormField>
+                    <FormField label="Raison du décès">
+                      <FormInput
+                        value={deathReason}
+                        onChange={e => setDeathReason(e.target.value)}
+                      />
+                    </FormField>
+                    <FormField label="Coût du décès (FCFA)">
+                      <FormInput
+                        type="number"
+                        min="0"
+                        value={deathCost}
+                        onChange={e => setDeathCost(e.target.value ? parseFloat(e.target.value) : 0)}
+                      />
+                    </FormField>
+                  </div>
+                </FormSection>
 
-          <FormActions onSubmit={handleFormSubmit} onCancel={() => { setModalOpen(false); setEditAnimal(null); }} isSubmitting={isSubmitting} />
+                <FormActions onSubmit={handleFormSubmit} onCancel={() => { setModalOpen(false); setEditAnimal(null); }} isSubmitting={isSubmitting} />
+              </>
+            );
+          })()}
         </form>
       </Modal>
 

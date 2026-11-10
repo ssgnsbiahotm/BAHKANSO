@@ -10,6 +10,7 @@
 - 2026-11-10 — Hero couleurs de police landing (palette slate BAHKANSO) + vitest OOM (single worker, tas 4 Go) — terminée (2 commits : `570b49a`, `2e70946`), non commite dans CONTEXT.md.
 - 2026-11-10 — Dashboard v2 cockpit : sélecteur Site global, réorganisation des KPIs (4 principaux + 4 accordéon au niveau ferme "Total exploitation") — terminée avec vérifications manuelles en attente, non commitee.
 - 2026-11-10 — Refonte formulaire Site (SitesPage.tsx) : code auto-généré SIT-YYYY-NNN, statut supprimé à la création, responsable en dropdown app_users, localisation avec datalist — terminée, non commitee.
+- 2026-11-10 — Refonte formulaire Animal (Danse du Cobra) : identifiant ANI-YYYY-NNNN auto-généré, statut traduit à l'affichage, espèce héritée du lot, lot en dropdown — terminée, non commitee.
 
 ### Résumé de la mission — Dashboard v2 cockpit
 
