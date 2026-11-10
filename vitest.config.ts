@@ -12,7 +12,12 @@ export default defineConfig({
     fileParallelism: true,
     poolOptions: {
       forks: {
-        singleFork: false,
+        minForks: 1,
+        maxForks: 1,
+        // Un seul worker évite la surcharge mémoire de plusieurs processus
+        // concurrents. Le tas est relevé à 4 Go pour absorber l'accumulation
+        // d'état de module d'un worker qui exécute les fichiers à la suite.
+        execArgv: ['--max-old-space-size=4096'],
       },
     },
     testTimeout: 30000,
