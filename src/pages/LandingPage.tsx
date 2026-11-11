@@ -188,7 +188,7 @@ export default function LandingPage() {
   ], []);
 
   return (
-    <div data-theme="gnamba-editorial" className="min-h-screen landing-root text-primary">
+      <div data-theme="editorial" className="min-h-screen landing-root text-primary">
       {/* ========================================================================
          HEADER — Prototype behavior: light surface → blur on scroll
          ======================================================================== */}
@@ -268,7 +268,7 @@ export default function LandingPage() {
 
               <h1
                 id="hero-title"
-                className="font-editorial leading-[1.02] mb-6 text-primary font-extrabold tracking-tight max-w-[18ch]"
+               className="font-editorial leading-[1.02] mb-6 text-primary font-extrabold tracking-tight max-w-[42ch]"
                 style={{ fontSize: 'clamp(2.75rem, 5.5vw, 4.5rem)', lineHeight: '1.02', letterSpacing: '-0.025em' }}
               >
                 {heroTitle || 'Pilotez l\'exploitation,'}
@@ -419,7 +419,7 @@ export default function LandingPage() {
       <section id="notre-suivi" aria-labelledby="suivi-title" className="py-18 md:py-26 section-night text-ivory border-t border-night-10">
         <div className="container mx-auto px-6" style={{ maxWidth: 'var(--container-max)' }}>
           <div className="mb-14 md:mb-18 max-w-2xl">
-            <p id="suivi-overline" className="font-mono text-sm uppercase tracking-wider mb-4 text-night-dim" style={{ letterSpacing: '0.1em' }}>
+            <p id="suivi-overline" className="font-mono text-sm uppercase tracking-wider mb-4 text-night-90" style={{ letterSpacing: '0.1em' }}>
               Notre suivi
             </p>
             <h2 id="suivi-title" className="font-editorial leading-tight font-bold tracking-tight" style={{
@@ -728,7 +728,7 @@ export default function LandingPage() {
               Sécurité
             </a>
           </nav>
-          <div className="border-t pt-8 text-center text-xs text-night-dim border-night-10">
+          <div className="border-t pt-8 text-center text-xs text-night-90 border-night-10">
             {footerCopyright || '© 2026 BAHKANSO — Projet agro-pastoral'}
           </div>
         </div>
