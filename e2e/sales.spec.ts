@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 test('Bouton Nouvelle vente est visible et vert', async ({ page }) => {
   const btn = page.getByRole('button', { name: /nouvelle vente/i });
   await expect(btn).toBeVisible();
-  await expect(btn).toHaveClass(/bg-primary/);
+  await expect(btn).toHaveClass(/module-btn-primary/);
 });
 
 test('Ouvrir la modale de création', async ({ page }) => {
