@@ -1,8 +1,8 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
 **Date de mise à jour** : 2026-11-13
-**Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `80e642d`)
-**Dernier commit de code** : `80e642d` (fix import afterEach, suite OOM)
+**Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
+**Dernier commit de code** : `76b902b` (fix generate_sale_reference)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -17,14 +17,12 @@
 - Conformité §9 : 9 pages + DashboardV2 + dédup `event_journal`. Voir `docs/audits/2026-11-13-loadmodule-audit.md` et `docs/audits/2026-11-13-dashboardv2-investigation.md`.
 - 2026-11-13 — Correction visuelle landing page (v3 clôture) : débordement horizontal corrigé (`overflow-hidden` sur `ActivityCard`, `scrollWidth == clientWidth` à 390/768/1440 px) ; contraste label photo validé sur photo claire (label 5.18, sous-ligne 7.36, tous ≥ 4.5) ; mesures étape 1 toutes conformes (marge en-tête→surtitre 36/26/103 px, pas de débordement, pas de `<br>` littéral). Fichiers : `src/pages/LandingPage.tsx`, `src/styles/components.css`. Rapport : `docs/audits/landing/rapport-correction-landing-v3-2026-11-13.md`. Captures : `docs/audits/landing/apres-v4/`. Défauts 3 et 11 (base `site_content` migration 006) non touchés. Pas de commit.
 - 2026-11-13 — **Test navigateur V2 validé** (Playwright, login e2e@bahkanso.ci) : dashboard-v2 affiche Résultat net +725 000 FCFA, Marge brute 85.294%, Tendance 6 mois (3M recettes / 525k dépenses), 5 alertes. **2 bugs critiques corrigés** : (1) RLS event_journal comparait farm_id à current_user_site_id() (un site_id) → 0 événement visible, nouvelle fonction current_user_farm_id() (migration 20261113000000) ; (2) DASHBOARD_SOURCES nincluait pas sites → KPIs bloqués en loading. Commit `d830b70`.
-- 2026-11-13 — Bug `generate_sale_reference` corrigé (commit `76b902b`) : migration 019 utilisait `nextval("sale_ref_seq")` mais la séquence navait jamais été initialisée → collision avec VTE-2026-00001. Remplacé par MAX + pg_advisory_xact_lock par année (reset auto au changement dannée, résistant aux imports manuels et suppressions). Test : INSERT 2 ventes → VTE-2026-00003 et 00004, trg_log_sale alimente event_journal (5 recettes, 3.8M XOF).
+- 2026-11-13 — Bug `generate_sale_reference` corrigé (commit `76b902b`) : migration 019 utilisait `nextval('sale_ref_seq')` mais la séquence n'avait jamais été initialisée → collision avec VTE-2026-00001. Remplacé par MAX + pg_advisory_xact_lock par année (reset auto au changement d'année, résistant aux imports manuels et suppressions). Test : INSERT 2 ventes → VTE-2026-00003 et 00004, trg_log_sale alimente event_journal (5 recettes, 3.8M XOF).
 - 2026-11-13 — Mission landing hero + Facebook : corrigé chargement hero (CLS 0.018→0) et ajouté composant `FacebookFeed`. URL Facebook `[URL_PAGE_FACEBOOK]` remplacée par `facebook_url` lu depuis `site_content['cta']` et éditable dans SiteContentEditor (section CTA). Fichiers : `src/pages/LandingPage.tsx`, `src/components/landing/FacebookFeed.tsx`, `src/pages/SiteContentEditor.tsx`. Rapport : `docs/audits/landing/rapport-facebook-sitevitrine-2026-11-13.md`. typecheck/build/lint/tests verts. Pas de commit.
 
 ## À faire
 
-- [ ] Test navigateur DashboardV2 (sélecteur Site, KPIs, tendance 6 mois, états loading/no_data) — nécessite auth + supabase start
 - [ ] Clarifier avec le responsable métier la fenêtre 6 mois de la tendance (calendaire vs ancrée sur la `period` sélectionnée) — delta documenté Lot 2b
-- [ ] Vérifier le comportement RLS `event_journal` sur instance locale (garde-fou A, rapport investigation)
 - [ ] 26 warnings ESLint `react-hooks/exhaustive-deps` (dette technique, non bloquant)
 - [ ] Déploiement surge (`npx surge dist/ bahkanso.surge.sh`) après validation navigateur
 - [ ] Confirmer avec le responsable métier le traitement des défauts landing 3 (doublon "transparence") et 11 ("données de démonstration"), issus de `site_content` (migration 006) — non touchés, hors périmètre de cette mission
