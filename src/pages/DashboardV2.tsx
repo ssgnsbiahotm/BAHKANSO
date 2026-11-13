@@ -24,7 +24,12 @@ export function DashboardV2() {
   const { siteId, period, campaignId, setSiteId, setPeriod, reset, loading, error, kpiNetResult, kpiGrossMargin, kpiYield, kpiOpenAlerts } =
     useDashboardData();
   const { currentSiteId, setCurrentSiteId: setHeaderSiteId, isGlobalView } = useSite();
-  const { sites } = useData();
+  const { sites, loadModule } = useData();
+
+  // Respecte CLAUDE.md §9 : déclare le module dashboard et ses sources via loadModule.
+  useEffect(() => {
+    loadModule('dashboard');
+  }, [loadModule]);
 
   // Données tendance (6 derniers mois) et alertes ouvertes pour le site courant.
   const { trendData, trendLoading } = useDashboardTrend(siteId, period, sites);

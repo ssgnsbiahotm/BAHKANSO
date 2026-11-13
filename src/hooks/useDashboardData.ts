@@ -33,7 +33,7 @@ export function useDashboardData() {
     setCampaignId,
     reset,
   } = useDashboardScope();
-  const { sites } = useData();
+  const { sites, sourceStatus } = useData();
   const { availableSites } = useSite();
   const { campaigns, alerts } = useData();
 
@@ -74,8 +74,21 @@ export function useDashboardData() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    // Sites pas encore chargés (idle, loading, undefined au mount, ou en erreur) =>
+    // état loading, jamais de 0 ni de no_data prématuré.
+    if (sourceStatus.sites !== 'success' && sourceStatus.sites !== 'error') {
+      setRaw(null);
+      setLoading(true);
+      return;
+    }
+    // Sites chargés mais aucun farm_id résolu => aucune donnée, pas d'erreur de chargement.
     if (farmIds.length === 0 || periodStart === '' || periodEnd === '') {
-      setRaw({ entrees: 0, sorties: 0, recoltes: [], alertesOuvertes: 0 });
+      if (farmIds.length === 0 && periodStart !== '' && periodEnd !== '') {
+        setRaw(null); // no_data : sites chargés, aucune ferme résolue
+      } else {
+        setRaw({ entrees: 0, sorties: 0, recoltes: [], alertesOuvertes: 0 }); // période invalide : comportement historique
+      }
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -89,7 +102,7 @@ export function useDashboardData() {
     } finally {
       setLoading(false);
     }
-  }, [farmIds, periodStart, periodEnd]);
+  }, [farmIds, periodStart, periodEnd, sourceStatus.sites]);
 
   // Recharger quand le scope change.
   useEffect(() => {
@@ -97,20 +110,22 @@ export function useDashboardData() {
   }, [siteId, period, campaignId, farmIds.length, fetchData]);
 
   // Mappers KPI.
+  // raw === null + loading === true => chargement en cours (sites pas encore chargés).
+  // raw === null + loading === false => no_data (sites chargés, aucune ferme résolue).
   const kpiNetResult: KpiResult = useMemo(() => {
-    if (!raw) return emptyResult('FCFA', 'Chargement…');
+    if (!raw) return loading ? emptyResult('FCFA', 'Chargement…') : noDataResult('FCFA');
     return mapNetResult(raw);
-  }, [raw]);
+  }, [raw, loading]);
 
   const kpiGrossMargin: KpiResult = useMemo(() => {
-    if (!raw) return emptyResult('%', 'Chargement…');
+    if (!raw) return loading ? emptyResult('%', 'Chargement…') : noDataResult('%');
     return mapGrossMargin(raw);
-  }, [raw]);
+  }, [raw, loading]);
 
   const kpiYield: KpiResult = useMemo(() => {
-    if (!raw) return emptyResult('kg/ha', 'Chargement…');
+    if (!raw) return loading ? emptyResult('kg/ha', 'Chargement…') : noDataResult('kg/ha');
     return mapYield(raw, activeCampaign, siteId);
-  }, [raw, activeCampaign, siteId]);
+  }, [raw, loading, activeCampaign, siteId]);
 
   const kpiOpenAlerts: KpiResult = useMemo(() => {
     return mapOpenAlerts(alerts || []);
@@ -139,4 +154,8 @@ export function useDashboardData() {
 
 function emptyResult(unit: string, hint: string): KpiResult {
   return { value: null, unit, status: 'loading' as KpiStatus, hint };
+}
+
+function noDataResult(unit: string): KpiResult {
+  return { value: null, unit, status: 'no_data' as KpiStatus, hint: 'Aucune donnée sur la période sélectionnée.' };
 }

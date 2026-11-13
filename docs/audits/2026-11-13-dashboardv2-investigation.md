@@ -155,3 +155,13 @@ TERMINÉ (investigation statique, recommandation émise, aucune correction appli
 ## Prochaine étape
 
 Appliquer l'option B : modifier `DataContext.tsx` (ajouter `event_journal` à `DASHBOARD_SOURCES`), ajouter `loadModule('dashboard')` dans `DashboardV2`/`useDashboardData`, supprimer `useDashboardTrend` inline et faire appeler `clientDataSource.getTrend` depuis `useDashboardData`. Nécessite accord explicite de la mission (CLAUDE.md §16).
+
+## Décision appliquée (Lot 2a)
+
+`event_journal` reste hors `DASHBOARD_SOURCES` (volumétrie : SELECT * sur un journal append-only de plusieurs milliers de lignes). L'exception §9 est documentée : `clientDataSource` conserve son rôle d'agrégateur de `event_journal` pour les KPIs héros. DashboardV2 déclare désormais `loadModule('dashboard')` (sources lues via useData : sites, alerts, farm) et distingue trois états :
+
+- `sourceStatus.sites` !== 'success' && !== 'error' (undefined / idle / loading au mount) => `raw=null`, `loading=true`, KPIs en statut `loading` (jamais de 0 prématuré).
+- `sourceStatus.sites === 'success'` && `farmIds.length === 0` (période valide) => `raw=null`, `loading=false`, KPIs en statut `no_data`.
+- sinon => appel `clientDataSource.getKpis`, KPIs en statut `ok`/`no_data` selon les mappers.
+
+`sourceStatus.sites` est ajouté aux dépendances du `useCallback fetchData` (`src/hooks/useDashboardData.ts:105`) pour que le callback re-tourne sur la transition `sites` (loading → success). `setLoading(false)` est appelé systématiquement dans les branches de sortie (no_data et période invalide) pour ne pas rester coincé en loading. `useDashboardTrend` n'est pas modifié à cette étape (réservé au Lot 2b).
