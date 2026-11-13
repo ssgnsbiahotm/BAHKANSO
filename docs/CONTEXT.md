@@ -1,16 +1,20 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
-**Date de mise à jour** : 2026-11-10
+**Date de mise à jour** : 2026-11-12
 **Branche de référence** : `feat/dashboard-v2`
-**Dernier commit de code** : `2e70946` (commit précédent)
+**Dernier commit de code** : `5129e0b` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
 
-- 2026-11-10 — Hero couleurs de police landing (palette slate BAHKANSO) + vitest OOM (single worker, tas 4 Go) — terminée (2 commits : `570b49a`, `2e70946`), non commite dans CONTEXT.md.
+- 2026-11-10 — Hero couleurs de police landing (palette slate BAHKANSO) + vitest OOM (single worker, tas 4 Go) — terminée (2 commits : `570b49a`, `2e70946`), commité dans CONTEXT.md.
+- 2026-11-11 — Landing page : thème editorial, largeur héros 42ch, textes de nuit text-night-90, refonte cartes d'activité et KPI cards — commité (`5129e0b`), typecheck exit 0, lint OK.
+- 2026-11-11 — Audit cohérence migrations Supabase local vs déployé — terminée (local uniquement, pas d'accord distant). Rapport : `docs/reports/2026-11-11-audit-migrations-local-deploye.md`. 53 migrations appliquées localement, zéro écart fichier/base. Comparatif déployé non exécuté (accès distant non autorisé).
+- 2026-11-11 — Comparaison migrations local vs distant (dnyohupgyorjmuvbyhqk) — Option A exécutée (3 manquantes appliquées sur le distant : rls_sales_least_privilege, trigger_expenses_to_event_journal, add_farm_id_to_core_tables). Rapport : `docs/audits/2026-11-11-migrations-local-vs-distant.md`. 53/53 concordantes local vs distant (vérifié via `migration list --remote`). Drift résiduel : objets distant-seuls (event_journal_rejects, surveillance_events enrichi, media étendu, event trigger ensure_rls) + contenus de fonctions/policies divergents. Option C (squash) recommandée pour étape ultérieure. Tout exécuté en lecture seule sauf les 3 migrations appliquées sur demande explicite.
 - 2026-11-10 — Dashboard v2 cockpit : sélecteur Site global, réorganisation des KPIs (4 principaux + 4 accordéon au niveau ferme "Total exploitation") — terminée avec vérifications manuelles en attente, non commitee.
 - 2026-11-10 — Refonte formulaire Site (SitesPage.tsx) : code auto-généré SIT-YYYY-NNN, statut supprimé à la création, responsable en dropdown app_users, localisation avec datalist — terminée, non commitee.
 - 2026-11-10 — Refonte formulaire Animal (Danse du Cobra) : identifiant ANI-YYYY-NNNN auto-généré, statut traduit à l'affichage, espèce héritée du lot, lot en dropdown — terminée, non commitee.
+- 2026-11-12 — Vérification du chargement des pages (audit statique) : toutes les routes résolvent vers des composants valides, typecheck exit 0, build exit 0, vitest 110 tests passés. 12 pages lisent des sources non globales sans déclarer `loadModule` (risque moyen, CLAUDE.md §9). DashboardV2 lit directement `event_journal` hors DataContext (risque élevé). Rapport : aucun fichier de rapport créé. Aucune modification de code.
 
 ### Résumé de la mission — Dashboard v2 cockpit
 
@@ -25,6 +29,11 @@ Refonte du formulaire de création/édition de site dans `src/pages/configuratio
 - [ ] Vérification manuelle du cockpit dans le navigateur (sélecteur Site, bascule KPIs, affichage des sections)
 - [ ] Commit des modifications `src/pages/Dashboard.tsx` et `src/pages/Dashboard.test.tsx` (mission n'en a pas fait la demande explicite — en attente)
 - [ ] Mise à jour de ce fichier (`docs/CONTEXT.md`) à commiter si la mission le demande
+- [ ] Vérification manuelle du formulaire Site (création, édition, dropdown Responsable, datalist Localisation)
+- [ ] Tests vitest pour SitesPage une fois l'OOM d'environnement résolu
+- [ ] Ajouter `loadModule` sur les 12 pages avec dépendances non déclarées (pages à risque moyen, CLAUDE.md §9) — nécessite accord
+- [ ] Vérifier que `event_journal` existe localement et que les RLS permettent la lecture depuis DashboardV2
+- [ ] Tests de navigateur (Playwright) pour confirmer le chargement effectif de chaque page
 - [ ] Vérification manuelle du formulaire Site (création, édition, dropdown Responsable, datalist Localisation)
 - [ ] Tests vitest pour SitesPage une fois l'OOM d'environnement résolu
 
