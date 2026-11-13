@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import { cleanup } from "@testing-library/react";
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -220,3 +221,9 @@ vi.mock('@/components/ui/Logo', () => ({
 }));
 
 console.log('Test setup loaded');
+
+// Nettoyage automatique entre tests (évite l'accumulation de composants
+// montés dans les forks Vitest — cause de l'OOM sur la suite complète).
+afterEach(() => {
+  cleanup();
+});
