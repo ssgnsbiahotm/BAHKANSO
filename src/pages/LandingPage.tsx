@@ -246,7 +246,7 @@ export default function LandingPage() {
          ======================================================================== */}
       <section
         aria-labelledby="hero-title"
-        className="relative min-h-[80vh] flex items-center section-page overflow-hidden"
+        className="relative min-h-[80vh] pt-[72px] flex items-start section-page overflow-hidden"
       >
         {/* Full-width background atmosphere */}
         <div className="hero-bg" aria-hidden="true" />
@@ -268,7 +268,7 @@ export default function LandingPage() {
 
               <h1
                 id="hero-title"
-               className="font-editorial leading-[1.02] mb-6 text-primary font-extrabold tracking-tight max-w-[42ch]"
+               className="font-editorial leading-[1.02] mb-6 text-ivory font-extrabold tracking-tight max-w-[42ch]"
                 style={{ fontSize: 'clamp(2.75rem, 5.5vw, 4.5rem)', lineHeight: '1.02', letterSpacing: '-0.025em' }}
               >
                 {heroTitle || 'Pilotez l\'exploitation,'}
@@ -278,7 +278,7 @@ export default function LandingPage() {
                 </span>
               </h1>
 
-              <p className="mb-10 max-w-[50ch] text-secondary leading-relaxed font-normal" style={{
+              <p className="mb-10 max-w-[50ch] text-ivory leading-relaxed font-normal" style={{
                 fontSize: 'clamp(1.0625rem, 1.9vw, 1.1875rem)',
               }}>
                 {heroSubtitle || 'BAHKANSO centralise le suivi des financements, des cultures, de l\'élevage et des chantiers. Une information commune, à jour, partagée entre l\'équipe terrain et le responsable à distance.'}
@@ -370,7 +370,7 @@ export default function LandingPage() {
           </div>
 
           {/* CTA section activités */}
-          <div className="mt-18 text-center">
+          <div className="mt-24 md:mt-32 text-center">
             <a
               href="/login"
               className="module-btn module-btn-secondary module-btn-lg font-semibold shadow-md module-btn-lg"
@@ -385,7 +385,7 @@ export default function LandingPage() {
       {/* ========================================================================
          POURQUOI BAHKANSO — Refined KPI grid: stronger cards, better spacing
          ======================================================================== */}
-      <section id="pourquoi" aria-labelledby="pourquoi-title" className="py-18 md:py-26 section-surface">
+      <section id="pourquoi" aria-labelledby="pourquoi-title" className="py-16 md:py-24 lg:py-32 section-surface">
         <div className="container mx-auto px-6" style={{ maxWidth: 'var(--container-max)' }}>
           <div className="max-w-3xl mb-14 md:mb-18">
             <p id="pourquoi-overline" className="font-mono text-sm uppercase tracking-wider mb-4 text-signal" style={{ letterSpacing: '0.1em' }}>
@@ -409,14 +409,13 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <TrustBadges badges={trustBadges} />
         </div>
       </section>
 
       {/* ========================================================================
          NOTRE SUIVI — Refined timeline: clearer hierarchy, better balance
          ======================================================================== */}
-      <section id="notre-suivi" aria-labelledby="suivi-title" className="py-18 md:py-26 section-night text-ivory border-t border-night-10">
+      <section id="notre-suivi" aria-labelledby="suivi-title" className="py-16 md:py-24 lg:py-32 section-night text-ivory border-t border-night-10">
         <div className="container mx-auto px-6" style={{ maxWidth: 'var(--container-max)' }}>
           <div className="mb-14 md:mb-18 max-w-2xl">
             <p id="suivi-overline" className="font-mono text-sm uppercase tracking-wider mb-4 text-night-90" style={{ letterSpacing: '0.1em' }}>
@@ -491,7 +490,7 @@ export default function LandingPage() {
       {/* ========================================================================
          NOTRE PROJET — Rebalanced: editorial text + features panel with better proportions
          ======================================================================== */}
-      <section id="le-projet" aria-labelledby="projet-title" className="py-18 md:py-26 section-page">
+      <section id="le-projet" aria-labelledby="projet-title" className="py-16 md:py-24 lg:py-32 section-page">
         <div className="container mx-auto px-6" style={{ maxWidth: 'var(--container-max)' }}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-start">
             {/* Colonne éditoriale — plus d'espace respirant */}
@@ -511,14 +510,6 @@ export default function LandingPage() {
                 BAHKANSO centralise le suivi des financements, des dépenses, des activités d'élevage et de culture, ainsi que des chantiers, afin que chaque acteur dispose d'une information commune et à jour.
               </p>
               <div className="space-y-8 mt-14 border-t border-subtle pt-[var(--space-10)]">
-                <div>
-                  <h4 className="font-editorial font-medium mb-3 text-ink font-medium" style={{ fontSize: 'var(--text-label-lg)', letterSpacing: '-0.01em' }}>
-                    Objectif
-                  </h4>
-                  <p className="text-ink-mut leading-relaxed font-normal" style={{ fontSize: 'var(--text-body-sm)' }}>
-                    Centraliser le suivi des financements, des dépenses, des activités d'élevage et de culture, ainsi que des chantiers, afin que chaque acteur dispose d'une information commune et à jour.
-                  </p>
-                </div>
                 <div>
                   <h4 className="font-editorial font-medium mb-3 text-ink font-medium" style={{ fontSize: 'var(--text-label-lg)', letterSpacing: '-0.01em' }}>
                     Organisation
@@ -564,7 +555,7 @@ export default function LandingPage() {
       {/* ========================================================================
          CONTACT / CTA — Refined: better typography, spacing
          ======================================================================== */}
-      <section id="contact" aria-labelledby="contact-title" className="py-18 md:py-26 section-page border-t border-subtle">
+      <section id="contact" aria-labelledby="contact-title" className="py-16 md:py-24 lg:py-32 section-page border-t border-subtle">
         <div className="container mx-auto px-6" style={{ maxWidth: 'var(--container-max)' }}>
           <div className="max-w-3xl">
             <h2 id="contact-title" className="font-editorial leading-tight mb-7 text-ink font-bold tracking-tight" style={{
@@ -614,7 +605,7 @@ export default function LandingPage() {
                   Horaires
                 </h4>
                 <p className="text-sm text-ink leading-loose font-normal">
-                  Lundi au Vendredi, 8h - 18h (GMT)<br/>Responsable disponible 24/7
+                  Lundi au Vendredi, 8h - 18h (GMT)
                 </p>
               </div>
             </div>
