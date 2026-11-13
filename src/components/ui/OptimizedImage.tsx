@@ -11,9 +11,19 @@ export const OptimizedImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({
   alt = '',
   loading = 'lazy',
   decoding = 'async',
+  fetchPriority,
   ...rest
 }) => {
-  return <img src={src} alt={alt} loading={loading} decoding={decoding} {...rest} />;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading={loading}
+      decoding={decoding}
+      {...(fetchPriority ? { fetchPriority } : {})}
+      {...rest}
+    />
+  );
 };
 
 export default OptimizedImage;

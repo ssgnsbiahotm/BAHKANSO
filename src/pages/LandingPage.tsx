@@ -1,8 +1,9 @@
 import { Shield, ScrollText, Users, Bell, Check } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useData } from '@/lib/DataContext';
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { FacebookFeed } from '@/components/landing/FacebookFeed';
 
 /* ============================================================================
    TRUST BADGES — Inline chips
@@ -144,7 +145,29 @@ export default function LandingPage() {
   const heroCtaSecondary = heroContent.ctaSecondary as string | undefined;
   const trustBadges = heroContent.trustBadges as Array<{ value: string }> | undefined;
 
+  // Préload de l'image hero statique quand elle est disponible en local
+  useEffect(() => {
+    if (!heroImage) return;
+    const isLocal = heroImage.startsWith('/') || heroImage.startsWith('./');
+    if (!isLocal) return;
+    const existing = document.querySelector('link[rel="preload"][href="' + heroImage + '"]');
+    if (existing) return;
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = heroImage;
+    link.fetchPriority = 'high';
+    document.head.appendChild(link);
+    return () => {
+      link.remove();
+    };
+  }, [heroImage]);
+
+  // État de chargement de l'image hero
+  const [heroImageLoaded, setHeroImageLoaded] = useState<boolean | null>(null);
+
   const ctaTitle = ctaContent.title as string | undefined;
+  const facebookUrl = (ctaContent.facebook_url as string | undefined) || undefined;
   const ctaSubtitle = ctaContent.subtitle as string | undefined;
   const ctaPrimary = ctaContent.primary as string | undefined;
   const ctaSecondary = ctaContent.secondary as string | undefined;
@@ -313,17 +336,34 @@ export default function LandingPage() {
                       src={heroImage}
                       alt={heroAlt || "Vue de l'exploitation BAHKANSO — cultures et infrastructures"}
                       className="w-full h-full object-cover hero-image"
+                      loading="eager"
+                      fetchPriority="high"
+                      onLoad={() => setHeroImageLoaded(true)}
+                      onError={() => setHeroImageLoaded(false)}
                       style={{
                         transition: 'transform var(--duration-1000) var(--ease-out), filter var(--duration-700) var(--ease-out)',
                       }}
                     />
-                    {/* Overlay infos terrain — plus subtil */}
-                    <div className="hero-image-overlay">
-                      <p className="font-mono text-xs tracking-wider uppercase mb-1.5" style={{ letterSpacing: '0.1em', color: 'var(--color-signal)' }}>
-                        Exploitation active
-                      </p>
-                      <p className="text-sm font-medium" style={{ color: 'var(--color-ivory)' }}>{farm?.location || 'Cocody, Palais de Justice — Abidjan'}</p>
-                    </div>
+                    {/* Overlay infos terrain — affiché uniquement quand l'image est chargée */}
+                    {heroImageLoaded !== false && (
+                      <div className="hero-image-overlay">
+                        <p className="font-mono text-xs tracking-wider uppercase mb-1.5" style={{ letterSpacing: '0.1em', color: 'var(--color-signal)' }}>
+                          Exploitation active
+                        </p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--color-ivory)' }}>{farm?.location || 'Cocody, Palais de Justice — Abidjan'}</p>
+                      </div>
+                    )}
+                    {/* Fallback visuel si l'image échoue à charger */}
+                    {heroImageLoaded === false && (
+                      <div className="absolute inset-0 flex items-end p-6 hero-image-fallback">
+                        <div>
+                          <p className="font-mono text-xs tracking-wider uppercase mb-1.5" style={{ letterSpacing: '0.1em', color: 'var(--color-signal)' }}>
+                            Exploitation active
+                          </p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--color-ivory)' }}>{farm?.location || 'Cocody, Palais de Justice — Abidjan'}</p>
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="absolute inset-0 flex items-end p-6 hero-image-fallback">
@@ -552,6 +592,11 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ========================================================================
+         FACEBOOK — Vie de l'exploitation
+         ======================================================================== */}
+      <FacebookFeed pageUrl={facebookUrl} />
 
       {/* ========================================================================
          CONTACT / CTA — Refined: better typography, spacing

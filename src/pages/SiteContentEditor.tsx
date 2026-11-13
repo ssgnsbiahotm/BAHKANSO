@@ -879,6 +879,7 @@ export function SiteContentEditor() {
                 <TextAreaField label="Sous-titre" value={cta.subtitle || ''} onChange={v => updateField('cta', 'subtitle', v)} rows={2} />
                 <FormField label="Bouton principal" value={cta.primary || ''} onChange={v => updateField('cta', 'primary', v)} />
                 <FormField label="Bouton secondaire" value={cta.secondary || ''} onChange={v => updateField('cta', 'secondary', v)} />
+                <FormField label="URL de la page Facebook" value={String(cta.facebook_url || '')} onChange={v => updateField('cta', 'facebook_url', v)} />
               </div>
             )}
 
