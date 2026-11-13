@@ -10,6 +10,7 @@ import type {
 } from './types';
 
 export type DashboardSource =
+  | 'sites'
   | 'transactions'
   | 'expenses'
   | 'inventoryItems'
@@ -22,6 +23,7 @@ export type DashboardSource =
 export type SourceStatus = 'idle' | 'loading' | 'success' | 'error';
 
 const DASHBOARD_SOURCES: DashboardSource[] = [
+  'sites',
   'transactions',
   'expenses',
   'inventoryItems',
