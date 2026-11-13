@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Truck, Star, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -42,8 +42,13 @@ const DEFAULT_VALUES: SupplierFormValues = {
 };
 
 export function Suppliers() {
-  const { suppliers, expenses, sites, refresh } = useData();
+  const { suppliers, expenses, sites, refresh, loadModule } = useData();
   const { appUser } = useAuth();
+
+  useEffect(() => {
+    loadModule('finance');
+    loadModule('exploitation');
+  }, [loadModule]);
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);

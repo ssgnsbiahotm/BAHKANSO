@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import '@/styles/theme-app.css';
 import { HardHat, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
@@ -46,8 +46,12 @@ const DEFAULT_VALUES: ProjectFormValues = {
 };
 
 export function Projects() {
-  const { projects, projectSteps, expenses, refresh } = useData();
+  const { projects, projectSteps, expenses, refresh, loadModule } = useData();
   const { appUser } = useAuth();
+
+  useEffect(() => {
+    loadModule('projets');
+  }, [loadModule]);
   const toast = useToast();
   const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState('all');

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, AlertTriangle, TrendingUp, Plus, Eye, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
@@ -40,8 +40,13 @@ const DEFAULT_VALUES: ItemFormValues = {
 
 export function Inventory() {
   const navigate = useNavigate();
-  const { inventoryItems, inventoryMovements, sites, refresh } = useData();
+  const { inventoryItems, inventoryMovements, sites, refresh, loadModule } = useData();
   const { appUser } = useAuth();
+
+  useEffect(() => {
+    loadModule('stock');
+    loadModule('exploitation');
+  }, [loadModule]);
   const toast = useToast();
 
   const [modalOpen, setModalOpen] = useState(false);

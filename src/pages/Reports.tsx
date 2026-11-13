@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileBarChart, Download, FileText } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { formatCurrency } from '@/lib/format';
@@ -7,8 +7,15 @@ import { useToast } from '@/lib/Toast';
 import { STATUS_CLASS_SUCCESS, STATUS_CLASS_INFO, STATUS_CLASS_WARNING } from '@/lib/constants';
 
 export function Reports() {
-  const { fundings, expenses, projects, harvests, animalLots } = useData();
+  const { fundings, expenses, projects, harvests, animalLots, loadModule } = useData();
   const toast = useToast();
+
+  useEffect(() => {
+    loadModule('finance');
+    loadModule('dashboard');
+    loadModule('exploitation');
+    loadModule('elevage');
+  }, [loadModule]);
   const [selectedReport, setSelectedReport] = useState('financial');
 
   const reports = [

@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { Users, Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -37,8 +37,13 @@ const isAdminOrOwner = (role: string | undefined) =>
   role === 'administrateur' || role === 'propriétaire';
 
 export function SitesPage() {
-  const { sites, users, plots, animals, refresh } = useData();
+  const { sites, users, plots, animals, refresh, loadModule } = useData();
   const { appUser } = useAuth();
+
+  useEffect(() => {
+    loadModule('exploitation');
+    loadModule('elevage');
+  }, [loadModule]);
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editSite, setEditSite] = useState<Site | null>(null);
