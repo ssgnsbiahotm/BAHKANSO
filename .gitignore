@@ -130,3 +130,8 @@ __pycache__/
 *.pyc
 __pycache__/
 *.pyc
+
+# Artefacts locaux BAHKANSO
+supabase/.branches/
+Master PDF Editor Portable*/
+public/LandinPage-*.png
