@@ -1,8 +1,8 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
 **Date de mise à jour** : 2026-11-13
-**Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `7fa2bb2`)
-**Dernier commit de code** : `7fa2bb2` (refactor Lot 2b)
+**Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `80e642d`)
+**Dernier commit de code** : `80e642d` (fix import afterEach, suite OOM)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -13,12 +13,12 @@
 - 2026-11-13 — Investigation DashboardV2 (commit `39486b9`) : 9 requêtes `event_journal` cataloguées, RLS FORCE confirmé, options A-E comparées, décision : ne PAS ajouter `event_journal` à `DASHBOARD_SOURCES` (volumétrie append-only).
 - 2026-11-13 — Lot 2a DashboardV2 (commit `f585a6f`) : `loadModule('dashboard')` + états loading/no_data corrects. Distinction idle/loading (loading) vs success sans farmId (no_data) vs success avec farmId (ok). 5 défauts du premier jet corrigés.
 - 2026-11-13 — Lot 2b DashboardV2 (commit `7fa2bb2`) : déduplication `useDashboardTrend` (61 lignes + 11 types + imports supprimées) via `clientDataSource.getTrend` appelé dans le même `fetchData` que `getKpis` (`Promise.all`). 1 seule requête `event_journal` par scope au lieu de 2. 11/11 tests, typecheck exit 0, lint 0 erreur.
+- 2026-11-13 — OOM vitest résolu : `setup.tsx` n'appelait jamais `cleanup()` → 20 test files laissaient leurs composants montés (42 renders cumulés). Ajout `afterEach(() => cleanup())` global + import explicite `afterEach` (commit `70daeca`, `80e642d`). 121/121 tests en 43.72s (avant : timeout >300s). Dette mal attribuée à `useDashboardData.test.ts` (2 renders) : le vrai coupable était `useSurveillance.test.ts` (11 renders).
 - Conformité §9 : 9 pages + DashboardV2 + dédup `event_journal`. Voir `docs/audits/2026-11-13-loadmodule-audit.md` et `docs/audits/2026-11-13-dashboardv2-investigation.md`.
 
 ## À faire
 
 - [ ] Test navigateur DashboardV2 (sélecteur Site, KPIs, tendance 6 mois, états loading/no_data) — nécessite auth + supabase start
-- [ ] Fix OOM vitest `useDashboardData.test.ts` (teardown hang, mock Supabase) — bloque la suite complète
 - [ ] Clarifier avec le responsable métier la fenêtre 6 mois de la tendance (calendaire vs ancrée sur la `period` sélectionnée) — delta documenté Lot 2b
 - [ ] Vérifier le comportement RLS `event_journal` sur instance locale (garde-fou A, rapport investigation)
 - [ ] 26 warnings ESLint `react-hooks/exhaustive-deps` (dette technique, non bloquant)
@@ -46,7 +46,7 @@
    - Marge par culture (XOF)
 
 4. **Tests** :
-   - 101/101 tests unitaires (Vitest, fork isolation).
+   - 121/121 tests unitaires (Vitest, fork isolation, cleanup global dans setup.tsx depuis 80e642d).
    - 3 tests RLS sales.
    - Tests d'intégration RLS (pgTAP + vitest).
 
