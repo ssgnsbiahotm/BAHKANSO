@@ -1,41 +1,28 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
-**Date de mise à jour** : 2026-11-12
-**Branche de référence** : `feat/dashboard-v2`
-**Dernier commit de code** : `5129e0b` (commit précédent)
+**Date de mise à jour** : 2026-11-13
+**Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `7fa2bb2`)
+**Dernier commit de code** : `7fa2bb2` (refactor Lot 2b)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
 
-- 2026-11-10 — Hero couleurs de police landing (palette slate BAHKANSO) + vitest OOM (single worker, tas 4 Go) — terminée (2 commits : `570b49a`, `2e70946`), commité dans CONTEXT.md.
-- 2026-11-11 — Landing page : thème editorial, largeur héros 42ch, textes de nuit text-night-90, refonte cartes d'activité et KPI cards — commité (`5129e0b`), typecheck exit 0, lint OK.
-- 2026-11-11 — Audit cohérence migrations Supabase local vs déployé — terminée (local uniquement, pas d'accord distant). Rapport : `docs/reports/2026-11-11-audit-migrations-local-deploye.md`. 53 migrations appliquées localement, zéro écart fichier/base. Comparatif déployé non exécuté (accès distant non autorisé).
-- 2026-11-11 — Comparaison migrations local vs distant (dnyohupgyorjmuvbyhqk) — Option A exécutée (3 manquantes appliquées sur le distant : rls_sales_least_privilege, trigger_expenses_to_event_journal, add_farm_id_to_core_tables). Rapport : `docs/audits/2026-11-11-migrations-local-vs-distant.md`. 53/53 concordantes local vs distant (vérifié via `migration list --remote`). Drift résiduel : objets distant-seuls (event_journal_rejects, surveillance_events enrichi, media étendu, event trigger ensure_rls) + contenus de fonctions/policies divergents. Option C (squash) recommandée pour étape ultérieure. Tout exécuté en lecture seule sauf les 3 migrations appliquées sur demande explicite.
-- 2026-11-10 — Dashboard v2 cockpit : sélecteur Site global, réorganisation des KPIs (4 principaux + 4 accordéon au niveau ferme "Total exploitation") — terminée avec vérifications manuelles en attente, non commitee.
-- 2026-11-10 — Refonte formulaire Site (SitesPage.tsx) : code auto-généré SIT-YYYY-NNN, statut supprimé à la création, responsable en dropdown app_users, localisation avec datalist — terminée, non commitee.
-- 2026-11-10 — Refonte formulaire Animal (Danse du Cobra) : identifiant ANI-YYYY-NNNN auto-généré, statut traduit à l'affichage, espèce héritée du lot, lot en dropdown — terminée, non commitee.
-- 2026-11-12 — Vérification du chargement des pages (audit statique) : toutes les routes résolvent vers des composants valides, typecheck exit 0, build exit 0, vitest 110 tests passés. 12 pages lisent des sources non globales sans déclarer `loadModule` (risque moyen, CLAUDE.md §9). DashboardV2 lit directement `event_journal` hors DataContext (risque élevé). Rapport : aucun fichier de rapport créé. Aucune modification de code.
+- 2026-11-13 — Nettoyage main : .gitignore corrigé (Master PDF Editor Portable, supabase/.temp), rapports d'audit 2026-11-11 commités, migration consolidation Option C sécurisée (576 lignes, audit sûreté OK : 0 DROP destructif, 18 DROP IF EXISTS, 0 DDL auth, 5 INSERT runtime-only), fix a11y LoginPage, fix e2e sélecteur module-btn-primary. Commits : `41fafa7`, `9eed748`, `19e61ef`, `24e4797`, `05fcbbf`, `1b54710`.
+- 2026-11-13 — Audit §9 loadModule : 17 conformes, 9 à ajouter, 1 risque élevé (DashboardV2), 6 hors scope. Rapport : `docs/audits/2026-11-13-loadmodule-audit.md` (commit `1da5f9f`).
+- 2026-11-13 — Lot 1 §9 : 9 pages déclarent `loadModule` (Inventory, Projects, Reports, Suppliers, ExploitationModule, JournalCulturePage, LotsPage, AnimauxPage, SitesPage). Modules stock/projets ajoutés à DataContext pour sources orphelines (inventoryItems, inventoryMovements, projects, projectSteps). Commits : `151646e`, `27d3ad4`.
+- 2026-11-13 — Investigation DashboardV2 (commit `39486b9`) : 9 requêtes `event_journal` cataloguées, RLS FORCE confirmé, options A-E comparées, décision : ne PAS ajouter `event_journal` à `DASHBOARD_SOURCES` (volumétrie append-only).
+- 2026-11-13 — Lot 2a DashboardV2 (commit `f585a6f`) : `loadModule('dashboard')` + états loading/no_data corrects. Distinction idle/loading (loading) vs success sans farmId (no_data) vs success avec farmId (ok). 5 défauts du premier jet corrigés.
+- 2026-11-13 — Lot 2b DashboardV2 (commit `7fa2bb2`) : déduplication `useDashboardTrend` (61 lignes + 11 types + imports supprimées) via `clientDataSource.getTrend` appelé dans le même `fetchData` que `getKpis` (`Promise.all`). 1 seule requête `event_journal` par scope au lieu de 2. 11/11 tests, typecheck exit 0, lint 0 erreur.
+- Conformité §9 : 9 pages + DashboardV2 + dédup `event_journal`. Voir `docs/audits/2026-11-13-loadmodule-audit.md` et `docs/audits/2026-11-13-dashboardv2-investigation.md`.
 
-### Résumé de la mission — Dashboard v2 cockpit
+## À faire
 
-Refonte de `src/pages/Dashboard.tsx` en cockpit : un seul sélecteur "Site" en haut (alimenté par `useSite`/`SiteContext`) qui filtre uniquement les blocs non-KPI portant `site_id` (campagnes, chantiers, lots, animaux) ; les 4 KPIs principaux (Marge brute, Coût de revient, Rendement, Alertes ouvertes) et les 4 KPIs accordéon (Avancement chantier, Taux de mortalité, GMQ, Marge par culture) restent au niveau ferme (farm_id), labelés "Total exploitation", non affectés par le sélecteur. Suppression des sélecteurs Campagne et Chantier. États loading/error/vide/non-calculable conservés. Grille 1/2/4 colonnes. Libellés français, montants FCFA. Fichiers principaux : `src/pages/Dashboard.tsx`, `src/pages/Dashboard.test.tsx`. Aucun commit, aucune modification de `kpi.ts`, `DataContext.tsx`, `vitest.config.ts`.
-
-### Résumé de la mission — Refonte formulaire Site
-
-Refonte du formulaire de création/édition de site dans `src/pages/configuration/SitesPage.tsx` : (1) le code `SIT-YYYY-NNN` est auto-généré via `generateEntityIdentifier` et affiché en lecture seule à la création ; (2) le champ Statut est retiré du formulaire de création (nouveau site = `actif`) ; (3) le Responsable passe d'un texte libre à un dropdown `app_users` stockant l'ID utilisateur dans la colonne `responsible` ; (4) la Localisation garde la saisie libre avec un `<datalist>` alimenté par la constante nommée `SITE_LOCALISATION_SUGGESTIONS`. Suppression du `useEffect` inutilisé qui fetchait `app_users` sans stocker le résultat. Fichier principal : `src/pages/configuration/SitesPage.tsx`. Aucun commit, aucune migration, typecheck/lint/build verts. Tests vitest en cours (problème OOM connu de l'environnement).
-
-### À faire
-
-- [ ] Vérification manuelle du cockpit dans le navigateur (sélecteur Site, bascule KPIs, affichage des sections)
-- [ ] Commit des modifications `src/pages/Dashboard.tsx` et `src/pages/Dashboard.test.tsx` (mission n'en a pas fait la demande explicite — en attente)
-- [ ] Mise à jour de ce fichier (`docs/CONTEXT.md`) à commiter si la mission le demande
-- [ ] Vérification manuelle du formulaire Site (création, édition, dropdown Responsable, datalist Localisation)
-- [ ] Tests vitest pour SitesPage une fois l'OOM d'environnement résolu
-- [ ] Ajouter `loadModule` sur les 12 pages avec dépendances non déclarées (pages à risque moyen, CLAUDE.md §9) — nécessite accord
-- [ ] Vérifier que `event_journal` existe localement et que les RLS permettent la lecture depuis DashboardV2
-- [ ] Tests de navigateur (Playwright) pour confirmer le chargement effectif de chaque page
-- [ ] Vérification manuelle du formulaire Site (création, édition, dropdown Responsable, datalist Localisation)
-- [ ] Tests vitest pour SitesPage une fois l'OOM d'environnement résolu
+- [ ] Test navigateur DashboardV2 (sélecteur Site, KPIs, tendance 6 mois, états loading/no_data) — nécessite auth + supabase start
+- [ ] Fix OOM vitest `useDashboardData.test.ts` (teardown hang, mock Supabase) — bloque la suite complète
+- [ ] Clarifier avec le responsable métier la fenêtre 6 mois de la tendance (calendaire vs ancrée sur la `period` sélectionnée) — delta documenté Lot 2b
+- [ ] Vérifier le comportement RLS `event_journal` sur instance locale (garde-fou A, rapport investigation)
+- [ ] 26 warnings ESLint `react-hooks/exhaustive-deps` (dette technique, non bloquant)
+- [ ] Déploiement surge (`npx surge dist/ bahkanso.surge.sh`) après validation navigateur
 
 ## Ce qui a été fait (résumé)
 
@@ -67,34 +54,7 @@ Refonte du formulaire de création/édition de site dans `src/pages/configuratio
    - `supabase db reset` 100% reproductible.
    - Déploiement Surge (`npx surge dist/ bahkanso.surge.sh`).
 
-6. **Dashboard v2** (en cours, non commité) :
-   - Nouvelle page `src/pages/DashboardV2.tsx` derrière le flag `dashboard_v2` (localStorage `bahkanso.dashboard_v2`).
-   - Contexte global unique (site/période/campagne) via `src/hooks/useDashboardScope.ts`, synchronisé URL.
-   - 4 KPIs héros sourcés depuis `event_journal` (adaptateur `src/lib/dashboard/dashboard-data-source.ts`, pas de lecture de `farms`).
-   - États de donnée explicites : loading / no_data / ok / warn / crit.
-   - Composants UI : `DashboardKpiCard`, `DashboardTrendChart` (SVG pur), `DashboardActionList`.
-   - Hooks : `useDashboardData`, `useDashboardTrend`, mappers purs `src/lib/dashboard/dashboard-mappers.ts` (14 tests unitaires).
-   - Route `/app/dashboard-v2` dans `src/routes/AppRoutes.tsx` (ancien `/app/dashboard` intact).
-   - Ancien dashboard inchangé avec le flag OFF.
-   - **Corrections appliquées** (fichiers non commités) :
-     - `src/pages/DashboardV2.tsx:192` : remplacement du `!` non-null (interdit CLAUDE.md §4) par un narrowing explicite sans `!`.
-     - `src/hooks/useDashboardData.ts` : garde `periodStart === '' || periodEnd === ''` → no_data, remplacement `instanceof Error` par objet `{message}`.
-     - `src/lib/format.ts` : nouvel export `parsePeriod` (lignes 62-87).
-     - `src/components/ui/DashboardKpiCard.tsx` : guard `{isClickable && href && ...}` sur `<Link to>`.
-     - `src/components/ui/DashboardTrendChart.tsx` : `hasData = data.length > 0`, sommes `data.reduce` sur toute la période.
-     - Nouveaux tests : `src/lib/parsePeriod.test.ts` (9 tests), `src/hooks/useDashboardData.test.ts` (4 tests).
-
-## Ce qui reste à faire (P1/P2)
-
-- [ ] Ajouter `RequireModule(action='write')` sur les onglets fundings/expenses.
-- [ ] Créer `.env.example`.
-- [ ] Corriger les 23 warnings ESLint (non bloquants).
-- [ ] Polish UX D1/D2 (formulaires financiers).
-- [ ] Ajouter des KPIs (trésorerie, graphiques).
-- [ ] TODO Vague 3 : écran de restauration (corbeille) des événements archivés (surveillance_events.deleted_at)
-- [ ] Dashboard v2 : vérification manuelle du flag on/off et persistance du scope (rechargement navigateur).
-- [ ] Dashboard v2 : valider le comportement RLS de event_journal sur l'instance locale (garde-fou A).
-- [ ] Optimisation des tests : mocker Supabase pour eviter l'OOM de teardown sur useDashboardData.test.ts (dette technique, acceptee, non corrigee dans cette mission).
+6. **Conformité §9 (2026-11-13)** : 9 pages + DashboardV2 + dédup `event_journal`. Voir `docs/audits/2026-11-13-loadmodule-audit.md` et `docs/audits/2026-11-13-dashboardv2-investigation.md`.
 
 ## Commandes utiles
 
