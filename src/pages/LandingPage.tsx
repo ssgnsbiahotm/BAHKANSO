@@ -48,7 +48,7 @@ interface ActivityCardProps {
 function ActivityCard({ id, title, desc, link, href, icon, color }: ActivityCardProps) {
   return (
     <article
-      className="activity-card group relative"
+      className="activity-card group relative overflow-hidden"
       role="listitem"
       tabIndex={0}
     >
@@ -113,7 +113,7 @@ function KPICard({ id, title, desc }: KPICardProps) {
         <span className="font-mono text-sm font-medium text-signal tracking-wide">{id}</span>
       </div>
       <div className="module-kpi-body flex-1">
-        <h3 className="module-kpi-label font-editorial text-ink leading-[1.3] tracking-tight mb-2" style={{ fontSize: 'clamp(1.125rem, 2vw, 1.25rem)', fontWeight: '600', margin: '0 0 var(--space-2)' }}>
+        <h3 className="module-kpi-label font-editorial leading-[1.3] tracking-tight mb-2" style={{ fontSize: 'clamp(1.125rem, 2vw, 1.25rem)', fontWeight: '600', margin: '0 0 var(--space-2)', color: 'var(--color-ink)' }}>
           {title}
         </h3>
         <p style={{ color: 'var(--color-ink-mut)', fontSize: 'var(--text-body-sm)', lineHeight: '1.7', margin: 0, fontWeight: '400' }}>{desc}</p>
@@ -261,15 +261,15 @@ export default function LandingPage() {
               <p
                 id="hero-overline"
                 className="font-mono text-sm tracking-widest uppercase mb-5 text-signal"
-                style={{ letterSpacing: '0.12em' }}
+                style={{ letterSpacing: '0.12em', color: 'var(--color-signal)', marginTop: '1rem' }}
               >
                 {heroBadge || 'Projet agro-pastoral — Côte d\'Ivoire'}
               </p>
 
               <h1
                 id="hero-title"
-               className="font-editorial leading-[1.02] mb-6 text-ivory font-extrabold tracking-tight max-w-[42ch]"
-                style={{ fontSize: 'clamp(2.75rem, 5.5vw, 4.5rem)', lineHeight: '1.02', letterSpacing: '-0.025em' }}
+               className="font-editorial leading-[1.02] mb-6 font-extrabold tracking-tight max-w-[42ch]"
+                style={{ fontSize: 'clamp(2.75rem, 5.5vw, 4.5rem)', lineHeight: '1.02', letterSpacing: '-0.025em', color: 'var(--color-ivory)' }}
               >
                 {heroTitle || 'Pilotez l\'exploitation,'}
                 <br />
@@ -278,8 +278,9 @@ export default function LandingPage() {
                 </span>
               </h1>
 
-              <p className="mb-10 max-w-[50ch] text-ivory leading-relaxed font-normal" style={{
+              <p className="mb-10 max-w-[50ch] leading-relaxed font-normal" style={{
                 fontSize: 'clamp(1.0625rem, 1.9vw, 1.1875rem)',
+                color: 'var(--color-ivory)',
               }}>
                 {heroSubtitle || 'BAHKANSO centralise le suivi des financements, des cultures, de l\'élevage et des chantiers. Une information commune, à jour, partagée entre l\'équipe terrain et le responsable à distance.'}
               </p>
@@ -318,19 +319,19 @@ export default function LandingPage() {
                     />
                     {/* Overlay infos terrain — plus subtil */}
                     <div className="hero-image-overlay">
-                      <p className="font-mono text-xs tracking-wider uppercase mb-1.5 text-signal" style={{ letterSpacing: '0.1em' }}>
+                      <p className="font-mono text-xs tracking-wider uppercase mb-1.5" style={{ letterSpacing: '0.1em', color: 'var(--color-signal)' }}>
                         Exploitation active
                       </p>
-                      <p className="text-sm font-medium text-ivory font-medium">{farm?.location || 'Cocody, Palais de Justice — Abidjan'}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--color-ivory)' }}>{farm?.location || 'Cocody, Palais de Justice — Abidjan'}</p>
                     </div>
                   </>
                 ) : (
                   <div className="absolute inset-0 flex items-end p-6 hero-image-fallback">
                     <div>
-                      <p className="font-mono text-xs tracking-wider uppercase mb-1.5 text-signal" style={{ letterSpacing: '0.1em' }}>
+                      <p className="font-mono text-xs tracking-wider uppercase mb-1.5" style={{ letterSpacing: '0.1em', color: 'var(--color-signal)' }}>
                         Exploitation active
                       </p>
-                      <p className="text-sm font-medium text-ivory font-medium">{farm?.location || 'Cocody, Palais de Justice — Abidjan'}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--color-ivory)' }}>{farm?.location || 'Cocody, Palais de Justice — Abidjan'}</p>
                     </div>
                   </div>
                 )}
@@ -363,14 +364,14 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 lg:gap-9" role="list" aria-label="Activités principales">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-7 lg:gap-9" role="list" aria-label="Activités principales">
             {activities.map((item) => (
               <ActivityCard key={item.id} {...item} />
             ))}
           </div>
 
           {/* CTA section activités */}
-          <div className="mt-24 md:mt-32 text-center">
+          <div className="mt-8 md:mt-12 text-center">
             <a
               href="/login"
               className="module-btn module-btn-secondary module-btn-lg font-semibold shadow-md module-btn-lg"
@@ -597,7 +598,7 @@ export default function LandingPage() {
                   Localisation
                 </h4>
                 <p className="text-sm text-ink leading-loose font-normal">
-                  {farm?.location || 'Cocody, Palais de Justice<br/>Abidjan, Côte d\'Ivoire'}
+                  <>{farm?.location || <><span>Cocody, Palais de Justice</span><br /><span>Abidjan, Côte d'Ivoire</span></>}</>
                 </p>
               </div>
               <div>
