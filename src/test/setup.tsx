@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, afterEach } from 'vitest';
 import { cleanup } from "@testing-library/react";
 
 // Mock Supabase client
