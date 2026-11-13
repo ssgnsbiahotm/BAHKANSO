@@ -37,11 +37,13 @@ vi.mock('./useDashboardScope', () => ({
 vi.mock('@/lib/dashboard/dashboard-data-source', () => ({
   clientDataSource: {
     getKpis: vi.fn(),
+    getTrend: vi.fn(),
   },
 }));
 
 const mockUseDashboardScope = vi.mocked(useDashboardScope);
 const mockGetKpis = vi.mocked(clientDataSource.getKpis);
+const mockGetTrend = vi.mocked(clientDataSource.getTrend);
 
 function renderWithScope(period: string, sites: { id: string; farm_id: string }[] = [...mockSites]) {
   mockUseDashboardScope.mockReturnValue({
@@ -126,5 +128,30 @@ describe('useDashboardData — états de chargement des sites', () => {
     });
     expect(result.current.loading).toBe(false);
     expect(mockGetKpis).not.toHaveBeenCalled();
+  });
+
+  it('appelle getTrend et renseigne trendData quand sites charges et farmIds valides', async () => {
+    mockGetTrend.mockResolvedValue([{ month: '2026-10', entrees: 5, sorties: 2 }]);
+    const { result } = renderWithScope('2026-10');
+    await waitFor(() => expect(result.current.trendLoading).toBe(false));
+    expect(mockGetTrend).toHaveBeenCalled();
+    expect(result.current.trendData).toEqual([{ month: '2026-10', entrees: 5, sorties: 2 }]);
+  });
+
+  it('met trendLoading quand les sites sont encore en cours de chargement', () => {
+    mockSourceStatus.sites = 'loading';
+    const { result } = renderWithScope('2026-10');
+    expect(mockGetTrend).not.toHaveBeenCalled();
+    expect(result.current.trendLoading).toBe(true);
+    expect(result.current.trendData).toEqual([]);
+  });
+
+  it('renvoie trendData vide quand sites charges sans farm_id resolu', async () => {
+    mockSourceStatus.sites = 'success';
+    const { result } = renderWithScope('2026-10', []);
+    await waitFor(() => expect(result.current.trendLoading).toBe(false));
+    expect(mockGetTrend).not.toHaveBeenCalled();
+    expect(result.current.trendData).toEqual([]);
+    expect(result.current.loading).toBe(false);
   });
 });

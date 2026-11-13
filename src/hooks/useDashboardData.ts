@@ -13,6 +13,7 @@ import {
   type KpiResult,
   type KpiStatus,
 } from '@/lib/dashboard/dashboard-mappers';
+import type { TrendPoint } from '@/lib/dashboard/dashboard-data-source';
 
 /**
  * Hook de données du Dashboard v2.
@@ -72,13 +73,17 @@ export function useDashboardData() {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [trendLoading, setTrendLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     // Sites pas encore chargés (idle, loading, undefined au mount, ou en erreur) =>
     // état loading, jamais de 0 ni de no_data prématuré.
     if (sourceStatus.sites !== 'success' && sourceStatus.sites !== 'error') {
       setRaw(null);
+      setTrendData([]);
       setLoading(true);
+      setTrendLoading(true);
       return;
     }
     // Sites chargés mais aucun farm_id résolu => aucune donnée, pas d'erreur de chargement.
@@ -88,19 +93,28 @@ export function useDashboardData() {
       } else {
         setRaw({ entrees: 0, sorties: 0, recoltes: [], alertesOuvertes: 0 }); // période invalide : comportement historique
       }
+      setTrendData([]);
       setLoading(false);
+      setTrendLoading(false);
       return;
     }
     setLoading(true);
+    setTrendLoading(true);
     setError(null);
     try {
-      const kpis = await clientDataSource.getKpis(farmIds, periodStart, periodEnd);
+      const [kpis, trend] = await Promise.all([
+        clientDataSource.getKpis(farmIds, periodStart, periodEnd),
+        clientDataSource.getTrend(farmIds, 6),
+      ]);
       setRaw(kpis);
+      setTrendData(trend);
     } catch (err) {
       setError((err as { message?: string } | null)?.message ?? 'Erreur de chargement');
       setRaw(null);
+      setTrendData([]);
     } finally {
       setLoading(false);
+      setTrendLoading(false);
     }
   }, [farmIds, periodStart, periodEnd, sourceStatus.sites]);
 
@@ -144,6 +158,8 @@ export function useDashboardData() {
     // Données
     loading,
     error,
+    trendData,
+    trendLoading,
     // KPIs
     kpiNetResult,
     kpiGrossMargin,

@@ -164,4 +164,10 @@ Appliquer l'option B : modifier `DataContext.tsx` (ajouter `event_journal` à `D
 - `sourceStatus.sites === 'success'` && `farmIds.length === 0` (période valide) => `raw=null`, `loading=false`, KPIs en statut `no_data`.
 - sinon => appel `clientDataSource.getKpis`, KPIs en statut `ok`/`no_data` selon les mappers.
 
-`sourceStatus.sites` est ajouté aux dépendances du `useCallback fetchData` (`src/hooks/useDashboardData.ts:105`) pour que le callback re-tourne sur la transition `sites` (loading → success). `setLoading(false)` est appelé systématiquement dans les branches de sortie (no_data et période invalide) pour ne pas rester coincé en loading. `useDashboardTrend` n'est pas modifié à cette étape (réservé au Lot 2b).
+`sourceStatus.sites` est ajouté aux dépendances du `useCallback fetchData` (`src/hooks/useDashboardData.ts:105`) pour que le callback re-tourne sur la transition `sites` (loading → success). `setLoading(false)` est appelé systématiquement dans les branches de sortie (no_data et période invalide) pour ne pas rester coincé en loading.
+
+## Décision appliquée (Lot 2b)
+
+La duplication `useDashboardTrend` (61 lignes, `DashboardV2.tsx:201-262`) est supprimée. `useDashboardData` appelle désormais `clientDataSource.getTrend(farmIds, 6)` dans le même `fetchData` que `getKpis` (Promise.all), centralisant la lecture de `event_journal` : **une seule requête `event_journal` par scope au lieu de deux** (KPIs + tendance fusionnées). `useDashboardData` retourne `trendData` / `trendLoading` ; `DashboardV2` les consomme et passe `data={trendData}` à `DashboardTrendChart` (contrat `TrendPoint[]` inchangé). `supabase`, `JournalEvent`, `isJournalEvent` retirés des imports de `DashboardV2`.
+
+**Risque/documenté :** `clientDataSource.getTrend` calcule sa fenêtre des 6 mois depuis `Date.now()` (mois calendaires), tandis que l'ancien `useDashboardTrend` la calculait depuis la `period` sélectionnée. Le graphique affiche désormais les 6 derniers mois calendaires indépendamment de la période sélectionnée. Ce delta est accepté pour le Lot 2b (à affiner si le responsable métier exige une fenêtre calée sur la période).

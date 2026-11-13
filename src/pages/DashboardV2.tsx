@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { DashboardKpiCard } from '@/components/ui/DashboardKpiCard';
 import { DashboardTrendChart } from '@/components/ui/DashboardTrendChart';
@@ -21,7 +20,7 @@ import { useData } from '@/lib/DataContext';
 export function DashboardV2() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { siteId, period, campaignId, setSiteId, setPeriod, reset, loading, error, kpiNetResult, kpiGrossMargin, kpiYield, kpiOpenAlerts } =
+  const { siteId, period, campaignId, setSiteId, setPeriod, reset, loading, error, kpiNetResult, kpiGrossMargin, kpiYield, kpiOpenAlerts, trendData, trendLoading } =
     useDashboardData();
   const { currentSiteId, setCurrentSiteId: setHeaderSiteId, isGlobalView } = useSite();
   const { sites, loadModule } = useData();
@@ -32,7 +31,6 @@ export function DashboardV2() {
   }, [loadModule]);
 
   // Données tendance (6 derniers mois) et alertes ouvertes pour le site courant.
-  const { trendData, trendLoading } = useDashboardTrend(siteId, period, sites);
   const { alerts } = useData();
 
   const [mounted, setMounted] = useState(false);
@@ -182,86 +180,3 @@ function formatDateRange(period: string): string {
   return `${formatDate(startStr)} – ${formatDate(endStr)}`;
 }
 
-type JournalEvent = {
-  event_type: string;
-  amount: number;
-  occurred_at: string;
-};
-
-function isJournalEvent(value: unknown): value is JournalEvent {
-  if (!value || typeof value !== 'object') return false;
-  const obj = value as Record<string, unknown>;
-  return (
-    typeof obj.event_type === 'string' &&
-    typeof obj.amount === 'number' &&
-    typeof obj.occurred_at === 'string'
-  );
-}
-
-/**
- * Récupère les données de tendance (6 mois) et les alertes ouvertes pour le
- * site sélectionné. Le scope farm_ids est résolu depuis sites (pas de lecture
- * de farms).
- */
-function useDashboardTrend(
-  siteId: string | 'all',
-  period: string,
-  sites: { id: string; farm_id: string | null }[]
-) {
-  const [trendData, setTrendData] = useState<{ month: string; entrees: number; sorties: number }[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let farmIds: string[] = [];
-    if (siteId === 'all' || !siteId) {
-      farmIds = (sites || []).map((s) => s.farm_id).filter((f): f is string => Boolean(f));
-    } else {
-      const site = (sites || []).find((s) => s.id === siteId);
-      farmIds = site && site.farm_id ? [site.farm_id] : [];
-    }
-
-    if (farmIds.length === 0) {
-      setTrendData([]);
-      return;
-    }
-
-    setLoading(true);
-    const parsed = parsePeriod(period);
-    if (!parsed) {
-      setTrendData([]);
-      setLoading(false);
-      return;
-    }
-    const startYear = Number(parsed.periodStart.slice(0, 4));
-    const startMonth = Number(parsed.periodStart.slice(5, 7));
-    // 6 mois dont le mois courant, avec arithmétique mois robuste (pas d'underflow en janvier)
-    const trendStart = new Date(startYear, startMonth - 1 - 5, 1);
-    const periodStart = `${trendStart.getFullYear()}-${String(trendStart.getMonth() + 1).padStart(2, '0')}-01`;
-
-    supabase
-      .from('event_journal')
-      .select('event_type, amount, occurred_at')
-      .in('farm_id', farmIds)
-      .gte('occurred_at', periodStart)
-      .order('occurred_at', { ascending: true })
-      .then(({ data, error: err }) => {
-        if (err || !data) {
-          setTrendData([]);
-          setLoading(false);
-          return;
-        }
-        const byMonth: Record<string, { entrees: number; sorties: number }> = {};
-        for (const e of data.filter(isJournalEvent)) {
-          const month = e.occurred_at.slice(0, 7);
-          if (!byMonth[month]) byMonth[month] = { entrees: 0, sorties: 0 };
-          const amount = Number(e.amount || 0);
-          if (e.event_type === 'recette') byMonth[month].entrees += amount;
-          else if (e.event_type === 'depense') byMonth[month].sorties += amount;
-        }
-        setTrendData(Object.entries(byMonth).map(([month, v]) => ({ month, entrees: v.entrees, sorties: v.sorties })));
-        setLoading(false);
-      });
-  }, [siteId, period, sites]);
-
-  return { trendData, trendLoading: loading };
-}
