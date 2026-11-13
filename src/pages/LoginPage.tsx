@@ -125,10 +125,11 @@ function InputField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-medium text-secondary">{label}</label>
+      <label htmlFor={label.toLowerCase().replace(/\s+/g, '-')} className="block text-xs font-medium text-secondary">{label}</label>
       <div className="relative">
         <Icon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
         <input
+          id={label.toLowerCase().replace(/\s+/g, '-')}
           type={showPasswordToggle && showPassword ? 'text' : type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -148,7 +149,7 @@ function InputField({
             type="button"
             onClick={onTogglePassword}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors"
-            aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+            aria-label={showPassword ? 'Masquer' : 'Afficher'}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
