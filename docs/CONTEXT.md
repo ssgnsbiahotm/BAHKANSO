@@ -15,6 +15,8 @@
 - 2026-11-13 — Lot 2b DashboardV2 (commit `7fa2bb2`) : déduplication `useDashboardTrend` (61 lignes + 11 types + imports supprimées) via `clientDataSource.getTrend` appelé dans le même `fetchData` que `getKpis` (`Promise.all`). 1 seule requête `event_journal` par scope au lieu de 2. 11/11 tests, typecheck exit 0, lint 0 erreur.
 - 2026-11-13 — OOM vitest résolu : `setup.tsx` n'appelait jamais `cleanup()` → 20 test files laissaient leurs composants montés (42 renders cumulés). Ajout `afterEach(() => cleanup())` global + import explicite `afterEach` (commit `70daeca`, `80e642d`). 121/121 tests en 43.72s (avant : timeout >300s). Dette mal attribuée à `useDashboardData.test.ts` (2 renders) : le vrai coupable était `useSurveillance.test.ts` (11 renders).
 - Conformité §9 : 9 pages + DashboardV2 + dédup `event_journal`. Voir `docs/audits/2026-11-13-loadmodule-audit.md` et `docs/audits/2026-11-13-dashboardv2-investigation.md`.
+- 2026-11-13 — Correction visuelle landing page : 11 défauts analysés, 9 corrigés dans `src/pages/LandingPage.tsx` et `src/styles/components.css` (contraste hero, titre non rogné, label photo, CTA sous cartes, coches orphelines, espacement, redondance projet/objectif, horaires). Défauts 3 et 11 (base `site_content` migration 006) non touchés, à traiter par le responsable. Rapport : `docs/audits/landing/rapport-correction-landing-2026-11-13.md`. Pas de commit.
+- 2026-11-13 — **Test navigateur V2 validé** (Playwright, login e2e@bahkanso.ci) : dashboard-v2 affiche Résultat net +725 000 FCFA, Marge brute 85.294%, Tendance 6 mois (3M recettes / 525k dépenses), 5 alertes. **2 bugs critiques corrigés** : (1) RLS event_journal comparait farm_id à current_user_site_id() (un site_id) → 0 événement visible, nouvelle fonction current_user_farm_id() (migration 20261113000000) ; (2) DASHBOARD_SOURCES nincluait pas sites → KPIs bloqués en loading. Commit `d830b70`.
 
 ## À faire
 
@@ -23,6 +25,7 @@
 - [ ] Vérifier le comportement RLS `event_journal` sur instance locale (garde-fou A, rapport investigation)
 - [ ] 26 warnings ESLint `react-hooks/exhaustive-deps` (dette technique, non bloquant)
 - [ ] Déploiement surge (`npx surge dist/ bahkanso.surge.sh`) après validation navigateur
+- [ ] Confirmer avec le responsable métier le traitement des défauts landing 3 (doublon "transparence") et 11 ("données de démonstration"), issus de `site_content` (migration 006) — non touchés, hors périmètre de cette mission
 
 ## Ce qui a été fait (résumé)
 
