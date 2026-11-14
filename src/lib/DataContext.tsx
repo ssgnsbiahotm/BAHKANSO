@@ -55,7 +55,7 @@ const MODULE_SOURCES: Record<string, string[]> = {
   finance: ['suppliers', 'documents', 'fundings', 'bankAccounts', 'cashAccounts'],
   elevage: ['animals', 'animalLots', 'animalEvents'],
   ventes: ['customers'],
-  stock: ['inventoryItems', 'inventoryMovements'],
+  inventory: ['inventoryItems', 'inventoryMovements'],
   projets: ['projects', 'projectSteps', 'expenses'],
 };
 
