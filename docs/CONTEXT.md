@@ -23,11 +23,12 @@
 - 2026-11-14 — Corrections sûres + cohérence DataContext + RBAC : ClientsPage (loadModule finance+exploitation, hasPermission 'clients/write'), Suppliers (loadModule finance), BailleursPage (loadModule finance, hasPermission 'bailleurs/write'), Dashboard (hasPermission 'finance/read', prioritySourcesPending/Error de useDashboardStats), useDashboardStats (ajout prioritySourcesError), Dashboard.test.tsx (mock useDashboardStats). Vérifications : typecheck 0, lint 0 erreur, tests 121/121. Commit créé (non poussé).
 - 2026-11-14 — Corrections suppressions (règle §8/§11) : BailleursPage (ajout bloc finally), AnimauxPage/CampagnesPage/RecoltesPage/LotsPage (finally ferme setConfirmDelete au lieu de setDetail*), LotsPage (retiré window.confirm redondant), Projects (ajout try/catch/finally), SitesPage (ajout try/catch/finally). Vérifications : typecheck 0, lint 0 erreur, tests 121/121.
 - 2026-11-14 — Blocage double clic sur les suppressions (règle §8) : ajout du flag `isDeleting` sur ClientsPage, BailleursPage, Suppliers, SitesPage (bouton propre) et AnimauxPage, CampagnesPage, RecoltesPage, LotsPage, Projects (via prop `deleteDisabled` ajouté au composant partagé DetailModal). Vérifications : typecheck 0, lint 0 erreur, tests 121/121.
-- 2026-11-14 — Migration JournalCulturePage vers useValidatedForm + zod (audit gap I1) : formulaire d'opérations culturelles migré du useState/FormData manuel vers `useValidatedForm` + `operationSchema` (date requise, coût/MO non négatifs, quantité/unité optionnels). Vérifications : typecheck 0, lint 0 erreur, tests 121/121. Commit en attente.
+- 2026-11-14 — Migration JournalCulturePage vers useValidatedForm + zod (audit gap I1) : formulaire d'opérations culturelles migré du useState/FormData manuel vers `useValidatedForm` + `operationSchema`. Commité (`4db08ed`).
+- 2026-11-14 — Finance Vague 1 : suppression `console.log('PAYLOAD UPDATE:')` dans FundingsTab (I6) ; séparation des deux valeurs `transfer` en `transfer_bank_to_cash` / `transfer_cash_to_bank` dans TreasuryTab (I4). `refresh()` déjà présent via `refetch()` dans FundingsTab et DocumentsTab (F1). Vérifications : typecheck 0, lint 0 erreur, tests 121/121. Commit en attente.
 
 ## À faire
 
-- Commit de la migration JournalCulturePage (CLAUDE.md §1 : pas encore demandé).
+- Commit de la mission Finance Vague 1 (CLAUDE.md §1 : pas encore demandé).
 
 ## Ce qui a été fait (résumé)
 

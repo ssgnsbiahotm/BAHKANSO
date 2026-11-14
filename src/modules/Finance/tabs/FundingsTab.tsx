@@ -296,8 +296,6 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           reference: finalReference,
         };
 
-        console.log('PAYLOAD UPDATE:', payload);
-
         let createdId: string | null = null;
 
         if (editingFunding) {
