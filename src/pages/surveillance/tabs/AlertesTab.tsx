@@ -193,9 +193,9 @@ export function AlertesTab() {
       console.error('Erreur règle 4 financement en transit:', err);
     }
 
-    // Règle 5 : Client inactif (customers sans sales depuis > 60 jours)
+    // Règle 5 : Client inactif (customers sans vente depuis > 60 jours)
     try {
-      const { data: inactiveCustomers, error: custError } = await supabase
+      const { data: allCustomers, error: custError } = await supabase
         .from('customers')
         .select('*');
 
@@ -203,30 +203,41 @@ export function AlertesTab() {
 
       const sixtyDaysAgo = new Date();
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+      const sixtyDaysAgoStr = sixtyDaysAgo.toISOString().split('T')[0];
 
-      for (const customer of (inactiveCustomers || [])) {
-        // On vérifie s'il n'y a pas eu de sales récentes pour ce client
-        // Cette règle est simplifiée : on crée l'alerte si le client existe
-        // (la détection de "sans sales" nécessiterait une jointure avec transactions/sales)
-        const { data: existing } = await supabase
-          .from('alerts')
+      for (const customer of (allCustomers || [])) {
+        // Vérifier si le client a eu une vente dans les 60 derniers jours
+        const { data: recentSales, error: salesError } = await supabase
+          .from('sales')
           .select('id')
-          .eq('object_id', customer.id)
-          .eq('object_type', 'customer')
-          .eq('status', 'ouverte')
-          .single();
+          .eq('customer_id', customer.id)
+          .gte('date', sixtyDaysAgoStr)
+          .limit(1);
 
-        if (!existing) {
-          await supabase.from('alerts').insert({
-            title: `Client inactif : ${customer.name}`,
-            description: `Le client ${customer.name} n'a pas eu d'activité récente (> 60 jours).`,
-            severity: 'low',
-            category: 'Ventes',
-            object_type: 'customer',
-            object_id: customer.id,
-            status: 'ouverte',
-          });
-          created++;
+        if (salesError) throw salesError;
+
+        // Aucun achat récent → client inactif
+        if (!recentSales || recentSales.length === 0) {
+          const { data: existing } = await supabase
+            .from('alerts')
+            .select('id')
+            .eq('object_id', customer.id)
+            .eq('object_type', 'customer')
+            .eq('status', 'ouverte')
+            .single();
+
+          if (!existing) {
+            await supabase.from('alerts').insert({
+              title: `Client inactif : ${customer.name}`,
+              description: `Le client ${customer.name} n'a pas eu de vente depuis plus de 60 jours.`,
+              severity: 'low',
+              category: 'Ventes',
+              object_type: 'customer',
+              object_id: customer.id,
+              status: 'ouverte',
+            });
+            created++;
+          }
         }
       }
     } catch (err) {
