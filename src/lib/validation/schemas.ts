@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
 export const fundingSchema = z.object({
   amount: z.number().positive('Le montant doit être supérieur à zéro.'),
   date_sent: z.date(),

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { logAudit, type Funder, type AppUser } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { formatDate } from '@/lib/format';
+import { validateEmail } from '@/lib/validation/schemas';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -73,8 +74,7 @@ export function BailleursPage() {
       toast.show('Email obligatoire', 'error');
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
+    if (!validateEmail(form.email)) {
       toast.show('Format d\'email invalide', 'error');
       return;
     }

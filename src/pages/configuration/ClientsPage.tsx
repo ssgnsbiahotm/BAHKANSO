@@ -5,7 +5,9 @@ import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
 import { hasPermission, type UserRole } from '@/lib/rbac';
 import { logAudit, type Customer } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
+import { validateEmail } from '@/lib/validation/schemas';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -18,6 +20,7 @@ export function ClientsPage() {
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editClient, setEditClient] = useState<Customer | null>(null);
+  const [, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     type: 'particulier',
@@ -70,6 +73,10 @@ export function ClientsPage() {
     }
     if (!form.email && !form.phone) {
       toast.show('Email ou téléphone obligatoire', 'error');
+      return;
+    }
+    if (form.email && !validateEmail(form.email)) {
+      toast.show('Format d\'email invalide', 'error');
       return;
     }
 
@@ -317,7 +324,7 @@ export function ClientsPage() {
                 className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
               >
                 <option value="">Aucun</option>
-                {sitesOptions.map(s => (
+                {sites.map(s => (
                   <option key={s.id} value={s.id}>
                     {s.name} ({s.code || ''})
                   </option>

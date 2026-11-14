@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-13
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `2abb092` (commit précédent)
+**Dernier commit de code** : `9f90509` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -28,11 +28,14 @@
 - 2026-11-14 — Stocks/Inventory Vague 1 (S1) : alignement du nom de module `inventory` partout — `MODULE_SOURCES.stock` → `inventory` dans DataContext.tsx, `loadModule('stock')` → `loadModule('inventory')` dans Inventory.tsx. La route AppRoutes utilisait déjà `inventory`. Commité (`21944f9`).
 - 2026-11-14 — Surveillance Vague 1 (S1) : correction de la règle 5 « Client inactif » dans `src/pages/surveillance/tabs/AlertesTab.tsx` — vérifie désormais l'absence de vente dans les 60 derniers jours (jointure avec `sales` sur `customer_id` + `date >= -60j`) avant de créer l'alerte, au lieu de créer une alerte pour chaque client existant. Vérifications : typecheck 0, lint 0 erreur, tests 121/121. Non commité.
 - 2026-11-14 — Phase 2 RLS, LOCAL uniquement (supabase local, jamais le distant). Migration `supabase/migrations/20261114000000_rls_global_by_role_phase2.sql` créée et appliquée via `supabase db reset`. Politiques RLS par rôle sur 10 tables (customers, sale_items, sites, funding_allocations, transactions, documents, funders, fundings, expenses, sales) : accès global administrateur/propriétaire, périmètre site pour gestionnaire/comptable/auditeur, financeur par funder_id. FORCE RLS sur toutes les tables. 0 politique USING/WITH CHECK permissive. Tests par rôle OK (admin/propriétaire global, gestionnaire site-scopé, comptable lecture seule, financeur ses propres fundings, anon bloqué, écritures refusées). Script : `scripts/test-rls-phase2.sql`. typecheck exit 0, tests 121/121. Pas de commit.
+- 2026-11-14 — Application des recommandations d'audit des formulaires : unifie la validation email via `validateEmail` partagé (LoginPage, UsersPage, BailleursPage, ClientsPage), remplace `window.confirm` par `ConfirmDeleteModal` (Configuration ListEditor, SiteContentEditor `confirmDeleteFeature`), clarifie le doublet Description/Commentaire dans JournalCulturePage (label → "Description"). Correction TS2304 dans ClientsPage : ajout `import { supabase }`, `const [, setSaving] = useState(false)`, `sites` au lieu de `sitesOptions`. Fichiers : `src/lib/validation/schemas.ts`, `src/pages/LoginPage.tsx`, `src/pages/UsersPage.tsx`, `src/pages/configuration/BailleursPage.tsx`, `src/pages/configuration/ClientsPage.tsx`, `src/pages/Configuration.tsx`, `src/pages/SiteContentEditor.tsx`, `src/pages/exploitation/JournalCulturePage.tsx`, `src/pages/exploitation/AnimauxPage.tsx`. Vérifications : tests 121/121, lint 0 erreur, typecheck seul TS5101 préexistant (config `baseUrl`). Non commité.
 
 ## À faire
 
 - Commit de la mission Surveillance Vague 1 S1 (CLAUDE.md §1 : pas encore demandé).
 - Commit de la mission Phase 2 RLS (CLAUDE.md §1 : pas encore demandé).
+- Commit de la mission Application des recommandations d'audit des formulaires (CLAUDE.md §1 : pas encore demandé).
+- Vérifier les erreurs typecheck préexistantes dans ClientsPage.tsx (`setSaving`, `supabase` non déclarés) — hors scope de la mission actuelle.
 
 ## Ce qui a été fait (résumé)
 
