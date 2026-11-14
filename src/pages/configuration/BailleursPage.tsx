@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Users, Plus, Mail, Phone, AlertCircle } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
+import { hasPermission, type UserRole } from '@/lib/rbac';
 import { supabase } from '@/lib/supabase';
 import { logAudit, type Funder, type AppUser } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
@@ -13,11 +14,8 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 import { useRef } from 'react';
 
-const isAdminOrOwner = (role: string | undefined) =>
-  role === 'administrateur' || role === 'propriétaire';
-
 export function BailleursPage() {
-  const { funders, refresh } = useData();
+  const { funders, refresh, loadModule } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,7 +40,7 @@ export function BailleursPage() {
     return { total, active, totalSent, totalReceived };
   }, [funders]);
 
-  const canManageFunders = useMemo(() => isAdminOrOwner(appUser?.role), [appUser?.role]);
+  const canManageFunders = useMemo(() => hasPermission(appUser?.role as UserRole, 'bailleurs', 'write'), [appUser?.role]);
 
   const openCreate = () => {
     if (!canManageFunders) {
@@ -159,20 +157,10 @@ export function BailleursPage() {
     }
   };
 
-  // Load funders from Supabase if not loaded via DataContext
+  // S'assurer que les données bailleurs (module finance) sont chargées via DataContext
   useEffect(() => {
-    if (!funders || funders.length === 0) {
-      // Try to fetch funders directly
-      ;(async () => {
-        const { error } = await supabase.from('funders').select('*');
-        if (error) {
-          console.error('Error fetching funders:', error);
-        } else {
-          refresh?.();
-        }
-      })();
-    }
-  }, [funders, refresh]);
+    loadModule('finance');
+  }, [loadModule]);
 
   // Fetch users with role financeur for linking
   useEffect(() => {

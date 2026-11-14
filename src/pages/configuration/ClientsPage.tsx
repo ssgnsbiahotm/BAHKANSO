@@ -3,6 +3,7 @@ import { Users, AlertCircle, Plus } from 'lucide-react';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
+import { hasPermission, type UserRole } from '@/lib/rbac';
 import { supabase } from '@/lib/supabase';
 import { logAudit, type Customer, type Site } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
@@ -12,16 +13,12 @@ import { Modal } from '@/components/ui/Modal';
 import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 import { useRef } from 'react';
 
-const isAdminOrOwner = (role: string | undefined) =>
-  role === 'administrateur' || role === 'propriétaire';
-
 export function ClientsPage() {
-  const { refresh } = useData();
+  const { refresh, loadModule } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editClient, setEditClient] = useState<Customer | null>(null);
-  const [, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     type: 'particulier',
@@ -34,7 +31,13 @@ export function ClientsPage() {
   const [sitesOptions, setSitesOptions] = useState<Site[]>([]);
 
 
-  const canManageClients = useMemo(() => isAdminOrOwner(appUser?.role), [appUser?.role]);
+  const canManageClients = useMemo(() => hasPermission(appUser?.role as UserRole, 'clients', 'write'), [appUser?.role]);
+
+  // S'assurer que les sources clients (finance) et sites (exploitation) sont chargées via DataContext
+  useEffect(() => {
+    loadModule('finance');
+    loadModule('exploitation');
+  }, [loadModule]);
 
   // Load clients from Supabase if not loaded
   useEffect(() => {

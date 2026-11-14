@@ -47,7 +47,6 @@ export function Suppliers() {
 
   useEffect(() => {
     loadModule('finance');
-    loadModule('exploitation');
   }, [loadModule]);
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);

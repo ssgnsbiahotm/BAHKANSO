@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { useAuth } from '@/lib/AuthContext';
+import { hasPermission, type UserRole } from '@/lib/rbac';
 import { useData } from '@/lib/DataContext';
 import { SiteContext } from '@/lib/SiteContext';
 import {
@@ -207,8 +208,8 @@ const SectionHeader = ({ id, title, description, action }: {
   </div>
 );
 
-const isFinanceSensitive = (role: string | null | undefined) =>
-  role !== 'administrateur' && role !== 'proprietaire' && role !== 'propriétaire' && role !== 'responsable' && role !== 'responsable agricole' && role !== 'responsable élevage' && role !== 'gestionnaire';
+const canAccessFinance = (role: UserRole | null | undefined) =>
+  hasPermission(role as UserRole, 'finance', 'read');
 
 export function Dashboard() {
   const { appUser } = useAuth();
@@ -222,11 +223,13 @@ export function Dashboard() {
     latestTransactions,
     loading,
     error,
+    prioritySourcesPending,
+    prioritySourcesError,
   } = useDashboardStats();
 
   const { media, siteContent, sourceStatus, loadModule, farm } = useData();
 
-  const showFinance = !isFinanceSensitive(appUser?.role);
+  const showFinance = canAccessFinance(appUser?.role);
 
   // Contexte de site global : dégradé en mode "tous les sites" si le Dashboard
   // est rendu hors d'un SiteProvider (ex. tests unitaires isolés).
@@ -457,19 +460,6 @@ export function Dashboard() {
       </div>
     );
   }
-
-  // Vérifier la disponibilité des sources pour les priorités
-  const prioritySourcesPending =
-    sourceStatus.expenses === 'loading' ||
-    sourceStatus.inventoryItems === 'loading' ||
-    sourceStatus.projects === 'loading' ||
-    sourceStatus.alerts === 'loading';
-
-  const prioritySourcesError =
-    sourceStatus.expenses === 'error' ||
-    sourceStatus.inventoryItems === 'error' ||
-    sourceStatus.projects === 'error' ||
-    sourceStatus.alerts === 'error';
 
   const transactionsSourceError = sourceStatus.transactions === 'error';
 
