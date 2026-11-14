@@ -214,7 +214,8 @@ export function BailleursPage() {
         {funders.map(f => (
           <RotatingCard
             key={f.id}
-            label={f.name || 'Bailleur'}
+            flipLabel="Détails"
+            backLabel="Retour"
             front={
               <>
                 <div className="flex items-center gap-3 mb-4">

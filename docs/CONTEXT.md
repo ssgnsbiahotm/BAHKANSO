@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-13
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `76b902b` (fix generate_sale_reference)
+**Dernier commit de code** : `2abb092` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -27,10 +27,12 @@
 - 2026-11-14 — Finance Vague 1 : suppression `console.log('PAYLOAD UPDATE:')` dans FundingsTab (I6) ; séparation des deux valeurs `transfer` en `transfer_bank_to_cash` / `transfer_cash_to_bank` dans TreasuryTab (I4). `refresh()` déjà présent via `refetch()` dans FundingsTab et DocumentsTab (F1). Commité (`fdc7c7a`).
 - 2026-11-14 — Stocks/Inventory Vague 1 (S1) : alignement du nom de module `inventory` partout — `MODULE_SOURCES.stock` → `inventory` dans DataContext.tsx, `loadModule('stock')` → `loadModule('inventory')` dans Inventory.tsx. La route AppRoutes utilisait déjà `inventory`. Commité (`21944f9`).
 - 2026-11-14 — Surveillance Vague 1 (S1) : correction de la règle 5 « Client inactif » dans `src/pages/surveillance/tabs/AlertesTab.tsx` — vérifie désormais l'absence de vente dans les 60 derniers jours (jointure avec `sales` sur `customer_id` + `date >= -60j`) avant de créer l'alerte, au lieu de créer une alerte pour chaque client existant. Vérifications : typecheck 0, lint 0 erreur, tests 121/121. Non commité.
+- 2026-11-14 — Phase 2 RLS, LOCAL uniquement (supabase local, jamais le distant). Migration `supabase/migrations/20261114000000_rls_global_by_role_phase2.sql` créée et appliquée via `supabase db reset`. Politiques RLS par rôle sur 10 tables (customers, sale_items, sites, funding_allocations, transactions, documents, funders, fundings, expenses, sales) : accès global administrateur/propriétaire, périmètre site pour gestionnaire/comptable/auditeur, financeur par funder_id. FORCE RLS sur toutes les tables. 0 politique USING/WITH CHECK permissive. Tests par rôle OK (admin/propriétaire global, gestionnaire site-scopé, comptable lecture seule, financeur ses propres fundings, anon bloqué, écritures refusées). Script : `scripts/test-rls-phase2.sql`. typecheck exit 0, tests 121/121. Pas de commit.
 
 ## À faire
 
 - Commit de la mission Surveillance Vague 1 S1 (CLAUDE.md §1 : pas encore demandé).
+- Commit de la mission Phase 2 RLS (CLAUDE.md §1 : pas encore demandé).
 
 ## Ce qui a été fait (résumé)
 

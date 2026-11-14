@@ -4,8 +4,7 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
 import { hasPermission, type UserRole } from '@/lib/rbac';
-import { supabase } from '@/lib/supabase';
-import { logAudit, type Customer, type Site } from '@/lib/types';
+import { logAudit, type Customer } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
@@ -14,7 +13,7 @@ import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDelete
 import { useRef } from 'react';
 
 export function ClientsPage() {
-  const { refresh, loadModule } = useData();
+  const { customers, sites, refresh, loadModule } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
@@ -27,9 +26,6 @@ export function ClientsPage() {
     site_id: '',
   });
   const formRef = useRef<HTMLFormElement>(null);
-  const [clients, setClients] = useState<Customer[]>([]);
-  const [sitesOptions, setSitesOptions] = useState<Site[]>([]);
-
 
   const canManageClients = useMemo(() => hasPermission(appUser?.role as UserRole, 'clients', 'write'), [appUser?.role]);
 
@@ -39,36 +35,11 @@ export function ClientsPage() {
     loadModule('exploitation');
   }, [loadModule]);
 
-  // Load clients from Supabase if not loaded
-  useEffect(() => {
-    ;(async () => {
-      const { data, error } = await supabase.from('customers').select('*');
-      if (error) {
-        console.error('Error fetching clients:', error);
-      } else {
-        setClients(data || []);
-        refresh?.();
-      }
-    })();
-  }, []);
-
-  // Load sites for the select
-  useEffect(() => {
-    ;(async () => {
-      const { data, error } = await supabase.from('sites').select('*');
-      if (error) {
-        console.error('Error fetching sites:', error);
-      } else {
-        setSitesOptions(data || []);
-      }
-    })();
-  }, []);
-
   const kpis = useMemo(() => {
-    const total = clients.length;
-    const active = clients.filter(c => c.active !== false).length;
+    const total = customers.length;
+    const active = customers.filter(c => c.active !== false).length;
     return { total, active };
-  }, [clients]);
+  }, [customers]);
 
   const openCreate = () => {
     if (!canManageClients) {
@@ -216,7 +187,7 @@ export function ClientsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {clients.map(c => (
+        {customers.map(c => (
           <RotatingCard
             key={c.id}
             flipLabel="Détails"
@@ -238,7 +209,7 @@ export function ClientsPage() {
                 <div className="mt-4 space-y-1 text-sm text-secondary">
                   {c.email && <p>📧 {c.email}</p>}
                   {c.phone && <p>📞 {c.phone}</p>}
-                  {c.site_id && <p>📍 {sitesOptions.find(s => s.id === c.site_id)?.name || '—'}</p>}
+                  {c.site_id && <p>📍 {sites.find(s => s.id === c.site_id)?.name || '—'}</p>}
                 </div>
 
               </div>
@@ -251,7 +222,7 @@ export function ClientsPage() {
                     <div><dt className="text-muted text-xs">Type</dt><dd className="font-medium">{c.type}</dd></div>
                     <div><dt className="text-muted text-xs">Email</dt><dd>{c.email || '—'}</dd></div>
                     <div><dt className="text-muted text-xs">Téléphone</dt><dd>{c.phone || '—'}</dd></div>
-                    <div><dt className="text-muted text-xs">Site</dt><dd>{sitesOptions.find(s => s.id === c.site_id)?.name || '—'}</dd></div>
+                    <div><dt className="text-muted text-xs">Site</dt><dd>{sites.find(s => s.id === c.site_id)?.name || '—'}</dd></div>
                   </dl>
                 </div>
                 <div className="mt-4 pt-3 border-t border-default flex gap-2">
@@ -262,7 +233,7 @@ export function ClientsPage() {
                     Modifier
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(clients.find(cc => cc.id === c.id) || null); }}
+                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(customers.find(cc => cc.id === c.id) || null); }}
                     disabled={isDeleting}
                     className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -272,7 +243,7 @@ export function ClientsPage() {
               </div>
             } />
         ))}
-        {clients.length === 0 && (
+        {customers.length === 0 && (
           <div className="col-span-full p-8 text-center text-muted">
             <AlertCircle size={48} className="mb-3 opacity-50" />
             <p>Aucun client enregistré</p>
