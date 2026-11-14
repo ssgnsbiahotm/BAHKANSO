@@ -33,9 +33,6 @@
 
 ## À faire
 
-- Commit de la mission Surveillance Vague 1 S1 (CLAUDE.md §1 : pas encore demandé).
-- Commit de la mission Phase 2 RLS (CLAUDE.md §1 : pas encore demandé).
-- Commit de la mission Application des recommandations d'audit des formulaires (CLAUDE.md §1 : pas encore demandé).
 - Vérifier les erreurs typecheck préexistantes dans ClientsPage.tsx (`setSaving`, `supabase` non déclarés) — hors scope de la mission actuelle.
 
 ## Ce qui a été fait (résumé)
