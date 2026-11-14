@@ -45,7 +45,7 @@ const TYPE_LABELS: Record<string, string> = {
   vaccination: 'Vaccination',
   traitement: 'Traitement',
   maladie: 'Maladie',
-  naissance: 'Naissance',
+  animal_ne: 'Naissance',
   vente: 'Vente',
   achat: 'Achat',
   autre: 'Autre',
@@ -56,7 +56,7 @@ const TYPE_OPTIONS = [
   { value: 'vaccination', label: 'Vaccination' },
   { value: 'traitement', label: 'Traitement' },
   { value: 'maladie', label: 'Maladie' },
-  { value: 'naissance', label: 'Naissance' },
+  { value: 'animal_ne', label: 'Naissance' },
   { value: 'vente', label: 'Vente' },
   { value: 'achat', label: 'Achat' },
   { value: 'animal_mort', label: 'Mort' },
@@ -65,7 +65,7 @@ const TYPE_OPTIONS = [
 
 const TYPE_FILTERS = [
   { id: 'all', label: 'Tous' },
-  { id: 'naissance', label: 'Naissances' },
+  { id: 'animal_ne', label: 'Naissances' },
   { id: 'vaccination', label: 'Vaccinations' },
   { id: 'traitement', label: 'Traitements' },
   { id: 'maladie', label: 'Maladies' },

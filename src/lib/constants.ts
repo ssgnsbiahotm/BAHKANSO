@@ -184,7 +184,7 @@ export const CROP_OPERATION_TYPES = [
 ];
 
 export const ANIMAL_EVENT_TYPES = [
-  'naissance',
+  'animal_ne',
   'achat',
   'vente',
   'vaccination',
