@@ -156,6 +156,7 @@ export function ClientsPage() {
   };
 
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
@@ -169,6 +170,7 @@ export function ClientsPage() {
       setConfirmDelete(null);
       return;
     }
+    setIsDeleting(true);
     try {
       const { error } = await supabase.from('customers').delete().eq('id', confirmDelete.id);
       if (error) {
@@ -179,6 +181,7 @@ export function ClientsPage() {
         refresh();
       }
     } finally {
+      setIsDeleting(false);
       setConfirmDelete(null);
     }
   };
@@ -260,7 +263,8 @@ export function ClientsPage() {
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setConfirmDelete(clients.find(cc => cc.id === c.id) || null); }}
-                    className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger"
+                    disabled={isDeleting}
+                    className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Supprimer
                   </button>

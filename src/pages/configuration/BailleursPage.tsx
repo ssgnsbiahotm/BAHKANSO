@@ -130,9 +130,11 @@ export function BailleursPage() {
   };
 
   const [confirmDelete, setConfirmDelete] = useState<Funder | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
+    setIsDeleting(true);
     try {
       const { error } = await supabase
         .from('funders')
@@ -154,6 +156,9 @@ export function BailleursPage() {
         'Erreur lors de la suppression : ' + (err instanceof Error ? err.message : 'Inconnue'),
         'error',
       );
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(null);
     }
   };
 
@@ -248,7 +253,8 @@ export function BailleursPage() {
                   {canManageFunders && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setConfirmDelete(f); }}
-                      className="flex-1 text-sm text-danger hover:underline"
+                      disabled={isDeleting}
+                      className="flex-1 text-sm text-danger hover:underline disabled:text-slate-300 disabled:pointer-events-none"
                     >
                       Supprimer
                     </button>

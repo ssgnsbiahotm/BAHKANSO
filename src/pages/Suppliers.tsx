@@ -52,6 +52,7 @@ export function Suppliers() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Supplier | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [detailSupplier, setDetailSupplier] = useState<Supplier | null>(null);
   const [search, setSearch] = useState('');
 
@@ -124,6 +125,7 @@ export function Suppliers() {
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
+    setIsDeleting(true);
     try {
       const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
       if (error) {
@@ -135,6 +137,7 @@ export function Suppliers() {
         refresh();
       }
     } finally {
+      setIsDeleting(false);
       setConfirmDelete(null);
     }
   };
@@ -228,7 +231,7 @@ export function Suppliers() {
                   <button onClick={() => openEdit(s)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs border border-default rounded-lg hover:bg-surface-hover text-secondary">
                     <Pencil size={12} /> Modifier
                   </button>
-                  <button onClick={() => setConfirmDelete(s)} className={`px-2.5 py-1.5 text-xs border border-default rounded-lg ${STATUS_CLASS_DANGER}`} title="Supprimer">
+                  <button onClick={() => setConfirmDelete(s)} disabled={isDeleting} className={`px-2.5 py-1.5 text-xs border border-default rounded-lg ${STATUS_CLASS_DANGER} disabled:opacity-50 disabled:pointer-events-none`} title="Supprimer">
                     <Trash2 size={12} />
                   </button>
                 </div>

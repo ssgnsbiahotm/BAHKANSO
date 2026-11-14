@@ -13,6 +13,7 @@ interface DetailModalProps<T> {
   footer?: ReactNode;
   editLabel?: string;
   deleteLabel?: string;
+  deleteDisabled?: boolean;
 }
 
 export function DetailModal<T>({
@@ -26,6 +27,7 @@ export function DetailModal<T>({
   footer,
   editLabel = 'Modifier',
   deleteLabel = 'Supprimer',
+  deleteDisabled = false,
 }: DetailModalProps<T>) {
   if (!entity) return null;
 
@@ -44,7 +46,8 @@ export function DetailModal<T>({
             {onDelete && (
               <button
                 onClick={() => onDelete(entity)}
-                className={`px-4 py-2 text-sm ${STATUS_CLASS_DANGER.split(' ')[1]} border border-default rounded-lg hover:bg-danger-soft`}
+                disabled={deleteDisabled}
+                className={`px-4 py-2 text-sm ${STATUS_CLASS_DANGER.split(' ')[1]} border border-default rounded-lg hover:bg-danger-soft disabled:opacity-50 disabled:pointer-events-none`}
               >
                 {deleteLabel}
               </button>
