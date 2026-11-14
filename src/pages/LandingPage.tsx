@@ -295,8 +295,7 @@ export default function LandingPage() {
                 style={{ fontSize: 'clamp(2.75rem, 5.5vw, 4.5rem)', lineHeight: '1.02', letterSpacing: '-0.025em', color: 'var(--color-ivory)' }}
               >
                 {heroTitle || 'Pilotez l\'exploitation,'}
-                <br />
-                <span className="text-signal">
+                <span className="block text-signal mt-2">
                   {heroHighlight || 'suivez chaque résultat'}
                 </span>
               </h1>
@@ -466,7 +465,8 @@ export default function LandingPage() {
               fontSize: 'clamp(2.125rem, 4.2vw, 3.25rem)',
               letterSpacing: '-0.015em',
             }}>
-              Transparence et traçabilité<br/>à chaque étape
+              Transparence et traçabilité
+              <span className="block mt-2">à chaque étape</span>
             </h2>
           </div>
           <div className="max-w-2xl">
@@ -643,7 +643,7 @@ export default function LandingPage() {
                   Localisation
                 </h4>
                 <p className="text-sm text-ink leading-loose font-normal">
-                  <>{farm?.location || <><span>Cocody, Palais de Justice</span><br /><span>Abidjan, Côte d'Ivoire</span></>}</>
+                  <>{farm?.location || <><span className="block">Cocody, Palais de Justice</span><span className="block">Abidjan, Côte d'Ivoire</span></>}</>
                 </p>
               </div>
               <div>
