@@ -1,6 +1,5 @@
-import '@testing-library/jest-dom';
 import { vi, afterEach } from 'vitest';
-import { cleanup } from "@testing-library/react";
+import { cleanup } from '@testing-library/react';
 
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -194,7 +193,7 @@ vi.mock('@/hooks/useValidatedForm', () => ({
   useValidatedForm: () => ({
     form: {
       register: vi.fn(),
-      handleSubmit: vi.fn((fn) => async (e: React.FormEvent) => { e.preventDefault(); await fn({}); }),
+      handleSubmit: vi.fn((fn: (values: unknown) => Promise<void>) => async (e: React.FormEvent) => { e.preventDefault(); await fn({}); }),
       setValue: vi.fn(),
       watch: vi.fn(() => ({})),
       reset: vi.fn(),
@@ -219,8 +218,6 @@ vi.mock('@/components/layout/Sidebar', () => ({
 vi.mock('@/components/ui/Logo', () => ({
   Logo: () => <div data-testid="logo" />,
 }));
-
-console.log('Test setup loaded');
 
 // Nettoyage automatique entre tests (évite l'accumulation de composants
 // montés dans les forks Vitest — cause de l'OOM sur la suite complète).
