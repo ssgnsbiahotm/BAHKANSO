@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-15
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `47d1c4d` (commit précédent)
+**Dernier commit de code** : `6b2c620` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -32,6 +32,7 @@
 - 2026-11-14 — Homepage LandingPage : retiré les 3 `<br>` littéraux (héro, Notre suivi, localisation) remplacés par des `span.block` CSS. Vérifications : lint 0 erreur, typecheck seul TS5101 préexistant, tests 121/121. Commit `3154759`.
 - 2026-11-14 — FacebookFeed : ajout de la gestion d'erreur iframe (état iframeError, onError/onLoad, affichage de fallback avec bouton « Réessayer »). Fichier : src/components/landing/FacebookFeed.tsx. typecheck/lint/tests verts.
 - 2026-11-15 — Correction des blocs catch vides (mission #30, CLAUDE.md §4/§10) : remplacement de 5 `} catch {}` par affichage d'erreur via `getErrorMessage` + `toast.show` dans `src/pages/exploitation/RecoltesPage.tsx`, `src/modules/Finance/tabs/ExpensesTab.tsx`, `src/modules/Finance/tabs/FundingsTab.tsx` (2), `src/modules/Sales/SalesModule.tsx`, `src/modules/Finance/tabs/DocumentsTab.tsx`. Imports et hooks `useToast`/`getErrorMessage` ajoutés là où absents. Vérifications : 0 bloc catch vide restant, typecheck seul TS5101 préexistant, tests 121/121. Pas de commit.
+- 2026-11-15 — Correction générale du traitement d'erreurs (mission #30 suite) : ajout helper getErrorMessage dans src/lib/utils.ts, remplacement instanceof Error dans 6 fichiers (Configuration, SiteContentEditor, BailleursPage, ClientsPage, SitesPage, OperationsPage, useAsyncAction), sécurisation des accès non-null (Sidebar, kpi, SiteContentEditor, OperationsPage, main.tsx). Commité : 6b2c620. Vérifications : typecheck seul TS5101 préexistant, lint 0, tests 121/121.
 
 ## À faire
 
