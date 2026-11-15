@@ -1,6 +1,6 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
-**Date de mise à jour** : 2026-11-13
+**Date de mise à jour** : 2026-11-15
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
 **Dernier commit de code** : `47d1c4d` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
@@ -31,6 +31,7 @@
 - 2026-11-14 — Application des recommandations d'audit des formulaires : unifie la validation email via `validateEmail` partagé (LoginPage, UsersPage, BailleursPage, ClientsPage), remplace `window.confirm` par `ConfirmDeleteModal` (Configuration ListEditor, SiteContentEditor `confirmDeleteFeature`), clarifie le doublet Description/Commentaire dans JournalCulturePage (label → "Description"). Correction TS2304 dans ClientsPage : ajout `import { supabase }`, `const [, setSaving] = useState(false)`, `sites` au lieu de `sitesOptions`. Fichiers : `src/lib/validation/schemas.ts`, `src/pages/LoginPage.tsx`, `src/pages/UsersPage.tsx`, `src/pages/configuration/BailleursPage.tsx`, `src/pages/configuration/ClientsPage.tsx`, `src/pages/Configuration.tsx`, `src/pages/SiteContentEditor.tsx`, `src/pages/exploitation/JournalCulturePage.tsx`, `src/pages/exploitation/AnimauxPage.tsx`. Vérifications : tests 121/121, lint 0 erreur, typecheck seul TS5101 préexistant (config `baseUrl`). Commité.
 - 2026-11-14 — Homepage LandingPage : retiré les 3 `<br>` littéraux (héro, Notre suivi, localisation) remplacés par des `span.block` CSS. Vérifications : lint 0 erreur, typecheck seul TS5101 préexistant, tests 121/121. Commit `3154759`.
 - 2026-11-14 — FacebookFeed : ajout de la gestion d'erreur iframe (état iframeError, onError/onLoad, affichage de fallback avec bouton « Réessayer »). Fichier : src/components/landing/FacebookFeed.tsx. typecheck/lint/tests verts.
+- 2026-11-15 — Correction des blocs catch vides (mission #30, CLAUDE.md §4/§10) : remplacement de 5 `} catch {}` par affichage d'erreur via `getErrorMessage` + `toast.show` dans `src/pages/exploitation/RecoltesPage.tsx`, `src/modules/Finance/tabs/ExpensesTab.tsx`, `src/modules/Finance/tabs/FundingsTab.tsx` (2), `src/modules/Sales/SalesModule.tsx`, `src/modules/Finance/tabs/DocumentsTab.tsx`. Imports et hooks `useToast`/`getErrorMessage` ajoutés là où absents. Vérifications : 0 bloc catch vide restant, typecheck seul TS5101 préexistant, tests 121/121. Pas de commit.
 
 ## À faire
 

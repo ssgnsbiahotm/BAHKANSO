@@ -10,6 +10,7 @@ import { useSite } from '@/lib/SiteContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { logAudit } from '@/lib/types';
+import { getErrorMessage } from '@/lib/utils';
 import * as z from 'zod';
 import { useValidatedForm } from '@/components/ui/ValidatedForm';
 import { FormField, FormInput, FormSelect, FormActions, FormSection, ConfirmDeleteModal, DetailModal } from '@/components/ui/FormPrimitives';
@@ -308,7 +309,9 @@ export function SalesModule() {
         percent_allocated: l.percent_allocated ?? undefined,
         note: l.note ?? undefined,
       })));
-    } catch {}
+    } catch (err) {
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
+    }
   }, [setForm]);
 
   const openDetail = useCallback((sale: SaleWithRelations) => {
