@@ -44,7 +44,7 @@ export function Inventory() {
   const { appUser } = useAuth();
 
   useEffect(() => {
-    loadModule('stock');
+    loadModule('inventory');
     loadModule('exploitation');
   }, [loadModule]);
   const toast = useToast();

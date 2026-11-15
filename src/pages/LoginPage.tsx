@@ -19,14 +19,13 @@ import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
 import { Logo } from '@/components/ui/Logo';
 import { validatePasswordStrength } from '@/lib/password';
+import { validateEmail } from '@/lib/validation/schemas';
 
 import './LoginPage.css';
 
 /* ==========================================================================
    DESIGN TOKENS & CONSTANTS
    ========================================================================== */
-
-const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
 interface BenefitCard {
   icon: LucideIcon;

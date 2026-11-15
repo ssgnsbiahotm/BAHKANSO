@@ -382,8 +382,8 @@ export const TreasuryTab = ({ treasuryData }: TreasuryTabProps) => {
                   onChange={(e) => form.setFieldValue('type', e.target.value)}
                   className="form-input w-full"
                 >
-                  <option value="transfer">Virement banque → caisse</option>
-                  <option value="transfer">Virement caisse → banque</option>
+                  <option value="transfer_bank_to_cash">Virement banque → caisse</option>
+                  <option value="transfer_cash_to_bank">Virement caisse → banque</option>
                   <option value="bank_fees">Frais bancaires</option>
                 </select>
                 {form.errors.type && <p className="text-xs text-red-500 mt-1">{form.errors.type}</p>}

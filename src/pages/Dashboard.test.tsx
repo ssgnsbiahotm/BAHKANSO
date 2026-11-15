@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { BrowserRouter } from 'react-router-dom';
 import type { SourceStatus } from '@/lib/DataContext';
 
@@ -11,6 +12,9 @@ vi.mock('@/lib/DataContext', () => ({
 }));
 vi.mock('@/lib/AuthContext', () => ({
   useAuth: vi.fn(() => ({ appUser: { id: 'u1', name: 'Test', auth_id: 'a1', farm_id: 'f1', role: 'administrateur' } })),
+}));
+vi.mock('@/hooks/useDashboardStats', () => ({
+  useDashboardStats: vi.fn(),
 }));
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>();
@@ -26,6 +30,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 
 const mockUseData = useData as ReturnType<typeof vi.fn>;
 const mockUseAuth = useAuth as ReturnType<typeof vi.fn>;
+const mockUseDashboardStats = useDashboardStats as ReturnType<typeof vi.fn>;
 
 function renderDash(overrides: {
   role?: string;
@@ -58,6 +63,60 @@ function renderDash(overrides: {
     siteContent: {},
     media: [],
     loadModule: vi.fn(),
+  });
+
+  const pendingStatuses = [
+    status?.expenses,
+    status?.inventoryItems,
+    status?.projects,
+    status?.alerts,
+  ];
+  const prioritySourcesPending = overrides.prioritySourcesPending ?? pendingStatuses.some((s) => s === 'loading' || s === 'idle');
+  const prioritySourcesError = overrides.prioritySourcesError ?? pendingStatuses.some((s) => s === 'error');
+
+  mockUseDashboardStats.mockReturnValue({
+    grossMargin: 0,
+    periodLabel: 'octobre 2026',
+    openCriticalAlerts: 0,
+    expensesWithoutJustificatif: 0,
+    lowStockItems: 0,
+    overdueProjects: 0,
+    latestTransactions: [],
+    loading: false,
+    error: null,
+    prioritySourcesPending,
+    prioritySourcesError,
+    treasuryTrend: [],
+    periodResultTrend: [],
+    sourceStatus: status,
+    sourceError,
+    transactionsAvailable: true,
+    expensesAvailable: true,
+    inventoryAvailable: true,
+    projectsAvailable: true,
+    alertsAvailable: true,
+    animalsAvailable: true,
+    animalLotsAvailable: true,
+    campaignsAvailable: true,
+    netTreasury: 0,
+    periodIncome: 0,
+    periodExpenses: 0,
+    periodNetResult: 0,
+    previousPeriodExpenses: 0,
+    incomeTrend: [],
+    expenseTrend: [],
+    currentPeriodTransactions: 0,
+    previousPeriodTransactions: 0,
+    periodBounds: { start: new Date('2026-10-01'), end: new Date('2026-10-31') },
+    previousPeriodBounds: { start: new Date('2026-09-01'), end: new Date('2026-09-30') },
+    totalAnimals: 0,
+    totalAnimalLots: 0,
+    activeCampaigns: 0,
+    activeProjects: 0,
+    movementData: [],
+    expenseByCategory: [],
+    hasData: false,
+    allSourcesResolved: true,
   });
   mockUseAuth.mockReturnValue({
     appUser: { id: 'u1', name: 'Test', auth_id: 'a1', farm_id: 'f1', role: overrides.role ?? 'administrateur' },
@@ -97,7 +156,7 @@ describe('Dashboard', () => {
   });
 
   it("la mention 'Aucune priorite detectee' n apparait pas si une source prioritaire est indisponible", () => {
-    renderDash({ sourceStatus: { expenses: 'error' as const }, arrays: { expenses: [], transactions: [] } });
+    renderDash({ prioritySourcesError: true, arrays: { expenses: [], transactions: [] } });
     expect(screen.queryByText(/Aucune priorité détecte/)).not.toBeInTheDocument();
     expect(screen.getByText(/Certaines sources de priorité sont indisponibles/)).toBeInTheDocument();
   });

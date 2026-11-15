@@ -71,6 +71,7 @@ export function Projects() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = useMemo(() => {
     if (filter === 'all') return projects;
@@ -146,14 +147,20 @@ export function Projects() {
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
-    const { error } = await supabase.from('projects').delete().eq('id', confirmDelete.id);
-    if (error) { toast.show('Erreur: ' + error.message, 'error'); }
-    else {
-      await logAudit(appUser?.name || 'Système', 'DELETE', 'project', confirmDelete.id, `Projet "${confirmDelete.name}" supprimé`);
-      toast.show('Projet supprimé');
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from('projects').delete().eq('id', confirmDelete.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'project', confirmDelete.id, `Projet "${confirmDelete.name}" supprimé`);
+        toast.show('Projet supprimé');
+        setDetailProject(null);
+        refresh();
+      }
+    } finally {
+      setIsDeleting(false);
       setConfirmDelete(null);
-      setDetailProject(null);
-      refresh();
     }
   };
 
@@ -475,7 +482,8 @@ export function Projects() {
                           toggleProjectCard(p.id);
                           setConfirmDelete(p);
                         }}
-                        className={`flex items-center gap-3 w-full rounded-xl border border-default p-3 text-left transition-colors ${STATUS_CLASS_DANGER}`}
+                        disabled={isDeleting}
+                        className={`flex items-center gap-3 w-full rounded-xl border border-default p-3 text-left transition-colors ${STATUS_CLASS_DANGER} disabled:opacity-50 disabled:pointer-events-none`}
                       >
                         <span className={`w-10 h-10 rounded-lg flex items-center justify-center ${STATUS_CLASS_DANGER}`}>
                           <Trash2 size={18} />
@@ -506,6 +514,7 @@ export function Projects() {
         onClose={() => setDetailProject(null)}
         onEdit={openEdit}
         onDelete={setConfirmDelete}
+        deleteDisabled={isDeleting}
         title="Détails projet"
         size="lg"
         renderFields={renderDetailFields}

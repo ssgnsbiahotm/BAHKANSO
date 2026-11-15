@@ -2,10 +2,12 @@ import { useMemo, useState, useEffect } from 'react';
 import { Users, Plus, Mail, Phone, AlertCircle } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
+import { hasPermission, type UserRole } from '@/lib/rbac';
 import { supabase } from '@/lib/supabase';
 import { logAudit, type Funder, type AppUser } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { formatDate } from '@/lib/format';
+import { validateEmail } from '@/lib/validation/schemas';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { Modal } from '@/components/ui/Modal';
@@ -13,11 +15,8 @@ import { RotatingCard } from '@/components/ui/RotatingCard';
 import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 import { useRef } from 'react';
 
-const isAdminOrOwner = (role: string | undefined) =>
-  role === 'administrateur' || role === 'propriétaire';
-
 export function BailleursPage() {
-  const { funders, refresh } = useData();
+  const { funders, refresh, loadModule } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,7 +41,7 @@ export function BailleursPage() {
     return { total, active, totalSent, totalReceived };
   }, [funders]);
 
-  const canManageFunders = useMemo(() => isAdminOrOwner(appUser?.role), [appUser?.role]);
+  const canManageFunders = useMemo(() => hasPermission(appUser?.role as UserRole, 'bailleurs', 'write'), [appUser?.role]);
 
   const openCreate = () => {
     if (!canManageFunders) {
@@ -75,8 +74,7 @@ export function BailleursPage() {
       toast.show('Email obligatoire', 'error');
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
+    if (!validateEmail(form.email)) {
       toast.show('Format d\'email invalide', 'error');
       return;
     }
@@ -132,9 +130,11 @@ export function BailleursPage() {
   };
 
   const [confirmDelete, setConfirmDelete] = useState<Funder | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
+    setIsDeleting(true);
     try {
       const { error } = await supabase
         .from('funders')
@@ -156,23 +156,16 @@ export function BailleursPage() {
         'Erreur lors de la suppression : ' + (err instanceof Error ? err.message : 'Inconnue'),
         'error',
       );
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(null);
     }
   };
 
-  // Load funders from Supabase if not loaded via DataContext
+  // S'assurer que les données bailleurs (module finance) sont chargées via DataContext
   useEffect(() => {
-    if (!funders || funders.length === 0) {
-      // Try to fetch funders directly
-      ;(async () => {
-        const { error } = await supabase.from('funders').select('*');
-        if (error) {
-          console.error('Error fetching funders:', error);
-        } else {
-          refresh?.();
-        }
-      })();
-    }
-  }, [funders, refresh]);
+    loadModule('finance');
+  }, [loadModule]);
 
   // Fetch users with role financeur for linking
   useEffect(() => {
@@ -221,7 +214,8 @@ export function BailleursPage() {
         {funders.map(f => (
           <RotatingCard
             key={f.id}
-            label={f.name || 'Bailleur'}
+            flipLabel="Détails"
+            backLabel="Retour"
             front={
               <>
                 <div className="flex items-center gap-3 mb-4">
@@ -260,7 +254,8 @@ export function BailleursPage() {
                   {canManageFunders && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setConfirmDelete(f); }}
-                      className="flex-1 text-sm text-danger hover:underline"
+                      disabled={isDeleting}
+                      className="flex-1 text-sm text-danger hover:underline disabled:text-slate-300 disabled:pointer-events-none"
                     >
                       Supprimer
                     </button>

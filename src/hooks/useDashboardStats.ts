@@ -170,6 +170,13 @@ export function useDashboardStats() {
       sourceStatus?.alerts,
     ].some((status) => status === 'loading' || status === 'idle');
 
+    const prioritySourcesError = [
+      sourceStatus?.expenses,
+      sourceStatus?.inventoryItems,
+      sourceStatus?.projects,
+      sourceStatus?.alerts,
+    ].some((status) => status === 'error');
+
     const allSourcesResolved =
       transactionsAvailable &&
       expensesAvailable &&
@@ -222,6 +229,7 @@ export function useDashboardStats() {
       animalLotsAvailable,
       campaignsAvailable,
       prioritySourcesPending,
+      prioritySourcesError,
       allSourcesResolved,
     };
   }, [

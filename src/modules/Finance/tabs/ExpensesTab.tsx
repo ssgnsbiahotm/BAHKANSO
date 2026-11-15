@@ -6,8 +6,10 @@ import { ValidatedForm } from '@/components/ui/ValidatedForm';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
 import { hasPermission } from '@/lib/rbac';
+import { getErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { useData } from '@/lib/DataContext';
+import { useToast } from '@/lib/Toast';
 import { z } from 'zod';
 import type { Expense } from '@/lib/types';
 import { logAudit } from '@/lib/types';
@@ -105,6 +107,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const [links, setLinks] = useState<EntityLink[]>([]);
+  const toast = useToast();
 
   const currentUser = appUser?.name ?? authUser?.email ?? 'Utilisateur inconnu';
 
@@ -260,7 +263,9 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
     let preview = '';
     try {
       preview = await generateEntityIdentifier('EXP', 'expenses', 'reference', supabase);
-    } catch {}
+    } catch (err) {
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
+    }
     form.setFieldValue('reference', preview);
     setModalOpen(true);
   };

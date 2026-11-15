@@ -34,6 +34,7 @@ import {
   FileText, ArrowUp, ArrowDown, Trash,
   Lock,
 } from 'lucide-react';
+import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 
 /* ============================================================================
    TYPES
@@ -1362,6 +1363,7 @@ function ListEditor({
 }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  const [confirmDeleteIndex, setConfirmDeleteIndex] = useState<number | null>(null);
 
   const itemFields = field.itemFields || [{ id: 'value', label: 'Valeur', type: 'text' }];
 
@@ -1389,9 +1391,13 @@ function ListEditor({
   };
 
   const removeItem = (index: number) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
-      onChange(value.filter((_, i) => i !== index));
-    }
+    setConfirmDeleteIndex(index);
+  };
+
+  const confirmRemove = () => {
+    if (confirmDeleteIndex === null) return;
+    onChange(value.filter((_, i) => i !== confirmDeleteIndex));
+    setConfirmDeleteIndex(null);
   };
 
   const moveUp = (index: number) => {
@@ -1502,6 +1508,16 @@ function ListEditor({
           <Plus size={16} /> Ajouter un élément
         </button>
       </div>
+
+      {confirmDeleteIndex !== null && (
+        <ConfirmDeleteModal
+          entity={value[confirmDeleteIndex] as Record<string, unknown>}
+          getEntityName={() => 'cet élément'}
+          onClose={() => setConfirmDeleteIndex(null)}
+          onConfirm={confirmRemove}
+          title="Supprimer cet élément ?"
+        />
+      )}
     </div>
   );
 }

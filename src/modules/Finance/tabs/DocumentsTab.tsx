@@ -13,6 +13,8 @@ import { logAudit } from '@/lib/types';
 import { useDocuments } from '@/modules/Finance/hooks/useFinanceData';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import { formatDate } from '@/lib/format';
+import { useToast } from '@/lib/Toast';
+import { getErrorMessage } from '@/lib/utils';
 
 interface DocumentsTabProps {
   documentsData: ReturnType<typeof useDocuments>;
@@ -79,6 +81,7 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
     return role === 'administrateur' || role === 'propriétaire' || role === 'proprietaire' || role === 'admin' || role === 'owner';
   }, [appUser]);
   const { executeAction, loading: actionLoading } = useAsyncAction();
+  const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [deletingDocument, setDeletingDocument] = useState<Document | null>(null);
@@ -223,7 +226,9 @@ export const DocumentsTab = ({ documentsData }: DocumentsTabProps) => {
     try {
       const preview = await generateEntityIdentifier('DOC', 'documents', 'reference', supabase);
       form.setFieldValue('reference', preview);
-    } catch {}
+    } catch (err) {
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
+    }
     setModalOpen(true);
   };
 

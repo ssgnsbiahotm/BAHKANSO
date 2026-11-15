@@ -7,6 +7,7 @@ import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Logo, getIcon } from '@/components/ui/Logo';
+import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 
 const ICON_CHOICES = [
   'Sprout', 'Wallet', 'FileText', 'HardHat', 'Package', 'Beef', 'Shield',
@@ -61,6 +62,14 @@ export function SiteContentEditor() {
   const [newFeatureIcon, setNewFeatureIcon] = useState<string>('Sprout');
   const [newFeatureDesc, setNewFeatureDesc] = useState<string>('');
   const [newFeatureTitleError, setNewFeatureTitleError] = useState<string | null>(null);
+  const [confirmDeleteFeatureIndex, setConfirmDeleteFeatureIndex] = useState<number | null>(null);
+
+  const confirmRemoveFeature = () => {
+    if (confirmDeleteFeatureIndex === null) return;
+    removeListItem('features', confirmDeleteFeatureIndex);
+    setConfirmDeleteFeatureIndex(null);
+    toast.show('Fonctionnalité supprimée avec succès', 'success');
+  };
 
   const getContent = (key: string): Record<string, unknown> => {
     if (drafts[key]) return drafts[key] as Record<string, unknown>;
@@ -400,10 +409,7 @@ export function SiteContentEditor() {
   };
 
   const confirmDeleteFeature = (index: number) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette fonctionnalité ?')) {
-      removeListItem('features', index);
-      toast.show('Fonctionnalité supprimée avec succès', 'success');
-    }
+    setConfirmDeleteFeatureIndex(index);
   };
 
   const hasDrafts = Object.keys(drafts).length > 0;
@@ -945,6 +951,16 @@ export function SiteContentEditor() {
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center gap-2">
               <Eye size={16} /> Vous êtes en mode aperçu. Les modifications affichées ne sont pas encore publiées. Cliquez sur « Publier » pour rendre les modifications publiques ou sur « Retourner » pour revenir à l'édition.
             </div>
+          )}
+
+          {confirmDeleteFeatureIndex !== null && (
+            <ConfirmDeleteModal
+              entity={features[confirmDeleteFeatureIndex]}
+              getEntityName={(f) => String(f.title || 'cette fonctionnalité')}
+              onClose={() => setConfirmDeleteFeatureIndex(null)}
+              onConfirm={confirmRemoveFeature}
+              title="Supprimer cette fonctionnalité ?"
+            />
           )}
         </div>
       </div>

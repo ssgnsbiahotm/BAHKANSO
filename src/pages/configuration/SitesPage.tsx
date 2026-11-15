@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 import { generateEntityIdentifier } from '@/lib/entity-ids';
 import { FormSelect } from '@/components/ui/FormPrimitives';
 
@@ -158,16 +159,16 @@ export function SitesPage() {
   };
 
   const [confirmSite, setConfirmSite] = useState<Site | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-const handleDelete = async (id: string) => {
-    if (!window.confirm('Supprimer ce site ?')) return;
-    if (!canManageSites) {
-      toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
+const handleConfirmDelete = async () => {
+    const site = confirmSite;
+    if (!site) {
       setConfirmSite(null);
       return;
     }
-    const site = confirmSite;
-    if (!site) {
+    if (!canManageSites) {
+      toast.show('Accès réservé aux administrateurs et propriétaires', 'error');
       setConfirmSite(null);
       return;
     }
@@ -178,16 +179,20 @@ const handleDelete = async (id: string) => {
       setConfirmSite(null);
       return;
     }
-    const { error } = await supabase.from('sites').delete().eq('id', id);
-    if (error) {
-      toast.show('Erreur: ' + error.message, 'error');
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from('sites').delete().eq('id', site.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+        return;
+      }
+      await logAudit(appUser?.name || 'Système', 'DELETE', 'site', site.id, `Site supprimé`);
+      toast.show('Site supprimé');
+      refresh();
+    } finally {
+      setIsDeleting(false);
       setConfirmSite(null);
-      return;
     }
-    await logAudit(appUser?.name || 'Système', 'DELETE', 'site', id, `Site supprimé`);
-    toast.show('Site supprimé');
-    refresh();
-    setConfirmSite(null);
   };
 
   // Les sites sont déjà chargés par DataContext ; aucun rechargement redondant ici.
@@ -273,8 +278,9 @@ const handleDelete = async (id: string) => {
                   {canManageSites && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} aria-label={`Supprimer le site ${s.name}`}
-                      className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger flex items-center justify-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); setConfirmSite(s); }} aria-label={`Supprimer le site ${s.name}`}
+                      disabled={isDeleting}
+                      className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                     >
                       <Trash2 size={14} /> Supprimer
                     </button>
@@ -398,6 +404,15 @@ const handleDelete = async (id: string) => {
           </div>
         </form>
       </Modal>
+      {confirmSite && (
+        <ConfirmDeleteModal
+          entity={confirmSite}
+          getEntityName={(s) => s.name}
+          onClose={() => setConfirmSite(null)}
+          onConfirm={handleConfirmDelete}
+          title="Supprimer ce site ?"
+        />
+      )}
     </div>
   );
 }

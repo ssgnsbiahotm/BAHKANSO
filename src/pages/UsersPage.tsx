@@ -13,11 +13,10 @@ import { SimpleBadge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
 import { FormSelect } from '@/components/ui/FormPrimitives';
+import { validateEmail } from '@/lib/validation/schemas';
 
 const isAdminOrOwner = (role: string | undefined) =>
   role === 'administrateur' || role === 'propriétaire';
-
-const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
 export function UsersPage() {
   const { users, refresh, sites } = useData();

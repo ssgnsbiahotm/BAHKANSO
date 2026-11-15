@@ -6,8 +6,10 @@ import { useAsyncAction } from '@/hooks/useAsyncAction';
 import { supabase } from '@/lib/supabase';
 import { generateEntityIdentifier } from '@/lib/entity-ids';
 import { hasPermission } from '@/lib/rbac';
+import { getErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 import { z } from 'zod';
+import { useToast } from '@/lib/Toast';
 import type { Funding } from '@/lib/types';
 import { logAudit } from '@/lib/types';
 import { useFundings } from '@/modules/Finance/hooks/useFinanceData';
@@ -200,6 +202,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
   const [editingFunding, setEditingFunding] = useState<Funding | null>(null);
   const [deletingFunding, setDeletingFunding] = useState<Funding | null>(null);
   const [links, setLinks] = useState<EntityLink[]>([]);
+  const toast = useToast();
 
   const persistFundingLinks = useCallback(
     async (transactionId: string, amount: number, currency: string, linksState: EntityLink[]) => {
@@ -296,8 +299,6 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
           reference: finalReference,
         };
 
-        console.log('PAYLOAD UPDATE:', payload);
-
         let createdId: string | null = null;
 
         if (editingFunding) {
@@ -353,7 +354,9 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
     try {
       const preview = await generateEntityIdentifier('FND', 'fundings', 'reference', supabase);
       form.setFieldValue('reference', preview);
-    } catch {}
+    } catch (err) {
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
+    }
     setModalOpen(true);
     setLinks([]);
   };
@@ -392,7 +395,9 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
         percent_allocated: l.percent_allocated ?? undefined,
         note: l.note ?? undefined,
       })));
-    } catch {}
+    } catch (err) {
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
+    }
   };
 
   const handleDelete = (funding: Funding) => {
