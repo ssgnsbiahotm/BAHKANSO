@@ -450,7 +450,7 @@ export interface SiteContent {
 
 export interface Media {
   id: string;
-  title: string;
+  name: string;
   description: string | null;
   url: string | null;
   type: string; // 'image' | 'icon' | 'logo'

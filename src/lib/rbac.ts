@@ -11,6 +11,7 @@ export type UserRole =
   | 'comptable'
   | 'responsable_agricole'
   | 'responsable_élevage'
+  | 'responsable_chantier'
   | 'auditeur';
 
 export type ModuleKey =
@@ -53,6 +54,7 @@ export const ROLE_HIERARCHY: UserRole[] = [
   'comptable',
   'responsable_agricole',
   'responsable_élevage',
+  'responsable_chantier',
   'auditeur',
 ];
 
@@ -65,6 +67,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   comptable: 'Comptable',
   responsable_agricole: 'Responsable Agricole',
   responsable_élevage: 'Responsable Élevage',
+  responsable_chantier: 'Responsable Chantier',
   auditeur: 'Auditeur',
 };
 
@@ -77,6 +80,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   comptable: 'Gestion comptable complète, trésorerie, dépenses, documents',
   responsable_agricole: 'Gestion parcelles, campagnes, opérations culturales, récoltes',
   responsable_élevage: 'Gestion cheptel, lots, animaux, événements sanitaires',
+  responsable_chantier: 'Gestion chantiers, projets de construction et travaux',
   auditeur: 'Accès lecture seule à tous les modules pour audit et contrôle',
 };
 
@@ -208,6 +212,23 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     profile: { read: true, write: true, delete: false, admin: false },
   },
 
+  responsable_chantier: {
+    dashboard: { read: true, write: false, delete: false, admin: false },
+    finance: { read: true, write: true, delete: false, admin: false },
+    ventes: { read: true, write: false, delete: false, admin: false },
+    agriculture: { read: true, write: false, delete: false, admin: false },
+    livestock: { read: true, write: false, delete: false, admin: false },
+    projects: { read: true, write: true, delete: true, admin: false },
+    inventory: { read: true, write: true, delete: false, admin: false },
+    suppliers: { read: true, write: true, delete: false, admin: false },
+    media: { read: true, write: true, delete: false, admin: false },
+    monitoring: { read: true, write: true, delete: false, admin: false },
+    surveillance: { read: true, write: true, delete: false, admin: false },
+    users: { read: false, write: false, delete: false, admin: false },
+    configuration: { read: false, write: false, delete: false, admin: false },
+    profile: { read: true, write: true, delete: false, admin: false },
+  },
+
   auditeur: {
     dashboard: { read: true, write: false, delete: false, admin: false },
     finance: { read: true, write: false, delete: false, admin: false },
@@ -274,6 +295,7 @@ export const FINANCE_ACCESS_ROLES: UserRole[] = [
   'comptable',
   'responsable_agricole',
   'responsable_élevage',
+  'responsable_chantier',
   'auditeur',
 ];
 

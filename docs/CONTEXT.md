@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-15
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `6b2c620` (commit précédent)
+**Dernier commit de code** : `139bf54` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -32,11 +32,13 @@
 - 2026-11-14 — Homepage LandingPage : retiré les 3 `<br>` littéraux (héro, Notre suivi, localisation) remplacés par des `span.block` CSS. Vérifications : lint 0 erreur, typecheck seul TS5101 préexistant, tests 121/121. Commit `3154759`.
 - 2026-11-14 — FacebookFeed : ajout de la gestion d'erreur iframe (état iframeError, onError/onLoad, affichage de fallback avec bouton « Réessayer »). Fichier : src/components/landing/FacebookFeed.tsx. typecheck/lint/tests verts.
 - 2026-11-15 — Correction des blocs catch vides (mission #30, CLAUDE.md §4/§10) : remplacement de 5 `} catch {}` par affichage d'erreur via `getErrorMessage` + `toast.show` dans `src/pages/exploitation/RecoltesPage.tsx`, `src/modules/Finance/tabs/ExpensesTab.tsx`, `src/modules/Finance/tabs/FundingsTab.tsx` (2), `src/modules/Sales/SalesModule.tsx`, `src/modules/Finance/tabs/DocumentsTab.tsx`. Imports et hooks `useToast`/`getErrorMessage` ajoutés là où absents. Vérifications : 0 bloc catch vide restant, typecheck seul TS5101 préexistant, tests 121/121. Pas de commit.
-- 2026-11-15 — Correction générale du traitement d'erreurs (mission #30 suite) : ajout helper getErrorMessage dans src/lib/utils.ts, remplacement instanceof Error dans 6 fichiers (Configuration, SiteContentEditor, BailleursPage, ClientsPage, SitesPage, OperationsPage, useAsyncAction), sécurisation des accès non-null (Sidebar, kpi, SiteContentEditor, OperationsPage, main.tsx). Commité : 6b2c620. Vérifications : typecheck seul TS5101 préexistant, lint 0, tests 121/121.
+- 2026-11-15 — Audit authentification (plan approuvé) : tests LoginPage (11) et ProfilePage (10) écrits, tous verts (21/21) ; Gap 1 responsable_chantier ajouté à FINANCE_ACCESS_ROLES (src/lib/rbac.ts) ; Gap 2 champ `active` vérifié au signIn (src/lib/AuthContext.tsx) ; Gap 4 logAudit enveloppé dans try/catch (src/pages/ProfilePage.tsx). Gaps 3 et 5 déjà résolus dans le code. Travail non commité.
+- 2026-11-15 — Correction erreur media.name NOT NULL : la table `media` définit `name text NOT NULL` sans défaut (migration 20261031000001), mais le payload d'insertion dans `src/pages/Media.tsx:118` envoyait `title` à la place. Renommé `title`→`name` dans le payload, l'état du formulaire, la recherche, l'affichage, les messages logAudit et l'interface `Media` (src/lib/types.ts:453). typecheck sans erreur sur les fichiers modifiés.
 
 ## À faire
 
 - Vérifier les erreurs typecheck préexistantes dans ClientsPage.tsx (`setSaving`, `supabase` non déclarés) — hors scope de la mission actuelle.
+- Commit en attente des fichiers modifiés : src/lib/AuthContext.tsx, src/lib/rbac.ts, src/pages/ProfilePage.tsx, src/pages/LoginPage.test.tsx, src/pages/ProfilePage.test.tsx, src/pages/Media.tsx, src/lib/types.ts
 
 ## Ce qui a été fait (résumé)
 

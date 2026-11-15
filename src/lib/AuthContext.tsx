@@ -104,8 +104,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadAppUser]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
+
+    // Vérifier que le compte est actif avant d'autoriser la connexion.
+    // Un compte désactivé (active = false) ne doit pas pouvoir se connecter.
+    const user = data.user;
+    if (user) {
+      const { data: appUser } = await supabase
+        .from('app_users')
+        .select('active')
+        .eq('auth_id', user.id)
+        .maybeSingle();
+      if (appUser?.active === false) {
+        await supabase.auth.signOut();
+        return { error: 'Votre compte est désactivé. Contactez l\'administrateur.' };
+      }
+    }
+
     // Le profil métier est rechargé par le callback onAuthStateChange
     // (événement SIGNED_IN). Pas de double chargement ici.
     return { error: null };

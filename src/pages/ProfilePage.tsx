@@ -36,7 +36,11 @@ export function ProfilePage() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser.name, 'UPDATE', 'app_users', appUser.id, 'Profil modifié');
+      try {
+        await logAudit(appUser.name, 'UPDATE', 'app_users', appUser.id, 'Profil modifié');
+      } catch {
+        // L'échec de l'audit ne doit pas bloquer l'affichage du succès de la mise à jour
+      }
       await refreshAppUser();
       toast.show('Profil mis à jour avec succès');
     }
