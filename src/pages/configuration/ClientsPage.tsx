@@ -7,6 +7,7 @@ import { hasPermission, type UserRole } from '@/lib/rbac';
 import { logAudit, type Customer } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/Toast';
+import { getErrorMessage } from '@/lib/utils';
 import { validateEmail } from '@/lib/validation/schemas';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
@@ -128,7 +129,7 @@ export function ClientsPage() {
         refresh();
       }
     } catch (err) {
-      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
+      toast.show('Erreur inattendue: ' + getErrorMessage(err), 'error');
       setSaving(false);
     }
   };

@@ -6,6 +6,7 @@ import { hasPermission, type UserRole } from '@/lib/rbac';
 import { supabase } from '@/lib/supabase';
 import { logAudit, type Funder, type AppUser } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
+import { getErrorMessage } from '@/lib/utils';
 import { formatDate } from '@/lib/format';
 import { validateEmail } from '@/lib/validation/schemas';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -124,7 +125,7 @@ export function BailleursPage() {
         refresh();
       }
     } catch (err) {
-      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
+      toast.show('Erreur inattendue: ' + getErrorMessage(err), 'error');
       setSaving(false);
     }
   };
@@ -153,7 +154,7 @@ export function BailleursPage() {
       refresh();
     } catch (err) {
       toast.show(
-        'Erreur lors de la suppression : ' + (err instanceof Error ? err.message : 'Inconnue'),
+        'Erreur lors de la suppression : ' + getErrorMessage(err),
         'error',
       );
     } finally {

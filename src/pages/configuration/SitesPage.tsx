@@ -3,6 +3,7 @@ import { Users, Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { getErrorMessage } from '@/lib/utils';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { RotatingCard } from '@/components/ui/RotatingCard';
@@ -153,7 +154,7 @@ export function SitesPage() {
         refresh();
       }
     } catch (err) {
-      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur inattendue: ' + getErrorMessage(err), 'error');
       setSaving(false);
     }
   };

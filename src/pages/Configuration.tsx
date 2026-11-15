@@ -17,6 +17,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { KpiCard } from '@/components/ui/KpiCard';
+import { getErrorMessage } from '@/lib/utils';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/DataContext';
@@ -554,7 +555,7 @@ export function Configuration() {
 
       toast.show(`${changedFields.length} modification(s) appliquée(s) avec succès.`, 'success');
     } catch (err) {
-      toast.show('Erreur lors de l’enregistrement : ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur lors de l’enregistrement : ' + getErrorMessage(err), 'error');
     } finally {
       setSaving(false);
     }
@@ -603,7 +604,7 @@ export function Configuration() {
       toast.show('Logo mis à jour avec succès');
       await refresh();
     } catch (err) {
-      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur upload: ' + getErrorMessage(err), 'error');
     } finally {
       setUploadingLogo(false);
     }
@@ -623,7 +624,7 @@ export function Configuration() {
       toast.show('Logo supprimé');
       await refresh();
     } catch (err) {
-      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
     }
   };
 
@@ -677,7 +678,7 @@ export function Configuration() {
       toast.show('Favicon mis à jour avec succès');
       await refresh();
     } catch (err) {
-      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur upload: ' + getErrorMessage(err), 'error');
     } finally {
       setUploadingFavicon(false);
     }
@@ -706,7 +707,7 @@ export function Configuration() {
       toast.show('Favicon supprimé');
       await refresh();
     } catch (err) {
-      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
     }
   };
 
@@ -739,7 +740,7 @@ export function Configuration() {
 
       toast.show('Image du bandeau prévisualisée', 'success');
     } catch (err) {
-      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur upload: ' + getErrorMessage(err), 'error');
     } finally {
       setUploadingHeroImage(false);
     }
@@ -752,7 +753,7 @@ export function Configuration() {
       updateDraft('contenu', 'hero', 'heroAlt', '');
       toast.show('Image du bandeau retirée');
     } catch (err) {
-      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
     }
   };
 

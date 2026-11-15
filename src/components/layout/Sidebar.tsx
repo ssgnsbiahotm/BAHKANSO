@@ -235,7 +235,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                 )}
                 {hasChildren && isExpanded && (
                   <div className="ml-3 space-y-0.5">
-                    {item.children!.map(child => {
+                    {(item.children ?? []).map(child => {
                       const childActive = isItemActive(child);
                       return (
                         <div key={child.id}>

@@ -129,9 +129,9 @@ export async function calculateCostPerUnit(
     return sum + Number(e.quantity || 0);
   }, 0);
 
-  if (!totalQuantity || totalQuantity <= 0) return null;
+  if (!totalDepenses || !totalQuantity || totalQuantity <= 0) return null;
 
-  return totalDepenses! / totalQuantity;
+  return totalDepenses / totalQuantity;
 }
 
 export async function calculateMortalityRate(
