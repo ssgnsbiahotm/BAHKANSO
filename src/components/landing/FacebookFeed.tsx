@@ -8,6 +8,7 @@ interface FacebookFeedProps {
 export function FacebookFeed({ pageUrl, label = 'Suivez la vie de l\'exploitation' }: FacebookFeedProps) {
   const [loaded, setLoaded] = useState(false);
   const [consentGiven, setConsentGiven] = useState(false);
+  const [iframeError, setIframeError] = useState(false);
 
   if (!pageUrl || pageUrl.trim() === '') {
     return null;
@@ -67,18 +68,35 @@ export function FacebookFeed({ pageUrl, label = 'Suivez la vie de l\'exploitatio
               style={{ aspectRatio: '16 / 9' }}
             >
               {loaded ? (
-                <iframe
-                  title="Page Facebook BAHKANSO"
-                  src={`https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(pageUrl)}&tabs=timeline&width=340&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId`}
-                  width="340"
-                  height="500"
-                  style={{ border: 'none', overflow: 'hidden', width: '100%', height: '100%', display: 'block' }}
-                  scrolling="no"
-                  frameBorder="0"
-                  allowFullScreen
-                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
-                  loading="lazy"
-                />
+                iframeError ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-night p-6 text-center">
+                    <span aria-hidden="true" style={{ fontSize: '3rem' }}>⚠️</span>
+                    <p className="text-ink-mut text-sm font-medium">Le contenu Facebook n’a pas pu être chargé.</p>
+                    <button
+                      onClick={() => {
+                        setIframeError(false);
+                      }}
+                      className="mt-3 text-signal text-sm font-medium hover:underline"
+                    >
+                      Réessayer
+                    </button>
+                  </div>
+                ) : (
+                  <iframe
+                    title="Page Facebook BAHKANSO"
+                    src={`https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(pageUrl)}&tabs=timeline&width=340&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true`}
+                    width="340"
+                    height="500"
+                    style={{ border: 'none', overflow: 'hidden', width: '100%', height: '100%', display: 'block' }}
+                    scrolling="no"
+                    frameBorder="0"
+                    allowFullScreen
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                    loading="lazy"
+                    onError={() => setIframeError(true)}
+                    onLoad={() => setIframeError(false)}
+                  />
+                )
               ) : (
                 <button
                   onClick={() => setLoaded(true)}
