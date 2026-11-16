@@ -24,15 +24,14 @@ vi.mock('@/lib/password', () => ({
 vi.mock('@/lib/validation/schemas', () => ({
   validateEmail: vi.fn((val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)),
 }));
-var navigate: ReturnType<typeof vi.fn>;
+const { navigate } = vi.hoisted(() => ({
+  navigate: vi.fn(),
+}));
 
-vi.mock('react-router-dom', () => {
-  navigate = vi.fn();
-  return {
-    useNavigate: () => navigate,
-    navigate,
-  };
-});
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => navigate,
+  navigate,
+}));
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('lucide-react')>();
   return actual;

@@ -36,6 +36,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
+import { MediaPicker } from '@/components/landing/MediaPicker';
 
 /* ============================================================================
    TYPES
@@ -298,6 +299,10 @@ const CONTENU_SECTIONS: ConfigSection[] = [
       { id: 'subtitle', label: 'Sous-titre', type: 'textarea', rows: 2 },
       { id: 'primary', label: 'Bouton principal', type: 'text' },
       { id: 'secondary', label: 'Bouton secondaire', type: 'text' },
+      { id: 'facebook_url', label: 'URL de la page Facebook', type: 'url' },
+      { id: 'facebook_images', label: 'Photos du flux social', type: 'list',
+        itemFields: [{ id: 'value', label: 'URL de l\'image', type: 'text' }],
+        itemTemplate: { value: '' } },
     ],
   },
   {
@@ -1180,7 +1185,15 @@ export function Configuration() {
                             <p className="text-xs text-ink-dim mb-2">{field.description}</p>
                           )}
 
-                          {field.type === 'list' ? (
+                          {field.id === 'facebook_images' ? (
+                            <MediaPicker
+                              value={Array.isArray(effectiveValue)
+                                ? (effectiveValue as { value: string }[]).map(i => i.value).filter(Boolean)
+                                : []}
+                              onChange={(val) => updateDraft(activeDomain, activeSubsection, field.id, val.map(url => ({ value: url })))}
+                              isAuthorized={isAuthorized}
+                            />
+                          ) : field.type === 'list' ? (
                             <ListEditor
                               field={field}
                               value={Array.isArray(effectiveValue) ? effectiveValue : []}

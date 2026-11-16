@@ -22,7 +22,6 @@ export function useAsyncAction<T = unknown>() {
     ): Promise<TResult | undefined> => {
       const {
         successMessage = 'Opération réussie',
-        errorMessage = 'Une erreur est survenue',
         onSuccess,
         onError
       } = options;
