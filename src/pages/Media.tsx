@@ -120,6 +120,7 @@ export function Media() {
       url: imageUrl,
       type: form.type,
       category: form.category.trim() || null,
+      site_id: appUser?.site_id ?? null,
       uploaded_by: appUser?.id ?? null,
       updated_at: new Date().toISOString(),
     };

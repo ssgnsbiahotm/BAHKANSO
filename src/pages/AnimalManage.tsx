@@ -259,7 +259,7 @@ export function AnimalManage() {
   }, []);
 
   const updateStatus = async (animal: Animal, status: string) => {
-    const { error } = await supabase.from('animals').update({ status }).eq('id', animal.id);
+    const { error } = await supabase.from('animals').update({ status, site_id: animal.site_id }).eq('id', animal.id);
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
@@ -282,7 +282,7 @@ export function AnimalManage() {
       toast.show('Erreur: ' + eventError.message, 'error');
       return;
     }
-    const { error: animalError } = await supabase.from('animals').update({ status: 'deceased' }).eq('id', deathAnimal?.id);
+    const { error: animalError } = await supabase.from('animals').update({ status: 'deceased', site_id: deathAnimal?.site_id }).eq('id', deathAnimal?.id);
     if (animalError) {
       toast.show('Erreur: ' + animalError.message, 'error');
       return;
