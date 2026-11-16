@@ -135,3 +135,8 @@ __pycache__/
 supabase/.branches/
 Master PDF Editor Portable*/
 public/LandinPage-*.png
+audit-report.txt
+*.log
+coverage/
+audit-report.txt
+coverage/
