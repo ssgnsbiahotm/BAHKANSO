@@ -30,6 +30,17 @@
   transform: rotateY(180deg);
 }
 
+/* Quand la carte est retournée, la face avant ne doit plus capter les clics
+   pour laisser les boutons du dos accessibles (bug UX-001). */
+.rc-container.is-flipped .rc-face--front,
+.rc-container.flipped .rc-face--front {
+  pointer-events: none;
+}
+.rc-container.is-flipped .rc-face--back,
+.rc-container.flipped .rc-face--back {
+  pointer-events: auto;
+}
+
 .rc-face {
   grid-area: card;
   backface-visibility: hidden;

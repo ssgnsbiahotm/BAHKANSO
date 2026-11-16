@@ -39,6 +39,9 @@ test-*.cjs
 test-*.js
 *.test.cjs
 
+# Sorties persistantes Claude Code (audits, analyses, tests, rapports)
+_claude-output/
+
 # Artefacts Claude Code / skills IA (pollution repo)
 .agents/
 .augment/

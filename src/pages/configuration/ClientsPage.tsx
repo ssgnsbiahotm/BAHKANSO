@@ -30,6 +30,7 @@ export function ClientsPage() {
     site_id: '',
   });
   const formRef = useRef<HTMLFormElement>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const canManageClients = useMemo(() => hasPermission(appUser?.role as UserRole, 'clients', 'write'), [appUser?.role]);
 
@@ -51,7 +52,7 @@ export function ClientsPage() {
       return;
     }
     setEditClient(null);
-    setForm({ name: '', type: 'particulier', email: '', phone: '', site_id: '' });
+    setForm({ name: '', type: 'particulier', email: '', phone: '', site_id: appUser?.site_id || '' });
     setModalOpen(true);
     if (formRef.current) formRef.current.reset();
   };
@@ -68,16 +69,17 @@ export function ClientsPage() {
   };
 
   const handleSubmit = async () => {
+    setFormError(null);
     if (!form.name) {
-      toast.show('Nom obligatoire', 'error');
+      setFormError('Nom obligatoire');
       return;
     }
     if (!form.email && !form.phone) {
-      toast.show('Email ou téléphone obligatoire', 'error');
+      setFormError('Email ou téléphone obligatoire');
       return;
     }
     if (form.email && !validateEmail(form.email)) {
-      toast.show('Format d\'email invalide', 'error');
+      setFormError('Format d\'email invalide');
       return;
     }
 
@@ -93,7 +95,7 @@ export function ClientsPage() {
             type: form.type || null,
             email: form.email || null,
             phone: form.phone || null,
-            site_id: form.site_id || null,
+            site_id: form.site_id || appUser?.site_id || null,
           })
           .eq('id', editClient.id);
         if (error) {
@@ -114,7 +116,7 @@ export function ClientsPage() {
             type: form.type || 'particulier',
             email: form.email || null,
             phone: form.phone || null,
-            site_id: form.site_id || null,
+            site_id: form.site_id || appUser?.site_id || null,
             total_purchases: 0,
             created_by: appUser?.id || null,
           });
@@ -333,6 +335,9 @@ export function ClientsPage() {
               </select>
             </div>
           </div>
+          {formError && (
+            <p className="mb-3 text-sm text-danger">{formError}</p>
+          )}
           <div className="mt-6 flex gap-3">
             <button
               type="submit"
