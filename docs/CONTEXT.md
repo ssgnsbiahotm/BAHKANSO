@@ -1,8 +1,8 @@
 # Contexte du projet BAHKANSO — Point de reprise
 
-**Date de mise à jour** : 2026-11-15
+**Date de mise à jour** : 2026-11-16
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `139bf54` (commit précédent)
+**Dernier commit de code** : `e85ced9` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -36,10 +36,6 @@
 - 2026-11-15 — Correction erreur media.name NOT NULL : la table `media` définit `name text NOT NULL` sans défaut (migration 20261031000001), mais le payload d'insertion dans `src/pages/Media.tsx:118` envoyait `title` à la place. Renommé `title`→`name` dans le payload, l'état du formulaire, la recherche, l'affichage, les messages logAudit et l'interface `Media` (src/lib/types.ts:453). typecheck sans erreur sur les fichiers modifiés.
 - 2026-11-15 — Correction des erreurs TypeScript hors scope : `src/pages/ProfilePage.test.tsx` (`mockSupabase.from().update/.eq` mal typés car `.from()` retourne un `PostgrestQueryBuilder`, remplacé par des `vi.fn()` locaux), `src/pages/exploitation/JournalCulturePage.tsx` (`z.nativeEnum` sur objet complexe remplacé par `z.enum(Object.keys(...))`, et `e.target.value as OperationTypeKey` résolu en cascade), `src/pages/LoginPage.test.tsx` (`navigate` en TDZ à cause du hoisting de `vi.mock`, passé en `var` assigné dans la factory). typecheck 0 erreur, tests 21/21 (LoginPage + ProfilePage) verts.
 - 2026-11-16 — Correction lien en double dans le module surveillance : `src/pages/surveillance/SurveillancePage.tsx` — le bouton "Alertes" dans le PageHeader était redondant (le lien "Surveillance" du sidebar redirige déjà vers l'onglet alertes par défaut, et le sidebar propose déjà un enfant "Alertes"). Le bouton "Événements" est conservé. Import `AlertCircle` supprimé (devenu inutilisé). Commit `cea9992`.
-
-## À faire
-
-- Vérifier les erreurs typecheck préexistantes dans ClientsPage.tsx (`setSaving`, `supabase` non déclarés) — hors scope de la mission actuelle.
 
 ## Ce qui a été fait (résumé)
 
