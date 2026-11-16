@@ -14,7 +14,7 @@ afterAll(async () => {
 });
 
 test('current_app_user_id() retourne l\'id du financeur', async () => {
-  const token = await signInAs('fin-helpers@test.local', 'Test1234!');
+  const token = await signInAs(fx.financeur.appUser.email, 'Test1234!');
   const client = await authedClient(token);
   const { data, error } = await client.rpc('current_app_user_id');
   expect(error).toBeNull();
@@ -22,7 +22,7 @@ test('current_app_user_id() retourne l\'id du financeur', async () => {
 });
 
 test('current_user_role() retourne "financeur"', async () => {
-  const token = await signInAs('fin-helpers@test.local', 'Test1234!');
+  const token = await signInAs(fx.financeur.appUser.email, 'Test1234!');
   const client = await authedClient(token);
   const { data, error } = await client.rpc('current_user_role');
   expect(error).toBeNull();
@@ -30,7 +30,7 @@ test('current_user_role() retourne "financeur"', async () => {
 });
 
 test('current_user_site_id() retourne le site du comptable', async () => {
-  const token = await signInAs('compta-helpers@test.local', 'Test1234!');
+  const token = await signInAs(fx.comptable.appUser.email, 'Test1234!');
   const client = await authedClient(token);
   const { data, error } = await client.rpc('current_user_site_id');
   expect(error).toBeNull();
@@ -38,7 +38,7 @@ test('current_user_site_id() retourne le site du comptable', async () => {
 });
 
 test('current_user_funder_id() retourne le funder du financeur', async () => {
-  const token = await signInAs('fin-helpers@test.local', 'Test1234!');
+  const token = await signInAs(fx.financeur.appUser.email, 'Test1234!');
   const client = await authedClient(token);
   const { data, error } = await client.rpc('current_user_funder_id');
   expect(error).toBeNull();
@@ -46,14 +46,14 @@ test('current_user_funder_id() retourne le funder du financeur', async () => {
 });
 
 test('current_user_role() retourne "administrateur" pour l\'admin', async () => {
-  const token = await signInAs('admin-helpers@test.local', 'Test1234!');
+  const token = await signInAs(fx.admin.appUser.email, 'Test1234!');
   const client = await authedClient(token);
   const { data } = await client.rpc('current_user_role');
   expect(data).toBe('administrateur');
 });
 
 test('current_user_funder_id() retourne NULL pour un comptable', async () => {
-  const token = await signInAs('compta-helpers@test.local', 'Test1234!');
+  const token = await signInAs(fx.comptable.appUser.email, 'Test1234!');
   const client = await authedClient(token);
   const { data } = await client.rpc('current_user_funder_id');
   expect(data).toBeNull();

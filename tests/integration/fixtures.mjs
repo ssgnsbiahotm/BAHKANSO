@@ -2,17 +2,25 @@ import { adminClient, createTestUser, signInAs, authedClient }
   from './setup.mjs';
 
 export async function setupFixtures() {
+  // Suffixe unique par run pour éviter les collisions d'emails entre
+  // fichiers de test (Supabase auth normalise les emails en minuscules,
+  // et auth.uid() est dérivé de l'email : des emails fixes partagés entre
+  // plusieurs fichiers de test provoqueraient un désalignement d'auth_uid).
+  const runSuffix = Date.now().toString(36);
+
+  const makeEmail = (base) => `${base}-${runSuffix}@test.local`;
+
+  const financeurEmail = makeEmail('fin-helpers');
+  const comptableEmail = makeEmail('compta-helpers');
+  const adminEmail = makeEmail('admin-helpers');
+
   // Nettoyage préventif des utilisateurs de test de runs précédents
   // (à la fois dans app_users et dans auth.users, car createUser
   //  échoue si l'email existe déjà côté auth)
-  const testEmails = [
-    'fin-helpers@test.local',
-    'compta-helpers@test.local',
-    'admin-helpers@test.local'
-  ];
+  const testEmails = [financeurEmail, comptableEmail, adminEmail];
   for (const email of testEmails) {
     const { data: users } = await adminClient.auth.admin.listUsers();
-    const existing = users?.users?.find((u) => u.email === email);
+    const existing = users?.users?.find((u) => u.email?.toLowerCase() === email);
     if (existing) {
       await adminClient.auth.admin.deleteUser(existing.id);
     }
@@ -29,13 +37,13 @@ export async function setupFixtures() {
 
   // 2. Créer 3 app_users avec rôles différents
   const financeur = await createTestUser(
-    'fin-helpers@test.local', 'Test1234!', 'financeur', site.id
+    financeurEmail, 'Test1234!', 'financeur', site.id
   );
   const comptable = await createTestUser(
-    'compta-helpers@test.local', 'Test1234!', 'comptable', site.id
+    comptableEmail, 'Test1234!', 'comptable', site.id
   );
   const admin = await createTestUser(
-    'admin-helpers@test.local', 'Test1234!', 'administrateur', site.id
+    adminEmail, 'Test1234!', 'administrateur', site.id
   );
 
   // 3. Créer un funder lié au financeur
