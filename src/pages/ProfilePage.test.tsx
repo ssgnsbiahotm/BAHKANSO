@@ -120,8 +120,12 @@ describe('ProfilePage — enregistrement du profil', () => {
   });
 
   it('TEST 3 — sauvegarde valide met à jour app_users, logAudit et refreshAppUser', async () => {
-    const mockUpdate = vi.mocked(mockSupabase.from().update);
-    const mockEq = vi.mocked(mockSupabase.from().eq);
+    const mockUpdate = vi.fn().mockReturnThis();
+    const mockEq = vi.fn().mockResolvedValue({ error: null });
+    mockSupabase.from.mockReturnValue({
+      update: mockUpdate,
+      eq: mockEq,
+    } as never);
 
     render(<ProfilePage />);
 
@@ -159,8 +163,11 @@ describe('ProfilePage — enregistrement du profil', () => {
   });
 
   it('TEST 5 — erreur Supabase affiche un toast d\'erreur', async () => {
-    const mockEq = vi.mocked(mockSupabase.from().eq);
-    vi.mocked(mockEq).mockResolvedValueOnce({ error: { message: 'DB error' } });
+    const mockEq = vi.fn().mockResolvedValueOnce({ error: { message: 'DB error' } });
+    mockSupabase.from.mockReturnValue({
+      update: vi.fn().mockReturnThis(),
+      eq: mockEq,
+    } as never);
 
     render(<ProfilePage />);
 

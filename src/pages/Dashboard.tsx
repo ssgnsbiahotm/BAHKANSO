@@ -229,7 +229,7 @@ export function Dashboard() {
 
   const { media, siteContent, sourceStatus, loadModule, farm } = useData();
 
-  const showFinance = canAccessFinance(appUser?.role);
+  const showFinance = canAccessFinance(appUser?.role as UserRole | undefined);
 
   // Contexte de site global : dégradé en mode "tous les sites" si le Dashboard
   // est rendu hors d'un SiteProvider (ex. tests unitaires isolés).

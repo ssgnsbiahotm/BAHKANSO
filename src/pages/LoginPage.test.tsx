@@ -24,8 +24,10 @@ vi.mock('@/lib/password', () => ({
 vi.mock('@/lib/validation/schemas', () => ({
   validateEmail: vi.fn((val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)),
 }));
+var navigate: ReturnType<typeof vi.fn>;
+
 vi.mock('react-router-dom', () => {
-  const navigate = vi.fn();
+  navigate = vi.fn();
   return {
     useNavigate: () => navigate,
     navigate,
@@ -84,7 +86,6 @@ describe('LoginPage — mode connexion', () => {
 
   it('TEST 1 — login valide appelle signIn et redirige vers /app', async () => {
     const { signIn } = mockUseAuth();
-    const { navigate } = await import('react-router-dom');
     vi.mocked(navigate).mockClear();
 
     render(<LoginPage />);

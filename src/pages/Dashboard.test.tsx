@@ -38,6 +38,8 @@ function renderDash(overrides: {
   arrays?: Record<string, unknown[]>;
   loading?: boolean;
   error?: string | null;
+  prioritySourcesPending?: boolean;
+  prioritySourcesError?: boolean;
 } = {}) {
   const status: Record<string, SourceStatus> = {
     transactions: 'success', expenses: 'success', inventoryItems: 'success',
@@ -71,8 +73,10 @@ function renderDash(overrides: {
     status?.projects,
     status?.alerts,
   ];
-  const prioritySourcesPending = overrides.prioritySourcesPending ?? pendingStatuses.some((s) => s === 'loading' || s === 'idle');
-  const prioritySourcesError = overrides.prioritySourcesError ?? pendingStatuses.some((s) => s === 'error');
+  const prioritySourcesPending =
+    overrides.prioritySourcesPending ?? pendingStatuses.some((s) => s === 'loading' || s === 'idle');
+  const prioritySourcesError =
+    overrides.prioritySourcesError ?? pendingStatuses.some((s) => s === 'error');
 
   mockUseDashboardStats.mockReturnValue({
     grossMargin: 0,
