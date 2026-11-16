@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-16
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `d52d5ea` (commit précédent)
+**Dernier commit de code** : `518bd05` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -40,6 +40,9 @@
 - 2026-11-16 — Flux social Facebook « Faux Flux » sur la Landing Page : ajout du champ `facebook_images` (liste d'URLs) à la section CTA de `Configuration.tsx`, création du composant `FacebookFeedPreview.tsx` (grille de 4 photos sans iframe, bouton vers la page Facebook), intégration dans `LandingPage.tsx` après la section `nos-activites` et remplacement de l'ancien `<FacebookFeed>` ; correction d'une balise `</div>` non fermée sur le wrapper carte. Vérifications : typecheck 0 erreur, eslint 0 erreur, tests 142/142. Committé dans `148f427`.
 - 2026-11-16 — Correction lint : variable inutilisée `errorMessage` retirée dans `src/hooks/useAsyncAction.ts` ; `var` remplacé par `vi.hoisted()` pour `navigate` dans `src/pages/LoginPage.test.tsx`. Vérifications : eslint 0 erreur, tests 11/11 (LoginPage), typecheck 0. Committé dans `148f427`.
 - 2026-11-16 — RLS scoped site_id sur la table `sales` : `sales` avait RLS forcée mais aucune policy (exclue de la migration `20261116000000`) → toute lecture authentifiée renvoyait `data = []`. Ajout de la migration `20261116000001_rls_scoped_sales_site_id.sql` (policies `rls_*_sales` scoped par `site_id = current_user_site_id()`), application locale via `supabase db reset`, et révision des tests d'intégration RLS (emails uniques par run dans `fixtures.mjs`, `helpers.test.mjs` passé aux emails dynamiques `fx.*.appUser.email`). Résultat : `rls-sales` 3/3, `helpers` 6/6, `rls-expenses` pass ; lint et typecheck propres sur les fichiers modifiés. Échecs restants hors périmètre : `rls-fundings` cross-site écriture, `kpi-*`, `event-journal` (préexistants). Commits `2e1e66e`, `0f5dd83`, `42f4e89`, `d52d5ea`.
+- 2026-11-16 — Mission QA Playwright + corrections bugs (terminée, vérifiée) : tests modules Exploitation>Parcelles, Élevage>Animaux, Configuration>Clients. Bug B-001 (403 sur `customers` à l'INSERT : `site_id` null rejeté par RLS scoped) corrigé via `ClientsPage.tsx` (pré-remplissage `appUser?.site_id` + fallback à l'insert). Bug UX-001 (bouton « Voir détails » du dos de RotatingCard intercepté par le recto) corrigé via `RotatingCard.css` (`pointer-events: none` face avant quand flipped). Bug UX-002 (message « Email ou téléphone obligatoire » hors modale) corrigé via `ClientsPage.tsx` (état `formError` rendu dans le formulaire). Module Finance > Dépenses absent (aucune route) — écart signalé, pas de code. Rapport QA : `_claude-output/reports/2026-11-16-223600-rapport-qa-modules-principaux.md`. Vérifications : création client OK sans 403, message d'erreur dans modale, typecheck inchangé (erreurs préexistantes dans les `.test.tsx` uniquement), tests unitaires verts. Modifications : `src/pages/configuration/ClientsPage.tsx`, `src/components/ui/RotatingCard.css`, `.gitignore` (ajout `_claude-output/`). Commit `518bd05` (non poussé).
+
+**À faire** : confirmer avec le responsable si le module Finance > Dépenses (aucune route `/app/finance/depenses`, écart signalé dans le rapport QA) doit être développé — aucune décision d'architecture prise, pas de code écrit.
 
 ## Ce qui a été fait (résumé)
 
