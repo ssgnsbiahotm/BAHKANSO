@@ -35,11 +35,11 @@
 - 2026-11-15 — Audit authentification (plan approuvé) : tests LoginPage (11) et ProfilePage (10) écrits, tous verts (21/21) ; Gap 1 responsable_chantier ajouté à FINANCE_ACCESS_ROLES (src/lib/rbac.ts) ; Gap 2 champ `active` vérifié au signIn (src/lib/AuthContext.tsx) ; Gap 4 logAudit enveloppé dans try/catch (src/pages/ProfilePage.tsx). Gaps 3 et 5 déjà résolus dans le code. Travail non commité.
 - 2026-11-15 — Correction erreur media.name NOT NULL : la table `media` définit `name text NOT NULL` sans défaut (migration 20261031000001), mais le payload d'insertion dans `src/pages/Media.tsx:118` envoyait `title` à la place. Renommé `title`→`name` dans le payload, l'état du formulaire, la recherche, l'affichage, les messages logAudit et l'interface `Media` (src/lib/types.ts:453). typecheck sans erreur sur les fichiers modifiés.
 - 2026-11-15 — Correction des erreurs TypeScript hors scope : `src/pages/ProfilePage.test.tsx` (`mockSupabase.from().update/.eq` mal typés car `.from()` retourne un `PostgrestQueryBuilder`, remplacé par des `vi.fn()` locaux), `src/pages/exploitation/JournalCulturePage.tsx` (`z.nativeEnum` sur objet complexe remplacé par `z.enum(Object.keys(...))`, et `e.target.value as OperationTypeKey` résolu en cascade), `src/pages/LoginPage.test.tsx` (`navigate` en TDZ à cause du hoisting de `vi.mock`, passé en `var` assigné dans la factory). typecheck 0 erreur, tests 21/21 (LoginPage + ProfilePage) verts.
+- 2026-11-16 — Correction lien en double dans le module surveillance : `src/pages/surveillance/SurveillancePage.tsx` — le bouton "Alertes" dans le PageHeader était redondant (le lien "Surveillance" du sidebar redirige déjà vers l'onglet alertes par défaut, et le sidebar propose déjà un enfant "Alertes"). Le bouton "Événements" est conservé. Import `AlertCircle` supprimé (devenu inutilisé). Commit `cea9992`.
 
 ## À faire
 
 - Vérifier les erreurs typecheck préexistantes dans ClientsPage.tsx (`setSaving`, `supabase` non déclarés) — hors scope de la mission actuelle.
-- Commit en attente des fichiers modifiés : src/lib/AuthContext.tsx, src/lib/rbac.ts, src/pages/ProfilePage.tsx, src/pages/LoginPage.test.tsx, src/pages/ProfilePage.test.tsx, src/pages/Media.tsx, src/pages/exploitation/JournalCulturePage.tsx, src/lib/types.ts
 
 ## Ce qui a été fait (résumé)
 
