@@ -88,20 +88,11 @@ export default defineConfig({
     include: ['zod'],
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['lucide-react'],
-          'vendor-data': ['@tanstack/react-query', 'zod'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-animation': ['gsap', 'lenis'],
-          'vendor-utils': ['clsx'],
-        },
-      },
+    rolldownOptions: {
+      output: {},
     },
     chunkSizeWarningLimit: 500,
     cssCodeSplit: true,
-    minify: 'esbuild',
+    minify: 'oxc',
   },
 });
