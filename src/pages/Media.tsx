@@ -49,6 +49,7 @@ export function Media() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
 
   const filtered = useMemo(() => {
@@ -109,8 +110,9 @@ export function Media() {
   };
 
   const handleSubmit = async () => {
+    setFormError(null);
     if (!form.name.trim()) {
-      toast.show('Le titre est obligatoire', 'error');
+      setFormError('Le titre est obligatoire');
       return;
     }
     setSaving(true);
@@ -328,6 +330,11 @@ export function Media() {
         }
       >
         <div className="space-y-5">
+          {formError && (
+            <div className="p-2 bg-danger-soft border border-danger rounded-lg text-sm text-danger">
+              {formError}
+            </div>
+          )}
           {/* Image upload */}
           <div>
             <label className="block text-xs font-medium text-secondary mb-2">Image du média</label>

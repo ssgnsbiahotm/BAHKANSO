@@ -158,7 +158,7 @@ describe('ProfilePage — enregistrement du profil', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Enregistrer/ }));
 
-    expect(toastShow).toHaveBeenCalledWith('Le nom est requis', 'error');
+    expect(screen.getByText('Le nom est requis')).toBeInTheDocument();
     expect(mockSupabase.from).not.toHaveBeenCalledWith('app_users');
   });
 
@@ -230,7 +230,7 @@ describe('ProfilePage — changement de mot de passe', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Modifier le mot de passe/ }));
 
-    expect(toastShow).toHaveBeenCalledWith('Au moins 8 caractères', 'error');
+    expect(screen.getByText('Au moins 8 caractères')).toBeInTheDocument();
     expect(mockUseAuth().updatePassword).not.toHaveBeenCalled();
   });
 
@@ -246,7 +246,7 @@ describe('ProfilePage — changement de mot de passe', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Modifier le mot de passe/ }));
 
-    expect(toastShow).toHaveBeenCalledWith('Les mots de passe ne correspondent pas', 'error');
+    expect(screen.getByText('Les mots de passe ne correspondent pas')).toBeInTheDocument();
     expect(mockUseAuth().updatePassword).not.toHaveBeenCalled();
   });
 
