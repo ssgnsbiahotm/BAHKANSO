@@ -5,6 +5,7 @@
 .rc-container {
   perspective: 1200px;
   width: 100%;
+  min-height: 350px;
   position: relative;
   cursor: pointer;
 }

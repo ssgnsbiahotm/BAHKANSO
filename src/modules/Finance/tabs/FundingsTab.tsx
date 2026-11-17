@@ -128,8 +128,8 @@ const FundingCardBack = ({ funding, onClose, onEdit, onDelete }: { funding: Fund
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', height: '100%', paddingBottom: '3rem', overflow: 'auto' }}>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-base font-semibold">{funding.reference}</h3>
-          <p className="text-xs text-muted">{funding.funder_id ?? '—'}</p>
+          <h3 className="text-base font-semibold truncate">{funding.reference}</h3>
+          <p className="text-xs text-muted truncate">{funding.funder_id ?? '—'}</p>
         </div>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[status]} flex-shrink-0`}>
           {STATUS_LABELS[status] ?? status}
@@ -519,7 +519,7 @@ export const FundingsTab = ({ fundingsData }: FundingsTabProps) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style={{ minHeight: '200px' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
         {rows.map((funding) => (
           <RotatingCard
             key={funding.id}
