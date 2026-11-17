@@ -3,6 +3,7 @@ import { Users, Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/lib/DataContext';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { getErrorMessage } from '@/lib/utils';
 import { logAudit } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
 import { RotatingCard } from '@/components/ui/RotatingCard';
@@ -57,6 +58,7 @@ export function SitesPage() {
     responsableId: null as string | null,
     status: 'actif' as string | null,
   });
+  const [formError, setFormError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const kpis = useMemo(() => {
@@ -106,8 +108,9 @@ export function SitesPage() {
   };
 
   const handleSubmit = async () => {
+    setFormError(null);
     if (!form.name) {
-      toast.show('Nom obligatoire', 'error');
+      setFormError('Nom obligatoire');
       return;
     }
     setSaving(true);
@@ -153,7 +156,7 @@ export function SitesPage() {
         refresh();
       }
     } catch (err) {
-      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur inattendue: ' + getErrorMessage(err), 'error');
       setSaving(false);
     }
   };
@@ -319,9 +322,12 @@ const handleConfirmDelete = async () => {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className={`w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors ${formError ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="Nom du site"
               />
+              {formError && (
+                <p className="mb-3 text-sm text-danger">{formError}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-secondary mb-1">Code</label>

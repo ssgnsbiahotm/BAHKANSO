@@ -8,7 +8,7 @@ import { getAccessibleModules, type ModuleKey, type UserRole } from '@/lib/rbac'
 // NOTE: Si l'erreur "Logo is not defined" persiste, redémarrer le serveur de développement pour vider le cache HMR
 import {
   LayoutDashboard, Sprout, Beef, Image, Settings, ShieldAlert, X, Briefcase, Truck,
-  ChevronDown, ChevronRight,
+  CreditCard, ChevronDown, ChevronRight,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -37,6 +37,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
       { id: 'inventory', label: 'Stocks', icon: <Image size={16} />, module: 'inventory', route: '/app/inventory' },
       { id: 'projects', label: 'Projets', icon: <Image size={16} />, module: 'projects', route: '/app/projects' },
       { id: 'suppliers', label: 'Fournisseurs', icon: <Truck size={16} />, module: 'suppliers', route: '/app/suppliers' },
+      { id: 'finance-depenses', label: 'Dépenses', icon: <CreditCard size={16} />, module: 'finance', route: '/app/finance/depenses' },
     ],
   },
   {
@@ -235,7 +236,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                 )}
                 {hasChildren && isExpanded && (
                   <div className="ml-3 space-y-0.5">
-                    {item.children!.map(child => {
+                    {(item.children ?? []).map(child => {
                       const childActive = isItemActive(child);
                       return (
                         <div key={child.id}>

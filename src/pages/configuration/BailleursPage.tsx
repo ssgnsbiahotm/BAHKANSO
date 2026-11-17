@@ -6,6 +6,7 @@ import { hasPermission, type UserRole } from '@/lib/rbac';
 import { supabase } from '@/lib/supabase';
 import { logAudit, type Funder, type AppUser } from '@/lib/types';
 import { useToast } from '@/lib/Toast';
+import { getErrorMessage } from '@/lib/utils';
 import { formatDate } from '@/lib/format';
 import { validateEmail } from '@/lib/validation/schemas';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -30,6 +31,7 @@ export function BailleursPage() {
     country: '',
     user_id: '',
   });
+  const [formError, setFormError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [usersFinanceur, setUsersFinanceur] = useState<AppUser[]>([]);
 
@@ -66,16 +68,17 @@ export function BailleursPage() {
   };
 
   const handleSubmit = async () => {
+    setFormError(null);
     if (!form.name) {
-      toast.show('Nom obligatoire', 'error');
+      setFormError('Nom obligatoire');
       return;
     }
     if (!form.email) {
-      toast.show('Email obligatoire', 'error');
+      setFormError('Email obligatoire');
       return;
     }
     if (!validateEmail(form.email)) {
-      toast.show('Format d\'email invalide', 'error');
+      setFormError('Format d\'email invalide');
       return;
     }
 
@@ -124,7 +127,7 @@ export function BailleursPage() {
         refresh();
       }
     } catch (err) {
-      toast.show('Erreur inattendue: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
+      toast.show('Erreur inattendue: ' + getErrorMessage(err), 'error');
       setSaving(false);
     }
   };
@@ -153,7 +156,7 @@ export function BailleursPage() {
       refresh();
     } catch (err) {
       toast.show(
-        'Erreur lors de la suppression : ' + (err instanceof Error ? err.message : 'Inconnue'),
+        'Erreur lors de la suppression : ' + getErrorMessage(err),
         'error',
       );
     } finally {
@@ -294,9 +297,12 @@ export function BailleursPage() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className={`w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors ${formError && !form.name ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="Nom du bailleur"
               />
+              {formError && !form.name && (
+                <p className="mb-3 text-sm text-danger">{formError}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-secondary mb-1">Organisation</label>
@@ -314,9 +320,12 @@ export function BailleursPage() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 type="email"
                 required
-                className="w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors"
+                className={`w-full border rounded-lg px-3 py-2 text-primary focus:ring-2 focus:ring-signal focus:border-signal transition-colors ${formError && !form.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="contact@exemple.com"
               />
+              {formError && !form.email && (
+                <p className="mb-3 text-sm text-danger">{formError}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-secondary mb-1">Téléphone</label>

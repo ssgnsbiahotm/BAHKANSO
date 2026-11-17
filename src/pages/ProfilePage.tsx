@@ -16,6 +16,8 @@ export function ProfilePage() {
   const [name, setName] = useState(appUser?.name || '');
   const [phone, setPhone] = useState(appUser?.phone || '');
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -23,8 +25,9 @@ export function ProfilePage() {
 
   const handleSaveProfile = async () => {
     if (!appUser) return;
+    setFormError(null);
     if (!name.trim()) {
-      toast.show('Le nom est requis', 'error');
+      setFormError('Le nom est requis');
       return;
     }
     setSaving(true);
@@ -36,24 +39,29 @@ export function ProfilePage() {
     if (error) {
       toast.show('Erreur: ' + error.message, 'error');
     } else {
-      await logAudit(appUser.name, 'UPDATE', 'app_users', appUser.id, 'Profil modifié');
+      try {
+        await logAudit(appUser.name, 'UPDATE', 'app_users', appUser.id, 'Profil modifié');
+      } catch {
+        // L'échec de l'audit ne doit pas bloquer l'affichage du succès de la mise à jour
+      }
       await refreshAppUser();
       toast.show('Profil mis à jour avec succès');
     }
   };
 
 const handleChangePassword = async () => {
+    setPasswordError(null);
     if (!newPassword) {
-      toast.show('Veuillez saisir un nouveau mot de passe', 'error');
+      setPasswordError('Veuillez saisir un nouveau mot de passe');
       return;
     }
     const validation = validatePasswordStrength(newPassword);
     if (!validation.isValid) {
-      toast.show(validation.errors.join(' \u2022 '), 'error');
+      setPasswordError(validation.errors.join(' \u2022 '));
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      toast.show('Les mots de passe ne correspondent pas', 'error');
+      setPasswordError('Les mots de passe ne correspondent pas');
       return;
     }
     setChangingPwd(true);
@@ -145,6 +153,12 @@ const handleChangePassword = async () => {
             </div>
           </div>
 
+          {formError && (
+            <div className="p-2 bg-danger-soft border border-danger rounded-lg text-sm text-danger mb-4">
+              {formError}
+            </div>
+          )}
+
           <button
             onClick={handleSaveProfile}
             disabled={saving}
@@ -165,6 +179,12 @@ const handleChangePassword = async () => {
           <Lock size={18} /> Changer le mot de passe
         </h3>
         <p className="text-sm text-muted mb-4">Utilisez un mot de passe d'au moins 8 caractères avec majuscules, minuscules et chiffres.</p>
+
+        {passwordError && (
+          <div className="p-2 bg-danger-soft border border-danger rounded-lg text-sm text-danger mb-4">
+            {passwordError}
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>

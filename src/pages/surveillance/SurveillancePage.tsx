@@ -3,11 +3,14 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { AlertesTab } from '@/pages/surveillance/tabs/AlertesTab';
 import { EvenementsTab } from '@/pages/surveillance/tabs/EvenementsTab';
 import { HistoriqueTab } from '@/pages/surveillance/tabs/HistoriqueTab';
-import { Plus, AlertCircle } from 'lucide-react';
+import { FarmHealthWidget } from '@/components/ui/FarmHealthWidget';
+import { Plus } from 'lucide-react';
+import { useData } from '@/lib/DataContext';
 
 export function SurveillancePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { alerts } = useData();
 
   // Récupérer l'onglet actif depuis l'URL (?tab=)
   const activeTab = (() => {
@@ -32,16 +35,12 @@ export function SurveillancePage() {
             >
               <Plus size={16} /> Événements
             </button>
-            <button
-              onClick={() => navigate('/app/surveillance?tab=alertes', { replace: true })}
-              className="px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-primary-hover text-sm font-medium flex items-center gap-2"
-              title="Voir les alertes"
-            >
-              <AlertCircle size={16} /> Alertes
-            </button>
           </div>
         }
       />
+
+      {/* Widget santé de la ferme — visible sur tous les onglets */}
+      <FarmHealthWidget alerts={alerts} />
 
       {/* Sous-page conditionnelle selon l'onglet actif */}
       {activeTab === 'AlertesTab' && <AlertesTab />}

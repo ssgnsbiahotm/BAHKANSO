@@ -3,7 +3,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { useData } from '@/lib/DataContext';
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
-import { FacebookFeed } from '@/components/landing/FacebookFeed';
+import { FacebookFeedPreview } from '@/components/landing/FacebookFeedPreview';
 
 /* ============================================================================
    TRUST BADGES — Inline chips
@@ -168,6 +168,9 @@ export default function LandingPage() {
 
   const ctaTitle = ctaContent.title as string | undefined;
   const facebookUrl = (ctaContent.facebook_url as string | undefined) || undefined;
+  const facebookImages = (ctaContent.facebook_images as Array<{ value: string }> | undefined)
+    ?.map(item => item.value)
+    .filter(Boolean) || [];
   const ctaSubtitle = ctaContent.subtitle as string | undefined;
   const ctaPrimary = ctaContent.primary as string | undefined;
   const ctaSecondary = ctaContent.secondary as string | undefined;
@@ -422,6 +425,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <FacebookFeedPreview
+        facebookUrl={facebookUrl}
+        images={facebookImages}
+      />
+
       {/* ========================================================================
          POURQUOI BAHKANSO — Refined KPI grid: stronger cards, better spacing
          ======================================================================== */}
@@ -596,7 +604,6 @@ export default function LandingPage() {
       {/* ========================================================================
          FACEBOOK — Vie de l'exploitation
          ======================================================================== */}
-      <FacebookFeed pageUrl={facebookUrl} />
 
       {/* ========================================================================
          CONTACT / CTA — Refined: better typography, spacing

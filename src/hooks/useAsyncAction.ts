@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/lib/Toast';
+import { getErrorMessage } from '@/lib/utils';
 
 /**
  * Hook personnalisé pour gérer les opérations asynchrones avec affichage de toast
@@ -21,7 +22,6 @@ export function useAsyncAction<T = unknown>() {
     ): Promise<TResult | undefined> => {
       const {
         successMessage = 'Opération réussie',
-        errorMessage = 'Une erreur est survenue',
         onSuccess,
         onError
       } = options;
@@ -33,8 +33,7 @@ export function useAsyncAction<T = unknown>() {
         if (onSuccess) onSuccess(result);
         return result;
       } catch (error) {
-        const errorMessageToShow =
-          error instanceof Error ? error.message : errorMessage;
+        const errorMessageToShow = getErrorMessage(error);
         toast.show(`Erreur: ${errorMessageToShow}`, 'error');
         if (onError) onError(error);
         throw error; // Re-throw pour permettre au composant de gérer l'erreur si nécessaire

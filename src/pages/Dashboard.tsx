@@ -21,6 +21,7 @@ import {
   calculateCampaignMargin,
 } from '@/lib/kpi';
 import { Accordion } from '@/components/ui/Accordion';
+import { FarmHealthWidget } from '@/components/ui/FarmHealthWidget';
 
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
@@ -227,9 +228,9 @@ export function Dashboard() {
     prioritySourcesError,
   } = useDashboardStats();
 
-  const { media, siteContent, sourceStatus, loadModule, farm } = useData();
+  const { media, siteContent, sourceStatus, loadModule, farm, alerts } = useData();
 
-  const showFinance = canAccessFinance(appUser?.role);
+  const showFinance = canAccessFinance(appUser?.role as UserRole | undefined);
 
   // Contexte de site global : dégradé en mode "tous les sites" si le Dashboard
   // est rendu hors d'un SiteProvider (ex. tests unitaires isolés).
@@ -301,140 +302,68 @@ export function Dashboard() {
   const activeCampaign = campaigns.find((c) => c.status === 'actif');
   const activeProject = projects.find((p) => p.status === 'en cours');
 
-  const [yieldValue, setYieldValue] = useState<number | null>(null);
-  const [yieldLoading, setYieldLoading] = useState(false);
-  const [progressValue, setProgressValue] = useState<number | null>(null);
-  const [progressLoading, setProgressLoading] = useState(false);
-  const [costPerUnitValue, setCostPerUnitValue] = useState<number | null>(null);
-  const [costPerUnitLoading, setCostPerUnitLoading] = useState(false);
-  const [mortalityRateValue, setMortalityRateValue] = useState<number | null>(null);
-  const [adgValue, setAdgValue] = useState<number | null>(null);
-  const [mortalityLoading, setMortalityLoading] = useState(false);
-  const [adgLoading, setAdgLoading] = useState(false);
-  const [campaignMarginValue, setCampaignMarginValue] = useState<number | null>(null);
-  const [campaignMarginLoading, setCampaignMarginLoading] = useState(false);
+  const [kpiValues, setKpiValues] = useState<{
+    yield: number | null;
+    progress: number | null;
+    costPerUnit: number | null;
+    mortalityRate: number | null;
+    adg: number | null;
+    campaignMargin: number | null;
+  }>({
+    yield: null,
+    progress: null,
+    costPerUnit: null,
+    mortalityRate: null,
+    adg: null,
+    campaignMargin: null,
+  });
+  const [kpiLoading, setKpiLoading] = useState(true);
 
   const farmId = farm?.id;
 
-  // Rendement de la campagne active (niveau ferme)
+  // Orchestration des KPI de ferme : tous les calculs sont lancés en parallèle
+  // (Promise.all) plutôt qu'en cascade. Un appel qui échoue ne fait pas crasher
+  // le Dashboard : le KPI concerné reste à null et s'affiche comme "—".
   useEffect(() => {
     let mounted = true;
-    const compute = async () => {
-      if (!farmId || !activeCampaign?.id) {
-        if (mounted) setYieldValue(null);
-        return;
-      }
-      setYieldLoading(true);
+    const computeAll = async () => {
+      setKpiLoading(true);
       try {
-        const value = await calculateYield(activeCampaign.id);
-        if (mounted) setYieldValue(value);
+        const [
+          yieldValue,
+          progressValue,
+          costPerUnitValue,
+          mortalityRateValue,
+          adgValue,
+          campaignMarginValue,
+        ] = await Promise.all([
+          (farmId && activeCampaign?.id) ? calculateYield(activeCampaign.id) : Promise.resolve(null),
+          (farmId && activeProject?.id) ? calculateProjectProgress(activeProject.id) : Promise.resolve(null),
+          farmId ? calculateCostPerUnit(farmId) : Promise.resolve(null),
+          farmId ? calculateMortalityRate(farmId) : Promise.resolve(0),
+          farmId ? calculateAverageDailyGain(farmId) : Promise.resolve(null),
+          (farmId && activeCampaign?.id) ? calculateCampaignMargin(activeCampaign.id) : Promise.resolve(0),
+        ]);
+        if (mounted) {
+          setKpiValues({
+            yield: yieldValue,
+            progress: progressValue,
+            costPerUnit: costPerUnitValue,
+            mortalityRate: mortalityRateValue,
+            adg: adgValue,
+            campaignMargin: campaignMarginValue,
+          });
+        }
+      } catch {
+        // Un appel qui échoue ne fait pas crasher le Dashboard :
+        // les KPIs restent à leurs valeurs nulles par défaut.
       } finally {
-        if (mounted) setYieldLoading(false);
+        if (mounted) setKpiLoading(false);
       }
     };
-    compute();
+    computeAll();
     return () => { mounted = false; };
-  }, [farmId, activeCampaign?.id]);
-
-  // Avancement du chantier actif (niveau ferme)
-  useEffect(() => {
-    let mounted = true;
-    const compute = async () => {
-      if (!farmId || !activeProject?.id) {
-        if (mounted) setProgressValue(null);
-        return;
-      }
-      setProgressLoading(true);
-      try {
-        const value = await calculateProjectProgress(activeProject.id);
-        if (mounted) setProgressValue(value);
-      } finally {
-        if (mounted) setProgressLoading(false);
-      }
-    };
-    compute();
-    return () => { mounted = false; };
-  }, [farmId, activeProject?.id]);
-
-  // Coût de revient unitaire (niveau ferme)
-  useEffect(() => {
-    let mounted = true;
-    const compute = async () => {
-      if (!farmId) {
-        if (mounted) setCostPerUnitValue(null);
-        return;
-      }
-      setCostPerUnitLoading(true);
-      try {
-        const value = await calculateCostPerUnit(farmId);
-        if (mounted) setCostPerUnitValue(value);
-      } finally {
-        if (mounted) setCostPerUnitLoading(false);
-      }
-    };
-    compute();
-    return () => { mounted = false; };
-  }, [farmId]);
-
-  // Taux de mortalité (niveau ferme)
-  useEffect(() => {
-    let mounted = true;
-    const compute = async () => {
-      if (!farmId) {
-        if (mounted) setMortalityRateValue(null);
-        return;
-      }
-      setMortalityLoading(true);
-      try {
-        const value = await calculateMortalityRate(farmId);
-        if (mounted) setMortalityRateValue(value);
-      } finally {
-        if (mounted) setMortalityLoading(false);
-      }
-    };
-    compute();
-    return () => { mounted = false; };
-  }, [farmId]);
-
-  // GMQ (niveau ferme)
-  useEffect(() => {
-    let mounted = true;
-    const compute = async () => {
-      if (!farmId) {
-        if (mounted) setAdgValue(null);
-        return;
-      }
-      setAdgLoading(true);
-      try {
-        const value = await calculateAverageDailyGain(farmId);
-        if (mounted) setAdgValue(value);
-      } finally {
-        if (mounted) setAdgLoading(false);
-      }
-    };
-    compute();
-    return () => { mounted = false; };
-  }, [farmId]);
-
-  // Marge par culture / campagne active (niveau ferme)
-  useEffect(() => {
-    let mounted = true;
-    const compute = async () => {
-      if (!farmId || !activeCampaign?.id) {
-        if (mounted) setCampaignMarginValue(null);
-        return;
-      }
-      setCampaignMarginLoading(true);
-      try {
-        const value = await calculateCampaignMargin(activeCampaign.id);
-        if (mounted) setCampaignMarginValue(value);
-      } finally {
-        if (mounted) setCampaignMarginLoading(false);
-      }
-    };
-    compute();
-    return () => { mounted = false; };
-  }, [farmId, activeCampaign?.id]);
+  }, [farmId, activeCampaign?.id, activeProject?.id]);
 
   // Recherche de l'image de couverture configurée
   const getHeroImageUrl = (): string | null => {
@@ -581,6 +510,10 @@ export function Dashboard() {
       </section>
 
       <div className="dashboard-grid">
+        {/* Widget santé de la ferme */}
+        <section className="dashboard-section" style={{ gridColumn: '1 / -1' }}>
+          <FarmHealthWidget alerts={alerts} />
+        </section>
 
         {/* ========== A. SYNTHÈSE EXPLOITATION (4 KPIs principaux, niveau ferme) ========== */}
         <section className="dashboard-section finance-dashboard-section" aria-labelledby="synthesis-title" style={{ gridColumn: '1 / -1' }}>
@@ -615,10 +548,10 @@ export function Dashboard() {
             <LocalKpiCard
               label="Coût de revient unitaire"
               value={
-                costPerUnitLoading
+                kpiLoading
                   ? 'Chargement…'
-                  : costPerUnitValue !== null
-                  ? `${costPerUnitValue.toFixed(0)} XOF/unité`
+                  : kpiValues.costPerUnit !== null
+                  ? `${kpiValues.costPerUnit.toFixed(0)} XOF/unité`
                   : '—'
               }
               sub="Total exploitation"
@@ -628,10 +561,10 @@ export function Dashboard() {
             <LocalKpiCard
               label="Rendement"
               value={
-                yieldLoading
+                kpiLoading
                   ? 'Chargement…'
-                  : yieldValue !== null
-                  ? `${yieldValue.toFixed(0)} kg/ha`
+                  : kpiValues.yield !== null
+                  ? `${kpiValues.yield.toFixed(0)} kg/ha`
                   : activeCampaign ? '—' : 'Aucune campagne active'
               }
               sub={activeCampaign ? `Campagne ${activeCampaign.crop_name} (${activeCampaign.year})` : 'Aucune campagne active'}
@@ -660,10 +593,10 @@ export function Dashboard() {
               <LocalKpiCard
                 label="Avancement chantier"
                 value={
-                  progressLoading
+                  kpiLoading
                     ? 'Chargement…'
-                    : progressValue !== null
-                    ? `${progressValue}%`
+                    : kpiValues.progress !== null
+                    ? `${kpiValues.progress}%`
                     : activeProject ? '—' : 'Aucun chantier en cours'
                 }
                 sub={activeProject ? activeProject.name : 'Aucun chantier en cours'}
@@ -673,10 +606,10 @@ export function Dashboard() {
               <LocalKpiCard
                 label="Taux de mortalité"
                 value={
-                  mortalityLoading
+                  kpiLoading
                     ? 'Chargement…'
-                    : mortalityRateValue !== null
-                    ? `${mortalityRateValue.toFixed(1)}%`
+                    : kpiValues.mortalityRate !== null
+                    ? `${kpiValues.mortalityRate.toFixed(1)}%`
                     : '—'
                 }
                 sub="Total exploitation"
@@ -686,10 +619,10 @@ export function Dashboard() {
               <LocalKpiCard
                 label="GMQ (kg/jour)"
                 value={
-                  adgLoading
+                  kpiLoading
                     ? 'Chargement…'
-                    : adgValue !== null
-                    ? `${adgValue.toFixed(2)} kg/j`
+                    : kpiValues.adg !== null
+                    ? `${kpiValues.adg.toFixed(2)} kg/j`
                     : '—'
                 }
                 sub="Total exploitation"
@@ -699,10 +632,10 @@ export function Dashboard() {
               <LocalKpiCard
                 label="Marge par culture"
                 value={
-                  campaignMarginLoading
+                  kpiLoading
                     ? 'Chargement…'
-                    : campaignMarginValue !== null
-                    ? `${campaignMarginValue.toFixed(0)} XOF`
+                    : kpiValues.campaignMargin !== null
+                    ? `${kpiValues.campaignMargin.toFixed(0)} XOF`
                     : activeCampaign ? '—' : 'Aucune campagne active'
                 }
                 sub={activeCampaign ? `Campagne ${activeCampaign.crop_name} (${activeCampaign.year})` : 'Aucune campagne active'}

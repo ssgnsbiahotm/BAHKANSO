@@ -28,12 +28,23 @@ export const anonClient = createClient(
 
 export async function createTestUser(email, password, role, siteId) {
   // 1. Créer (ou récupérer) l'auth user via admin (service role)
-  let { data: authUser, error: authErr } =
-    await adminClient.auth.admin.createUser({
+  // createUser peut lever une AuthApiError (et non la renvoyer dans `error`)
+  // quand l'email existe déjà ; on la traite comme un retour d'erreur.
+  // Supabase auth normalise les emails en minuscules ; on canonicalise pour
+  // éviter les doublons sur app_users (contrainte auth_id unique).
+  email = email.toLowerCase();
+  let authUser;
+  let authErr;
+  try {
+    ({ data: authUser, error: authErr } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true
-    });
+    }));
+  } catch (err) {
+    authErr = err;
+    authUser = { data: null, error: err };
+  }
   if (authErr) {
     // L'utilisateur existe peut-être déjà (run précédent non nettoyé,
     // ou autre fichier de test qui partage les mêmes emails)
@@ -42,7 +53,9 @@ export async function createTestUser(email, password, role, siteId) {
       authErr.message?.includes('Database error creating new user');
     if (userExists) {
       const { data: users } = await adminClient.auth.admin.listUsers();
-      const existing = users?.users?.find((u) => u.email === email);
+      // Supabase auth normalise la casse des emails ; comparer en casse
+      // insensée pour retrouver l'utilisateur existant quelle que soit la casse saisie.
+      const existing = users?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
       if (!existing) throw authErr;
       authUser = { user: existing };
     } else {

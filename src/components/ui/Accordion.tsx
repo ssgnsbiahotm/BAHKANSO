@@ -14,7 +14,7 @@ export function Accordion({ title, defaultOpen = false, children }: AccordionPro
 
   return (
     <div className="border border-default bg-surface-hover rounded-sm overflow-hidden">
-      <button
+      <button type="button"
         onClick={toggle}
         aria-expanded={open}
         className="flex w-full items-center justify-between px-4 py-3 text-left text-primary text-lg font-editorial transition-colors hover:bg-surface-hover/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1"

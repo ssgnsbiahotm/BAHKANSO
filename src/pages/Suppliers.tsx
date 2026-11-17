@@ -231,7 +231,7 @@ export function Suppliers() {
                   <button onClick={() => openEdit(s)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs border border-default rounded-lg hover:bg-surface-hover text-secondary">
                     <Pencil size={12} /> Modifier
                   </button>
-                  <button onClick={() => setConfirmDelete(s)} disabled={isDeleting} className={`px-2.5 py-1.5 text-xs border border-default rounded-lg ${STATUS_CLASS_DANGER} disabled:opacity-50 disabled:pointer-events-none`} title="Supprimer">
+                  <button onClick={() => setConfirmDelete(s)} disabled={isDeleting} className={`px-2.5 py-1.5 text-xs border border-default rounded-lg ${STATUS_CLASS_DANGER} disabled:opacity-50 disabled:pointer-events-none`} aria-label="Supprimer le fournisseur">
                     <Trash2 size={12} />
                   </button>
                 </div>

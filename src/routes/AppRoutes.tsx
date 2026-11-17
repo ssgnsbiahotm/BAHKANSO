@@ -24,6 +24,7 @@ const Projects = lazy(() => import('@/pages/Projects').then(m => ({ default: m.P
 const Suppliers = lazy(() => import('@/pages/Suppliers').then(m => ({ default: m.Suppliers })));
 const Media = lazy(() => import('@/pages/Media').then(m => ({ default: m.Media })));
 const FinanceModule = lazy(() => import('@/modules/Finance').then(m => ({ default: m.FinanceModule })));
+const DepensesPage = lazy(() => import('@/pages/finance/DepensesPage').then(m => ({ default: m.DepensesPage })));
 const AnimalEventManage = lazy(() => import('@/pages/AnimalEventManage').then(m => ({ default: m.AnimalEventManage })));
 const ParcellesPage = lazy(() => import('@/pages/exploitation/ParcellesPage').then(m => ({ default: m.ParcellesPage })));
 const SitesPage = lazy(() => import('@/pages/configuration/SitesPage').then(m => ({ default: m.SitesPage })));
@@ -74,6 +75,7 @@ const ProjectsSuspense = createSuspenseWrapper(Projects);
 const SuppliersSuspense = createSuspenseWrapper(Suppliers);
 const MediaSuspense = createSuspenseWrapper(Media);
 const FinanceModuleSuspense = createSuspenseWrapper(FinanceModule);
+const DepensesPageSuspense = createSuspenseWrapper(DepensesPage);
 const AnimalEventManageSuspense = createSuspenseWrapper(AnimalEventManage);
 
 // Campagnes page
@@ -320,6 +322,14 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequireModule module="finance" action="read">
             <FinanceModuleSuspense />
+          </RequireModule>
+        ),
+      },
+      {
+        path: 'finance/depenses',
+        element: (
+          <RequireModule module="finance" action="read">
+            <DepensesPageSuspense />
           </RequireModule>
         ),
       },

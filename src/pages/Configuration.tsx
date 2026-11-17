@@ -17,6 +17,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { KpiCard } from '@/components/ui/KpiCard';
+import { getErrorMessage } from '@/lib/utils';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/lib/DataContext';
@@ -35,6 +36,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { ConfirmDeleteModal } from '@/components/ui/FormPrimitives/ConfirmDeleteModal';
+import { MediaPicker } from '@/components/landing/MediaPicker';
 
 /* ============================================================================
    TYPES
@@ -297,6 +299,10 @@ const CONTENU_SECTIONS: ConfigSection[] = [
       { id: 'subtitle', label: 'Sous-titre', type: 'textarea', rows: 2 },
       { id: 'primary', label: 'Bouton principal', type: 'text' },
       { id: 'secondary', label: 'Bouton secondaire', type: 'text' },
+      { id: 'facebook_url', label: 'URL de la page Facebook', type: 'url' },
+      { id: 'facebook_images', label: 'Photos du flux social', type: 'list',
+        itemFields: [{ id: 'value', label: 'URL de l\'image', type: 'text' }],
+        itemTemplate: { value: '' } },
     ],
   },
   {
@@ -554,7 +560,7 @@ export function Configuration() {
 
       toast.show(`${changedFields.length} modification(s) appliquée(s) avec succès.`, 'success');
     } catch (err) {
-      toast.show('Erreur lors de l’enregistrement : ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur lors de l’enregistrement : ' + getErrorMessage(err), 'error');
     } finally {
       setSaving(false);
     }
@@ -603,7 +609,7 @@ export function Configuration() {
       toast.show('Logo mis à jour avec succès');
       await refresh();
     } catch (err) {
-      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur upload: ' + getErrorMessage(err), 'error');
     } finally {
       setUploadingLogo(false);
     }
@@ -623,7 +629,7 @@ export function Configuration() {
       toast.show('Logo supprimé');
       await refresh();
     } catch (err) {
-      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
     }
   };
 
@@ -677,7 +683,7 @@ export function Configuration() {
       toast.show('Favicon mis à jour avec succès');
       await refresh();
     } catch (err) {
-      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur upload: ' + getErrorMessage(err), 'error');
     } finally {
       setUploadingFavicon(false);
     }
@@ -706,7 +712,7 @@ export function Configuration() {
       toast.show('Favicon supprimé');
       await refresh();
     } catch (err) {
-      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
     }
   };
 
@@ -739,7 +745,7 @@ export function Configuration() {
 
       toast.show('Image du bandeau prévisualisée', 'success');
     } catch (err) {
-      toast.show('Erreur upload: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur upload: ' + getErrorMessage(err), 'error');
     } finally {
       setUploadingHeroImage(false);
     }
@@ -752,7 +758,7 @@ export function Configuration() {
       updateDraft('contenu', 'hero', 'heroAlt', '');
       toast.show('Image du bandeau retirée');
     } catch (err) {
-      toast.show('Erreur: ' + (err instanceof Error ? err.message : 'Erreur inconnue'), 'error');
+      toast.show('Erreur: ' + getErrorMessage(err), 'error');
     }
   };
 
@@ -1179,7 +1185,15 @@ export function Configuration() {
                             <p className="text-xs text-ink-dim mb-2">{field.description}</p>
                           )}
 
-                          {field.type === 'list' ? (
+                          {field.id === 'facebook_images' ? (
+                            <MediaPicker
+                              value={Array.isArray(effectiveValue)
+                                ? (effectiveValue as { value: string }[]).map(i => i.value).filter(Boolean)
+                                : []}
+                              onChange={(val) => updateDraft(activeDomain, activeSubsection, field.id, val.map(url => ({ value: url })))}
+                              isAuthorized={isAuthorized}
+                            />
+                          ) : field.type === 'list' ? (
                             <ListEditor
                               field={field}
                               value={Array.isArray(effectiveValue) ? effectiveValue : []}

@@ -329,11 +329,14 @@ export function SiteContentEditor() {
       toast.show('Le titre est obligatoire', 'error');
       return;
     }
+    if (editingFeatureIndex === null) {
+      return;
+    }
 
     // Mettre à jour la fonctionnalité en édition
-    updateListItem('features', editingFeatureIndex!, 'title', String(editFeatureTitle).trim());
-    updateListItem('features', editingFeatureIndex!, 'icon', editFeatureIcon);
-    updateListItem('features', editingFeatureIndex!, 'desc', String(editFeatureDesc).trim());
+    updateListItem('features', editingFeatureIndex, 'title', String(editFeatureTitle).trim());
+    updateListItem('features', editingFeatureIndex, 'icon', editFeatureIcon);
+    updateListItem('features', editingFeatureIndex, 'desc', String(editFeatureDesc).trim());
 
     // Quitter le mode édition
     setEditingFeatureIndex(null);

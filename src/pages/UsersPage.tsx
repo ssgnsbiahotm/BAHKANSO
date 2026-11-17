@@ -28,6 +28,7 @@ export function UsersPage() {
   const [sitesLoading, setSitesLoading] = useState(false);
   const [sitesError, setSitesError] = useState<string | null>(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -71,16 +72,17 @@ export function UsersPage() {
   };
 
   const handleSubmit = async () => {
+    setFormError(null);
     if (!form.name) {
-      toast.show('Nom obligatoire', 'error');
+      setFormError('Nom obligatoire');
       return;
     }
     if (!form.email) {
-      toast.show('Email obligatoire', 'error');
+      setFormError('Email obligatoire');
       return;
     }
     if (!validateEmail(form.email)) {
-      toast.show('Format d\'email invalide', 'error');
+      setFormError('Format d\'email invalide');
       return;
     }
 
@@ -106,17 +108,17 @@ export function UsersPage() {
     } else {
       // CRÉATION : créer d'abord le compte Supabase Auth, puis la ligne app_users
       if (!form.password) {
-        toast.show('Mot de passe obligatoire', 'error');
+        setFormError('Mot de passe obligatoire');
         setSaving(false);
         return;
       }
       if (form.password.length < 8) {
-        toast.show('Le mot de passe doit faire au moins 8 caractères', 'error');
+        setFormError('Le mot de passe doit faire au moins 8 caractères');
         setSaving(false);
         return;
       }
       if (form.password !== form.confirmPassword) {
-        toast.show('Les mots de passe ne correspondent pas', 'error');
+        setFormError('Les mots de passe ne correspondent pas');
         setSaving(false);
         return;
       }
@@ -154,7 +156,7 @@ export function UsersPage() {
         // On met à jour avec le rôle, le téléphone et le site de rattachement choisis.
         setFormSubmitted(true);
         if (!form.site_id) {
-          toast.show('Veuillez sélectionner un site de rattachement.', 'error');
+          setFormError('Veuillez sélectionner un site de rattachement.');
           setSaving(false);
           return;
         }
@@ -350,6 +352,11 @@ export function UsersPage() {
         }
       >
         <div className="space-y-4">
+          {formError && (
+            <div className="p-2 bg-danger-soft border border-danger rounded-lg text-sm text-danger">
+              {formError}
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-secondary mb-1">Nom complet *</label>
             <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="form-input" placeholder="Kouadio Mensah" />

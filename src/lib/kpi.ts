@@ -4,26 +4,31 @@ export async function calculateYield(
   campaignId: string,
   client = supabase
 ): Promise<number | null> {
-  // 1. Surface de la parcelle via la campagne
-  const { data: campaign, error: campError } = await client
-    .from('campaigns')
-    .select('plot_id, plots(area_hectares)')
-    .eq('id', campaignId)
-    .single();
+  // 1. Surface de la parcelle via la campagne + 2. quantités récoltées (en parallèle)
+  const [campaignRes, eventsRes] = await Promise.all([
+    client
+      .from('campaigns')
+      .select('plot_id, plots(area_hectares)')
+      .eq('id', campaignId)
+      .single(),
+    client
+      .from('event_journal')
+      .select('quantity')
+      .eq('entity_type', 'harvest')
+      .eq('event_type', 'recolte')
+      .eq('context->>campaign_id', campaignId),
+  ]);
 
-  if (campError || !campaign) return null;
+  const campError = campaignRes.error;
+  if (campError || !campaignRes.data) return null;
+  const eventError = eventsRes.error;
+  if (eventError) return null;
+  const campaign = campaignRes.data;
+  const events = eventsRes.data ?? [];
+
   const surface = (campaign as { plots?: { area_hectares: number }[] | null }).plots?.[0]?.area_hectares;
   if (!surface || surface <= 0) return null;
 
-  // 2. Somme des quantités récoltées dans le journal pour cette campagne
-  const { data: events, error: eventError } = await client
-    .from('event_journal')
-    .select('quantity')
-    .eq('entity_type', 'harvest')
-    .eq('event_type', 'recolte')
-    .eq('context->>campaign_id', campaignId);
-
-  if (eventError) return null;
   const totalQuantity = events.reduce(
     (sum, e) => sum + Number(e.quantity || 0),
     0
@@ -37,25 +42,22 @@ export async function calculateProjectProgress(
   projectId: string,
   client = supabase
 ): Promise<number | null> {
-  // Nombre total d'étapes du projet
-  const { data: totalRows, error: totalError } = await client
-    .from('project_steps')
-    .select('id')
-    .eq('project_id', projectId);
+  // Nombre total et nombre d'étapes terminées (en parallèle)
+  const [totalRes, doneRes] = await Promise.all([
+    client.from('project_steps').select('id').eq('project_id', projectId),
+    client
+      .from('project_steps')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('status', 'terminé'),
+  ]);
 
-  if (totalError) return null;
-  const totalSteps = totalRows.length;
+  if (totalRes.error) return null;
+  const totalSteps = totalRes.data.length;
   if (totalSteps === 0) return 0;
 
-  // Nombre d'étapes terminées
-  const { data: doneRows, error: doneError } = await client
-    .from('project_steps')
-    .select('id')
-    .eq('project_id', projectId)
-    .eq('status', 'terminé');
-
-  if (doneError) return null;
-  const doneSteps = doneRows.length;
+  if (doneRes.error) return null;
+  const doneSteps = doneRes.data.length;
 
   return Math.round((doneSteps / totalSteps) * 100);
 }
@@ -77,13 +79,13 @@ export async function calculateGrossMargin(
     return q;
   };
 
-  const { data: recettesRows, error: recettesError } = await buildQuery(
-    'recette'
-  );
-  const { data: depensesRows, error: depensesError } = await buildQuery(
-    'depense'
-  );
+  const [recettesRes, depensesRes] = await Promise.all([
+    buildQuery('recette'),
+    buildQuery('depense'),
+  ]);
 
+  const recettesError = recettesRes.error;
+  const depensesError = depensesRes.error;
   if (recettesError || depensesError) return 0;
 
   const recettes = recettesRows?.reduce(
@@ -103,25 +105,28 @@ export async function calculateCostPerUnit(
   campaignId?: string,
   client = supabase
 ): Promise<number | null> {
-  // 1. Dépenses
-  const { data: depenses } = await client
-    .from('event_journal')
-    .select('amount, context')
-    .eq('farm_id', farmId)
-    .eq('event_type', 'depense');
+  // 1. Dépenses et 2. récoltes (en parallèle)
+  const [depensesRes, recoltesRes] = await Promise.all([
+    client
+      .from('event_journal')
+      .select('amount, context')
+      .eq('farm_id', farmId)
+      .eq('event_type', 'depense'),
+    client
+      .from('event_journal')
+      .select('quantity, context')
+      .eq('farm_id', farmId)
+      .eq('event_type', 'recolte'),
+  ]);
 
-  const totalDepenses = depenses?.reduce((sum, e) => {
+  const depenses = depensesRes.data ?? [];
+  const totalDepenses = depenses.reduce((sum, e) => {
     const ctxCampaign = (e.context as { campaign_id?: string })?.campaign_id;
     if (campaignId && ctxCampaign !== campaignId) return sum;
     return sum + Number(e.amount || 0);
   }, 0);
 
-  // 2. Quantité produite (récoltes)
-  const { data: recoltes } = await client
-    .from('event_journal')
-    .select('quantity, context')
-    .eq('farm_id', farmId)
-    .eq('event_type', 'recolte');
+  const recoltes = recoltesRes.data ?? [];
 
   const totalQuantity = recoltes?.reduce((sum, e) => {
     const ctxCampaign = (e.context as { campaign_id?: string })?.campaign_id;
@@ -129,9 +134,9 @@ export async function calculateCostPerUnit(
     return sum + Number(e.quantity || 0);
   }, 0);
 
-  if (!totalQuantity || totalQuantity <= 0) return null;
+  if (!totalDepenses || !totalQuantity || totalQuantity <= 0) return null;
 
-  return totalDepenses! / totalQuantity;
+  return totalDepenses / totalQuantity;
 }
 
 export async function calculateMortalityRate(
@@ -208,26 +213,24 @@ export async function calculateCampaignMargin(
   campaignId: string,
   client = supabase
 ): Promise<number> {
-  // 1. Recettes de la campagne (revenue des récoltes)
-  const { data: harvests, error: harvestsError } = await client
-    .from('harvests')
-    .select('revenue')
-    .eq('campaign_id', campaignId);
+  // 1. Recettes et 2. dépenses de la campagne (en parallèle)
+  const [harvestsRes, cropOpsRes] = await Promise.all([
+    client.from('harvests').select('revenue').eq('campaign_id', campaignId),
+    client.from('crop_operations').select('cost, labor_cost').eq('campaign_id', campaignId),
+  ]);
 
+  const harvestsError = harvestsRes.error;
   if (harvestsError) return 0;
+  const harvests = harvestsRes.data ?? [];
 
-  const totalRecettes = harvests?.reduce(
+  const totalRecettes = harvests.reduce(
     (sum, h) => sum + Number(h.revenue || 0),
     0
   );
 
-  // 2. Dépenses de la campagne (opérations culturales)
-  const { data: cropOps, error: opsError } = await client
-    .from('crop_operations')
-    .select('cost, labor_cost')
-    .eq('campaign_id', campaignId);
-
+  const opsError = cropOpsRes.error;
   if (opsError) return 0;
+  const cropOps = cropOpsRes.data ?? [];
 
   const totalDepenses = cropOps?.reduce(
     (sum, op) => sum + Number(op.cost || 0) + Number(op.labor_cost || 0),

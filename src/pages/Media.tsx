@@ -26,7 +26,7 @@ const TYPE_COLORS: Record<string, 'info' | 'success' | 'warning'> = {
 
 function emptyForm() {
   return {
-    title: '',
+    name: '',
     description: '',
     type: 'image',
     category: '',
@@ -49,6 +49,7 @@ export function Media() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
 
   const filtered = useMemo(() => {
@@ -56,7 +57,7 @@ export function Media() {
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(m =>
-        m.title.toLowerCase().includes(q) ||
+        m.name.toLowerCase().includes(q) ||
         (m.description ?? '').toLowerCase().includes(q) ||
         m.type.includes(q) ||
         (m.category ?? '').toLowerCase().includes(q)
@@ -109,17 +110,19 @@ export function Media() {
   };
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) {
-      toast.show('Le titre est obligatoire', 'error');
+    setFormError(null);
+    if (!form.name.trim()) {
+      setFormError('Le titre est obligatoire');
       return;
     }
     setSaving(true);
     const payload = {
-      title: form.title.trim(),
+      name: form.name.trim(),
       description: form.description.trim() || null,
       url: imageUrl,
       type: form.type,
       category: form.category.trim() || null,
+      site_id: appUser?.site_id ?? null,
       uploaded_by: appUser?.id ?? null,
       updated_at: new Date().toISOString(),
     };
@@ -128,7 +131,7 @@ export function Media() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'UPDATE', 'media', editMedia.id, `Média "${form.title}" modifié`);
+        await logAudit(appUser?.name || 'Système', 'UPDATE', 'media', editMedia.id, `Média "${form.name}" modifié`);
         toast.show('Média modifié');
         setModalOpen(false);
         refresh();
@@ -141,7 +144,7 @@ export function Media() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'CREATE', 'media', null, `Média "${form.title}" créé`);
+        await logAudit(appUser?.name || 'Système', 'CREATE', 'media', null, `Média "${form.name}" créé`);
         toast.show('Média créé avec succès');
         setModalOpen(false);
         refresh();
@@ -157,7 +160,7 @@ export function Media() {
       if (error) {
         toast.show('Erreur: ' + error.message, 'error');
       } else {
-        await logAudit(appUser?.name || 'Système', 'DELETE', 'media', confirmDelete.id, `Média "${confirmDelete.title}" supprimé`);
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'media', confirmDelete.id, `Média "${confirmDelete.name}" supprimé`);
         toast.show('Média supprimé');
         setDetailMedia(null);
         refresh();
@@ -240,7 +243,7 @@ export function Media() {
             <div key={m.id} className="relative w-full h-[200px] bg-surface rounded-xl border border-default overflow-hidden hover:shadow-md transition-shadow group cursor-pointer" onClick={() => setDetailMedia(m)}>
               <div className="absolute inset-0">
                 {m.url ? (
-                  <img src={m.url} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img src={m.url} alt={m.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted">
                     <ImageIcon size={40} />
@@ -252,7 +255,7 @@ export function Media() {
                   </span>
                 </div>
                 <div className="absolute bottom-2 left-2 right-2 p-2 text-secondary text-center">
-                  <h3 className="font-semibold text-primary line-clamp-1">{m.title}</h3>
+                  <h3 className="font-semibold text-primary line-clamp-1">{m.name}</h3>
                   <p className="text-xs line-clamp-2">{m.description ?? '—'}</p>
                 </div>
               </div>
@@ -265,7 +268,7 @@ export function Media() {
       <Modal
         open={!!detailMedia && !editMedia}
         onClose={() => setDetailMedia(null)}
-        title={detailMedia?.title || ''}
+        title={detailMedia?.name || ''}
         size="lg"
         footer={
           detailMedia ? (
@@ -280,7 +283,7 @@ export function Media() {
           <div className="space-y-5">
             {detailMedia.url && (
               <div className="rounded-xl overflow-hidden h-60">
-                <img src={detailMedia.url} alt={detailMedia.title} className="w-full h-full object-cover" />
+                <img src={detailMedia.url} alt={detailMedia.name} className="w-full h-full object-cover" />
               </div>
             )}
             {detailMedia.description && (
@@ -304,7 +307,7 @@ export function Media() {
       {confirmDelete && (
         <ConfirmDeleteModal
           entity={confirmDelete}
-          getEntityName={(m) => m.title}
+          getEntityName={(m) => m.name}
           onClose={() => setConfirmDelete(null)}
           onConfirm={handleConfirmDelete}
           title="Supprimer ce média ?"
@@ -327,6 +330,11 @@ export function Media() {
         }
       >
         <div className="space-y-5">
+          {formError && (
+            <div className="p-2 bg-danger-soft border border-danger rounded-lg text-sm text-danger">
+              {formError}
+            </div>
+          )}
           {/* Image upload */}
           <div>
             <label className="block text-xs font-medium text-secondary mb-2">Image du média</label>
@@ -366,7 +374,7 @@ export function Media() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-1 sm:col-span-2">
               <label className="block text-xs font-medium text-secondary mb-1">Titre *</label>
-              <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="form-input" placeholder="Logo de l'entreprise" />
+              <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="form-input" placeholder="Logo de l'entreprise" />
             </div>
             <div className="col-span-1 sm:col-span-2">
               <label className="block text-xs font-medium text-secondary mb-1">Description</label>
