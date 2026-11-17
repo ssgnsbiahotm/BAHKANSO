@@ -21,6 +21,7 @@ import {
   calculateCampaignMargin,
 } from '@/lib/kpi';
 import { Accordion } from '@/components/ui/Accordion';
+import { FarmHealthWidget } from '@/components/ui/FarmHealthWidget';
 
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
@@ -227,7 +228,7 @@ export function Dashboard() {
     prioritySourcesError,
   } = useDashboardStats();
 
-  const { media, siteContent, sourceStatus, loadModule, farm } = useData();
+  const { media, siteContent, sourceStatus, loadModule, farm, alerts } = useData();
 
   const showFinance = canAccessFinance(appUser?.role as UserRole | undefined);
 
@@ -509,6 +510,10 @@ export function Dashboard() {
       </section>
 
       <div className="dashboard-grid">
+        {/* Widget santé de la ferme */}
+        <section className="dashboard-section" style={{ gridColumn: '1 / -1' }}>
+          <FarmHealthWidget alerts={alerts} />
+        </section>
 
         {/* ========== A. SYNTHÈSE EXPLOITATION (4 KPIs principaux, niveau ferme) ========== */}
         <section className="dashboard-section finance-dashboard-section" aria-labelledby="synthesis-title" style={{ gridColumn: '1 / -1' }}>
