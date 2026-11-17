@@ -1,6 +1,16 @@
 import { ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
+const FOCUSABLE_SELECTORS = [
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'a[href]',
+  '[tabindex]:not([tabindex="-1"])',
+  '[contenteditable="true"]',
+].join(', :not([disabled])');
+
 interface ModalProps {
   open: boolean;
   onClose: () => void;
@@ -26,13 +36,40 @@ export function Modal({ open, onClose, title, children, size = 'md', footer }: M
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  const focusableElsRef = useRef<HTMLElement[]>([]);
+
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = 'hidden';
     closeButtonRef.current?.focus();
+
+    const dialog = document.querySelector('[role="dialog"]');
+    const focusableEls = dialog
+      ? Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS))
+      : [];
+    focusableElsRef.current = focusableEls;
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onCloseRef.current();
+      if (event.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      if (focusableEls.length === 0) return;
+
+      event.preventDefault();
+      const currentIndex = focusableEls.indexOf(document.activeElement as HTMLElement);
+      const lastIndex = focusableEls.length - 1;
+
+      if (event.shiftKey) {
+        if (currentIndex <= 0) focusableEls[lastIndex]?.focus();
+        else focusableEls[currentIndex - 1]?.focus();
+      } else {
+        if (currentIndex >= lastIndex) focusableEls[0]?.focus();
+        else focusableEls[currentIndex + 1]?.focus();
+      }
     };
+
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = '';
