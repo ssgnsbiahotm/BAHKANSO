@@ -354,6 +354,13 @@ export interface InventoryCount {
   item?: InventoryItem | null;
 }
 
+export interface StockCategory {
+  id: string;
+  name: string;
+  site_id: string | null;
+  created_at: string;
+}
+
 export interface Budget {
   id: string;
   object_type: string;
@@ -547,7 +554,10 @@ export async function logAudit(
   old_value?: Record<string, unknown> | null,
   new_value?: Record<string, unknown> | null,
 ) {
-  await supabase.from('audit_logs').insert({
+  // L'audit ne doit pas faire échouer visuellement une action déjà réussie (CLAUDE.md §10).
+  // Les erreurs d'insertion dans audit_logs (RLS, contrainte) sont consignées en console
+  // mais ne bloquent pas l'appelant.
+  const { error } = await supabase.from('audit_logs').insert({
     user_name,
     action,
     object_type,
@@ -556,4 +566,7 @@ export async function logAudit(
     old_value: old_value || null,
     new_value: new_value || null,
   });
+  if (error) {
+    console.error('[logAudit] Échec insertion audit_logs:', error.message);
+  }
 }

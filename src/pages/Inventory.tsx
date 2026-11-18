@@ -9,7 +9,7 @@ import { useToast } from '@/lib/Toast';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { RotatingCard } from '@/components/ui/RotatingCard';
 import * as z from 'zod';
-import type { InventoryItem, Site } from '@/lib/types';
+import type { InventoryItem, Site, StockCategory } from '@/lib/types';
 import { STATUS_CLASS_SUCCESS, STATUS_CLASS_DANGER } from '@/lib/constants';
 
 import '@/styles/theme-app.css';
@@ -40,7 +40,7 @@ const DEFAULT_VALUES: ItemFormValues = {
 
 export function Inventory() {
   const navigate = useNavigate();
-  const { inventoryItems, inventoryMovements, sites, refresh, loadModule } = useData();
+  const { inventoryItems, inventoryMovements, sites, stockCategories, setStockCategories, refresh, loadModule } = useData();
   const { appUser } = useAuth();
 
   useEffect(() => {
@@ -55,6 +55,11 @@ export function Inventory() {
   const [confirmDelete, setConfirmDelete] = useState<InventoryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'items' | 'movements' | 'categories'>('items');
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [editCategory, setEditCategory] = useState<StockCategory | null>(null);
+  const [categoryForm, setCategoryForm] = useState({ name: '', site_id: '' });
+  const [confirmDeleteCategory, setConfirmDeleteCategory] = useState<StockCategory | null>(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   const filteredItems = useMemo(() => {
     if (!searchTerm) return inventoryItems;
@@ -175,6 +180,73 @@ export function Inventory() {
       setConfirmDelete(null);
     }
   }, [appUser, refresh, toast]);
+
+  const openCreateCategory = useCallback(() => {
+    setEditCategory(null);
+    setCategoryForm({ name: '', site_id: appUser?.site_id || '' });
+    setCategoryModalOpen(true);
+  }, [appUser]);
+
+  const openEditCategory = useCallback((category: StockCategory) => {
+    setEditCategory(category);
+    setCategoryForm({ name: category.name, site_id: category.site_id || '' });
+    setCategoryModalOpen(true);
+  }, []);
+
+  const handleSaveCategory = useCallback(async () => {
+    if (!categoryForm.name) {
+      toast.show('Nom de catégorie obligatoire', 'error');
+      return;
+    }
+    const payload = { name: categoryForm.name.trim(), site_id: categoryForm.site_id || null };
+    try {
+      if (editCategory) {
+        const { error } = await supabase.from('stock_categories').update(payload).eq('id', editCategory.id);
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'UPDATE', 'stock_category', editCategory.id, `Catégorie ${payload.name} modifiée`);
+        toast.show('Catégorie modifiée');
+      } else {
+        const { error } = await supabase.from('stock_categories').insert([payload]);
+        if (error) throw error;
+        await logAudit(appUser?.name || 'Système', 'CREATE', 'stock_category', null, `Création de la catégorie ${payload.name}`);
+        toast.show('Catégorie créée avec succès');
+      }
+      setCategoryModalOpen(false);
+      setEditCategory(null);
+      refresh();
+    } catch (err) {
+      toast.show('Erreur: ' + (err as Error).message, 'error');
+    }
+  }, [appUser, editCategory, categoryForm, refresh, toast]);
+
+  const handleDeleteCategory = useCallback(async () => {
+    if (!confirmDeleteCategory) return;
+    try {
+      const { error } = await supabase.from('stock_categories').delete().eq('id', confirmDeleteCategory.id);
+      if (error) {
+        toast.show('Erreur: ' + error.message, 'error');
+      } else {
+        await logAudit(appUser?.name || 'Système', 'DELETE', 'stock_category', confirmDeleteCategory.id, `Catégorie ${confirmDeleteCategory.name} supprimée`);
+        toast.show('Catégorie supprimée');
+        setStockCategories(stockCategories.filter((c: StockCategory) => c.id !== confirmDeleteCategory.id));
+        refresh();
+      }
+    } finally {
+      setConfirmDeleteCategory(null);
+      setIsDeletingCategory(false);
+    }
+  }, [appUser, confirmDeleteCategory, stockCategories, setStockCategories, refresh, toast]);
+
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
+
+  const resetCategoryForm = useCallback(() => {
+    setCategoryForm({ name: '', site_id: appUser?.site_id || '' });
+  }, [appUser]);
+
+  const handleCategoryFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSaveCategory();
+  };
 
   const getItemName = (i: InventoryItem) => i.name;
 
@@ -439,23 +511,61 @@ export function Inventory() {
         )}
 
         {activeTab === 'categories' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.map((cat) => {
-              const catItems = inventoryItems.filter(i => (i.category || 'Sans catégorie') === cat);
-              const catValue = catItems.reduce((s, i) => s + i.current_stock * i.unit_cost, 0);
-              const catLowStock = catItems.filter(i => i.current_stock <= i.min_stock).length;
-              return (
-                <div key={cat} className="module-category-card">
-                  <h3 className="font-semibold text-primary">{cat}</h3>
-                  <div className="space-y-1 text-sm mt-2">
-                    <p><span className="text-muted">Articles :</span> <span className="font-medium">{catItems.length}</span></p>
-                    <p><span className="text-muted">Valeur :</span> <span className="font-medium">{formatCurrency(catValue)}</span></p>
-                    <p><span className="text-muted">Alertes :</span> <span className={`font-medium ${catLowStock > 0 ? 'text-warning' : 'text-success'}`}>{catLowStock}</span></p>
-                  </div>
+          <section className="module-section">
+            <div className="module-section-header">
+              <h2 className="module-section-title">Catégories de stock</h2>
+              <button
+                onClick={openCreateCategory}
+                className="module-btn module-btn-primary"
+              >
+                <Plus size={14} /> Nouvelle catégorie
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stockCategories.length === 0 ? (
+                <div className="col-span-full module-empty-state">
+                  <Package size={48} className="module-empty-icon" />
+                  <h3 className="module-empty-title">Aucune catégorie</h3>
+                  <p className="module-empty-message">Créez votre première catégorie pour organiser vos articles.</p>
                 </div>
-              );
-            })}
-          </div>
+              ) : (
+                stockCategories.map((category) => {
+                  const catItems = inventoryItems.filter(i => (i.category || '') === category.name);
+                  const catValue = catItems.reduce((s, i) => s + i.current_stock * i.unit_cost, 0);
+                  const catLowStock = catItems.filter(i => i.current_stock <= i.min_stock).length;
+                  return (
+                    <div key={category.id} className="module-category-card">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-primary">{category.name}</h3>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openEditCategory(category); }}
+                            className="p-1.5 text-muted hover:text-primary"
+                            title="Modifier"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteCategory(category); }}
+                            disabled={isDeletingCategory}
+                            className="p-1.5 text-muted hover:text-danger"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-1 text-sm mt-2">
+                        <p><span className="text-muted">Articles :</span> <span className="font-medium">{catItems.length}</span></p>
+                        <p><span className="text-muted">Valeur :</span> <span className="font-medium">{formatCurrency(catValue)}</span></p>
+                        <p><span className="text-muted">Alertes :</span> <span className={`font-medium ${catLowStock > 0 ? 'text-warning' : 'text-success'}`}>{catLowStock}</span></p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </section>
         )}
       </section>
 
@@ -550,6 +660,36 @@ export function Inventory() {
         onConfirm={() => confirmDelete && handleDeleteConfirmed(confirmDelete)}
         onClose={() => setConfirmDelete(null)}
         getEntityName={getItemName}
+      />
+
+      <Modal
+        open={categoryModalOpen}
+        onClose={() => { setCategoryModalOpen(false); resetCategoryForm(); setEditCategory(null); }}
+        title={editCategory ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
+      >
+        <form onSubmit={handleCategoryFormSubmit} className="space-y-3">
+          <FormField label="Nom de la catégorie" required>
+            <FormInput
+              name="name"
+              value={categoryForm.name}
+              onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+              disabled={isSavingCategory}
+              placeholder="ex. Engrais, Semences, Matériel"
+            />
+          </FormField>
+          <FormActions
+            onSubmit={handleCategoryFormSubmit}
+            onCancel={() => { setCategoryModalOpen(false); resetCategoryForm(); setEditCategory(null); }}
+            isSubmitting={isSavingCategory}
+          />
+        </form>
+      </Modal>
+
+      <ConfirmDeleteModal
+        entity={confirmDeleteCategory}
+        onConfirm={() => confirmDeleteCategory && handleDeleteCategory()}
+        onClose={() => setConfirmDeleteCategory(null)}
+        getEntityName={(e: any) => e.name}
       />
     </div>
   );

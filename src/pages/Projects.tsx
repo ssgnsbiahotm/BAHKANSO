@@ -358,7 +358,7 @@ export function Projects() {
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-semibold text-primary truncate">{p.name}</h3>
-                          <p className="text-xs text-muted mt-1">
+                          <p className="text-xs text-slate-600 mt-1">
                             {p.type} · {p.responsible || 'Responsable non défini'}
                           </p>
                         </div>
@@ -368,7 +368,7 @@ export function Projects() {
 
                     <div className="mb-5">
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-muted">Progression du projet</span>
+                        <span className="text-slate-600">Progression du projet</span>
                         <span className="font-semibold text-primary">{p.progress}%</span>
                       </div>
                       <ProgressBar value={p.progress} color="green" />
@@ -376,19 +376,19 @@ export function Projects() {
 
                     <div className="grid grid-cols-3 gap-3 py-4 border-y border-default">
                       <div className="min-w-0">
-                        <span className="text-xs text-muted">Budget</span>
+                        <span className="text-xs text-slate-600">Budget</span>
                         <p className="font-semibold text-primary text-sm mt-1 break-words">
                           {formatCurrency(budget)}
                         </p>
                       </div>
                       <div className="min-w-0">
-                        <span className="text-xs text-muted">Dépensé</span>
+                        <span className="text-xs text-slate-600">Dépensé</span>
                         <p className="font-semibold text-sm mt-1 break-words" style={{ color: 'var(--mdn-terre)' }}>
                           {formatCurrency(spent)}
                         </p>
                       </div>
                       <div className="min-w-0">
-                        <span className="text-xs text-muted">Disponible</span>
+                        <span className="text-xs text-slate-600">Disponible</span>
                         <p className="font-semibold text-sm mt-1 break-words" style={{ color: 'var(--accent-primary)' }}>
                           {formatCurrency(remaining)}
                         </p>
@@ -396,7 +396,7 @@ export function Projects() {
                     </div>
 
                     <div className="flex items-center justify-between gap-3 mt-auto pt-4">
-                      <div className="flex items-center gap-2 text-xs text-muted min-w-0">
+                      <div className="flex items-center gap-2 text-xs text-slate-600 min-w-0">
                         <Calendar size={14} />
                         <span className="truncate">
                           {formatDate(p.start_date)} → {formatDate(p.expected_end_date)}
@@ -434,7 +434,7 @@ export function Projects() {
                         <span className="text-xs text-muted">#{p.id.slice(0, 8)}</span>
                       </div>
                       <h3 className="text-lg font-semibold text-primary">{p.name}</h3>
-                      <p className="text-sm text-muted mt-1">
+                      <p className="text-sm text-slate-600 mt-1">
                         Choisissez une action à effectuer sur ce projet.
                       </p>
                     </div>
@@ -454,7 +454,7 @@ export function Projects() {
                         </span>
                         <span>
                           <strong className="block text-sm text-primary">Consulter</strong>
-                          <span className="text-xs text-muted">Voir les détails et les étapes</span>
+                          <span className="text-xs text-slate-600">Voir les détails et les étapes</span>
                         </span>
                       </button>
 
@@ -472,7 +472,7 @@ export function Projects() {
                         </span>
                         <span>
                           <strong className="block text-sm text-primary">Modifier</strong>
-                          <span className="text-xs text-muted">Mettre à jour le projet</span>
+                          <span className="text-xs text-slate-600">Mettre à jour le projet</span>
                         </span>
                       </button>
 
@@ -490,7 +490,7 @@ export function Projects() {
                         </span>
                         <span>
                           <strong className={`block text-sm ${STATUS_CLASS_DANGER.split(' ')[1]}`}>Supprimer</strong>
-                          <span className="text-xs text-muted">Supprimer après confirmation</span>
+                          <span className="text-xs text-slate-600">Supprimer après confirmation</span>
                         </span>
                       </button>
                     </div>

@@ -6,7 +6,7 @@ import type {
   Supplier, Expense, Document, Site, Plot, Campaign, CropOperation, Harvest,
   Animal, AnimalLot, AnimalEvent, Project, ProjectStep, InventoryItem,
   InventoryMovement, InventoryCount, Budget, Alert, Notification, AuditLog,
-  SiteContent, Media, Customer,
+  SiteContent, Media, Customer, StockCategory,
 } from './types';
 
 export type DashboardSource =
@@ -55,7 +55,7 @@ const MODULE_SOURCES: Record<string, string[]> = {
   finance: ['suppliers', 'documents', 'fundings', 'bankAccounts', 'cashAccounts'],
   elevage: ['animals', 'animalLots', 'animalEvents'],
   ventes: ['customers'],
-  inventory: ['inventoryItems', 'inventoryMovements'],
+  inventory: ['inventoryItems', 'inventoryMovements', 'stockCategories'],
   projets: ['projects', 'projectSteps', 'expenses'],
 };
 
@@ -88,6 +88,8 @@ interface DataContextType {
   inventoryItems: InventoryItem[];
   inventoryMovements: InventoryMovement[];
   inventoryCounts: InventoryCount[];
+  stockCategories: StockCategory[];
+  setStockCategories: (v: StockCategory[]) => void;
   budgets: Budget[];
   alerts: Alert[];
   notifications: Notification[];
@@ -140,6 +142,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>([]);
   const [inventoryCounts, setInventoryCounts] = useState<InventoryCount[]>([]);
+  const [stockCategories, setStockCategories] = useState<StockCategory[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -390,6 +393,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       inventoryItems: safeRequest(supabase.from('inventory_items').select('*').order('name')),
       inventoryMovements: safeRequest(supabase.from('inventory_movements').select('*, item:inventory_items(*)').order('date', { ascending: false })),
       inventoryCounts: safeRequest(supabase.from('inventory_counts').select('*, item:inventory_items(*)').order('count_date', { ascending: false })),
+      stockCategories: safeRequest(supabase.from('stock_categories').select('*').order('name')),
       budgets: safeRequest(supabase.from('budgets').select('*').order('object_name')),
       alerts: safeRequest(supabase.from('alerts').select('*').order('created_at', { ascending: false })),
       notifications: safeRequest(supabase.from('notifications').select('*').order('created_at', { ascending: false })),
@@ -450,6 +454,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         case 'inventoryItems': setInventoryItems(res.data as InventoryItem[] || []); break;
         case 'inventoryMovements': setInventoryMovements(res.data as InventoryMovement[] || []); break;
         case 'inventoryCounts': setInventoryCounts(res.data as InventoryCount[] || []); break;
+        case 'stockCategories': setStockCategories(res.data as StockCategory[] || []); break;
         case 'budgets': setBudgets(res.data as Budget[] || []); break;
         case 'alerts': setAlerts(res.data as Alert[] || []); break;
         case 'notifications': setNotifications(res.data as Notification[] || []); break;
@@ -491,7 +496,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       farm, users, funders, customers, fundings, bankAccounts, cashAccounts, transactions,
       suppliers, expenses, documents, sites, plots, campaigns, cropOperations,
       harvests, animals, animaux: animals, animauxSetter: setAnimaux, animalLots, lots: animalLots, lotsSetter: setLots, animalEvents, projects, projectSteps,
-      inventoryItems, inventoryMovements, inventoryCounts, budgets, alerts,
+      inventoryItems, inventoryMovements, inventoryCounts, stockCategories, setStockCategories, budgets, alerts,
       notifications, auditLogs, siteContent, media,
       loading, error, sourceStatus, sourceError, refresh: loadAll, loadModule, loadedModules, currentModule,
     }}>

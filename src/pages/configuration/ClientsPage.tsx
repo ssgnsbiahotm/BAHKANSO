@@ -19,6 +19,7 @@ export function ClientsPage() {
   const { customers, sites, refresh, loadModule } = useData();
   const { appUser } = useAuth();
   const toast = useToast();
+  const [displayCustomers, setDisplayCustomers] = useState(customers);
   const [modalOpen, setModalOpen] = useState(false);
   const [editClient, setEditClient] = useState<Customer | null>(null);
   const [, setSaving] = useState(false);
@@ -40,11 +41,16 @@ export function ClientsPage() {
     loadModule('exploitation');
   }, [loadModule]);
 
-  const kpis = useMemo(() => {
-    const total = customers.length;
-    const active = customers.filter(c => c.active !== false).length;
-    return { total, active };
+  // Resynchronise l'affichage local quand le contexte recharge (ex. après refresh()).
+  useEffect(() => {
+    setDisplayCustomers(customers);
   }, [customers]);
+
+  const kpis = useMemo(() => {
+    const total = displayCustomers.length;
+    const active = displayCustomers.filter(c => c.active !== false).length;
+    return { total, active };
+  }, [displayCustomers]);
 
   const openCreate = () => {
     if (!canManageClients) {
@@ -159,6 +165,7 @@ export function ClientsPage() {
       } else {
         await logAudit(appUser?.name || 'Système', 'DELETE', 'customer', confirmDelete.id, `Client ${confirmDelete.name} supprimé`);
         toast.show('Client supprimé');
+        setDisplayCustomers(displayCustomers.filter(c => c.id !== confirmDelete.id));
         refresh();
       }
     } finally {
@@ -197,7 +204,7 @@ export function ClientsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {customers.map(c => (
+        {displayCustomers.map(c => (
           <RotatingCard
             key={c.id}
             flipLabel="Détails"
@@ -243,7 +250,7 @@ export function ClientsPage() {
                     Modifier
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(customers.find(cc => cc.id === c.id) || null); }}
+                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(displayCustomers.find(cc => cc.id === c.id) || null); }}
                     disabled={isDeleting}
                     className="flex-1 bg-danger text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -253,7 +260,7 @@ export function ClientsPage() {
               </div>
             } />
         ))}
-        {customers.length === 0 && (
+        {displayCustomers.length === 0 && (
           <div className="col-span-full p-8 text-center text-muted">
             <AlertCircle size={48} className="mb-3 opacity-50" />
             <p>Aucun client enregistré</p>

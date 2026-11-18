@@ -2,14 +2,14 @@ import { ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
 const FOCUSABLE_SELECTORS = [
-  'button',
-  'input',
-  'select',
-  'textarea',
-  'a[href]',
-  '[tabindex]:not([tabindex="-1"])',
-  '[contenteditable="true"]',
-].join(', :not([disabled])');
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'a[href]:not([disabled])',
+  '[tabindex]:not([disabled]):not([tabindex="-1"])',
+  '[contenteditable="true"]:not([disabled])',
+].join(', ');
 
 interface ModalProps {
   open: boolean;
