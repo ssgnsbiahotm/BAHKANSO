@@ -88,12 +88,12 @@ export async function calculateGrossMargin(
   const depensesError = depensesRes.error;
   if (recettesError || depensesError) return 0;
 
-  const recettes = recettesRows?.reduce(
-    (sum, e) => sum + Number(e.amount || 0),
+  const recettes = recettesRes?.data?.reduce(
+    (sum: number, e) => sum + Number(e.amount || 0),
     0
   );
-  const depenses = depensesRows?.reduce(
-    (sum, e) => sum + Number(e.amount || 0),
+  const depenses = depensesRes?.data?.reduce(
+    (sum: number, e) => sum + Number(e.amount || 0),
     0
   );
 

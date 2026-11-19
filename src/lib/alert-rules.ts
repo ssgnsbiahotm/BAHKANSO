@@ -116,7 +116,7 @@ export function evaluateAlertRules({
           category: 'Justificatifs',
           object_type: 'expense',
           object_id: exp.id,
-          object_name: exp.label || exp.reference,
+          object_name: exp.label ?? exp.reference ?? undefined,
         });
       }
     }
@@ -177,7 +177,7 @@ export function evaluateAlertRules({
         category: 'Élevage',
         object_type: 'animal',
         object_id: animal.id,
-        object_name: animal.identifier || animal.name,
+        object_name: animal.identifier ?? animal.name ?? undefined,
       });
     }
   }
