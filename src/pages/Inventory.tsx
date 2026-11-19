@@ -237,7 +237,7 @@ export function Inventory() {
     }
   }, [appUser, confirmDeleteCategory, stockCategories, setStockCategories, refresh, toast]);
 
-  const [isSavingCategory, setIsSavingCategory] = useState(false);
+  const [isSavingCategory] = useState(false);
 
   const resetCategoryForm = useCallback(() => {
     setCategoryForm({ name: '', site_id: appUser?.site_id || '' });
@@ -689,7 +689,7 @@ export function Inventory() {
         entity={confirmDeleteCategory}
         onConfirm={() => confirmDeleteCategory && handleDeleteCategory()}
         onClose={() => setConfirmDeleteCategory(null)}
-        getEntityName={(e: any) => e.name}
+        getEntityName={(e: StockCategory) => e.name}
       />
     </div>
   );

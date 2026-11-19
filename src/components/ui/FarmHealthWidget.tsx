@@ -59,7 +59,6 @@ export function FarmHealthWidget({ alerts = [] }: FarmHealthWidgetProps) {
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
-              transition="stroke-dashoffset 0.4s ease"
             />
           </svg>
           <div className="text-center">
