@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-17
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `518bd05` (commit précédent)
+**Dernier commit de code** : `d427c98` (commit précédent)
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -45,6 +45,8 @@
 - 2026-11-17 — Étape 4 : accessibilité a11y et polissage — focus-trap dans Modal.tsx (capture Tab/Shift+Tab à l'intérieur du dialogue, boucler entre premier et dernier élément focusable, Escape ferme), aria-label "Supprimer le fournisseur" sur Suppliers.tsx (bouton Trash2 seul icône), contraste erreurs déjà conforme (text-danger = #C62828, red-700). Vérifications : typecheck exit 0, tests 142/142, build exit 0. Rapport : _claude-output/reports/2026-11-17-etape4-accessibilite-polissage.md. Pas de commit.
 - 2026-11-17 — Centre de Commandement Proactif (module Surveillance) : moteur de règles inter-modules `src/lib/alert-rules.ts` (6 règles : stock critique, justificatif manquant, projet en retard, budget dépassé, animal sans événement 30j, récolte en retard), widget `FarmHealthWidget` (score de santé + 3 alertes critiques) intégré à `Dashboard.tsx` et `SurveillancePage.tsx`, refonte `AlertesTab.tsx` en Tour de Contrôle (filtres module, suggestions d'actions dérivées en mémoire). Vérifications : typecheck exit 0, tests 142/142, build exit 0. Rapport : _claude-output/reports/2026-11-17-centre-commandement-proactif.md. Pas de commit.
 - 2026-11-17 — Trois corrections ciblées (mission en cours) : (a) ClientsPage — la carte client disparaît immédiatement après suppression (état local `displayCustomers` filtré avant `refresh()`) ; (b) Inventory — CRUD des catégories de stock (migration `stock_categories`, type `StockCategory`, DataContext `stockCategories`/`setStockCategories`, formulaire créer/modifier/supprimer dans l'onglet Catégories) ; (c) Projects — contraste des textes (remplacement `text-muted` par `text-slate-600` sur libellés et descriptions). Vérifications : typecheck propre sur les fichiers modifiés, build exit 0, migration `20261117000001_create_stock_categories.sql` appliquée via `supabase db reset`. Tests Playwright e2e lancés (environnement Supabase local démarré) — résultat en attente (aucun test e2e écrit spécifiquement pour suppression client/catégories).
+
+- 2026-11-18 — Correction des dettes techniques (rapport de validation approfondie) : ajout du rôle `chef_chantier` dans `src/lib/rbac.ts` (type `UserRole`, `ROLE_HIERARCHY`, `ROLE_LABELS`, `ROLE_DESCRIPTIONS`, `ROLE_PERMISSIONS`, `FINANCE_ACCESS_ROLES`) aligné sur le rôle DB des migrations SQL ; passage de `comptable` en lecture seule sur `ventes` (alignement RBAC vs RLS) ; retrait de la prop `transition` invalide sur `<circle>` dans `src/components/ui/FarmHealthWidget.tsx` (TS2322) ; suppression des variables non utilisées `setIsSavingCategory` (Inventory.tsx:240), `AnimalFormValues` (AnimauxPage.tsx:27), `LotFormValues` (LotsPage.tsx:26) ; déclaration des matchers `@testing-library/jest-dom/vitest` dans `src/test/setup.tsx` (supprime ~126 fausses erreurs TS). Vérifications : typecheck propre dans le périmètre (erreurs TS5103 `baseUrl` + alert-rules.ts/kpi.ts préexistantes, non liées), lint 0 erreur. Commit `d427c98` (6 fichiers, 26 insertions, 9 deletions), non poussé.
 
 **À faire** : confirmer avec le responsable si le module Finance > Dépenses (aucune route `/app/finance/depenses`, écart signalé dans le rapport QA) doit être développé — aucune décision d'architecture prise, pas de code écrit.
 
