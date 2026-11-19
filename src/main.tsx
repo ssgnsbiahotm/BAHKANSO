@@ -4,6 +4,12 @@ import App from './App.tsx';
 import { registerSW } from 'virtual:pwa-register';
 import './index.css';
 
+// Supprimer le cache API privé créé par les anciennes versions du service
+// worker. Les réponses Supabase ne doivent pas être conservées dans Cache Storage.
+if (typeof window !== 'undefined' && 'caches' in window) {
+  void window.caches.delete('supabase-api');
+}
+
 registerSW({
   immediate: true,
   onNeedRefresh() {
