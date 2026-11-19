@@ -143,3 +143,4 @@ audit-report.txt
 coverage/
 audit-report.txt
 coverage/
+*.txt
