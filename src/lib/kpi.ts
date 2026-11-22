@@ -26,7 +26,10 @@ export async function calculateYield(
   const campaign = campaignRes.data;
   const events = eventsRes.data ?? [];
 
-  const surface = (campaign as { plots?: { area_hectares: number }[] | null }).plots?.[0]?.area_hectares;
+  const plotsRaw = campaign.plots as { area_hectares: number } | { area_hectares: number }[] | null;
+  const surface = Array.isArray(plotsRaw)
+    ? plotsRaw?.[0]?.area_hectares
+    : plotsRaw?.area_hectares;
   if (!surface || surface <= 0) return null;
 
   const totalQuantity = events.reduce(

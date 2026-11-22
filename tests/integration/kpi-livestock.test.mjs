@@ -43,6 +43,7 @@ beforeEach(async () => {
 afterAll(async () => {
   if (farmId) {
     await adminClient.from('event_journal').delete().eq('farm_id', farmId);
+    await adminClient.from('farms').delete().eq('id', farmId);
   }
   await teardownFixtures(fx);
 });
@@ -63,7 +64,7 @@ test('calculateMortalityRate retourne le taux de mortalité', async () => {
   await adminClient.from('event_journal').insert([
     {
       farm_id: farmId,
-      event_type: 'naissance',
+      event_type: 'animal_ne',
       entity_type: 'animal',
       entity_id: genId(),
       amount: 0,
@@ -74,7 +75,7 @@ test('calculateMortalityRate retourne le taux de mortalité', async () => {
     },
     {
       farm_id: farmId,
-      event_type: 'naissance',
+      event_type: 'animal_ne',
       entity_type: 'animal',
       entity_id: genId(),
       amount: 0,
@@ -85,7 +86,7 @@ test('calculateMortalityRate retourne le taux de mortalité', async () => {
     },
     {
       farm_id: farmId,
-      event_type: 'naissance',
+      event_type: 'animal_ne',
       entity_type: 'animal',
       entity_id: genId(),
       amount: 0,
@@ -96,7 +97,7 @@ test('calculateMortalityRate retourne le taux de mortalité', async () => {
     },
     {
       farm_id: farmId,
-      event_type: 'mort',
+      event_type: 'animal_mort',
       entity_type: 'animal',
       entity_id: genId(),
       amount: 0,
@@ -126,7 +127,7 @@ test('calculateMortalityRate filtre par intervalle de dates', async () => {
   await adminClient.from('event_journal').insert([
     {
       farm_id: farmId,
-      event_type: 'naissance',
+      event_type: 'animal_ne',
       entity_type: 'animal',
       entity_id: genId(),
       amount: 0,
@@ -137,7 +138,7 @@ test('calculateMortalityRate filtre par intervalle de dates', async () => {
     },
     {
       farm_id: farmId,
-      event_type: 'mort',
+      event_type: 'animal_mort',
       entity_type: 'animal',
       entity_id: genId(),
       amount: 0,
@@ -149,7 +150,7 @@ test('calculateMortalityRate filtre par intervalle de dates', async () => {
     // Une naissance aujourd'hui
     {
       farm_id: farmId,
-      event_type: 'naissance',
+      event_type: 'animal_ne',
       entity_type: 'animal',
       entity_id: genId(),
       amount: 0,

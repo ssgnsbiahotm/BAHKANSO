@@ -82,7 +82,13 @@ export async function createTestUser(email, password, role, siteId) {
 }
 
 export async function signInAs(email, password) {
-  const { data, error } = await anonClient.auth.signInWithPassword({
+  // SIGNER via un client jetable : la session d'auth ne doit jamais persister
+  // sur le client anonClient partagé entre tous les fichiers de test, sinon
+  // l'état de session s'infiltre d'un fichier à l'autre et corrompt les attentes RLS.
+  const throwaway = createClient(SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+  const { data, error } = await throwaway.auth.signInWithPassword({
     email, password
   });
   if (error) throw error;

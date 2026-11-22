@@ -5,6 +5,8 @@ import { setupFixtures, teardownFixtures } from './fixtures.mjs';
 import { calculateYield } from '../../src/lib/kpi.ts';
 
 let fx;
+let plotId;
+let campaignId;
 
 beforeAll(async () => {
   fx = await setupFixtures();
@@ -27,8 +29,15 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  if (plotId) {
+    await adminClient.from('plots').delete().eq('id', plotId);
+  }
+  if (campaignId) {
+    await adminClient.from('campaigns').delete().eq('id', campaignId);
+  }
   if (fx?.farm) {
     await adminClient.from('event_journal').delete().eq('farm_id', fx.farm.id);
+    await adminClient.from('farms').delete().eq('id', fx.farm.id);
   }
   await teardownFixtures(fx);
 });
@@ -46,6 +55,7 @@ test('calculateYield retourne le rendement d\'une campagne (kg/ha)', async () =>
     .select()
     .single();
   expect(plotErr).toBeNull();
+  plotId = plot.id;
 
   // 2. Créer une campagne liée à la parcelle
   const { data: campaign, error: campErr } = await adminClient
@@ -59,6 +69,7 @@ test('calculateYield retourne le rendement d\'une campagne (kg/ha)', async () =>
     .select()
     .single();
   expect(campErr).toBeNull();
+  campaignId = campaign.id;
 
   // 3. Créer une récolte liée à la campagne.
   // Le trigger trg_log_harvest alimente event_journal avec context.campaign_id.
