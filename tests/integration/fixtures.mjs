@@ -1,5 +1,4 @@
-import { adminClient, createTestUser, signInAs, authedClient }
-  from './setup.mjs';
+import { adminClient, createTestUser, signInAs, authedClient } from './setup.mjs';
 
 export async function setupFixtures() {
   // Suffixe unique par run pour éviter les collisions d'emails entre
@@ -26,6 +25,26 @@ export async function setupFixtures() {
     }
   }
   await adminClient.from('app_users').delete().like('email', '%@test.local');
+
+  // Chauffer le cache de schéma supabase-js sur toutes les tables utilisées
+  // par les tests, pour éviter les erreurs "column not found in schema cache"
+  // sur le premier accès d'une table après un db reset.
+  await Promise.all([
+    adminClient.from('sites').select('*').limit(1),
+    adminClient.from('app_users').select('*').limit(1),
+    adminClient.from('funders').select('*').limit(1),
+    adminClient.from('farms').select('*').limit(1),
+    adminClient.from('campaigns').select('*').limit(1),
+    adminClient.from('plots').select('*').limit(1),
+    adminClient.from('harvests').select('*').limit(1),
+    adminClient.from('sales').select('*').limit(1),
+    adminClient.from('expenses').select('*').limit(1),
+    adminClient.from('event_journal').select('*').limit(1),
+    adminClient.from('animals').select('*').limit(1),
+    adminClient.from('projects').select('*').limit(1),
+    adminClient.from('project_steps').select('*').limit(1),
+    adminClient.from('crop_operations').select('*').limit(1),
+  ]);
 
   // 1. Créer un site
   const { data: site, error: siteErr } = await adminClient

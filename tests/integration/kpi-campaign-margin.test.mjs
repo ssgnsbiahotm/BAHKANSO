@@ -33,7 +33,7 @@ beforeAll(async () => {
   // Créer une campagne liée à cette ferme
   const { data: campaign, error: campErr } = await adminClient
     .from('campaigns')
-    .insert({ name: 'Campagne Test Marge', farm_id: farmId })
+    .insert({ year: 2026, crop_name: 'Campagne Test Marge', farm_id: farmId })
     .select()
     .single();
   if (campErr) throw campErr;
@@ -59,22 +59,29 @@ afterAll(async () => {
       .delete()
       .eq('campaign_id', campaignId);
     await adminClient.from('harvests').delete().eq('campaign_id', campaignId);
+    await adminClient.from('campaigns').delete().eq('id', campaignId);
+  }
+  if (farmId) {
+    await adminClient.from('farms').delete().eq('id', farmId);
   }
   await teardownFixtures(fx);
 });
 
 test('calculateCampaignMargin retourne recettes moins depenses', async () => {
+  const today = new Date().toISOString().split('T')[0];
   // 2 recoltes : 1500 + 2500 = 4000 de recettes
-  await adminClient.from('harvests').insert([
-    { campaign_id: campaignId, revenue: 1500, quantity: 100 },
-    { campaign_id: campaignId, revenue: 2500, quantity: 150 },
+  const { error: hErr } = await adminClient.from('harvests').insert([
+    { campaign_id: campaignId, date: today, revenue: 1500, quantity: 100 },
+    { campaign_id: campaignId, date: today, revenue: 2500, quantity: 150 },
   ]);
+  expect(hErr).toBeNull();
 
   // 2 operations culturales : (300 + 100) + (200 + 50) = 650 de depenses
-  await adminClient.from('crop_operations').insert([
-    { campaign_id: campaignId, cost: 300, labor_cost: 100 },
-    { campaign_id: campaignId, cost: 200, labor_cost: 50 },
+  const { error: oErr } = await adminClient.from('crop_operations').insert([
+    { campaign_id: campaignId, type: 'travail', date: today, cost: 300, labor_cost: 100 },
+    { campaign_id: campaignId, type: 'travail', date: today, cost: 200, labor_cost: 50 },
   ]);
+  expect(oErr).toBeNull();
 
   const margin = await calculateCampaignMargin(campaignId, adminClient);
   expect(margin).toBe(3350); // 4000 - 650 = 3350
@@ -89,15 +96,16 @@ test('calculateCampaignMargin ignore les donnees dune autre campagne', async () 
   // Creer une autre campagne avec ses propres donnees
   const { data: otherCamp } = await adminClient
     .from('campaigns')
-    .insert({ name: 'Autre Campagne', farm_id: farmId })
+    .insert({ year: 2026, crop_name: 'Autre Campagne', farm_id: farmId })
     .select()
     .single();
 
+  const today = new Date().toISOString().split('T')[0];
   await adminClient.from('harvests').insert([
-    { campaign_id: otherCamp.id, revenue: 9999, quantity: 10 },
+    { campaign_id: otherCamp.id, date: today, revenue: 9999, quantity: 10 },
   ]);
   await adminClient.from('crop_operations').insert([
-    { campaign_id: otherCamp.id, cost: 100, labor_cost: 10 },
+    { campaign_id: otherCamp.id, type: 'travail', date: today, cost: 100, labor_cost: 10 },
   ]);
 
   // La campagne de test reste a 0
@@ -114,8 +122,9 @@ test('calculateCampaignMargin ignore les donnees dune autre campagne', async () 
 });
 
 test('calculateCampaignMargin avec seulement des recettes', async () => {
+  const today = new Date().toISOString().split('T')[0];
   await adminClient.from('harvests').insert([
-    { campaign_id: campaignId, revenue: 5000, quantity: 200 },
+    { campaign_id: campaignId, date: today, revenue: 5000, quantity: 200 },
   ]);
 
   const margin = await calculateCampaignMargin(campaignId, adminClient);

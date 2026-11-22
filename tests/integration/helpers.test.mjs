@@ -1,6 +1,6 @@
 import { test, beforeAll, afterAll } from 'vitest';
 import { expect } from 'vitest';
-import { signInAs, authedClient } from './setup.mjs';
+import { adminClient, signInAs, authedClient } from './setup.mjs';
 import { setupFixtures, teardownFixtures } from './fixtures.mjs';
 
 let fx;

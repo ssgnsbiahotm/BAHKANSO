@@ -30,6 +30,16 @@ beforeAll(async () => {
   farmId = farm.id;
 });
 
+afterAll(async () => {
+  if (farmId) {
+    await adminClient.from('farms').delete().eq('id', farmId);
+  }
+  if (farmId) {
+    await adminClient.from('event_journal').delete().eq('farm_id', farmId);
+  }
+  await teardownFixtures(fx);
+});
+
 beforeEach(async () => {
   // Chaque test part d'un journal propre pour cette ferme (évite les fuites entre tests)
   if (farmId) {

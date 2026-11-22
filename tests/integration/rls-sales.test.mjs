@@ -56,7 +56,7 @@ beforeAll(async () => {
   }
 
   // Vente sur l'autre site (site B)
-  const { data: saleB } = await adminClient
+  const { data: saleB, error: saleBErr } = await adminClient
     .from('sales')
     .insert({
       reference: 'VTE-TEST-002',
@@ -68,7 +68,8 @@ beforeAll(async () => {
     })
     .select()
     .single();
-  if (saleB) saleBSiteId = saleB.id;
+  if (saleBErr) throw saleBErr;
+  saleBSiteId = saleB.id;
 });
 
 afterAll(async () => {

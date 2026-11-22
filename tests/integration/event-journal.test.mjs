@@ -36,7 +36,7 @@ afterAll(async () => {
 });
 
 test('le journal doit être alimenté après création d\'une dépense', async () => {
-  const token = await signInAs('admin-helpers@test.local', 'Test1234!');
+  const token = await signInAs(fx.admin.authUser.email, 'Test1234!');
   const client = await authedClient(token);
 
   // 1. Créer une dépense (référence unique pour éviter les conflits entre runs parallèles)
