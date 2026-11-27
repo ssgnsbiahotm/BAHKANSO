@@ -116,3 +116,74 @@ test('comptable du site A peut lire les expenses de son site', async () => {
   expect(error).toBeNull();
   expect(data.length).toBeGreaterThanOrEqual(1);
 });
+
+// ─── Tests négatifs RLS — arbitrage 2026-11-27 ──────────────────────
+
+test('chef_chantier ne peut PAS SELECT les expenses de son site', async () => {
+  const email = 'chef-siteA@test.local';
+  await createTestUser(email, 'Test1234!', 'chef_chantier', siteA.id);
+  const token = await signInAs(email, 'Test1234!');
+  const client = await authedClient(token);
+  const { data, error } = await client
+    .from('expenses').select('id').eq('site_id', siteA.id);
+  expect(error).toBeNull();
+  expect(data).toHaveLength(0);
+});
+
+test('chef_chantier ne peut PAS WRITE une expense de son site', async () => {
+  const token = await signInAs('chef-siteA@test.local', 'Test1234!');
+  const client = await authedClient(token);
+  const { error } = await client.from('expenses').insert({
+    amount: 1000, site_id: siteA.id,
+    reference: `TEST-CC-${Date.now()}`,
+    status: 'brouillon',
+    date: new Date().toISOString().slice(0, 10),
+  });
+  expect(error).not.toBeNull();
+});
+
+test('comptable ne peut PAS WRITE une expense', async () => {
+  const token = await signInAs('compta-siteA@test.local', 'Test1234!');
+  const client = await authedClient(token);
+  const { error } = await client.from('expenses').insert({
+    amount: 1000, site_id: siteA.id,
+    reference: `TEST-COMPTA-${Date.now()}`,
+    status: 'brouillon',
+    date: new Date().toISOString().slice(0, 10),
+  });
+  expect(error).not.toBeNull();
+});
+
+test('responsable_chantier ne peut PAS WRITE une expense', async () => {
+  const email = 'rchantier-siteA@test.local';
+  await createTestUser(email, 'Test1234!', 'responsable_chantier', siteA.id);
+  const token = await signInAs(email, 'Test1234!');
+  const client = await authedClient(token);
+  const { error } = await client.from('expenses').insert({
+    amount: 1000, site_id: siteA.id,
+    reference: `TEST-RC-${Date.now()}`,
+    status: 'brouillon',
+    date: new Date().toISOString().slice(0, 10),
+  });
+  expect(error).not.toBeNull();
+});
+
+test('propriétaire PEUT SELECT une expense d\'un autre site', async () => {
+  const { error: fixtureErr } = await adminClient
+    .from('expenses').insert({
+      amount: 500, site_id: siteB.id,
+      reference: `TEST-OWNER-B-${Date.now()}`,
+      status: 'brouillon',
+      date: new Date().toISOString().slice(0, 10),
+    });
+  expect(fixtureErr).toBeNull();
+
+  const email = 'proprio@test.local';
+  await createTestUser(email, 'Test1234!', 'propriétaire', siteA.id);
+  const token = await signInAs(email, 'Test1234!');
+  const client = await authedClient(token);
+  const { data, error } = await client
+    .from('expenses').select('id').eq('site_id', siteB.id);
+  expect(error).toBeNull();
+  expect(data.length).toBeGreaterThanOrEqual(1);
+});
