@@ -47,7 +47,7 @@ const expenseSchema = z.object({
   has_justificatif: z.boolean().default(false),
   justificatif_url: z.string().nullable(),
   comment: z.string().nullable(),
-  amount_paid: z.number().nonnegative().default(0),
+  amount_paid: z.number().nonnegative().optional(),
   payment_method_detail: z.string().nullable(),
   payment_reference: z.string().nullable(),
   date: z.string().min(1, 'Date obligatoire'),
@@ -73,7 +73,7 @@ interface ExpenseFormValues {
   has_justificatif: boolean;
   justificatif_url: string | null;
   comment: string | null;
-  amount_paid: number;
+  amount_paid?: number | null | undefined;
   payment_method_detail: string | null;
   payment_reference: string | null;
   date: string;
@@ -169,7 +169,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
       has_justificatif: false,
       justificatif_url: null,
       comment: null,
-      amount_paid: 0,
+      amount_paid: undefined,
       payment_method_detail: null,
       payment_reference: null,
       date: new Date().toISOString().slice(0, 10),

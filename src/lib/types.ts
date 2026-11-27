@@ -141,7 +141,7 @@ export interface Expense {
   justificatif_url: string | null;
   justificatif_file_name: string | null;
   justificatif_uploaded_at: string | null;
-  amount_paid: number;
+  amount_paid: number | null;
   date_paid: string | null;
   payment_method_detail: string | null;
   payment_reference: string | null;
