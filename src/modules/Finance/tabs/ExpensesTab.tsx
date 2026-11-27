@@ -144,7 +144,7 @@ export const ExpensesTab = ({ expensesData }: ExpensesTabProps) => {
         if (error) throw error;
       }
     },
-    [appUser?.id, supabase],
+    [appUser?.id],
   );
 
   const form = ValidatedForm<ExpenseFormValues>({

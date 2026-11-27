@@ -312,7 +312,7 @@ export function SalesModule() {
     } catch (err) {
       toast.show('Erreur: ' + getErrorMessage(err), 'error');
     }
-  }, [setForm]);
+  }, [setForm, toast]);
 
   const openDetail = useCallback((sale: SaleWithRelations) => {
     setDetailSale(sale);

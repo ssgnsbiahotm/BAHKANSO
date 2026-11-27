@@ -47,7 +47,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     } else {
       setCurrentSiteIdState(null);
     }
-  }, [appUser, isAdmin, availableSites.length]);
+  }, [appUser, isAdmin, availableSites]);
 
   const setCurrentSiteId = (id: string | null) => {
     if (!isAdmin) {

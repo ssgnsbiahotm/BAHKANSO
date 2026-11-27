@@ -564,7 +564,7 @@ export function Configuration() {
     } finally {
       setSaving(false);
     }
-  }, [hasDrafts, changedFields, farm, siteContent, isAuthorized, authUser, refresh, toast]);
+  }, [hasDrafts, changedFields, farm, siteContent, isAuthorized, authUser, appUser, refresh, toast]);
 
   // --- Upload de logo ---
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
