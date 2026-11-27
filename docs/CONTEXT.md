@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-17
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `12e6219` (commit précédent)
+**Dernier commit de code** : `1400fe0`
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
