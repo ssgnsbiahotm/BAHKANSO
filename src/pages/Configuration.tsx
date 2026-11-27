@@ -445,32 +445,6 @@ export function Configuration() {
     return typeof value === 'string' || typeof value === 'number' || value === null || value === undefined ? value : null;
   }, [draftsMap, currentValues]);
 
-  // --- Gestion des brouillons ---
-  const updateDraft = useCallback((domain: ConfigDomain, subsection: ConfigSubsection, fieldId: string, value: unknown) => {
-    const path = getDraftPath(domain, subsection, fieldId);
-    const originalValue = currentValues[path];
-
-    setDrafts(prev => {
-      const existing = prev.findIndex(d => d.path === path);
-      if (existing >= 0) {
-        const next = [...prev];
-        next[existing] = { path, subsection, fieldId, value, originalValue };
-        if (JSON.stringify(value) === JSON.stringify(originalValue)) {
-          next.splice(existing, 1);
-        }
-        return next;
-      }
-      return [...prev, { path, subsection, fieldId, value, originalValue }];
-    });
-
-    if (autoSaveEnabled) {
-      if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
-      autoSaveTimeoutRef.current = setTimeout(() => {
-        void saveAllDrafts();
-      }, 2000);
-    }
-  }, [currentValues, autoSaveEnabled]);
-
   const resetField = useCallback((path: string) => {
     setDrafts(prev => prev.filter(d => d.path !== path));
   }, []);
@@ -565,6 +539,32 @@ export function Configuration() {
       setSaving(false);
     }
   }, [hasDrafts, changedFields, farm, siteContent, isAuthorized, authUser, appUser, refresh, toast]);
+
+  // --- Gestion des brouillons ---
+  const updateDraft = useCallback((domain: ConfigDomain, subsection: ConfigSubsection, fieldId: string, value: unknown) => {
+    const path = getDraftPath(domain, subsection, fieldId);
+    const originalValue = currentValues[path];
+
+    setDrafts(prev => {
+      const existing = prev.findIndex(d => d.path === path);
+      if (existing >= 0) {
+        const next = [...prev];
+        next[existing] = { path, subsection, fieldId, value, originalValue };
+        if (JSON.stringify(value) === JSON.stringify(originalValue)) {
+          next.splice(existing, 1);
+        }
+        return next;
+      }
+      return [...prev, { path, subsection, fieldId, value, originalValue }];
+    });
+
+    if (autoSaveEnabled) {
+      if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        void saveAllDrafts();
+      }, 2000);
+    }
+  }, [currentValues, autoSaveEnabled, saveAllDrafts]);
 
   // --- Upload de logo ---
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
