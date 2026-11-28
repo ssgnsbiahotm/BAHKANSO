@@ -92,6 +92,43 @@
 
 6. **Conformité §9 (2026-11-13)** : 9 pages + DashboardV2 + dédup `event_journal`. Voir `docs/audits/2026-11-13-loadmodule-audit.md` et `docs/audits/2026-11-13-dashboardv2-investigation.md`.
 
+## 2026-11-28 — Préparation production
+
+**Dernier commit** : `f801bb8` (chore repo) → en cours : `test:integration` + `CONTEXT.md`
+
+**État vérifié (2026-11-28)** :
+- `npm run typecheck` : exit 0
+- `npm run build` : exit 0, ~1.5 Mo, 79 entrées PWA
+- `npm run test -- src/` : 145/145 verts (142 + 3 SiteContext)
+- `npm run test:integration` : 44/44 verts (séquentiel, env auto)
+- `npm run lint` : 0 erreur, 23 warnings exhaustive-deps
+
+**Commits de la session 2026-11-27 → 2026-11-28** :
+- `8ea8ebd` fix(lint) 4 avertissements exhaustive-deps
+- `1400fe0` fix(lint) 5e avertissement exhaustive-deps
+- `8e53a17` docs(context) §17
+- `ed7a340` fix(expenses) colonnes justificatif_* + amount_paid
+- `c63c228` fix(rbac) Mission C côté UI
+- `7400a0f` fix(rls) align expenses policies
+- `d89be36` feat(rbac) écran 'Aucun site assigné' (P3 UI)
+- `554565e` docs(ops) runbook déploiement
+- `f801bb8` chore(repo) .gitignore + rapports archivés
+
+**Décisions projet** :
+- P3 site_id livré en **UI-only**. Contrainte DB reportée (refonte trigger `handle_new_user` + flow pending, chantier séparé).
+- Module Finance > Dépenses : **MVP prod-ready**, backlog P1 (tests UI, cohérence comptable).
+- 23 warnings ESLint **acceptés pour prod**, fix en session dédiée.
+- `npm run test` global échoue par parallélisme (afterAll partagés). **Utiliser `test` (unit) et `test:integration` (séquentiel) séparément.**
+
+**Dettes P1 documentées (non bloquantes prod)** :
+1. Bypass `rls_*_sales` (4 policies site-only sans rôle) + audit global `rls_*` sur tables sensibles
+2. 5 warnings ESLint `setForm missing dep` (les plus suspects des 23)
+3. Plugin `security-guidance` cassé depuis 2026-11-26 (modèle deepseek EOL, HTTP 410). Revues auto aveugles.
+4. Contrainte DB `site_id` (refonte trigger pending)
+5. Tests UI Finance > Dépenses + caractérisation cohérence comptable UI/RLS
+
+**Prochaine étape** : push branche `fix/security-rls-p0-p1` → PR vers `main` → validation → déploiement prod.
+
 ## Commandes utiles
 
 ```bash
