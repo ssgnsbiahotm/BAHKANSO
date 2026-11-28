@@ -218,7 +218,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
 
   responsable_chantier: {
     dashboard: { read: true, write: false, delete: false, admin: false },
-    finance: { read: true, write: true, delete: false, admin: false },
+    finance: { read: true, write: false, delete: false, admin: false },
     ventes: { read: true, write: false, delete: false, admin: false },
     agriculture: { read: true, write: false, delete: false, admin: false },
     livestock: { read: true, write: false, delete: false, admin: false },
@@ -235,8 +235,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
 
   chef_chantier: {
     dashboard: { read: true, write: false, delete: false, admin: false },
-    finance: { read: true, write: true, delete: false, admin: false },
-    ventes: { read: true, write: false, delete: false, admin: false },
+    finance: { read: false, write: false, delete: false, admin: false },
+    ventes: { read: false, write: false, delete: false, admin: false },
     agriculture: { read: true, write: false, delete: false, admin: false },
     livestock: { read: true, write: false, delete: false, admin: false },
     projects: { read: true, write: true, delete: true, admin: false },
@@ -317,7 +317,6 @@ export const FINANCE_ACCESS_ROLES: UserRole[] = [
   'responsable_agricole',
   'responsable_élevage',
   'responsable_chantier',
-  'chef_chantier',
   'auditeur',
 ];
 

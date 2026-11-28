@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "npm run build && npx surge dist/ bahkanso.surge.sh"
+    "deploy": "npm run build && npx surge dist/ bahkanso.surge.sh",
+    "test:integration": "bash scripts/test-integration.sh"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

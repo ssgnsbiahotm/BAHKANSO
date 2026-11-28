@@ -506,6 +506,7 @@
 .landing-root {
   background: var(--bg-page);
   color: var(--text-primary);
+  scroll-behavior: smooth;
 }
 
 .landing-header {

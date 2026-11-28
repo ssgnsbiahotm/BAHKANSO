@@ -23,7 +23,7 @@ export function FacebookFeedPreview({
       className="py-10 md:py-14 lg:py-20 section-page"
     >
       <div className="container mx-auto px-6" style={{ maxWidth: 'var(--container-max)' }}>
-        <div className="bg-gray-50 rounded-2xl p-8 md:p-12">
+        <div className="bg-surface rounded-2xl border border-subtle p-8 md:p-12">
           <div className="max-w-3xl mb-14 md:mb-18 text-center">
           <p className="font-mono text-sm uppercase tracking-wider mb-4 text-signal" style={{ letterSpacing: '0.1em' }}>
             Réseaux sociaux
@@ -60,7 +60,7 @@ export function FacebookFeedPreview({
               href={facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="module-btn module-btn-primary module-btn-lg px-9 py-3.5 text-center inline-flex items-center gap-2 font-semibold shadow-md border border-green-600"
+              className="module-btn module-btn-primary module-btn-lg px-9 py-3.5 text-center inline-flex items-center gap-2 font-semibold shadow-md border border-signal"
             >
               <Facebook size={18} />
               Voir plus de photos sur Facebook

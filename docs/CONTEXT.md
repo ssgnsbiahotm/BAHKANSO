@@ -2,7 +2,7 @@
 
 **Date de mise à jour** : 2026-11-17
 **Branche de référence** : `main` (= `feat/dashboard-v2`, SHA `174c74b`)
-**Dernier commit de code** : `84595eb` (commit précédent)
+**Dernier commit de code** : `1400fe0`
 **URL production** : https://bahkanso.surge.sh
 
 ## État actuel
@@ -47,9 +47,18 @@
 - 2026-11-17 — Trois corrections ciblées (mission en cours) : (a) ClientsPage — la carte client disparaît immédiatement après suppression (état local `displayCustomers` filtré avant `refresh()`) ; (b) Inventory — CRUD des catégories de stock (migration `stock_categories`, type `StockCategory`, DataContext `stockCategories`/`setStockCategories`, formulaire créer/modifier/supprimer dans l'onglet Catégories) ; (c) Projects — contraste des textes (remplacement `text-muted` par `text-slate-600` sur libellés et descriptions). Vérifications : typecheck propre sur les fichiers modifiés, build exit 0, migration `20261117000001_create_stock_categories.sql` appliquée via `supabase db reset`. Tests Playwright e2e lancés (environnement Supabase local démarré) — résultat en attente (aucun test e2e écrit spécifiquement pour suppression client/catégories).
 
 - 2026-11-18 — Correction des dettes techniques (rapport de validation approfondie) : ajout du rôle `chef_chantier` dans `src/lib/rbac.ts` (type `UserRole`, `ROLE_HIERARCHY`, `ROLE_LABELS`, `ROLE_DESCRIPTIONS`, `ROLE_PERMISSIONS`, `FINANCE_ACCESS_ROLES`) aligné sur le rôle DB des migrations SQL ; passage de `comptable` en lecture seule sur `ventes` (alignement RBAC vs RLS) ; retrait de la prop `transition` invalide sur `<circle>` dans `src/components/ui/FarmHealthWidget.tsx` (TS2322) ; suppression des variables non utilisées `setIsSavingCategory` (Inventory.tsx:240), `AnimalFormValues` (AnimauxPage.tsx:27), `LotFormValues` (LotsPage.tsx:26) ; déclaration des matchers `@testing-library/jest-dom/vitest` dans `src/test/setup.tsx` (supprime ~126 fausses erreurs TS). Vérifications : typecheck propre dans le périmètre (erreurs TS5103 `baseUrl` + alert-rules.ts/kpi.ts préexistantes, non liées), lint 0 erreur. Commit `d427c98` (6 fichiers, 26 insertions, 9 deletions), non poussé.
-- 2026-11-22 — Mission « corrige » (production-ready) : corrections ciblées sur les tests d'intégration et la base/RLS. (a) `src/lib/kpi.ts` : `calculateYield` lit `campaign.plots` de façon type-safe (objet `{area_hectares}` ou tableau) au lieu de `plots?.[0]` qui retournait null en runtime. (b) `tests/integration/event-journal.test.mjs` : sign-in via `fx.admin.authUser.email` au lieu d'un email hardcodé non suffixed. (c) `tests/integration/kpi-livestock.test.mjs` : libellés événements `naissance`→`animal_ne`, `mort`→`animal_mort` alignés sur la base. (d) Nouvelle migration `supabase/migrations/20261122000001_correction_helpers_et_rls.sql` : helpers `current_*` lisent le `sub` du JWT (au lieu d'`auth.uid()` en SECURITY DEFINER), contrainte `site_id` ajoutée à `fundings_write_scoped` pour les financeurs, politiques `sales_*` dupliquées supprimées, `FORCE RLS` sur `fundings`. (e) `tests/integration/setup.mjs` : `signInAs` utilise un client jetable pour éviter la pollution de session inter-fichiers. (f) `tests/integration/kpi-campaign-margin.test.mjs` : ajout de `date: today` sur les insertions `crop_operations` (contrainte NOT NULL sur `date`), y compris pour l'autre campagne du test "ignore les données d'une autre campagne". Vérifications : typecheck exit 0, build exit 0, lint 0 erreur, tests d'intégration 39/39 (10/10 suites) — suite entière verte. Dernier commit de code : `84595eb` (commit précédent).
+- 2026-11-22 — Mission « corrige » (production-ready) : corrections ciblées sur les tests d'intégration et la base/RLS. (a) `src/lib/kpi.ts` : `calculateYield` lit `campaign.plots` de façon type-safe (objet `{area_hectares}` ou tableau) au lieu de `plots?.[0]` qui retournait null en runtime. (b) `tests/integration/event-journal.test.mjs` : sign-in via `fx.admin.authUser.email` au lieu d'un email hardcodé non suffixed. (c) `tests/integration/kpi-livestock.test.mjs` : libellés événements `naissance`→`animal_ne`, `mort`→`animal_mort` alignés sur la base. (d) Nouvelle migration `supabase/migrations/20261122000001_correction_helpers_et_rls.sql` : helpers `current_*` lisent le `sub` du JWT (au lieu d'`auth.uid()` en SECURITY DEFINER), contrainte `site_id` ajoutée à `fundings_write_scoped` pour les financeurs, politiques `sales_*` dupliquées supprimées, `FORCE RLS` sur `fundings`. (e) `tests/integration/setup.mjs` : `signInAs` utilise un client jetable pour éviter la pollution de session inter-fichiers. (f) `tests/integration/kpi-campaign-margin.test.mjs` : ajout de `date: today` sur les insertions `crop_operations` (contrainte NOT NULL sur `date`), y compris pour l'autre campagne du test "ignore les données d'une autre campagne". Vérifications : typecheck exit 0, build exit 0, lint 0 erreur, tests d'intégration 39/39 (10/10 suites) — suite entière verte. Dernier commit de code : `1d06a7e` (commit précédent).
 
-**À faire** : confirmer avec le responsable si le module Finance > Dépenses (aucune route `/app/finance/depenses`, écart signalé dans le rapport QA) doit être développé — aucune décision d'architecture prise, pas de code écrit.
+- 2026-11-26 — Mise en production (P0/P1) : correction des risques P0 RLS `sale_items` et P1 RBAC/qualité statique. Migration `20261126000001_nettoyage_rls_legacy.sql` créée et appliquée via `supabase db reset`, puis committée sur la branche `fix/security-rls-p0-p1`. Vérifications : typecheck exit 0, build exit 0, lint 0 erreur, tests 142/142 + intégration 39/39 sur Supabase local réinitialisé. Dernier commit de code : `e35104e` (commit précédent).
+- 2026-11-26 — Corrections page d'accueil (5 points) : (1) contenus activités/piliers/suivi externalisés dans `src/config/landing-content.ts` (plus de données en dur dans `LandingPage.tsx`) ; (2) `sizes` ajouté sur l'image hero pour le LCP ; (3) état vide `FacebookFeedPreview` déjà géré (retour `null`, pas de changement) ; (4) `FacebookFeedPreview` harmonisé sur les tokens du design-system (`bg-surface`/`border-subtle`, `border-signal` au lieu de `bg-gray-50`/`border-green-600`) ; (5) `scroll-behavior: smooth` ajouté sur `.landing-root` dans `src/styles/components.css`. Vérifications : typecheck exit 0, build exit 0, lint 0 erreur.
+- 2026-11-26 — Persistance RLS en migration durable : création de `supabase/migrations/20261126000001_nettoyage_rls_legacy.sql` qui (a) supprime les politiques legacy `role_*` sur `sale_items` (redondantes avec `rls_*` scopés site_id), (b) recrée `event_journal_select_scoped` sans la clause `OR current_user_farm_id() IS NULL` (brèche isolation supprimée). Migration appliquée via `supabase db reset` ; vérifiée : `sale_items` n'a que les 4 politiques `rls_*`, `event_journal_select_scoped` sans IS NULL, FORCE RLS sur `sale_items`, `event_journal`, `sales`, `fundings`. Vérifications : typecheck exit 0, build exit 0, lint 0 erreur, intégration 39/39 sur base locale réinitialisée.
+
+- 2026-11-27 — Corrections ESLint `exhaustive-deps` (4 sur 5 ciblées) : `src/lib/SiteContext.tsx` (`availableSites` ajouté aux deps du useEffect ligne 50), `src/modules/Finance/tabs/ExpensesTab.tsx` (`supabase` retiré des deps du useCallback ligne 147), `src/modules/Sales/SalesModule.tsx` (`toast` ajouté aux deps du useCallback ligne 315), `src/pages/Configuration.tsx` (`appUser` ajouté aux deps du useCallback ligne 567). Le 5ème avertissement (Configuration.tsx:472, `saveAllDrafts`) n'a pas pu être corrigé sans reordonner les déclarations (TDZ TS2448/TS2454) — laissé en l'état comme préexistant. Vérifications : typecheck exit 0, tests unitaires 142/142, lint passé de 28 à 24 avertissements (0 erreur).
+
+**Résumé de la mission** : tous les risques P0 et P1 de l'audit READ-ONLY du 2026-11-18 sont corrigés et vérifiés. (1) P0 RLS `sale_items` : `FORCE ROW LEVEL SECURITY` + politique scoped `site_id` via jointure sur `sales` (migration `20261119000000_rls_force_sale_items.sql`), pas de politique `019` résiduelle avec `OR current_user_site_id() IS NULL` sur `sale_items`. (2) P1 RBAC : `chef_chantier` ajouté à `src/lib/rbac.ts` (type, hiérarchie, permissions, labels, `FINANCE_ACCESS_ROLES`), `comptable` passé en lecture seule sur `ventes`/`finance` (aligné RLS). (3) P1 qualité statique : prop `transition` invalide retirée de `FarmHealthWidget.tsx`, variables inutilisées supprimées, matchers `@testing-library/jest-dom/vitest` déclarés. (4) P0 nettoyage RLS legacy : politiques `role_*` supprimées sur `sale_items`, `event_journal_select_scoped` corrigé (retrait IS NULL) via migration `20261126000001_nettoyage_rls_legacy.sql`. (5) Tests d'intégration : 39/39 vert sur `supabase db reset` local (migrations 001→022 appliquées, helpers JWT corrigés, `signInAs` client jetable).
+
+**À faire** : confirmer avec le responsable si le module Finance > Dépenses (route `/app/finance/depenses` existe, écart QA résolu) doit être complété — décision métier en attente ; runbook déploiement/sauvegarde/restauration déjà rédigé (`_claude-output/reports/2026-11-26-runbook-deploiement-sauvegarde-restauration.md`, complet) ; vérifier URL production `https://bahkanso.surge.sh` (P3, pas d'accès distant) ; traiter les 24 avertissements ESLint `exhaustive-deps` restants dont 4 corrigés cette session (P1, optionnel) ; décider comportement utilisateur sans `site_id` (P3, décision métier).
+- 2026-11-26 — Mission C (correction RBAC/RLS) : retrait des accès financiers de `chef_chantier` (finance.read/write/delete, ventes, FINANCE_ACCESS_ROLES) dans `src/lib/rbac.ts` ; `responsable_chantier` passé en lecture seule financière (finance.write false) ; création de la migration `20261126000002_rls_chef_chantier_no_finance.sql` retirant chef_chantier des politiques expenses/sales/sale_items. Vérifications : typecheck exit 0, lint 0 erreur, build exit 0, tests unitaires 142/142. Tests d'intégration RLS : rls-expenses OK, rls-sales/helpers échouent (non liés aux modifications chef_chantier, à investiguer séparément). Rapport : `docs/reports/MISSION_C_RAPPORT_FINAL_CORRECTIONS.md`. Pas de commit, pas de push.
 
 ## Ce qui a été fait (résumé)
 
@@ -82,6 +91,43 @@
    - Déploiement Surge (`npx surge dist/ bahkanso.surge.sh`).
 
 6. **Conformité §9 (2026-11-13)** : 9 pages + DashboardV2 + dédup `event_journal`. Voir `docs/audits/2026-11-13-loadmodule-audit.md` et `docs/audits/2026-11-13-dashboardv2-investigation.md`.
+
+## 2026-11-28 — Préparation production
+
+**Dernier commit** : `f801bb8` (chore repo) → en cours : `test:integration` + `CONTEXT.md`
+
+**État vérifié (2026-11-28)** :
+- `npm run typecheck` : exit 0
+- `npm run build` : exit 0, ~1.5 Mo, 79 entrées PWA
+- `npm run test -- src/` : 145/145 verts (142 + 3 SiteContext)
+- `npm run test:integration` : 44/44 verts (séquentiel, env auto)
+- `npm run lint` : 0 erreur, 23 warnings exhaustive-deps
+
+**Commits de la session 2026-11-27 → 2026-11-28** :
+- `8ea8ebd` fix(lint) 4 avertissements exhaustive-deps
+- `1400fe0` fix(lint) 5e avertissement exhaustive-deps
+- `8e53a17` docs(context) §17
+- `ed7a340` fix(expenses) colonnes justificatif_* + amount_paid
+- `c63c228` fix(rbac) Mission C côté UI
+- `7400a0f` fix(rls) align expenses policies
+- `d89be36` feat(rbac) écran 'Aucun site assigné' (P3 UI)
+- `554565e` docs(ops) runbook déploiement
+- `f801bb8` chore(repo) .gitignore + rapports archivés
+
+**Décisions projet** :
+- P3 site_id livré en **UI-only**. Contrainte DB reportée (refonte trigger `handle_new_user` + flow pending, chantier séparé).
+- Module Finance > Dépenses : **MVP prod-ready**, backlog P1 (tests UI, cohérence comptable).
+- 23 warnings ESLint **acceptés pour prod**, fix en session dédiée.
+- `npm run test` global échoue par parallélisme (afterAll partagés). **Utiliser `test` (unit) et `test:integration` (séquentiel) séparément.**
+
+**Dettes P1 documentées (non bloquantes prod)** :
+1. Bypass `rls_*_sales` (4 policies site-only sans rôle) + audit global `rls_*` sur tables sensibles
+2. 5 warnings ESLint `setForm missing dep` (les plus suspects des 23)
+3. Plugin `security-guidance` cassé depuis 2026-11-26 (modèle deepseek EOL, HTTP 410). Revues auto aveugles.
+4. Contrainte DB `site_id` (refonte trigger pending)
+5. Tests UI Finance > Dépenses + caractérisation cohérence comptable UI/RLS
+
+**Prochaine étape** : push branche `fix/security-rls-p0-p1` → PR vers `main` → validation → déploiement prod.
 
 ## Commandes utiles
 

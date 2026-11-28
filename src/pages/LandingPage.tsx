@@ -4,6 +4,7 @@ import { useData } from '@/lib/DataContext';
 import '@/styles/components.css';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { FacebookFeedPreview } from '@/components/landing/FacebookFeedPreview';
+import { LANDING_ACTIVITIES, LANDING_PILLARS, LANDING_SUIVI_STEPS } from '@/config/landing-content';
 
 /* ============================================================================
    TRUST BADGES — Inline chips
@@ -182,36 +183,7 @@ export default function LandingPage() {
   const footerCopyright = footerContent.copyright as string | undefined;
   const footerModulesTitle = footerContent.modulesTitle as string | undefined;
 
-  // --- Activities data (no config fields yet — typographic + icons) ---
-  const activities = useMemo(() => [
-    {
-      id: '01',
-      title: 'Cultures',
-      desc: 'Suivi des semis à la récolte, parcelle par parcelle, avec saisie terrain en temps réel.',
-      link: 'Voir le suivi des cultures',
-      href: '/app/exploitation',
-      icon: '🌱',
-      color: 'var(--color-grass)',
-    },
-    {
-      id: '02',
-      title: 'Élevage',
-      desc: 'Alimentation, état de santé et événements de chaque animal, tracés dans le temps.',
-      link: 'Voir le suivi d\'élevage',
-      href: '/app/livestock',
-      icon: '🐄',
-      color: 'var(--color-terra)',
-    },
-    {
-      id: '03',
-      title: 'Travaux',
-      desc: "Suivi des chantiers d'aménagements et d'infrastructures, de la planification à la réception.",
-      link: 'Voir les chantiers',
-      href: '/app/projects',
-      icon: '🏗️',
-      color: 'var(--color-sky)',
-    },
-  ], []);
+  const activities = useMemo(() => LANDING_ACTIVITIES, []);
 
   return (
       <div data-theme="editorial" className="min-h-screen landing-root text-primary">
@@ -340,6 +312,7 @@ export default function LandingPage() {
                       className="w-full h-full object-cover hero-image"
                       loading="eager"
                       fetchPriority="high"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       onLoad={() => setHeroImageLoaded(true)}
                       onError={() => setHeroImageLoaded(false)}
                       style={{
@@ -447,12 +420,7 @@ export default function LandingPage() {
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8" role="list" aria-label="Piliers de la plateforme">
-            {[
-              { id: '01', title: 'Traçabilité complète', desc: 'Chaque dépense, saisie et décision est horodatée et attribuée.' },
-              { id: '02', title: 'Équipe synchronisée', desc: 'Terrain et responsable à distance travaillent sur les mêmes données.' },
-              { id: '03', title: 'Sécurité des données', desc: 'Authentification, permissions et audit intègres, hébergement maîtrisé.' },
-              { id: '04', title: 'Pilotage par indicateurs', desc: 'Tableaux de bord automatiques, alertes seuls, exports pour le décideur.' },
-            ].map((item) => (
+            {LANDING_PILLARS.map((item) => (
               <KPICard key={item.id} {...item} />
             ))}
           </div>
@@ -479,12 +447,7 @@ export default function LandingPage() {
           </div>
           <div className="max-w-2xl">
             <ol className="relative" style={{ paddingLeft: 'var(--space-12)', borderLeft: '2px solid var(--border-night-subtle)' }} aria-label="Étapes du cycle de suivi">
-              {[
-                { id: '01', title: 'Planification', desc: "Définition des objectifs, budgétisation et calendrier prévisionnel avec l'équipe terrain." },
-                { id: '02', title: 'Financement', desc: 'Envoi des fonds par le responsable à distance, traçabilité bancaire et notification instantanée.' },
-                { id: '03', title: 'Exécution', desc: 'Réalisation des opérations sur le terrain, saisie en temps réel, photos et justificatifs.' },
-                { id: '04', title: 'Reporting', desc: 'Tableaux de bord automatiques, alertes seuls, exports PDF pour le responsable à distance.' },
-              ].map((step, index) => (
+              {LANDING_SUIVI_STEPS.map((step, index) => (
                 <li
                   key={step.id}
                   className="relative"
