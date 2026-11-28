@@ -144,3 +144,4 @@ coverage/
 audit-report.txt
 coverage/
 *.txt
+.vitest/
